@@ -1,3 +1,4 @@
+
 # /usr/bin/python
 # To run this test you need python nose tools installed
 # Run test just use:
@@ -57,7 +58,7 @@ alphaMaskImg = "../data/sampleimages/RatAlphaMask.png"
 alphaSrcImg = "../data/sampleimages/GreenMaskSource.png"
 
 #standards path
-standard_path = "./standard/"
+standard_path = "../data/test/standard/"
 
 
 #Given a set of images, a path, and a tolerance do the image diff.
