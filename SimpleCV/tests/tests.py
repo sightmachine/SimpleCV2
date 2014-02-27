@@ -928,7 +928,7 @@ def test_camera_calibration():
 
 def test_camera_undistort():
     fakeCamera = FrameSource()
-    fakeCamera.loadCalibration("./StereoVision/Default")
+    fakeCamera.loadCalibration("../data/test/StereoVision/Default")
     img = Image("../data/sampleimages/CalibImage0.png")
     img2 = fakeCamera.undistort(img)
 
