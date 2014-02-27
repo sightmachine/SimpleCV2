@@ -95,7 +95,7 @@ class ImageSet(list):
         elif directory.lower() == 'samples' or directory.lower() == 'sample':
             pth = LAUNCH_PATH
             pth = os.path.realpath(pth)
-            directory = os.path.join(pth, 'sampleimages')
+            directory = os.path.join(pth, 'data/sampleimages')
             self.load(directory)
         else:
             self.load(directory)
@@ -957,24 +957,24 @@ class Image:
             tmpname = source.lower()
 
             if tmpname == "simplecv" or tmpname == "logo":
-                imgpth = os.path.join(LAUNCH_PATH, 'sampleimages','simplecv.png')
+                imgpth = os.path.join(LAUNCH_PATH, 'data/sampleimages','simplecv.png')
                 source = imgpth
             elif tmpname == "simplecv_inverted" or tmpname == "inverted" or tmpname == "logo_inverted":
-                imgpth = os.path.join(LAUNCH_PATH, 'sampleimages','simplecv_inverted.png')
+                imgpth = os.path.join(LAUNCH_PATH, 'data/sampleimages','simplecv_inverted.png')
                 source = imgpth
             elif tmpname == "lenna":
-                imgpth = os.path.join(LAUNCH_PATH, 'sampleimages','lenna.png')
+                imgpth = os.path.join(LAUNCH_PATH, 'data/sampleimages','lenna.png')
                 source = imgpth
             elif tmpname == "lyle":
-                imgpth = os.path.join(LAUNCH_PATH, 'sampleimages','LyleJune1973.png')
+                imgpth = os.path.join(LAUNCH_PATH, 'data/sampleimages','LyleJune1973.png')
                 source = imgpth
             elif tmpname == "parity":
                 choice = random.choice(['LyleJune1973.png','lenna.png'])
-                imgpth = os.path.join(LAUNCH_PATH, 'sampleimages',choice)
+                imgpth = os.path.join(LAUNCH_PATH, 'data/sampleimages',choice)
                 source = imgpth
                 
             elif sample:
-                imgpth = os.path.join(LAUNCH_PATH, 'sampleimages', source)
+                imgpth = os.path.join(LAUNCH_PATH, 'data/sampleimages', source)
                 source = imgpth
 
         if (type(source) == tuple):
@@ -1142,7 +1142,7 @@ class Image:
 
         **EXAMPLE**
 
-        >>> img = Image("./SimpleCV/sampleimages/OWS.jpg")
+        >>> img = Image("./SimpleCV/data/sampleimages/OWS.jpg")
         >>> data = img.getEXIFData()
         >>> data['Image GPSInfo'].values
 
@@ -3196,7 +3196,7 @@ class Image:
 
         **EXAMPLE**
 
-        >>> img = Image('SimpleCV/sampleimages/family_watching_television_1958.jpg')
+        >>> img = Image('SimpleCV/data/sampleimages/family_watching_television_1958.jpg')
         >>> img.show()
         >>> img.gammaCorrect(1.5).show()
         >>> img.gammaCorrect(0.7).show()
@@ -3383,7 +3383,7 @@ class Image:
 
         Standard Test:
 
-        >>> img = Image("sampleimages/simplecv.png")
+        >>> img = Image("data/sampleimages/simplecv.png")
         >>> corners = img.findCorners()
         >>> if corners: True
 
@@ -3391,7 +3391,7 @@ class Image:
 
         Validation Test:
 
-        >>> img = Image("sampleimages/black.png")
+        >>> img = Image("data/sampleimages/black.png")
         >>> corners = img.findCorners()
         >>> if not corners: True
 
@@ -7483,7 +7483,7 @@ class Image:
 
         **EXAMPLE**
 
-        >>> img = Image("sampleimages/simplecv.png")
+        >>> img = Image("data/sampleimages/simplecv.png")
         >>> kernel = [[1,0,0],[0,1,0],[0,0,1]]
         >>> conv = img.convolve()
 
@@ -10231,7 +10231,7 @@ class Image:
 
         **EXAMPLE**
 
-        >>> img = Image("SimpleCV/sampleimages/RedDog2.jpg")
+        >>> img = Image("SimpleCV/data/sampleimages/RedDog2.jpg")
         >>> img.getDFTLogMagnitude().show()
         >>> hpf = img.highPassFilter([0.2,0.1,0.2])
         >>> hpf.show()
@@ -10346,7 +10346,7 @@ class Image:
 
         **EXAMPLE**
 
-        >>> img = Image("SimpleCV/sampleimages/RedDog2.jpg")
+        >>> img = Image("SimpleCV/data/sampleimages/RedDog2.jpg")
         >>> img.getDFTLogMagnitude().show()
         >>> lpf = img.lowPassFilter([0.2,0.2,0.05])
         >>> lpf.show()
@@ -10475,7 +10475,7 @@ class Image:
 
         **EXAMPLE**
 
-        >>> img = Image("SimpleCV/sampleimages/RedDog2.jpg")
+        >>> img = Image("SimpleCV/data/sampleimages/RedDog2.jpg")
         >>> img.getDFTLogMagnitude().show()
         >>> lpf = img.bandPassFilter([0.2,0.2,0.05],[0.3,0.3,0.2])
         >>> lpf.show()
@@ -13379,7 +13379,7 @@ class Image:
 
         **EXAMPLE**
 
-        >>> img = Image("/sampleimages/wshed.jpg")
+        >>> img = Image("/data/sampleimages/wshed.jpg")
         >>> img1 = img.watershed()
         >>> img1.show()
 
@@ -13449,7 +13449,7 @@ class Image:
 
         **EXAMPLE**
 
-        >>> img = Image("/sampleimages/wshed.jpg")
+        >>> img = Image("/data/sampleimages/wshed.jpg")
         >>> mask = img.threshold(100).dilate(3)
         >>> blobs = img.findBlobsFromWatershed(mask)
         >>> blobs.show()

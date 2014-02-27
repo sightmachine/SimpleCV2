@@ -48,7 +48,7 @@ Here is the simplecv "hello world":
     image = camera.getImage()
     image.show()
 
-For more code snippets, we recommend the [SimpleCV examples website](http://examples.simplecv.org) or looking at our example scripts in [SimpleCV/examples](http://github.com/sightmachine/SimpleCV/tree/master/SimpleCV/examples)
+For more code snippets, we recommend the [SimpleCV examples website](http://examples.simplecv.org) or looking at our example scripts in [examples](http://github.com/sightmachine/SimpleCV/tree/master/examples)
 
 ---------------------------
 <a id="installation"></a>

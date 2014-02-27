@@ -169,17 +169,6 @@ def reverse_tuple(n):
     """
     return tuple(reversed(n))
 
-def find(f, seq):
-    """
-    Search for item in a list
-
-    Returns: Boolean
-    """
-    for item in seq:
-        if (f == item):
-            return True
-    return False
-
 def test():
     """
     This function is meant to run builtin unittests

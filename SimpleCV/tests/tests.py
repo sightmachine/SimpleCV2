@@ -33,28 +33,28 @@ blue = Color.BLUE
 # Write a use the tests doc.
 
 #images
-barcode = "../sampleimages/barcode.png"
-testimage = "../sampleimages/9dots4lines.png"
-testimage2 = "../sampleimages/aerospace.jpg"
-whiteimage = "../sampleimages/white.png"
-blackimage = "../sampleimages/black.png"
-testimageclr = "../sampleimages/statue_liberty.jpg"
-testbarcode = "../sampleimages/barcode.png"
-testoutput = "../sampleimages/9d4l.jpg"
-tmpimg = "../sampleimages/tmpimg.jpg"
-greyscaleimage = "../sampleimages/greyscale.jpg"
-logo = "../sampleimages/simplecv.png"
-logo_inverted = "../sampleimages/simplecv_inverted.png"
-ocrimage = "../sampleimages/ocr-test.png"
-circles = "../sampleimages/circles.png"
-webp = "../sampleimages/simplecv.webp"
+barcode = "../data/sampleimages/barcode.png"
+testimage = "../data/sampleimages/9dots4lines.png"
+testimage2 = "../data/sampleimages/aerospace.jpg"
+whiteimage = "../data/sampleimages/white.png"
+blackimage = "../data/sampleimages/black.png"
+testimageclr = "../data/sampleimages/statue_liberty.jpg"
+testbarcode = "../data/sampleimages/barcode.png"
+testoutput = "../data/sampleimages/9d4l.jpg"
+tmpimg = "../data/sampleimages/tmpimg.jpg"
+greyscaleimage = "../data/sampleimages/greyscale.jpg"
+logo = "../data/sampleimages/simplecv.png"
+logo_inverted = "../data/sampleimages/simplecv_inverted.png"
+ocrimage = "../data/sampleimages/ocr-test.png"
+circles = "../data/sampleimages/circles.png"
+webp = "../data/sampleimages/simplecv.webp"
 
 #alpha masking images
-topImg = "../sampleimages/RatTop.png"
-bottomImg = "../sampleimages/RatBottom.png"
-maskImg = "../sampleimages/RatMask.png"
-alphaMaskImg = "../sampleimages/RatAlphaMask.png"
-alphaSrcImg = "../sampleimages/GreenMaskSource.png"
+topImg = "../data/sampleimages/RatTop.png"
+bottomImg = "../data/sampleimages/RatBottom.png"
+maskImg = "../data/sampleimages/RatMask.png"
+alphaMaskImg = "../data/sampleimages/RatAlphaMask.png"
+alphaSrcImg = "../data/sampleimages/GreenMaskSource.png"
 
 #standards path
 standard_path = "./standard/"
@@ -508,7 +508,7 @@ def test_detection_blobs_adaptive():
 
 def test_detection_blobs_smallimages():
     # Check if segfault occurs or not
-    img = Image("../sampleimages/blobsegfaultimage.png")
+    img = Image("../data/sampleimages/blobsegfaultimage.png")
     blobs = img.findBlobs()
     # if no segfault, pass
 
@@ -905,7 +905,7 @@ def test_image_get_gray_pixel():
 
 def test_camera_calibration():
     fakeCamera = FrameSource()
-    path = "../sampleimages/CalibImage"
+    path = "../data/sampleimages/CalibImage"
     ext = ".png"
     imgs = []
     for i in range(0,10):
@@ -928,7 +928,7 @@ def test_camera_calibration():
 def test_camera_undistort():
     fakeCamera = FrameSource()
     fakeCamera.loadCalibration("./StereoVision/Default")
-    img = Image("../sampleimages/CalibImage0.png")
+    img = Image("../data/sampleimages/CalibImage0.png")
     img2 = fakeCamera.undistort(img)
 
     results = [img2]
@@ -1244,7 +1244,7 @@ def test_color_conversion_func_XYZ():
 
 
 def test_blob_maker():
-    img = Image("../sampleimages/blockhead.png")
+    img = Image("../data/sampleimages/blockhead.png")
     blobber = BlobMaker()
     results = blobber.extract(img)
     print(len(results))
@@ -1252,7 +1252,7 @@ def test_blob_maker():
         assert False
 
 def test_blob_holes():
-    img = Image("../sampleimages/blockhead.png")
+    img = Image("../data/sampleimages/blockhead.png")
     blobber = BlobMaker()
     blobs = blobber.extract(img)
     count = 0
@@ -1269,7 +1269,7 @@ def test_blob_holes():
         assert False
 
 def test_blob_hull():
-    img = Image("../sampleimages/blockhead.png")
+    img = Image("../data/sampleimages/blockhead.png")
     blobber = BlobMaker()
     blobs = blobber.extract(img)
     blobs.draw()
@@ -1283,7 +1283,7 @@ def test_blob_hull():
             assert False
 
 def test_blob_data():
-    img = Image("../sampleimages/blockhead.png")
+    img = Image("../data/sampleimages/blockhead.png")
     blobber = BlobMaker()
     blobs = blobber.extract(img)
     for b in blobs:
@@ -1308,7 +1308,7 @@ def test_blob_data():
             pass
 
 def test_blob_render():
-    img = Image("../sampleimages/blockhead.png")
+    img = Image("../data/sampleimages/blockhead.png")
     blobber = BlobMaker()
     blobs = blobber.extract(img)
     dl = DrawingLayer((img.width,img.height))
@@ -1330,7 +1330,7 @@ def test_blob_render():
     pass
 
 def test_blob_methods():
-    img = Image("../sampleimages/blockhead.png")
+    img = Image("../data/sampleimages/blockhead.png")
     blobber = BlobMaker()
     blobs = blobber.extract(img)
     BL = (img.width,img.height)
@@ -1395,8 +1395,8 @@ def test_detection_ocr():
         pass
 
 def test_template_match():
-    source = Image("../sampleimages/templatetest.png")
-    template = Image("../sampleimages/template.png")
+    source = Image("../data/sampleimages/templatetest.png")
+    template = Image("../data/sampleimages/template.png")
     t = 2
     fs = source.findTemplate(template,threshold=t)
     fs.draw()
@@ -1407,8 +1407,8 @@ def test_template_match():
     pass
 
 def test_template_match_once():
-    source = Image("../sampleimages/templatetest.png")
-    template = Image("../sampleimages/template.png")
+    source = Image("../data/sampleimages/templatetest.png")
+    template = Image("../data/sampleimages/template.png")
     t = 2
     fs = source.findTemplateOnce(template,threshold=t)
     if( len(fs) ==  0 ):
@@ -1425,8 +1425,8 @@ def test_template_match_once():
     pass
 
 def test_template_match_RGB():
-    source = Image("../sampleimages/templatetest.png")
-    template = Image("../sampleimages/template.png")
+    source = Image("../data/sampleimages/templatetest.png")
+    template = Image("../data/sampleimages/template.png")
     t = 2
     fs = source.findTemplate(template,threshold=t, grayscale=False)
     fs.draw()
@@ -1695,7 +1695,7 @@ def test_hsv_conversion():
 
 
 def test_whiteBalance():
-    img = Image("../sampleimages/BadWB2.jpg")
+    img = Image("../data/sampleimages/BadWB2.jpg")
     output = img.whiteBalance()
     output2 = img.whiteBalance(method="GrayWorld")
     results = [output,output2]
@@ -1784,7 +1784,7 @@ def test_BlobPickle():
 
 def test_blob_isa_methods():
     img1 = Image(circles)
-    img2 = Image("../sampleimages/blockhead.png")
+    img2 = Image("../data/sampleimages/blockhead.png")
     blobs = img1.findBlobs().sortArea()
     t1 = blobs[-1].isCircle()
     f1 = blobs[-1].isRectangle()
@@ -1844,8 +1844,8 @@ def test_findKeypoints():
     pass
 
 def test_movement_feature():
-    current1 = Image("../sampleimages/flow_simple1.png")
-    prev = Image("../sampleimages/flow_simple2.png")
+    current1 = Image("../data/sampleimages/flow_simple1.png")
+    prev = Image("../data/sampleimages/flow_simple2.png")
 
     fs = current1.findMotion(prev, window=7)
     if( len(fs) > 0 ):
@@ -1860,7 +1860,7 @@ def test_movement_feature():
         assert False
 
 
-    current2 = Image("../sampleimages/flow_simple1.png")
+    current2 = Image("../data/sampleimages/flow_simple1.png")
     fs = current2.findMotion(prev, window=7,method='HS')
     if( len(fs) > 0 ):
         fs.draw(color=Color.RED)
@@ -1873,7 +1873,7 @@ def test_movement_feature():
     else:
         assert False
 
-    current3 = Image("../sampleimages/flow_simple1.png")
+    current3 = Image("../data/sampleimages/flow_simple1.png")
     fs = current3.findMotion(prev, window=7,method='LK',aggregate=False)
     if( len(fs) > 0 ):
         fs.draw(color=Color.RED)
@@ -1899,10 +1899,10 @@ def test_keypoint_extraction():
         pass
         return
 
-    img1 = Image("../sampleimages/KeypointTemplate2.png")
-    img2 = Image("../sampleimages/KeypointTemplate2.png")
-    img3 = Image("../sampleimages/KeypointTemplate2.png")
-    img4 = Image("../sampleimages/KeypointTemplate2.png")
+    img1 = Image("../data/sampleimages/KeypointTemplate2.png")
+    img2 = Image("../data/sampleimages/KeypointTemplate2.png")
+    img3 = Image("../data/sampleimages/KeypointTemplate2.png")
+    img4 = Image("../data/sampleimages/KeypointTemplate2.png")
 
     kp1 = img1.findKeypoints()
     kp2 = img2.findKeypoints(highQuality=True)
@@ -1940,11 +1940,11 @@ def test_keypoint_match():
         pass
         return
 
-    template = Image("../sampleimages/KeypointTemplate2.png")
-    match0 = Image("../sampleimages/kptest0.png")
-    match1 = Image("../sampleimages/kptest1.png")
-    match3 = Image("../sampleimages/kptest2.png")
-    match2 = Image("../sampleimages/aerospace.jpg")# should be none
+    template = Image("../data/sampleimages/KeypointTemplate2.png")
+    match0 = Image("../data/sampleimages/kptest0.png")
+    match1 = Image("../data/sampleimages/kptest1.png")
+    match3 = Image("../data/sampleimages/kptest2.png")
+    match2 = Image("../data/sampleimages/aerospace.jpg")# should be none
 
     fs0 = match0.findKeypointMatch(template)#test zero
     fs1 = match1.findKeypointMatch(template,quality=300.00,minDist=0.5,minMatch=0.2)
@@ -1977,8 +1977,8 @@ def test_draw_keypoint_matches():
     except:
         pass
         return
-    template = Image("../sampleimages/KeypointTemplate2.png")
-    match0 = Image("../sampleimages/kptest0.png")
+    template = Image("../data/sampleimages/KeypointTemplate2.png")
+    match0 = Image("../data/sampleimages/kptest0.png")
     result = match0.drawKeypointMatches(template,thresh=500.00,minDist=0.15,width=1)
 
     results = [result]
@@ -2090,7 +2090,7 @@ def test_threshold():
     pass
 
 def test_smartThreshold():
-    img = Image("../sampleimages/RatTop.png")
+    img = Image("../data/sampleimages/RatTop.png")
     mask = Image((img.width,img.height))
     mask.dl().circle((100,100),80,color=Color.MAYBE_BACKGROUND,filled=True)
     mask.dl().circle((100,100),60,color=Color.MAYBE_FOREGROUND,filled=True)
@@ -2107,7 +2107,7 @@ def test_smartThreshold():
     pass
 
 def test_smartFindBlobs():
-    img = Image("../sampleimages/RatTop.png")
+    img = Image("../data/sampleimages/RatTop.png")
     mask = Image((img.width,img.height))
     mask.dl().circle((100,100),80,color=Color.MAYBE_BACKGROUND,filled=True)
     mask.dl().circle((100,100),60,color=Color.MAYBE_FOREGROUND,filled=True)
@@ -2121,7 +2121,7 @@ def test_smartFindBlobs():
         assert False
 
     for t in range(2,3):
-        img = Image("../sampleimages/RatTop.png")
+        img = Image("../data/sampleimages/RatTop.png")
         blobs2 = img.smartFindBlobs(rect=(30,30,150,185),thresh_level=t)
         if(blobs2 is not None):
             blobs2.draw()
@@ -2224,7 +2224,7 @@ def test_detection_spatial_relationships():
     pass
 
 def test_getEXIFData():
-    img = Image("../sampleimages/cat.jpg")
+    img = Image("../data/sampleimages/cat.jpg")
     img2 = Image(testimage)
     d1 = img.getEXIFData()
     d2 = img2.getEXIFData()
@@ -2234,7 +2234,7 @@ def test_getEXIFData():
         assert False
 
 def test_get_raw_dft():
-    img = Image("../sampleimages/RedDog2.jpg")
+    img = Image("../data/sampleimages/RedDog2.jpg")
     raw3 = img.rawDFTImage()
     raw1 = img.rawDFTImage(grayscale=True)
     if( len(raw3) != 3 or
@@ -2252,7 +2252,7 @@ def test_get_raw_dft():
         pass
 
 def test_getDFTLogMagnitude():
-    img = Image("../sampleimages/RedDog2.jpg")
+    img = Image("../data/sampleimages/RedDog2.jpg")
     lm3 = img.getDFTLogMagnitude()
     lm1 = img.getDFTLogMagnitude(grayscale=True)
 
@@ -2264,8 +2264,8 @@ def test_getDFTLogMagnitude():
 
 
 def test_applyDFTFilter():
-    img = Image("../sampleimages/RedDog2.jpg")
-    flt = Image("../sampleimages/RedDogFlt.png")
+    img = Image("../data/sampleimages/RedDog2.jpg")
+    flt = Image("../data/sampleimages/RedDogFlt.png")
     f1 = img.applyDFTFilter(flt)
     f2 = img.applyDFTFilter(flt,grayscale=True)
     results = [f1,f2]
@@ -2274,7 +2274,7 @@ def test_applyDFTFilter():
     pass
 
 def test_highPassFilter():
-    img = Image("../sampleimages/RedDog2.jpg")
+    img = Image("../data/sampleimages/RedDog2.jpg")
     a = img.highPassFilter(0.5)
     b = img.highPassFilter(0.5,grayscale=True)
     c = img.highPassFilter(0.5,yCutoff=0.4)
@@ -2288,7 +2288,7 @@ def test_highPassFilter():
     pass
 
 def test_lowPassFilter():
-    img = Image("../sampleimages/RedDog2.jpg")
+    img = Image("../data/sampleimages/RedDog2.jpg")
     a = img.lowPassFilter(0.5)
     b = img.lowPassFilter(0.5,grayscale=True)
     c = img.lowPassFilter(0.5,yCutoff=0.4)
@@ -2303,7 +2303,7 @@ def test_lowPassFilter():
     pass
 
 def test_DFT_gaussian():
-    img = Image("../sampleimages/RedDog2.jpg")
+    img = Image("../data/sampleimages/RedDog2.jpg")
     flt = DFT.createGaussianFilter(dia=300, size=(300, 300), highpass=False)
     fltimg = img.filter(flt)
     fltimggray = img.filter(flt, grayscale=True)
@@ -2316,7 +2316,7 @@ def test_DFT_gaussian():
     pass
 
 def test_DFT_butterworth():
-    img = Image("../sampleimages/RedDog2.jpg")
+    img = Image("../data/sampleimages/RedDog2.jpg")
     flt = DFT.createButterworthFilter(dia=300, size=(300, 300), order=3, highpass=False)
     fltimg = img.filter(flt)
     fltimggray = img.filter(flt, grayscale=True)
@@ -2329,7 +2329,7 @@ def test_DFT_butterworth():
     pass
 
 def test_DFT_lowpass():
-    img = Image("../sampleimages/RedDog2.jpg")
+    img = Image("../data/sampleimages/RedDog2.jpg")
     flt = DFT.createLowpassFilter(xCutoff=150, size=(600, 600))
     fltimg = img.filter(flt)
     fltimggray = img.filter(flt, grayscale=True)
@@ -2339,7 +2339,7 @@ def test_DFT_lowpass():
     pass
 
 def test_DFT_highpass():
-    img = Image("../sampleimages/RedDog2.jpg")
+    img = Image("../data/sampleimages/RedDog2.jpg")
     flt = DFT.createLowpassFilter(xCutoff=10, size=(600, 600))
     fltimg = img.filter(flt)
     fltimggray = img.filter(flt, grayscale=True)
@@ -2349,7 +2349,7 @@ def test_DFT_highpass():
     pass
 
 def test_DFT_notch():
-    img = Image("../sampleimages/RedDog2.jpg")
+    img = Image("../data/sampleimages/RedDog2.jpg")
     flt = DFT.createNotchFilter(dia1=500, size=(512, 512), type="lowpass")
     fltimg = img.filter(flt)
     fltimggray = img.filter(flt, grayscale=True)
@@ -2361,7 +2361,7 @@ def test_DFT_notch():
     perform_diff(results, name_stem, 20)
 
 def test_findHaarFeatures():
-    img = Image("../sampleimages/orson_welles.jpg")
+    img = Image("../data/sampleimages/orson_welles.jpg")
     face = HaarCascade("face.xml") #old HaarCascade
     f = img.findHaarFeatures(face)
     f2 = img.findHaarFeatures("face_cv2.xml") #new cv2 HaarCascade
@@ -2438,7 +2438,7 @@ def test_findBlobsFromMask():
 
 
 def test_bandPassFilter():
-    img = Image("../sampleimages/RedDog2.jpg")
+    img = Image("../data/sampleimages/RedDog2.jpg")
     a = img.bandPassFilter(0.1,0.3)
     b = img.bandPassFilter(0.1,0.3,grayscale=True)
     c = img.bandPassFilter(0.1,0.3,yCutoffLow=0.1,yCutoffHigh=0.3)
@@ -2451,7 +2451,7 @@ def test_bandPassFilter():
 
 
 def test_image_slice():
-    img = Image("../sampleimages/blockhead.png")
+    img = Image("../data/sampleimages/blockhead.png")
     I = img.findLines()
     I2 = I[0:10]
     if type(I2) == list:
@@ -2460,7 +2460,7 @@ def test_image_slice():
         pass
 
 def test_blob_spatial_relationships():
-    img = Image("../sampleimages/spatial_relationships.png")
+    img = Image("../data/sampleimages/spatial_relationships.png")
     #please see the image
     blobs = img.findBlobs(threshval=1)
     blobs = blobs.sortArea()
@@ -2533,8 +2533,8 @@ def test_blob_spatial_relationships():
         assert False
 
 def test_get_aspectratio():
-    img = Image("../sampleimages/EdgeTest1.png")
-    img2 = Image("../sampleimages/EdgeTest2.png")
+    img = Image("../data/sampleimages/EdgeTest1.png")
+    img2 = Image("../data/sampleimages/EdgeTest2.png")
     b = img.findBlobs()
     l = img2.findLines()
     c = img2.findCircle(thresh=200)
@@ -2556,7 +2556,7 @@ def test_get_aspectratio():
         assert False
 
 def test_line_crop():
-    img = Image("../sampleimages/EdgeTest2.png")
+    img = Image("../data/sampleimages/EdgeTest2.png")
     l = img.findLines().sortArea()
     l = l[-5:-1]
     results = []
@@ -2567,8 +2567,8 @@ def test_line_crop():
     pass
 
 def test_get_corners():
-    img = Image("../sampleimages/EdgeTest1.png")
-    img2 = Image("../sampleimages/EdgeTest2.png")
+    img = Image("../data/sampleimages/EdgeTest1.png")
+    img2 = Image("../data/sampleimages/EdgeTest2.png")
     b = img.findBlobs()
     tl = b.topLeftCorners()
     tr = b.topRightCorners()
@@ -2621,8 +2621,8 @@ def test_save_kwargs():
     s70 = os.remove(l70)
 
 def test_on_edge():
-    img1 = "./../sampleimages/EdgeTest1.png"
-    img2 = "./../sampleimages/EdgeTest2.png"
+    img1 = "./../data/sampleimages/EdgeTest1.png"
+    img2 = "./../data/sampleimages/EdgeTest2.png"
     imgA = Image(img1)
     imgB = Image(img2)
     imgC = Image(img2)
@@ -2665,9 +2665,9 @@ def test_on_edge():
     #~ perform_diff(results,name_stem,tolerance=8.0)
 
 def test_feature_angles():
-    img = Image("../sampleimages/rotation2.png")
-    img2 = Image("../sampleimages/rotation.jpg")
-    img3 = Image("../sampleimages/rotation.jpg")
+    img = Image("../data/sampleimages/rotation2.png")
+    img2 = Image("../data/sampleimages/rotation.jpg")
+    img3 = Image("../data/sampleimages/rotation.jpg")
     b = img.findBlobs()
     l = img2.findLines()
     k = img3.findKeypoints()
@@ -2689,7 +2689,7 @@ def test_feature_angles():
     perform_diff(results,name_stem,tolerance=11.0)
 
 def test_feature_angles_rotate():
-    img = Image("../sampleimages/rotation2.png")
+    img = Image("../data/sampleimages/rotation2.png")
     b = img.findBlobs()
     results = []
 
@@ -2720,7 +2720,7 @@ def test_nparray2cvmat():
     c = npArray2cvMat(gf64,cv.CV_8UC1)
 
 def test_minrect_blobs():
-    img = Image("../sampleimages/bolt.png")
+    img = Image("../data/sampleimages/bolt.png")
     img = img.invert()
     results = []
     for i in range(-10,10):
@@ -2735,7 +2735,7 @@ def test_minrect_blobs():
     perform_diff(results,name_stem,tolerance=11.0)
 
 def test_pixelize():
-    img = Image("../sampleimages/The1970s.png")
+    img = Image("../data/sampleimages/The1970s.png")
     img1 = img.pixelize(4)
     img2 = img.pixelize((5,13))
     img3 = img.pixelize((img.width/10,img.height))
@@ -2942,7 +2942,7 @@ def test_point_intersection():
     perform_diff(results,name_stem,tolerance=6.0)
 
 def test_findSkintoneBlobs():
-    img = Image('../sampleimages/04000.jpg')
+    img = Image('../data/sampleimages/04000.jpg')
 
     blobs = img.findSkintoneBlobs()
     for b in blobs:
@@ -2956,14 +2956,14 @@ def test_findSkintoneBlobs():
 
 def test_getSkintoneMask():
     imgSet = []
-    imgSet.append(Image('../sampleimages/040000.jpg'))
-    imgSet.append(Image('../sampleimages/040001.jpg'))
-    imgSet.append(Image('../sampleimages/040002.jpg'))
-    imgSet.append(Image('../sampleimages/040003.jpg'))
-    imgSet.append(Image('../sampleimages/040004.jpg'))
-    imgSet.append(Image('../sampleimages/040005.jpg'))
-    imgSet.append(Image('../sampleimages/040006.jpg'))
-    imgSet.append(Image('../sampleimages/040007.jpg'))
+    imgSet.append(Image('../data/sampleimages/040000.jpg'))
+    imgSet.append(Image('../data/sampleimages/040001.jpg'))
+    imgSet.append(Image('../data/sampleimages/040002.jpg'))
+    imgSet.append(Image('../data/sampleimages/040003.jpg'))
+    imgSet.append(Image('../data/sampleimages/040004.jpg'))
+    imgSet.append(Image('../data/sampleimages/040005.jpg'))
+    imgSet.append(Image('../data/sampleimages/040006.jpg'))
+    imgSet.append(Image('../data/sampleimages/040007.jpg'))
     masks = [img.getSkintoneMask() for img in imgSet]
     VISUAL_TEST = True
     name_stem = 'test_skintone'
@@ -3073,16 +3073,16 @@ def test_image_temp_save():
 
 def test_image_set_average():
     iset = ImageSet()
-    iset.append(Image("./../sampleimages/tracktest0.jpg"))
-    iset.append(Image("./../sampleimages/tracktest1.jpg"))
-    iset.append(Image("./../sampleimages/tracktest2.jpg"))
-    iset.append(Image("./../sampleimages/tracktest3.jpg"))
-    iset.append(Image("./../sampleimages/tracktest4.jpg"))
-    iset.append(Image("./../sampleimages/tracktest5.jpg"))
-    iset.append(Image("./../sampleimages/tracktest6.jpg"))
-    iset.append(Image("./../sampleimages/tracktest7.jpg"))
-    iset.append(Image("./../sampleimages/tracktest8.jpg"))
-    iset.append(Image("./../sampleimages/tracktest9.jpg"))
+    iset.append(Image("./../data/sampleimages/tracktest0.jpg"))
+    iset.append(Image("./../data/sampleimages/tracktest1.jpg"))
+    iset.append(Image("./../data/sampleimages/tracktest2.jpg"))
+    iset.append(Image("./../data/sampleimages/tracktest3.jpg"))
+    iset.append(Image("./../data/sampleimages/tracktest4.jpg"))
+    iset.append(Image("./../data/sampleimages/tracktest5.jpg"))
+    iset.append(Image("./../data/sampleimages/tracktest6.jpg"))
+    iset.append(Image("./../data/sampleimages/tracktest7.jpg"))
+    iset.append(Image("./../data/sampleimages/tracktest8.jpg"))
+    iset.append(Image("./../data/sampleimages/tracktest9.jpg"))
     avg = iset.average()
     result = [avg]
     name_stem = "test_image_set_average"
@@ -3092,16 +3092,16 @@ def test_image_set_average():
 
 def test_save_to_gif():
     imgs = ImageSet()
-    imgs.append(Image('../sampleimages/tracktest0.jpg'))
-    imgs.append(Image('../sampleimages/tracktest1.jpg'))
-    imgs.append(Image('../sampleimages/tracktest2.jpg'))
-    imgs.append(Image('../sampleimages/tracktest3.jpg'))
-    imgs.append(Image('../sampleimages/tracktest4.jpg'))
-    imgs.append(Image('../sampleimages/tracktest5.jpg'))
-    imgs.append(Image('../sampleimages/tracktest6.jpg'))
-    imgs.append(Image('../sampleimages/tracktest7.jpg'))
-    imgs.append(Image('../sampleimages/tracktest8.jpg'))
-    imgs.append(Image('../sampleimages/tracktest9.jpg'))
+    imgs.append(Image('../data/sampleimages/tracktest0.jpg'))
+    imgs.append(Image('../data/sampleimages/tracktest1.jpg'))
+    imgs.append(Image('../data/sampleimages/tracktest2.jpg'))
+    imgs.append(Image('../data/sampleimages/tracktest3.jpg'))
+    imgs.append(Image('../data/sampleimages/tracktest4.jpg'))
+    imgs.append(Image('../data/sampleimages/tracktest5.jpg'))
+    imgs.append(Image('../data/sampleimages/tracktest6.jpg'))
+    imgs.append(Image('../data/sampleimages/tracktest7.jpg'))
+    imgs.append(Image('../data/sampleimages/tracktest8.jpg'))
+    imgs.append(Image('../data/sampleimages/tracktest9.jpg'))
 
     filename = "test_save_to_gif.gif"
     saved = imgs.save(filename)
@@ -3112,7 +3112,7 @@ def test_save_to_gif():
 
 
 def sliceinImageSet():
-    imgset = ImageSet("../sampleimages/")
+    imgset = ImageSet("../data/sampleimages/")
     imgset = imgset[8::-2]
     if isinstance(imgset,ImageSet):
         assert True
@@ -3372,7 +3372,7 @@ def test_matchSIFTKeyPoints():
         assert False
 
 def test_findFeatures():
-    img = Image('../sampleimages/mtest.png')
+    img = Image('../data/sampleimages/mtest.png')
     h_features = img.findFeatures("harris", threshold=500)
     s_features = img.findFeatures("szeliski", threshold=500)
     if h_features and s_features:
@@ -3381,7 +3381,7 @@ def test_findFeatures():
         assert False
 
 def test_ColorMap():
-    img = Image('../sampleimages/mtest.png')
+    img = Image('../data/sampleimages/mtest.png')
     blobs = img.findBlobs()
     cm = ColorMap((Color.RED,Color.YELLOW,Color.BLUE),min(blobs.area()),max(blobs.area()))
     for b in blobs:
@@ -3401,7 +3401,7 @@ def test_Steganograpy():
     pass
 
 def test_watershed():
-    img = Image('../sampleimages/wshed.jpg')
+    img = Image('../data/sampleimages/wshed.jpg')
     img1 = img.watershed()
     img2 = img.watershed(dilate=3,erode=2)
     img3 = img.watershed(mask=img.threshold(128),erode=1,dilate=1)
@@ -3420,7 +3420,7 @@ def test_watershed():
     perform_diff(result,name_stem,3.0)
 
 def test_minmax():
-    img = Image('../sampleimages/wshed.jpg')
+    img = Image('../data/sampleimages/wshed.jpg')
     min = img.minValue()
     min,pts = img.minValue(locations=True)
     max = img.maxValue()
@@ -3781,22 +3781,22 @@ def test_faceRecognize():
         import cv2
         if hasattr(cv2, "createFisherFaceRecognizer"):
             f = FaceRecognizer()
-            images1 = ["../sampleimages/ff1.jpg",
-                       "../sampleimages/ff2.jpg",
-                       "../sampleimages/ff3.jpg",
-                       "../sampleimages/ff4.jpg",
-                        "../sampleimages/ff5.jpg"]
+            images1 = ["../data/sampleimages/ff1.jpg",
+                       "../data/sampleimages/ff2.jpg",
+                       "../data/sampleimages/ff3.jpg",
+                       "../data/sampleimages/ff4.jpg",
+                        "../data/sampleimages/ff5.jpg"]
 
-            images2 = ["../sampleimages/fm1.jpg",
-                       "../sampleimages/fm2.jpg",
-                       "../sampleimages/fm3.jpg",
-                       "../sampleimages/fm4.jpg",
-                       "../sampleimages/fm5.jpg"]
+            images2 = ["../data/sampleimages/fm1.jpg",
+                       "../data/sampleimages/fm2.jpg",
+                       "../data/sampleimages/fm3.jpg",
+                       "../data/sampleimages/fm4.jpg",
+                       "../data/sampleimages/fm5.jpg"]
 
-            images3 = ["../sampleimages/fi1.jpg",
-                       "../sampleimages/fi2.jpg",
-                       "../sampleimages/fi3.jpg",
-                       "../sampleimages/fi4.jpg"]
+            images3 = ["../data/sampleimages/fi1.jpg",
+                       "../data/sampleimages/fi2.jpg",
+                       "../data/sampleimages/fi3.jpg",
+                       "../data/sampleimages/fi4.jpg"]
 
             imgset1 = []
             imgset2 = []
