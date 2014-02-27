@@ -27,31 +27,31 @@ blue = Color.BLUE
 # Write a use the tests doc.
 
 #images
-barcode = "../sampleimages/barcode.png"
-testimage = "../sampleimages/9dots4lines.png"
-testimage2 = "../sampleimages/aerospace.jpg"
-whiteimage = "../sampleimages/white.png"
-blackimage = "../sampleimages/black.png"
-testimageclr = "../sampleimages/statue_liberty.jpg"
-testbarcode = "../sampleimages/barcode.png"
-testoutput = "../sampleimages/9d4l.jpg"
-tmpimg = "../sampleimages/tmpimg.jpg"
-greyscaleimage = "../sampleimages/greyscale.jpg"
-logo = "../sampleimages/simplecv.png"
-logo_inverted = "../sampleimages/simplecv_inverted.png"
-ocrimage = "../sampleimages/ocr-test.png"
-circles = "../sampleimages/circles.png"
-webp = "../sampleimages/simplecv.webp"
+barcode = "../data/sampleimages/barcode.png"
+testimage = "../data/sampleimages/9dots4lines.png"
+testimage2 = "../data/sampleimages/aerospace.jpg"
+whiteimage = "../data/sampleimages/white.png"
+blackimage = "../data/sampleimages/black.png"
+testimageclr = "../data/sampleimages/statue_liberty.jpg"
+testbarcode = "../data/sampleimages/barcode.png"
+testoutput = "../data/sampleimages/9d4l.jpg"
+tmpimg = "../data/sampleimages/tmpimg.jpg"
+greyscaleimage = "../data/sampleimages/greyscale.jpg"
+logo = "../data/sampleimages/simplecv.png"
+logo_inverted = "../data/sampleimages/simplecv_inverted.png"
+ocrimage = "../data/sampleimages/ocr-test.png"
+circles = "../data/sampleimages/circles.png"
+webp = "../data/sampleimages/simplecv.webp"
 
 #alpha masking images
-topImg = "../sampleimages/RatTop.png"
-bottomImg = "../sampleimages/RatBottom.png"
-maskImg = "../sampleimages/RatMask.png"
-alphaMaskImg = "../sampleimages/RatAlphaMask.png"
-alphaSrcImg = "../sampleimages/GreenMaskSource.png"
+topImg = "../data/sampleimages/RatTop.png"
+bottomImg = "../data/sampleimages/RatBottom.png"
+maskImg = "../data/sampleimages/RatMask.png"
+alphaMaskImg = "../data/sampleimages/RatAlphaMask.png"
+alphaSrcImg = "../data/sampleimages/GreenMaskSource.png"
 
 #standards path
-standard_path = "./standard/"
+standard_path = "../data/test/standard/"
 
 #These function names are required by nose test, please leave them as is
 def setup_context():

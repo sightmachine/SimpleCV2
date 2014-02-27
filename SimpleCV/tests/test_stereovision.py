@@ -28,16 +28,16 @@ blue = Color.BLUE
 # Write a use the tests doc.
 
 #images
-pair1 = ("../sampleimages/stereo1_left.png" , "../sampleimages/stereo1_right.png")
-pair2 = ("../sampleimages/stereo2_left.png" , "../sampleimages/stereo2_right.png")
-pair3 = ("../sampleimages/stereo1_real_left.png" , "../sampleimages/stereo1_real_right.png")
-pair4 = ("../sampleimages/stereo2_real_left.png" , "../sampleimages/stereo2_real_right.png")
-pair5 = ("../sampleimages/stereo3_real_left.png" , "../sampleimages/stereo3_real_right.png")
+pair1 = ("../data/sampleimages/stereo1_left.png" , "../data/sampleimages/stereo1_right.png")
+pair2 = ("../data/sampleimages/stereo2_left.png" , "../data/sampleimages/stereo2_right.png")
+pair3 = ("../data/sampleimages/stereo1_real_left.png" , "../data/sampleimages/stereo1_real_right.png")
+pair4 = ("../data/sampleimages/stereo2_real_left.png" , "../data/sampleimages/stereo2_real_right.png")
+pair5 = ("../data/sampleimages/stereo3_real_left.png" , "../data/sampleimages/stereo3_real_right.png")
 
 correct_pairs = [pair1,pair2,pair3,pair4,pair5]
 
 #standards path
-standard_path = "./standard/"
+standard_path = "../data/test/standard/"
 
 
 #Given a set of images, a path, and a tolerance do the image diff.

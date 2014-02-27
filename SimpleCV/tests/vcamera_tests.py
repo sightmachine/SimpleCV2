@@ -5,9 +5,9 @@ from SimpleCV import *
 from nose.tools import with_setup
 
 
-testimage = "../sampleimages/9dots4lines.png"
-testvideo = "../sampleimages/ball.mov"
-testoutput = "standard/vc.jpg"
+testimage = "../data/sampleimages/9dots4lines.png"
+testvideo = "../data/sampleimages/ball.mov"
+testoutput = "../data/test/standard/vc.jpg"
 
 def doFullVCamCoverageTest(vcam):
     run = True
@@ -57,7 +57,7 @@ def test_camera_video():
         assert False
 
 def test_camera_iset():
-    iset = ImageSet('./standard/')
+    iset = ImageSet('../data/test/standard/')
     mycam = VirtualCamera(iset, "imageset")
     img = mycam.getImage()
     if(doFullVCamCoverageTest(mycam)):
@@ -66,7 +66,7 @@ def test_camera_iset():
         assert False
 
 def test_camera_iset_directory():
-    iset = './standard/'
+    iset = '../data/test/standard/'
     mycam = VirtualCamera(iset, "imageset")
     img = mycam.getImage()
     if(doFullVCamCoverageTest(mycam)):
