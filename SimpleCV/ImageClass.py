@@ -3645,7 +3645,7 @@ class Image:
 
         **EXAMPLE**
 
-        >>> faces = HaarCascade("./SimpleCV/Features/HaarCascades/face.xml","myFaces")
+        >>> faces = HaarCascade("./SimpleCV/data/Features/HaarCascades/face.xml","myFaces")
         >>> cam = Camera()
         >>> while True:
         >>>     f = cam.getImage().findHaarFeatures(faces)
@@ -10931,7 +10931,7 @@ class Image:
         >>> img.findHaarFeatures('face.xml')
         '''
 
-        features_directory = os.path.join(LAUNCH_PATH, 'Features','HaarCascades')
+        features_directory = os.path.join(LAUNCH_PATH, 'data/Features/HaarCascades')
         features = os.listdir(features_directory)
         print features
 
@@ -13994,7 +13994,7 @@ class Image:
             return None
 
         if not cascade:
-            cascade = "/".join([LAUNCH_PATH,"/Features/HaarCascades/face.xml"])
+            cascade = os.path.join(LAUNCH_PATH, 'data/Features/HaarCascades/face.xml')
 
         faces = self.findHaarFeatures(cascade)
         if not faces:

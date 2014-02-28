@@ -26,7 +26,7 @@ class HaarCascade():
             if os.path.exists(fname):
                 self._fhandle = os.path.abspath(fname)
             else:
-                self._fhandle = os.path.join(LAUNCH_PATH, 'Features','HaarCascades',fname)
+                self._fhandle = os.path.join(LAUNCH_PATH, 'data/Features/HaarCascades', fname)
                 if (not os.path.exists(self._fhandle)):
                     logger.warning("Could not find Haar Cascade file " + fname)
                     logger.warning("Try running the function img.listHaarFeatures() to see what is available")
@@ -49,7 +49,7 @@ class HaarCascade():
             if os.path.exists(fname):
                 self._fhandle = os.path.abspath(fname)
             else:
-                self._fhandle = os.path.join(LAUNCH_PATH, 'Features','HaarCascades',fname)
+                self._fhandle = os.path.join(LAUNCH_PATH, 'data/Features/HaarCascades', fname)
                 if (not os.path.exists(self._fhandle)):
                     logger.warning("Could not find Haar Cascade file " + fname)
                     logger.warning("Try running the function img.listHaarFeatures() to see what is available")

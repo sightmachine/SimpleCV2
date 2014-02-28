@@ -28,8 +28,8 @@ setup(name="SimpleCV",
       requires=['cv2', 'cv', 'numpy', 'scipy', 'pygame', 'pil', 'svgwrite'],
       package_data={  # DO NOT REMOVE, NEEDED TO LOAD INLINE FILES i = Image('simplecv')
                       'SimpleCV': ['data/sampleimages/*',
-                                   'Features/HaarCascades/*',
-                                   'Features/FaceRecognizerData/*'
+                                   'data/Features/HaarCascades/*',
+                                   'data/Features/FaceRecognizer/*'
                                    'examples/arduino/*',
                                    'examples/detection/*',
                                    'examples/display/*',
