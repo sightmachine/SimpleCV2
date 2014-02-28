@@ -28,8 +28,8 @@ display = Display(resolution = (w,h))
 hue = HueHistogramFeatureExtractor(mNBins=16)
 edge = EdgeHistogramFeatureExtractor()
 bof = BOFFeatureExtractor()
-bof.load('../Features/cbdata.txt')
-haar = HaarLikeFeatureExtractor(fname="../Features/haar.txt")
+bof.load('../data/Features/cbdata.txt')
+haar = HaarLikeFeatureExtractor(fname="../data/Features/haar.txt")
 morph = MorphologyFeatureExtractor()
 
 spath = data_path + "/data/structured/"

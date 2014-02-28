@@ -189,38 +189,24 @@ class BOFFeatureExtractor(object):
         retVal = retVal[1:,:] # pop the fake value we put on top of the stack
         return retVal
 
-
-
-    def load(self,datafile):
+    def load(self, datafile):
         """
         Load a codebook from file using the datafile. The datafile
         should point to a local image for the source patch image.
         """
-        myFile = open(datafile, 'r')
-        temp = myFile.readline()
-        #print(temp)
-        self.mNumCodes = int(myFile.readline())
-        #print(self.mNumCodes)
-        w = int(myFile.readline())
-        h = int(myFile.readline())
-        self.mPatchSize = (w,h)
-        #print(self.mPatchSize)
-        self.mPadding = int(myFile.readline())
-        #print(self.mPadding)
-        w = int(myFile.readline())
-        h = int(myFile.readline())
-        self.mLayout = (w,h)
-        #print(self.mLayout)
-        imgfname = myFile.readline().strip()
-        #print(imgfname)
-        self.mCodebookImg = Image(imgfname)
-        self.mCodebook = self._img2Codebook(self.mCodebookImg,
-                                            self.mPatchSize,
-                                            self.mNumCodes,
-                                            self.mLayout,
-                                            self.mPadding)
-        #print(self.mCodebook)
-        return
+        with open(datafile, 'r') as f:
+            lines = f.readlines()
+            self.mNumCodes = int(lines[1])
+            self.mPatchSize = int(lines[2]), int(lines[3])
+            self.mPadding = int(lines[4])
+            self.mLayout = int(lines[5]), int(lines[6])
+            data_dir = os.path.dirname(datafile)
+            self.mCodebookImg = Image(os.path.join(data_dir, lines[7].strip()))
+            self.mCodebook = self._img2Codebook(self.mCodebookImg,
+                                                self.mPatchSize,
+                                                self.mNumCodes,
+                                                self.mLayout,
+                                                self.mPadding)
 
     def save(self,imgfname,datafname):
         """
