@@ -12,20 +12,24 @@
 #     _mSrcImgW = None
 #     mSrcImgH = None
 
-
-#load system libraries
-from simplecv.base import *
-from simplecv.color import *
 import copy
+import types
+import warnings
+from math import sqrt
+
+from simplecv.base import np, re, spsd, logger
+from simplecv.color import Color
 
 
 class FeatureSet(list):
     """
     **SUMMARY**
 
-    FeatureSet is a class extended from Python's list which has special functions so that it is useful for handling feature metadata on an image.
+    FeatureSet is a class extended from Python's list which has special
+    functions so that it is useful for handling feature metadata on an image.
 
-    In general, functions dealing with attributes will return numpy arrays, and functions dealing with sorting or filtering will return new FeatureSets.
+    In general, functions dealing with attributes will return numpy arrays,
+    and functions dealing with sorting or filtering will return new FeatureSets
 
     **EXAMPLE**
 
@@ -35,7 +39,8 @@ class FeatureSet(list):
     >>> lines.x()
     >>> lines.crop()
     """
-    def __getitem__(self,key):
+
+    def __getitem__(self, key):
         """
         **SUMMARY**
 
@@ -44,36 +49,39 @@ class FeatureSet(list):
         functions on sub-lists
 
         """
-        if type(key) is types.SliceType: #Or can use 'try:' for speed
+        if isinstance(key, types.SliceType):  # Or can use 'try:' for speed
             return FeatureSet(list.__getitem__(self, key))
         else:
-            return list.__getitem__(self,key)
+            return list.__getitem__(self, key)
 
     def __getslice__(self, i, j):
         """
         Deprecated since python 2.0, now using __getitem__
         """
-        return self.__getitem__(slice(i,j))
+        return self.__getitem__(slice(i, j))
 
     def count(self):
         '''
-        This function returns the length / count of the all the items in the FeatureSet
+        This function returns the length / count of the all the items in the
+        FeatureSet
         '''
 
         return len(self)
 
-    def draw(self, color = Color.GREEN,width=1, autocolor = False, alpha=-1):
+    def draw(self, color=Color.GREEN, width=1, autocolor=False, alpha=-1):
         """
         **SUMMARY**
 
         Call the draw() method on each feature in the FeatureSet.
 
         **PARAMETERS**
-        
-        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
-        * *width* - The width to draw the feature in pixels. A value of -1 usually indicates a filled region.
+
+        * *color* - The color to draw the object. Either an BGR tuple or
+         a member of the :py:class:`Color` class.
+        * *width* - The width to draw the feature in pixels. A value of -1
+         usually indicates a filled region.
         * *autocolor* - If true a color is randomly selected for each feature.
-        
+
 
         **RETURNS**
 
@@ -88,24 +96,28 @@ class FeatureSet(list):
 
         """
         for f in self:
-            if(autocolor):
+            if (autocolor):
                 color = Color().getRandom()
             if alpha != -1:
-                f.draw(color=color,width=width,alpha=alpha)
+                f.draw(color=color, width=width, alpha=alpha)
             else:
-                f.draw(color=color,width=width)
+                f.draw(color=color, width=width)
 
-    def show(self, color = Color.GREEN, autocolor = False,width=1):
+    def show(self, color=Color.GREEN, autocolor=False, width=1):
         """
         **EXAMPLE**
 
-        This function will automatically draw the features on the image and show it.
-        It is a basically a shortcut function for development and is the same as:
+        This function will automatically draw the features on the image and
+        show it.
+        It is a basically a shortcut function for development and is the same
+        as:
 
         **PARAMETERS**
 
-        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
-        * *width* - The width to draw the feature in pixels. A value of -1 usually indicates a filled region.
+        * *color* - The color to draw the object. Either an BGR tuple or
+         a member of the :py:class:`Color` class.
+        * *width* - The width to draw the feature in pixels. A value of -1
+         usually indicates a filled region.
         * *autocolor* - If true a color is randomly selected for each feature.
 
         **RETURNS**
@@ -123,7 +135,6 @@ class FeatureSet(list):
         self.draw(color, width, autocolor)
         self[-1].image.show()
 
-
     def reassignImage(self, newImg):
         """
         **SUMMARY**
@@ -135,7 +146,8 @@ class FeatureSet(list):
         * *img* - the new image to which to assign the feature.
 
         .. Warning::
-          THIS DOES NOT PERFORM A SIZE CHECK. IF YOUR NEW IMAGE IS NOT THE EXACT SAME SIZE YOU WILL CERTAINLY CAUSE ERRORS.
+          THIS DOES NOT PERFORM A SIZE CHECK. IF YOUR NEW IMAGE IS NOT THE
+          EXACT SAME SIZE YOU WILL CERTAINLY CAUSE ERRORS.
 
         **EXAMPLE**
 
@@ -196,7 +208,8 @@ class FeatureSet(list):
         **SUMMARY**
 
         Returns a 2d numpy array of the x,y coordinates of each feature.  This
-        is particularly useful if you want to use Scipy's Spatial Distance module
+        is particularly useful if you want to use Scipy's Spatial Distance
+        module
 
         **RETURNS**
 
@@ -255,13 +268,14 @@ class FeatureSet(list):
         >>> print feats[0] # smallest blob
 
         """
-        return FeatureSet(sorted(self, key = lambda f: f.area()))
+        return FeatureSet(sorted(self, key=lambda f: f.area()))
 
     def sortX(self):
         """
         **SUMMARY**
 
-        Returns a new FeatureSet, with the smallest x coordinates features first.
+        Returns a new FeatureSet, with the smallest x coordinates features
+        first.
 
         **RETURNS**
 
@@ -276,13 +290,14 @@ class FeatureSet(list):
         >>> print feats[0] # smallest blob
 
         """
-        return FeatureSet(sorted(self, key = lambda f: f.x))
+        return FeatureSet(sorted(self, key=lambda f: f.x))
 
     def sortY(self):
         """
         **SUMMARY**
 
-        Returns a new FeatureSet, with the smallest y coordinates features first.
+        Returns a new FeatureSet, with the smallest y coordinates features
+        first.
 
         **RETURNS**
 
@@ -297,14 +312,14 @@ class FeatureSet(list):
         >>> print feats[0] # smallest blob
 
         """
-        return FeatureSet(sorted(self, key = lambda f: f.y)) 
+        return FeatureSet(sorted(self, key=lambda f: f.y))
 
-    def distanceFrom(self, point = (-1, -1)):
+    def distanceFrom(self, point=(-1, -1)):
         """
         **SUMMARY**
 
-        Returns a numpy array of the distance each Feature is from a given coordinate.
-        Default is the center of the image.
+        Returns a numpy array of the distance each Feature is from a given
+        coordinate. Default is the center of the image.
 
         **PARAMETERS**
 
@@ -329,14 +344,14 @@ class FeatureSet(list):
         if (point[0] == -1 or point[1] == -1 and len(self)):
             point = self[0].image.size()
 
-        return spsd.cdist(self.coordinates(), [point])[:,0]
+        return spsd.cdist(self.coordinates(), [point])[:, 0]
 
-    def sortDistance(self, point = (-1, -1)):
+    def sortDistance(self, point=(-1, -1)):
         """
         **SUMMARY**
 
-        Returns a sorted FeatureSet with the features closest to a given coordinate first.
-        Default is from the center of the image.
+        Returns a sorted FeatureSet with the features closest to a given
+        coordinate first. Default is from the center of the image.
 
         **PARAMETERS**
 
@@ -355,7 +370,7 @@ class FeatureSet(list):
 
 
         """
-        return FeatureSet(sorted(self, key = lambda f: f.distanceFrom(point)))
+        return FeatureSet(sorted(self, key=lambda f: f.distanceFrom(point)))
 
     def distancePairs(self):
         """
@@ -401,10 +416,10 @@ class FeatureSet(list):
         """
         return np.array([f.angle() for f in self])
 
-    def sortAngle(self, theta = 0):
+    def sortAngle(self, theta=0):
         """
-        Return a sorted FeatureSet with the features closest to a given angle first.
-        Note that theta is given in radians, with 0 being horizontal.
+        Return a sorted FeatureSet with the features closest to a given angle
+        first. Note that theta is given in radians, with 0 being horizontal.
 
         **RETURNS**
 
@@ -418,7 +433,7 @@ class FeatureSet(list):
         >>> print angs
 
         """
-        return FeatureSet(sorted(self, key = lambda f: abs(f.angle() - theta)))
+        return FeatureSet(sorted(self, key=lambda f: abs(f.angle() - theta)))
 
     def length(self):
         """
@@ -458,17 +473,19 @@ class FeatureSet(list):
         >>> lengt[-1] # length of the 0th element.
 
         """
-        return FeatureSet(sorted(self, key = lambda f: f.length()))
+        return FeatureSet(sorted(self, key=lambda f: f.length()))
 
     def meanColor(self):
         """
         **SUMMARY**
 
-        Return a numpy array of the average color of the area covered by each Feature.
+        Return a numpy array of the average color of the area covered by each
+        Feature.
 
         **RETURNS**
 
-        Returns an array of RGB triplets the correspond to the mean color of the feature.
+        Returns an array of RGB triplets the correspond to the mean color of
+        the feature.
 
         **EXAMPLE**
 
@@ -480,12 +497,13 @@ class FeatureSet(list):
         """
         return np.array([f.meanColor() for f in self])
 
-    def colorDistance(self, color = (0, 0, 0)):
+    def colorDistance(self, color=(0, 0, 0)):
         """
         **SUMMARY**
 
-        Return a numpy array of the distance each features average color is from
-        a given color tuple (default black, so colorDistance() returns intensity)
+        Return a numpy array of the distance each features average color is
+        from a given color tuple (default black, so colorDistance() returns
+        intensity)
 
         **PARAMETERS**
 
@@ -493,7 +511,8 @@ class FeatureSet(list):
 
         **RETURNS**
 
-        The distance of the average color for the feature from given color as a numpy array.
+        The distance of the average color for the feature from given color as
+        a numpy array.
 
         **EXAMPLE**
 
@@ -503,14 +522,15 @@ class FeatureSet(list):
         >>> print d
 
         """
-        return spsd.cdist(self.meanColor(), [color])[:,0]
+        return spsd.cdist(self.meanColor(), [color])[:, 0]
 
-    def sortColorDistance(self, color = (0, 0, 0)):
+    def sortColorDistance(self, color=(0, 0, 0)):
         """
-        Return a sorted FeatureSet with features closest to a given color first.
-        Default is black, so sortColorDistance() will return darkest to brightest
+        Return a sorted FeatureSet with features closest to a given color
+        first. Default is black, so sortColorDistance() will return darkest to
+        brightest
         """
-        return FeatureSet(sorted(self, key = lambda f: f.colorDistance(color)))
+        return FeatureSet(sorted(self, key=lambda f: f.colorDistance(color)))
 
     def filter(self, filterarray):
         """
@@ -523,7 +543,8 @@ class FeatureSet(list):
         **PARAMETERS**
 
         * *filterarray* - A numpy array, matching  the size of the feature set,
-          made of Boolean values, we return the true values and reject the False value.
+          made of Boolean values, we return the true values and reject the
+          False value.
 
         **RETURNS**
 
@@ -533,10 +554,17 @@ class FeatureSet(list):
 
         Return all lines < 200px
 
-        >>> my_lines.filter(my_lines.length() < 200) # returns all lines < 200px
-        >>> my_blobs.filter(my_blobs.area() > 0.9 * my_blobs.length**2) # returns blobs that are nearly square
-        >>> my_lines.filter(abs(my_lines.angle()) < numpy.pi / 4) #any lines within 45 degrees of horizontal
-        >>> my_corners.filter(my_corners.x() - my_corners.y() > 0) #only return corners in the upper diagonal of the image
+        # returns all lines < 200px
+        >>> my_lines.filter(my_lines.length() < 200)
+
+        # returns blobs that are nearly square
+        >>> my_blobs.filter(my_blobs.area() > 0.9 * my_blobs.length**2)
+
+        # any lines within 45 degrees of horizontal
+        >>> my_lines.filter(abs(my_lines.angle()) < numpy.pi / 4)
+
+        # only return corners in the upper diagonal of the image
+        >>> my_corners.filter(my_corners.x() - my_corners.y() > 0)
 
         """
         return FeatureSet(list(np.array(self)[np.array(filterarray)]))
@@ -545,7 +573,8 @@ class FeatureSet(list):
         """
         **SUMMARY**
 
-        Returns a nparray which is the width of all the objects in the FeatureSet.
+        Returns a nparray which is the width of all the objects in the
+        FeatureSet.
 
         **RETURNS**
 
@@ -563,7 +592,8 @@ class FeatureSet(list):
 
     def height(self):
         """
-        Returns a nparray which is the height of all the objects in the FeatureSet
+        Returns a nparray which is the height of all the objects in the
+        FeatureSet
 
         **RETURNS**
 
@@ -601,20 +631,23 @@ class FeatureSet(list):
         """
         return np.array([f.crop() for f in self])
 
-    def inside(self,region):
+    def inside(self, region):
         """
         **SUMMARY**
 
-        Return only the features inside the region. where region can be a bounding box,
-        bounding circle, a list of tuples in a closed polygon, or any other featutres.
+        Return only the features inside the region. where region can be a
+        bounding box, bounding circle, a list of tuples in a closed polygon,
+        or any other featutres.
 
         **PARAMETERS**
 
         * *region*
 
-          * A bounding box - of the form (x,y,w,h) where x,y is the upper left corner
+          * A bounding box - of the form (x,y,w,h) where x,y is the upper left
+           corner
           * A bounding circle of the form (x,y,r)
-          * A list of x,y tuples defining a closed polygon e.g. ((x,y),(x,y),....)
+          * A list of x,y tuples defining a closed polygon
+           e.g. ((x,y),(x,y),....)
           * Any two dimensional feature (e.g. blobs, circle ...)
 
         **RETURNS**
@@ -631,31 +664,34 @@ class FeatureSet(list):
 
         **NOTE**
 
-        This currently performs a bounding box test, not a full polygon test for speed.
+        This currently performs a bounding box test, not a full polygon test
+        for speed.
 
 
         """
         fs = FeatureSet()
         for f in self:
-            if(f.isContainedWithin(region)):
+            if f.isContainedWithin(region):
                 fs.append(f)
         return fs
 
-
-    def outside(self,region):
+    def outside(self, region):
         """
         **SUMMARY**
 
-        Return only the features outside the region. where region can be a bounding box,
-        bounding circle, a list of tuples in a closed polygon, or any other featutres.
+        Return only the features outside the region. where region can be
+        a bounding box, bounding circle, a list of tuples in a closed polygon,
+        or any other featutres.
 
         **PARAMETERS**
 
         * *region*
 
-          * A bounding box - of the form (x,y,w,h) where x,y is the upper left corner
+          * A bounding box - of the form (x,y,w,h) where x,y is the upper
+           left corner
           * A bounding circle of the form (x,y,r)
-          * A list of x,y tuples defining a closed polygon e.g. ((x,y),(x,y),....)
+          * A list of x,y tuples defining a closed polygon
+           e.g. ((x,y),(x,y),....)
           * Any two dimensional feature (e.g. blobs, circle ...)
 
         **RETURNS**
@@ -673,29 +709,33 @@ class FeatureSet(list):
 
         **NOTE**
 
-        This currently performs a bounding box test, not a full polygon test for speed.
+        This currently performs a bounding box test, not a full polygon test
+        for speed.
 
         """
         fs = FeatureSet()
         for f in self:
-            if(f.isNotContainedWithin(region)):
+            if (f.isNotContainedWithin(region)):
                 fs.append(f)
         return fs
 
-    def overlaps(self,region):
+    def overlaps(self, region):
         """
         **SUMMARY**
 
-        Return only the features that overlap or the region. Where region can be a bounding box,
-        bounding circle, a list of tuples in a closed polygon, or any other featutres.
+        Return only the features that overlap or the region. Where region can
+        be a bounding box, bounding circle, a list of tuples in a closed
+        polygon, or any other featutres.
 
         **PARAMETERS**
 
         * *region*
 
-          * A bounding box - of the form (x,y,w,h) where x,y is the upper left corner
+          * A bounding box - of the form (x,y,w,h) where x,y is the upper left
+           corner
           * A bounding circle of the form (x,y,r)
-          * A list of x,y tuples defining a closed polygon e.g. ((x,y),(x,y),....)
+          * A list of x,y tuples defining a closed polygon
+           e.g. ((x,y),(x,y),....)
           * Any two dimensional feature (e.g. blobs, circle ...)
 
         **RETURNS**
@@ -712,29 +752,33 @@ class FeatureSet(list):
 
         **NOTE**
 
-        This currently performs a bounding box test, not a full polygon test for speed.
+        This currently performs a bounding box test, not a full polygon test
+        for speed.
 
         """
         fs = FeatureSet()
         for f in self:
-            if( f.overlaps(region) ):
+            if f.overlaps(region):
                 fs.append(f)
         return fs
 
-    def above(self,region):
+    def above(self, region):
         """
         **SUMMARY**
 
-        Return only the features that are above a  region. Where region can be a bounding box,
-        bounding circle, a list of tuples in a closed polygon, or any other featutres.
+        Return only the features that are above a  region. Where region can be
+        a bounding box, bounding circle, a list of tuples in a closed polygon,
+        or any other featutres.
 
         **PARAMETERS**
 
         * *region*
 
-          * A bounding box - of the form (x,y,w,h) where x,y is the upper left corner
+          * A bounding box - of the form (x,y,w,h) where x,y is the upper left
+           corner
           * A bounding circle of the form (x,y,r)
-          * A list of x,y tuples defining a closed polygon e.g. ((x,y),(x,y),....)
+          * A list of x,y tuples defining a closed polygon
+           e.g. ((x,y),(x,y),....)
           * Any two dimensional feature (e.g. blobs, circle ...)
 
         **RETURNS**
@@ -751,29 +795,33 @@ class FeatureSet(list):
 
         **NOTE**
 
-        This currently performs a bounding box test, not a full polygon test for speed.
+        This currently performs a bounding box test, not a full polygon test
+        for speed.
 
         """
         fs = FeatureSet()
         for f in self:
-            if(f.above(region)):
+            if (f.above(region)):
                 fs.append(f)
         return fs
 
-    def below(self,region):
+    def below(self, region):
         """
         **SUMMARY**
 
-        Return only the features below the region. where region can be a bounding box,
-        bounding circle, a list of tuples in a closed polygon, or any other featutres.
+        Return only the features below the region. where region can be a
+        bounding box, bounding circle, a list of tuples in a closed polygon,
+        or any other featutres.
 
         **PARAMETERS**
 
         * *region*
 
-          * A bounding box - of the form (x,y,w,h) where x,y is the upper left corner
+          * A bounding box - of the form (x,y,w,h) where x,y is the upper left
+           corner
           * A bounding circle of the form (x,y,r)
-          * A list of x,y tuples defining a closed polygon e.g. ((x,y),(x,y),....)
+          * A list of x,y tuples defining a closed polygon
+           e.g. ((x,y),(x,y),....)
           * Any two dimensional feature (e.g. blobs, circle ...)
 
         **RETURNS**
@@ -790,29 +838,33 @@ class FeatureSet(list):
 
         **NOTE**
 
-        This currently performs a bounding box test, not a full polygon test for speed.
+        This currently performs a bounding box test, not a full polygon test
+        for speed.
 
         """
         fs = FeatureSet()
         for f in self:
-            if(f.below(region)):
+            if (f.below(region)):
                 fs.append(f)
         return fs
 
-    def left(self,region):
+    def left(self, region):
         """
         **SUMMARY**
 
-        Return only the features left of the region. where region can be a bounding box,
-        bounding circle, a list of tuples in a closed polygon, or any other featutres.
+        Return only the features left of the region. where region can be
+        a bounding box, bounding circle, a list of tuples in a closed polygon,
+        or any other featutres.
 
         **PARAMETERS**
 
         * *region*
 
-          * A bounding box - of the form (x,y,w,h) where x,y is the upper left corner
+          * A bounding box - of the form (x,y,w,h) where x,y is the upper left
+           corner
           * A bounding circle of the form (x,y,r)
-          * A list of x,y tuples defining a closed polygon e.g. ((x,y),(x,y),....)
+          * A list of x,y tuples defining a closed polygon
+           e.g. ((x,y),(x,y),....)
           * Any two dimensional feature (e.g. blobs, circle ...)
 
         **RETURNS**
@@ -829,29 +881,33 @@ class FeatureSet(list):
 
         **NOTE**
 
-        This currently performs a bounding box test, not a full polygon test for speed.
+        This currently performs a bounding box test, not a full polygon test
+        for speed.
 
         """
         fs = FeatureSet()
         for f in self:
-            if(f.left(region)):
+            if (f.left(region)):
                 fs.append(f)
         return fs
 
-    def right(self,region):
+    def right(self, region):
         """
         **SUMMARY**
 
-        Return only the features right of the region. where region can be a bounding box,
-        bounding circle, a list of tuples in a closed polygon, or any other featutres.
+        Return only the features right of the region. where region can be
+        a bounding box, bounding circle, a list of tuples in a closed polygon,
+        or any other featutres.
 
         **PARAMETERS**
 
         * *region*
 
-          * A bounding box - of the form (x,y,w,h) where x,y is the upper left corner
+          * A bounding box - of the form (x,y,w,h) where x,y is the upper left
+           corner
           * A bounding circle of the form (x,y,r)
-          * A list of x,y tuples defining a closed polygon e.g. ((x,y),(x,y),....)
+          * A list of x,y tuples defining a closed polygon
+           e.g. ((x,y),(x,y),....)
           * Any two dimensional feature (e.g. blobs, circle ...)
 
         **RETURNS**
@@ -868,12 +924,13 @@ class FeatureSet(list):
 
         **NOTE**
 
-        This currently performs a bounding box test, not a full polygon test for speed.
+        This currently performs a bounding box test, not a full polygon test
+        for speed.
 
         """
         fs = FeatureSet()
         for f in self:
-            if(f.right(region)):
+            if (f.right(region)):
                 fs.append(f)
         return fs
 
@@ -881,8 +938,9 @@ class FeatureSet(list):
         """
         **SUMMARY**
 
-        The method returns a feature set of features that are on or "near" the edge of
-        the image. This is really helpful for removing features that are edge effects.
+        The method returns a feature set of features that are on or "near" the
+        edge of the image. This is really helpful for removing features that
+        are edge effects.
 
         **PARAMETERS**
 
@@ -904,7 +962,7 @@ class FeatureSet(list):
         """
         fs = FeatureSet()
         for f in self:
-            if(f.onImageEdge(tolerance)):
+            if (f.onImageEdge(tolerance)):
                 fs.append(f)
         return fs
 
@@ -912,8 +970,9 @@ class FeatureSet(list):
         """
         **SUMMARY**
 
-        The method returns a feature set of features that are not on or "near" the edge of
-        the image. This is really helpful for removing features that are edge effects.
+        The method returns a feature set of features that are not on or "near"
+        the edge of the image. This is really helpful for removing features
+        that are edge effects.
 
         **PARAMETERS**
 
@@ -935,10 +994,9 @@ class FeatureSet(list):
         """
         fs = FeatureSet()
         for f in self:
-            if(f.notOnImageEdge(tolerance)):
+            if (f.notOnImageEdge(tolerance)):
                 fs.append(f)
         return fs
-
 
     def topLeftCorners(self):
         """
@@ -959,13 +1017,12 @@ class FeatureSet(list):
         """
         return np.array([f.topLeftCorner() for f in self])
 
-
-
     def bottomLeftCorners(self):
         """
         **SUMMARY**
 
-        This method returns the bottom left corner of each feature's bounding box.
+        This method returns the bottom left corner of each feature's bounding
+        box.
 
         **RETURNS**
 
@@ -1001,12 +1058,12 @@ class FeatureSet(list):
         """
         return np.array([f.topLeftCorner() for f in self])
 
-
     def topRightCorners(self):
         """
         **SUMMARY**
 
-        This method returns the top right corner of each feature's bounding box.
+        This method returns the top right corner of each feature's bounding
+        box.
 
         **RETURNS**
 
@@ -1022,13 +1079,12 @@ class FeatureSet(list):
         """
         return np.array([f.topRightCorner() for f in self])
 
-
-
     def bottomRightCorners(self):
         """
         **SUMMARY**
 
-        This method returns the bottom right corner of each feature's bounding box.
+        This method returns the bottom right corner of each feature's bounding
+        box.
 
         **RETURNS**
 
@@ -1048,8 +1104,8 @@ class FeatureSet(list):
         """
         **SUMMARY**
 
-        Return the aspect ratio of all the features in the feature set, For our purposes
-        aspect ration is max(width,height)/min(width,height).
+        Return the aspect ratio of all the features in the feature set, For
+        our purposes aspect ration is max(width,height)/min(width,height).
 
         **RETURNS**
 
@@ -1064,20 +1120,27 @@ class FeatureSet(list):
         """
         return np.array([f.aspectRatio() for f in self])
 
-    def cluster(self,method="kmeans",properties=None,k=3):
+    def cluster(self, method="kmeans", properties=None, k=3):
         """
-        
+
         **SUMMARY**
 
-        This function clusters the blobs in the featureSet based on the properties. Properties can be "color", "shape" or "position" of blobs.
-        Clustering is done using K-Means or Hierarchical clustering(Ward) algorithm.
+        This function clusters the blobs in the featureSet based on the
+        properties. Properties can be "color", "shape" or "position" of blobs.
+        Clustering is done using K-Means or Hierarchical clustering(Ward)
+        algorithm.
 
         **PARAMETERS**
-        
-        * *properties* - It should be a list with any combination of "color", "shape", "position". properties = ["color","position"]. properties = ["position","shape"]. properties = ["shape"]
-        * *method* - if method is "kmeans", it will cluster using K-Means algorithm, if the method is "hierarchical", no need to spicify the number of clusters
+
+        * *properties* - It should be a list with any combination of "color",
+         "shape", "position". properties = ["color","position"].
+          properties = ["position","shape"].
+          properties = ["shape"]
+        * *method* - if method is "kmeans", it will cluster using K-Means
+         algorithm, if the method is "hierarchical", no need to spicify the
+         number of clusters
         * *k* - The number of clusters(kmeans).
-        
+
 
         **RETURNS**
 
@@ -1087,23 +1150,27 @@ class FeatureSet(list):
 
           >>> img = Image("lenna")
           >>> blobs = img.findBlobs()
-          >>> clusters = blobs.cluster(method="kmeans",properties=["color"],k=5)
+          >>> clusters = blobs.cluster(method="kmeans",
+          >>>       properties=["color"],
+          >>>       k=5)
           >>> for i in clusters:
           >>>     i.draw(color=Color.getRandom(),width=5)
           >>> img.show()
-        
+
         """
-        try :
+        try:
             from sklearn.cluster import KMeans, Ward
             from sklearn import __version__
-        except :
+        except:
             logger.warning("install scikits-learning package")
             return
-        X = [] #List of feature vector of each blob
+        X = []  # List of feature vector of each blob
         if not properties:
-            properties = ['color','shape','position']
+            properties = ['color', 'shape', 'position']
         if k > len(self):
-            logger.warning("Number of clusters cannot be greater then the number of blobs in the featureset")
+            logger.warning(
+                "Number of clusters cannot be greater then the number of blobs"
+                " in the featureset")
             return
         for i in self:
             featureVector = []
@@ -1113,28 +1180,30 @@ class FeatureSet(list):
                 featureVector.extend(i.mHu)
             if 'position' in properties:
                 featureVector.extend(i.extents())
-            if not featureVector :
-                logger.warning("properties parameter is not specified properly")
+            if not featureVector:
+                logger.warning(
+                    "properties parameter is not specified properly")
                 return
             X.append(featureVector)
 
         if method == "kmeans":
-            
+
             # Ignore minor version numbers.
             sklearn_version = re.search(r'\d+\.\d+', __version__).group()
-            
+
             if (float(sklearn_version) > 0.11):
                 k_means = KMeans(init='random', n_clusters=k, n_init=10).fit(X)
             else:
                 k_means = KMeans(init='random', k=k, n_init=10).fit(X)
-            KClusters = [ FeatureSet([]) for i in range(k)]
+            KClusters = [FeatureSet([]) for i in range(k)]
             for i in range(len(self)):
                 KClusters[k_means.labels_[i]].append(self[i])
             return KClusters
 
         if method == "hierarchical":
-            ward = Ward(n_clusters=int(sqrt(len(self)))).fit(X) #n_clusters = sqrt(n)
-            WClusters = [ FeatureSet([]) for i in range(int(sqrt(len(self))))]
+            ward = Ward(n_clusters=int(sqrt(len(self)))).fit(
+                X)  # n_clusters = sqrt(n)
+            WClusters = [FeatureSet([]) for i in range(int(sqrt(len(self))))]
             for i in range(len(self)):
                 WClusters[ward.labels_[i]].append(self[i])
             return WClusters
@@ -1150,11 +1219,12 @@ class FeatureSet(list):
         for f in self:
             f.image = i
 
-### ----------------------------------------------------------------------------
-### ----------------------------------------------------------------------------
-### ----------------------------FEATURE CLASS-----------------------------------
-### ----------------------------------------------------------------------------
-### ----------------------------------------------------------------------------
+
+### ---------------------------------------------------------------------------
+### ---------------------------------------------------------------------------
+### ----------------------------FEATURE CLASS----------------------------------
+### ---------------------------------------------------------------------------
+### ---------------------------------------------------------------------------
 class Feature(object):
     """
     **SUMMARY**
@@ -1165,7 +1235,8 @@ class Feature(object):
     * a draw() method,
     * an image property, referencing the originating Image object
     * x and y coordinates
-    * default functions for determining angle, area, meanColor, etc for FeatureSets
+    * default functions for determining angle, area, meanColor, etc for
+     FeatureSets
     * in the Feature class, these functions assume the feature is 1px
 
     """
@@ -1181,16 +1252,20 @@ class Feature(object):
     _mSrcImgH = None
 
     # This is 2.0 refactoring
-    mBoundingBox = None # THIS SHALT BE TOP LEFT (X,Y) THEN W H i.e. [X,Y,W,H]
-    mExtents = None # THIS SHALT BE [MAXX,MINX,MAXY,MINY]
-    points = None  # THIS SHALT BE (x,y) tuples in the ORDER [(TopLeft),(TopRight),(BottomLeft),(BottomRight)]
+    mBoundingBox = None  # THIS SHALT BE TOP LEFT (X,Y) THEN W H i.e. [X,Y,W,H]
+    mExtents = None  # THIS SHALT BE [MAXX,MINX,MAXY,MINY]
 
-    image = "" #parent image
+    # THIS SHALT BE (x,y) tuples
+    # in the ORDER [(TopLeft),(TopRight),(BottomLeft),(BottomRight)]
+    points = None
+
+    image = ""  # parent image
     #points = []
     #boundingBox = []
 
     def __init__(self, i, at_x, at_y, points):
-        #THE COVENANT IS THAT YOU PROVIDE THE POINTS IN THE SPECIFIED FORMAT AND ALL OTHER VALUES SHALT FLOW
+        # THE COVENANT IS THAT YOU PROVIDE THE POINTS IN THE SPECIFIED
+        # FORMAT AND ALL OTHER VALUES SHALT FLOW
         self.x = at_x
         self.y = at_y
         self.image = i
@@ -1201,14 +1276,16 @@ class Feature(object):
         """
         **SUMMARY**
 
-        Reassign the image of this feature and return an updated copy of the feature.
+        Reassign the image of this feature and return an updated copy of the
+        feature.
 
         **PARAMETERS**
 
         * *img* - the new image to which to assign the feature.
 
         .. Warning::
-          THIS DOES NOT PERFORM A SIZE CHECK. IF YOUR NEW IMAGE IS NOT THE EXACT SAME SIZE YOU WILL CERTAINLY CAUSE ERRORS.
+          THIS DOES NOT PERFORM A SIZE CHECK. IF YOUR NEW IMAGE IS NOT THE
+          EXACT SAME SIZE YOU WILL CERTAINLY CAUSE ERRORS.
 
         **EXAMPLE**
 
@@ -1219,8 +1296,7 @@ class Feature(object):
         >>> l2.show()
         """
         retVal = copy.deepcopy(self)
-        if( self.image.width != img.width or
-            self.image.height != img.height ):
+        if self.image.width != img.width or self.image.height != img.height:
             warnings.warn("DON'T REASSIGN IMAGES OF DIFFERENT SIZES")
         retVal.image = img
 
@@ -1234,7 +1310,8 @@ class Feature(object):
         """
         **SUMMARY**
 
-        Returns the x,y position of the feature. This is usually the center coordinate.
+        Returns the x,y position of the feature. This is usually the center
+        coordinate.
 
         **RETURNS**
 
@@ -1250,8 +1327,7 @@ class Feature(object):
         """
         return np.array([self.x, self.y])
 
-
-    def draw(self, color = Color.GREEN):
+    def draw(self, color=Color.GREEN):
         """
         **SUMMARY**
 
@@ -1275,11 +1351,12 @@ class Feature(object):
         """
         self.image[self.x, self.y] = color
 
-    def show(self, color = Color.GREEN):
+    def show(self, color=Color.GREEN):
         """
         **SUMMARY**
 
-        This function will automatically draw the features on the image and show it.
+        This function will automatically draw the features on the image and
+        show it.
 
         **RETURNS**
 
@@ -1295,15 +1372,17 @@ class Feature(object):
         self.draw(color)
         self.image.show()
 
-    def distanceFrom(self, point = (-1, -1)):
+    def distanceFrom(self, point=(-1, -1)):
         """
         **SUMMARY**
 
-        Given a point (default to center of the image), return the euclidean distance of x,y from this point.
+        Given a point (default to center of the image), return the euclidean
+        distance of x,y from this point.
 
         **PARAMETERS**
 
-        * *point* - The point, as an (x,y) tuple on the image to measure distance from.
+        * *point* - The point, as an (x,y) tuple on the image to measure
+         distance from.
 
         **RETURNS**
 
@@ -1342,15 +1421,17 @@ class Feature(object):
         """
         return self.image[self.x, self.y]
 
-    def colorDistance(self, color = (0, 0, 0)):
+    def colorDistance(self, color=(0, 0, 0)):
         """
         **SUMMARY**
 
-        Return the euclidean color distance of the color tuple at x,y from a given color (default black).
+        Return the euclidean color distance of the color tuple at x,y from
+        a given color (default black).
 
         **PARAMETERS**
 
-        * *color* - An RGB triplet to calculate from which to calculate the color distance.
+        * *color* - An RGB triplet to calculate from which to calculate the
+         color distance.
 
         **RETURNS**
 
@@ -1370,7 +1451,8 @@ class Feature(object):
         """
         **SUMMARY**
 
-        Return the angle (theta) in degrees of the feature. The default is 0 (horizontal).
+        Return the angle (theta) in degrees of the feature. The default is 0
+        (horizontal).
 
         .. Warning::
           This is not a valid operation for all features.
@@ -1398,7 +1480,8 @@ class Feature(object):
         """
         **SUMMARY**
 
-        This method returns the longest dimension of the feature (i.e max(width,height)).
+        This method returns the longest dimension of the feature
+        (i.e max(width,height)).
 
         **RETURNS**
 
@@ -1417,13 +1500,14 @@ class Feature(object):
 
         Should this be sqrt(x*x+y*y)?
         """
-        return float(np.max([self.width(),self.height()]))
+        return float(np.max([self.width(), self.height()]))
 
     def distanceToNearestEdge(self):
         """
         **SUMMARY**
 
-        This method returns the distance, in pixels, from the nearest image edge.
+        This method returns the distance, in pixels, from the nearest image
+        edge.
 
         **RETURNS**
 
@@ -1438,9 +1522,10 @@ class Feature(object):
         """
         w = self.image.width
         h = self.image.height
-        return np.min([self._mMinX,self._mMinY, w-self._mMaxX,h-self._mMaxY])
+        return np.min(
+            [self._mMinX, self._mMinY, w - self._mMaxX, h - self._mMaxY])
 
-    def onImageEdge(self,tolerance=1):
+    def onImageEdge(self, tolerance=1):
         """
         **SUMMARY**
 
@@ -1460,14 +1545,15 @@ class Feature(object):
 
         >>> img = Image("../sampleimages/EdgeTest1.png")
         >>> b = img.findBlobs()
-        >>> if(b[0].onImageEdge()):
+        >>> if b[0].onImageEdge():
         >>>     print "HELP! I AM ABOUT TO FALL OFF THE IMAGE"
 
         """
-        # this has to be one to deal with blob library weirdness that goes deep down to opencv
-        return ( self.distanceToNearestEdge() <= tolerance )
+        # this has to be one to deal with blob library weirdness that goes deep
+        # down to opencv
+        return self.distanceToNearestEdge() <= tolerance
 
-    def notOnImageEdge(self,tolerance=1):
+    def notOnImageEdge(self, tolerance=1):
         """
         **SUMMARY**
 
@@ -1487,14 +1573,14 @@ class Feature(object):
 
         >>> img = Image("../sampleimages/EdgeTest1.png")
         >>> b = img.findBlobs()
-        >>> if(b[0].notOnImageEdge()):
+        >>> if b[0].notOnImageEdge():
         >>>     print "I am safe and sound."
 
         """
 
-        # this has to be one to deal with blob library weirdness that goes deep down to opencv
-        return ( self.distanceToNearestEdge() > tolerance )
-
+        # this has to be one to deal with blob library weirdness that
+        # goes deep down to opencv
+        return self.distanceToNearestEdge() > tolerance
 
     def aspectRatio(self):
         """
@@ -1562,7 +1648,6 @@ class Feature(object):
         self._updateExtents()
         return self._mWidth
 
-
     def height(self):
         """
         **SUMMARY**
@@ -1590,8 +1675,8 @@ class Feature(object):
         """
         **SUMMARY**
 
-        This function crops the source image to the location of the feature and returns
-        a new SimpleCV image.
+        This function crops the source image to the location of the feature and
+        returns a new simplecv image.
 
         **RETURNS**
 
@@ -1606,16 +1691,20 @@ class Feature(object):
 
         """
 
-        return self.image.crop(self.x, self.y, self.width(), self.height(), centered = True)
+        return self.image.crop(self.x, self.y, self.width(), self.height(),
+                               centered=True)
 
     def __repr__(self):
-        return "%s.%s at (%d,%d)" % (self.__class__.__module__, self.__class__.__name__, self.x, self.y)
-
+        return "%s.%s at (%d,%d)" % (
+            self.__class__.__module__, self.__class__.__name__, self.x, self.y)
 
     def _updateExtents(self, new_feature=False):
-#    mBoundingBox = None # THIS SHALT BE TOP LEFT (X,Y) THEN W H i.e. [X,Y,W,H]
-#    mExtents = None # THIS SHALT BE [MAXX,MINX,MAXY,MINY]
-#    points = None  # THIS SHALT BE (x,y) tuples in the ORDER [(TopLeft),(TopRight),(BottomLeft),(BottomRight)]
+        #    # THIS SHALT BE TOP LEFT (X,Y) THEN W H i.e. [X,Y,W,H]
+        #    mBoundingBox = None
+        #    mExtents = None # THIS SHALT BE [MAXX,MINX,MAXY,MINY]
+        #    # THIS SHALT BE (x,y) tuples in the
+        #    # ORDER [(TopLeft),(TopRight),(BottomLeft),(BottomRight)]
+        #    points = None
 
         max_x = self._mMaxX
         min_x = self._mMinX
@@ -1626,10 +1715,12 @@ class Feature(object):
         extents = self.mExtents
         bounding_box = self.mBoundingBox
 
-        #if new_feature or None in [self._mMaxX, self._mMinX, self._mMaxY, self._mMinY,
-        #            self._mWidth, self._mHeight, self.mExtents, self.mBoundingBox]:
+        #if new_feature or None in [self._mMaxX, self._mMinX, self._mMaxY,
+        # self._mMinY, self._mWidth, self._mHeight, self.mExtents,
+        # self.mBoundingBox]:
 
-        if new_feature or None in [max_x, min_x, max_y, min_y, width, height, extents, bounding_box]:
+        if new_feature or None in [max_x, min_x, max_y, min_y, width, height,
+                                   extents, bounding_box]:
 
             max_x = max_y = float("-infinity")
             min_x = min_y = float("infinity")
@@ -1657,9 +1748,9 @@ class Feature(object):
             self.mExtents = [max_x, min_x, max_y, min_y]
 
             if width > height:
-                self.mAspectRatio = float(width/height)
+                self.mAspectRatio = float(width / height)
             else:
-                self.mAspectRatio = float(height/width)
+                self.mAspectRatio = float(height / width)
 
             self._mMaxX = max_x
             self._mMinX = min_x
@@ -1676,8 +1767,8 @@ class Feature(object):
 
         **RETURNS**
 
-        A list of [x, y, w, h] where (x, y) are the top left point of the rectangle
-        and w, h are its width and height respectively.
+        A list of [x, y, w, h] where (x, y) are the top left point of the
+        rectangle and w, h are its width and height respectively.
 
         **EXAMPLE**
 
@@ -1693,12 +1784,13 @@ class Feature(object):
         """
         **SUMMARY**
 
-        This function returns the maximum and minimum x and y values for the feature and
-        returns them as a tuple.
+        This function returns the maximum and minimum x and y values for the
+        feature and returns them as a tuple.
 
         **RETURNS**
 
-        A tuple of the extents of the feature. The order is (MaxX,MaxY,MinX,MinY).
+        A tuple of the extents of the feature. The order is (MaxX, MaxY,
+        MinX, MinY).
 
         **EXAMPLE**
 
@@ -1751,7 +1843,6 @@ class Feature(object):
         """
         self._updateExtents()
         return self._mMaxY
-
 
     def minX(self):
         """
@@ -1814,7 +1905,7 @@ class Feature(object):
 
         """
         self._updateExtents()
-        return (self._mMinX,self._mMinY)
+        return (self._mMinX, self._mMinY)
 
     def bottomRightCorner(self):
         """
@@ -1835,7 +1926,7 @@ class Feature(object):
 
         """
         self._updateExtents()
-        return (self._mMaxX,self._mMaxY)
+        return (self._mMaxX, self._mMaxY)
 
     def bottomLeftCorner(self):
         """
@@ -1856,7 +1947,7 @@ class Feature(object):
 
         """
         self._updateExtents()
-        return (self._mMinX,self._mMaxY)
+        return (self._mMinX, self._mMaxY)
 
     def topRightCorner(self):
         """
@@ -1877,28 +1968,31 @@ class Feature(object):
 
         """
         self._updateExtents()
-        return (self._mMaxX,self._mMinY)
+        return (self._mMaxX, self._mMinY)
 
-
-    def above(self,object):
+    def above(self, object):
         """
         **SUMMARY**
 
-        Return true if the feature is above the object, where object can be a bounding box,
-        bounding circle, a list of tuples in a closed polygon, or any other featutres.
+        Return true if the feature is above the object, where object can be a
+        bounding box, bounding circle, a list of tuples in a closed polygon, or
+        any other featutres.
 
         **PARAMETERS**
 
         * *object*
 
-          * A bounding box - of the form (x,y,w,h) where x,y is the upper left corner
+          * A bounding box - of the form (x,y,w,h) where x,y is the upper left
+           corner
           * A bounding circle of the form (x,y,r)
-          * A list of x,y tuples defining a closed polygon e.g. ((x,y),(x,y),....)
+          * A list of x,y tuples defining a closed polygon
+           e.g. ((x,y),(x,y),....)
           * Any two dimensional feature (e.g. blobs, circle ...)
 
         **RETURNS**
 
-        Returns a Boolean, True if the feature is above the object, False otherwise.
+        Returns a Boolean, True if the feature is above the object, False
+        otherwise.
 
         **EXAMPLE**
 
@@ -1909,35 +2003,42 @@ class Feature(object):
         >>>    print "above the biggest blob"
 
         """
-        if( isinstance(object,Feature) ):
-            return( self.maxY() < object.minY() )
-        elif( isinstance(object,tuple) or isinstance(object,np.ndarray) ):
-            return( self.maxY() < object[1]  )
-        elif( isinstance(object,float) or isinstance(object,int) ):
-            return( self.maxY() < object )
+        if isinstance(object, Feature):
+            return self.maxY() < object.minY()
+        elif isinstance(object, tuple) or isinstance(object, np.ndarray):
+            return self.maxY() < object[1]
+        elif isinstance(object, float) or isinstance(object, int):
+            return self.maxY() < object
         else:
-            logger.warning("SimpleCV did not recognize the input type to feature.above(). This method only takes another feature, an (x,y) tuple, or a ndarray type.")
+            logger.warning(
+                "SimpleCV did not recognize the input type to feature.above()."
+                " This method only takes another feature, an (x,y) tuple, or a"
+                " ndarray type.")
             return None
 
-    def below(self,object):
+    def below(self, object):
         """
         **SUMMARY**
 
-        Return true if the feature is below the object, where object can be a bounding box,
-        bounding circle, a list of tuples in a closed polygon, or any other featutres.
+        Return true if the feature is below the object, where object can be a
+        bounding box, bounding circle, a list of tuples in a closed polygon, or
+        any other featutres.
 
         **PARAMETERS**
 
         * *object*
 
-          * A bounding box - of the form (x,y,w,h) where x,y is the upper left corner
+          * A bounding box - of the form (x,y,w,h) where x,y is the upper left
+           corner
           * A bounding circle of the form (x,y,r)
-          * A list of x,y tuples defining a closed polygon e.g. ((x,y),(x,y),....)
+          * A list of x,y tuples defining a closed polygon
+           e.g. ((x,y),(x,y),....)
           * Any two dimensional feature (e.g. blobs, circle ...)
 
         **RETURNS**
 
-        Returns a Boolean, True if the feature is below the object, False otherwise.
+        Returns a Boolean, True if the feature is below the object, False
+        otherwise.
 
         **EXAMPLE**
 
@@ -1948,75 +2049,88 @@ class Feature(object):
         >>>    print "above the biggest blob"
 
         """
-        if( isinstance(object,Feature) ):
-            return( self.minY() > object.maxY() )
-        elif( isinstance(object,tuple) or isinstance(object,np.ndarray) ):
-            return( self.minY() > object[1]  )
-        elif( isinstance(object,float) or isinstance(object,int) ):
-            return( self.minY() > object )
+        if isinstance(object, Feature):
+            return self.minY() > object.maxY()
+        elif isinstance(object, tuple) or isinstance(object, np.ndarray):
+            return self.minY() > object[1]
+        elif isinstance(object, float) or isinstance(object, int):
+            return self.minY() > object
         else:
-            logger.warning("SimpleCV did not recognize the input type to feature.below(). This method only takes another feature, an (x,y) tuple, or a ndarray type.")
+            logger.warning(
+                "SimpleCV did not recognize the input type to feature.below()."
+                " This method only takes another feature, an (x,y) tuple, or a"
+                " ndarray type.")
             return None
 
-
-    def right(self,object):
+    def right(self, object):
         """
         **SUMMARY**
 
-        Return true if the feature is to the right object, where object can be a bounding box,
-        bounding circle, a list of tuples in a closed polygon, or any other featutres.
+        Return true if the feature is to the right object, where object can be
+        a bounding box, bounding circle, a list of tuples in a closed polygon,
+        or any other featutres.
 
         **PARAMETERS**
 
         * *object*
 
-          * A bounding box - of the form (x,y,w,h) where x,y is the upper left corner
+          * A bounding box - of the form (x,y,w,h) where x,y is the upper left
+           corner
           * A bounding circle of the form (x,y,r)
-          * A list of x,y tuples defining a closed polygon e.g. ((x,y),(x,y),....)
+          * A list of x,y tuples defining a closed polygon
+           e.g. ((x,y),(x,y),....)
           * Any two dimensional feature (e.g. blobs, circle ...)
 
         **RETURNS**
 
-        Returns a Boolean, True if the feature is to the right object, False otherwise.
+        Returns a Boolean, True if the feature is to the right object, False
+        otherwise.
 
         **EXAMPLE**
 
         >>> img = Image("Lenna")
         >>> blobs = img.findBlobs()
         >>> b = blobs[0]
-        >>> if( blobs[-1].right(b) ):
+        >>> if blobs[-1].right(b):
         >>>    print "right of the the blob"
 
         """
-        if( isinstance(object,Feature) ):
-            return( self.minX() > object.maxX() )
-        elif( isinstance(object,tuple) or isinstance(object,np.ndarray) ):
-            return( self.minX() > object[0]  )
-        elif( isinstance(object,float) or isinstance(object,int) ):
-            return( self.minX() > object )
+        if isinstance(object, Feature):
+            return self.minX() > object.maxX()
+        elif isinstance(object, tuple) or isinstance(object, np.ndarray):
+            return self.minX() > object[0]
+        elif isinstance(object, float) or isinstance(object, int):
+            return self.minX() > object
         else:
-            logger.warning("SimpleCV did not recognize the input type to feature.right(). This method only takes another feature, an (x,y) tuple, or a ndarray type.")
+            logger.warning(
+                "SimpleCV did not recognize the input type to feature.right()."
+                " This method only takes another feature, an (x,y) tuple, or a"
+                " ndarray type.")
             return None
 
-    def left(self,object):
+    def left(self, object):
         """
         **SUMMARY**
 
-        Return true if the feature is to the left of  the object, where object can be a bounding box,
-        bounding circle, a list of tuples in a closed polygon, or any other featutres.
+        Return true if the feature is to the left of  the object, where object
+        can be a bounding box, bounding circle, a list of tuples in a closed
+        polygon, or any other featutres.
 
         **PARAMETERS**
 
         * *object*
 
-          * A bounding box - of the form (x,y,w,h) where x,y is the upper left corner
+          * A bounding box - of the form (x,y,w,h) where x,y is the upper left
+           corner
           * A bounding circle of the form (x,y,r)
-          * A list of x,y tuples defining a closed polygon e.g. ((x,y),(x,y),....)
+          * A list of x,y tuples defining a closed polygon
+           e.g. ((x,y),(x,y),....)
           * Any two dimensional feature (e.g. blobs, circle ...)
 
         **RETURNS**
 
-        Returns a Boolean, True if the feature is to the left of  the object, False otherwise.
+        Returns a Boolean, True if the feature is to the left of  the object,
+        False otherwise.
 
         **EXAMPLE**
 
@@ -2028,35 +2142,42 @@ class Feature(object):
 
 
         """
-        if( isinstance(object,Feature) ):
-            return( self.maxX() < object.minX() )
-        elif( isinstance(object,tuple) or isinstance(object,np.ndarray) ):
-            return( self.maxX() < object[0]  )
-        elif( isinstance(object,float) or isinstance(object,int) ):
-            return( self.maxX() < object )
+        if isinstance(object, Feature):
+            return self.maxX() < object.minX()
+        elif isinstance(object, tuple) or isinstance(object, np.ndarray):
+            return self.maxX() < object[0]
+        elif isinstance(object, float) or isinstance(object, int):
+            return self.maxX() < object
         else:
-            logger.warning("SimpleCV did not recognize the input type to feature.left(). This method only takes another feature, an (x,y) tuple, or a ndarray type.")
+            logger.warning(
+                "SimpleCV did not recognize the input type to feature.left(). "
+                "This method only takes another feature, an (x,y) tuple, or a "
+                "ndarray type.")
             return None
 
-    def contains(self,other):
+    def contains(self, other):
         """
         **SUMMARY**
 
-        Return true if the feature contains  the object, where object can be a bounding box,
-        bounding circle, a list of tuples in a closed polygon, or any other featutres.
+        Return true if the feature contains  the object, where object can be a
+        bounding box, bounding circle, a list of tuples in a closed polygon, or
+        any other featutres.
 
         **PARAMETERS**
 
         * *object*
 
-          * A bounding box - of the form (x,y,w,h) where x,y is the upper left corner
+          * A bounding box - of the form (x,y,w,h) where x,y is the upper left
+           corner
           * A bounding circle of the form (x,y,r)
-          * A list of x,y tuples defining a closed polygon e.g. ((x,y),(x,y),....)
+          * A list of x,y tuples defining a closed polygon
+           e.g. ((x,y),(x,y),....)
           * Any two dimensional feature (e.g. blobs, circle ...)
 
         **RETURNS**
 
-        Returns a Boolean, True if the feature contains the object, False otherwise.
+        Returns a Boolean, True if the feature contains the object, False
+        otherwise.
 
         **EXAMPLE**
 
@@ -2068,50 +2189,59 @@ class Feature(object):
 
         **NOTE**
 
-        This currently performs a bounding box test, not a full polygon test for speed.
+        This currently performs a bounding box test, not a full polygon test
+        for speed.
 
         """
         retVal = False
 
         bounds = self.points
-        if( isinstance(other,Feature) ):# A feature
+        if isinstance(other, Feature):  # A feature
             retVal = True
-            for p in other.points: # this isn't completely correct - only tests if points lie in poly, not edges.
-                p2 = (int(p[0]),int(p[1]))
-                retVal = self._pointInsidePolygon(p2,bounds)
-                if( not retVal ):
+            # this isn't completely correct
+            # only tests if points lie in poly, not edges.
+            for p in other.points:
+                p2 = (int(p[0]), int(p[1]))
+                retVal = self._pointInsidePolygon(p2, bounds)
+                if not retVal:
                     break
         # a single point
-        elif( (isinstance(other,tuple) and len(other)==2) or ( isinstance(other,np.ndarray) and other.shape[0]==2) ):
-            retVal = self._pointInsidePolygon(other,bounds)
+        elif ((isinstance(other, tuple) and len(other) == 2) or (
+                isinstance(other, np.ndarray) and other.shape[0] == 2)):
+            retVal = self._pointInsidePolygon(other, bounds)
 
-        elif( isinstance(other,tuple) and len(other)==3 ): # A circle
+        elif isinstance(other, tuple) and len(other) == 3:  # A circle
             #assume we are in x,y, r format
             retVal = True
-            rr = other[2]*other[2]
+            rr = other[2] * other[2]
             x = other[0]
             y = other[1]
             for p in bounds:
-                test = ((x-p[0])*(x-p[0]))+((y-p[1])*(y-p[1]))
-                if( test < rr ):
+                test = ((x - p[0]) * (x - p[0])) + ((y - p[1]) * (y - p[1]))
+                if test < rr:
                     retVal = False
                     break
 
-        elif( isinstance(other,tuple) and len(other)==4 and ( isinstance(other[0],float) or isinstance(other[0],int))):
-            retVal = ( self.maxX() <= other[0]+other[2] and
-                       self.minX() >= other[0] and
-                       self.maxY() <= other[1]+other[3] and
-                       self.minY() >= other[1] )
-        elif(isinstance(other,list) and len(other) >= 4): # an arbitrary polygon
+        elif isinstance(other, tuple) and len(other) == 4 and (
+                isinstance(other[0], float) or isinstance(other[0], int)):
+            retVal = (self.maxX() <= other[0] + other[2] and
+                      self.minX() >= other[0] and
+                      self.maxY() <= other[1] + other[3] and
+                      self.minY() >= other[1])
+        elif isinstance(other, list) and len(
+                other) >= 4:  # an arbitrary polygon
             #everything else ....
             retVal = True
             for p in other:
-                test = self._pointInsidePolygon(p,bounds)
-                if(not test):
+                test = self._pointInsidePolygon(p, bounds)
+                if not test:
                     retVal = False
                     break
         else:
-            logger.warning("SimpleCV did not recognize the input type to features.contains. This method only takes another blob, an (x,y) tuple, or a ndarray type.")
+            logger.warning(
+                "SimpleCV did not recognize the input type to "
+                "features.contains. This method only takes another blob, an "
+                "(x,y) tuple, or a ndarray type.")
             return False
 
         return retVal
@@ -2120,21 +2250,25 @@ class Feature(object):
         """
         **SUMMARY**
 
-        Return true if the feature overlaps the object, where object can be a bounding box,
-        bounding circle, a list of tuples in a closed polygon, or any other featutres.
+        Return true if the feature overlaps the object, where object can be a
+        bounding box, bounding circle, a list of tuples in a closed polygon, or
+        any other featutres.
 
         **PARAMETERS**
 
         * *object*
 
-          * A bounding box - of the form (x,y,w,h) where x,y is the upper left corner
+          * A bounding box - of the form (x,y,w,h) where x,y is the upper left
+           corner
           * A bounding circle of the form (x,y,r)
-          * A list of x,y tuples defining a closed polygon e.g. ((x,y),(x,y),....)
+          * A list of x,y tuples defining a closed polygon
+           e.g. ((x,y),(x,y),....)
           * Any two dimensional feature (e.g. blobs, circle ...)
 
         **RETURNS**
 
-        Returns a Boolean, True if the feature overlaps  object, False otherwise.
+        Returns a Boolean, True if the feature overlaps  object, False
+        otherwise.
 
         **EXAMPLE**
 
@@ -2144,54 +2278,66 @@ class Feature(object):
         >>> if( blobs[-1].overlaps(b) ):
         >>>    print "This blob overlaps the biggest blob"
 
-        Returns true if this blob contains at least one point, part of a collection
-        of points, or any part of a blob.
+        Returns true if this blob contains at least one point, part of a
+        collection of points, or any part of a blob.
 
         **NOTE**
 
-        This currently performs a bounding box test, not a full polygon test for speed.
+        This currently performs a bounding box test, not a full polygon test
+        for speed.
 
        """
         retVal = False
         bounds = self.points
 
-        if( isinstance(other,Feature) ):# A feature
+        if isinstance(other, Feature):  # A feature
             retVal = True
-            for p in other.points: # this isn't completely correct - only tests if points lie in poly, not edges.
-                retVal = self._pointInsidePolygon(p,bounds)
-                if( retVal ):
+            # this isn't completely correct
+            # only tests if points lie in poly, not edges.
+            for p in other.points:
+                retVal = self._pointInsidePolygon(p, bounds)
+                if retVal:
                     break
 
-        elif( (isinstance(other,tuple) and len(other)==2) or ( isinstance(other,np.ndarray) and other.shape[0]==2) ):
-            retVal = self._pointInsidePolygon(other,bounds)
+        elif (isinstance(other, tuple) and len(other) == 2) or (
+                isinstance(other, np.ndarray) and other.shape[0] == 2):
+            retVal = self._pointInsidePolygon(other, bounds)
 
-        elif( isinstance(other,tuple) and len(other)==3 and not isinstance(other[0],tuple)): # A circle
+        elif isinstance(other, tuple) and len(other) == 3 and not isinstance(
+                other[0], tuple):  # A circle
             #assume we are in x,y, r format
             retVal = False
-            rr = other[2]*other[2]
+            rr = other[2] * other[2]
             x = other[0]
             y = other[1]
             for p in bounds:
-                test = ((x-p[0])*(x-p[0]))+((y-p[1])*(y-p[1]))
-                if( test < rr ):
+                test = ((x - p[0]) * (x - p[0])) + ((y - p[1]) * (y - p[1]))
+                if test < rr:
                     retVal = True
                     break
 
-        elif( isinstance(other,tuple) and len(other)==4 and ( isinstance(other[0],float) or isinstance(other[0],int))):
-            retVal = ( self.contains( (other[0],other[1] ) ) or # see if we contain any corner
-                       self.contains( (other[0]+other[2],other[1] ) ) or
-                       self.contains( (other[0],other[1]+other[3] ) ) or
-                       self.contains( (other[0]+other[2],other[1]+other[3] ) ) )
-        elif(isinstance(other,list) and len(other)  >= 3): # an arbitrary polygon
+        elif isinstance(other, tuple) and len(other) == 4 and (
+                isinstance(other[0], float) or isinstance(other[0], int)):
+            retVal = (self.contains(
+                (other[0], other[1])) or  # see if we contain any corner
+                self.contains((other[0] + other[2], other[1])) or
+                self.contains((other[0], other[1] + other[3])) or
+                self.contains(
+                    (other[0] + other[2], other[1] + other[3])))
+        elif isinstance(other, list) and len(
+                other) >= 3:  # an arbitrary polygon
             #everything else ....
             retVal = False
             for p in other:
-                test = self._pointInsidePolygon(p,bounds)
-                if(test):
+                test = self._pointInsidePolygon(p, bounds)
+                if (test):
                     retVal = True
                     break
         else:
-            logger.warning("SimpleCV did not recognize the input type to features.overlaps. This method only takes another blob, an (x,y) tuple, or a ndarray type.")
+            logger.warning(
+                "SimpleCV did not recognize the input type to "
+                "features.overlaps. This method only takes another blob, an "
+                "(x,y) tuple, or a ndarray type.")
             return False
 
         return retVal
@@ -2200,21 +2346,25 @@ class Feature(object):
         """
         **SUMMARY**
 
-        Return true if the feature does not contain  the other object, where other can be a bounding box,
-        bounding circle, a list of tuples in a closed polygon, or any other featutres.
+        Return true if the feature does not contain  the other object, where
+        other can be a bounding box, bounding circle, a list of tuples in a
+        closed polygon, or any other featutres.
 
         **PARAMETERS**
 
         * *other*
 
-          * A bounding box - of the form (x,y,w,h) where x,y is the upper left corner
+          * A bounding box - of the form (x,y,w,h) where x,y is the upper left
+           corner
           * A bounding circle of the form (x,y,r)
-          * A list of x,y tuples defining a closed polygon e.g. ((x,y),(x,y),....)
+          * A list of x,y tuples defining a closed polygon
+           e.g. ((x,y),(x,y),....)
           * Any two dimensional feature (e.g. blobs, circle ...)
 
         **RETURNS**
 
-        Returns a Boolean, True if the feature does not contain the object, False otherwise.
+        Returns a Boolean, True if the feature does not contain the object,
+        False otherwise.
 
         **EXAMPLE**
 
@@ -2228,25 +2378,29 @@ class Feature(object):
         """
         return not self.contains(other)
 
-    def doesNotOverlap( self, other):
+    def doesNotOverlap(self, other):
         """
         **SUMMARY**
 
-        Return true if the feature does not overlap the object other, where other can be a bounding box,
-        bounding circle, a list of tuples in a closed polygon, or any other featutres.
+        Return true if the feature does not overlap the object other, where
+        other can be a bounding box, bounding circle, a list of tuples in a
+        closed polygon, or any other featutres.
 
         **PARAMETERS**
 
         * *other*
 
-          * A bounding box - of the form (x,y,w,h) where x,y is the upper left corner
+          * A bounding box - of the form (x,y,w,h) where x,y is the upper left
+           corner
           * A bounding circle of the form (x,y,r)
-          * A list of x,y tuples defining a closed polygon e.g. ((x,y),(x,y),....)
+          * A list of x,y tuples defining a closed polygon
+           e.g. ((x,y),(x,y),....)
           * Any two dimensional feature (e.g. blobs, circle ...)
 
         **RETURNS**
 
-        Returns a Boolean, True if the feature does not Overlap  the object, False otherwise.
+        Returns a Boolean, True if the feature does not Overlap  the object,
+        False otherwise.
 
         **EXAMPLE**
 
@@ -2258,93 +2412,107 @@ class Feature(object):
 
 
         """
-        return not self.overlaps( other)
+        return not self.overlaps(other)
 
-
-    def isContainedWithin(self,other):
+    def isContainedWithin(self, other):
         """
         **SUMMARY**
 
-        Return true if the feature is contained withing  the object other, where other can be a bounding box,
-        bounding circle, a list of tuples in a closed polygon, or any other featutres.
+        Return true if the feature is contained withing  the object other,
+        where other can be a bounding box, bounding circle, a list of tuples
+        in a closed polygon, or any other featutres.
 
         **PARAMETERS**
 
         * *other*
 
-          * A bounding box - of the form (x,y,w,h) where x,y is the upper left corner
+          * A bounding box - of the form (x,y,w,h) where x,y is the upper left
+           corner
           * A bounding circle of the form (x,y,r)
-          * A list of x,y tuples defining a closed polygon e.g. ((x,y),(x,y),....)
+          * A list of x,y tuples defining a closed polygon
+           e.g. ((x,y),(x,y),....)
           * Any two dimensional feature (e.g. blobs, circle ...)
 
         **RETURNS**
 
-        Returns a Boolean, True if the feature is above the object, False otherwise.
+        Returns a Boolean, True if the feature is above the object,
+        False otherwise.
 
         **EXAMPLE**
 
         >>> img = Image("Lenna")
         >>> blobs = img.findBlobs()
         >>> b = blobs[0]
-        >>> if( blobs[-1].isContainedWithin(b) ):
+        >>> if blobs[-1].isContainedWithin(b):
         >>>    print "inside the blob"
 
         """
         retVal = True
         bounds = self.points
 
-        if( isinstance(other,Feature) ): # another feature do the containment test
+        if isinstance(other, Feature):
+            # another feature do the containment test
             retVal = other.contains(self)
-        elif( isinstance(other,tuple) and len(other)==3 ): # a circle
-            #assume we are in x,y, r format
-            rr = other[2]*other[2] # radius squared
+        elif isinstance(other, tuple) and len(other) == 3:  # a circle
+            #assume we are in x, y, r format
+            rr = other[2] * other[2]  # radius squared
             x = other[0]
             y = other[1]
             for p in bounds:
-                test = ((x-p[0])*(x-p[0]))+((y-p[1])*(y-p[1]))
-                if( test > rr ):
+                test = ((x - p[0]) * (x - p[0])) + ((y - p[1]) * (y - p[1]))
+                if test > rr:
                     retVal = False
                     break
-        elif( isinstance(other,tuple) and len(other)==4 and  # a bounding box
-            ( isinstance(other[0],float) or isinstance(other[0],int))): # we assume a tuple of four is (x,y,w,h)
-            retVal = ( self.maxX() <= other[0]+other[2] and
-                       self.minX() >= other[0] and
-                       self.maxY() <= other[1]+other[3] and
-                       self.minY() >= other[1] )
-        elif(isinstance(other,list) and len(other) > 2 ): # an arbitrary polygon
+
+        elif isinstance(other, tuple) and len(other) == 4 \
+                and (isinstance(other[0], float) or isinstance(other[0], int)):
+            # we assume a tuple of four is (x,y,w,h)
+            retVal = (self.maxX() <= other[0] + other[2] and
+                      self.minX() >= other[0] and
+                      self.maxY() <= other[1] + other[3] and
+                      self.minY() >= other[1])
+
+        # an arbitrary polygon
+        elif isinstance(other, list) and len(other) > 2:
             #everything else ....
             retVal = True
             for p in bounds:
-                test = self._pointInsidePolygon(p,other)
-                if(not test):
+                test = self._pointInsidePolygon(p, other)
+                if (not test):
                     retVal = False
                     break
 
         else:
-            logger.warning("SimpleCV did not recognize the input type to features.contains. This method only takes another blob, an (x,y) tuple, or a ndarray type.")
+            logger.warning(
+                "SimpleCV did not recognize the input type to "
+                "features.contains. This method only takes another blob, an "
+                "(x,y) tuple, or a ndarray type.")
             retVal = False
         return retVal
 
-
-    def isNotContainedWithin(self,shape):
+    def isNotContainedWithin(self, shape):
         """
         **SUMMARY**
 
-        Return true if the feature is not contained within the shape, where shape can be a bounding box,
-        bounding circle, a list of tuples in a closed polygon, or any other featutres.
+        Return true if the feature is not contained within the shape, where
+        shape can be a bounding box, bounding circle, a list of tuples in a
+        closed polygon, or any other featutres.
 
         **PARAMETERS**
 
         * *shape*
 
-          * A bounding box - of the form (x,y,w,h) where x,y is the upper left corner
+          * A bounding box - of the form (x,y,w,h) where x,y is the upper
+           left corner
           * A bounding circle of the form (x,y,r)
-          * A list of x,y tuples defining a closed polygon e.g. ((x,y),(x,y),....)
+          * A list of x,y tuples defining a closed polygon
+           e.g. ((x,y),(x,y),....)
           * Any two dimensional feature (e.g. blobs, circle ...)
 
         **RETURNS**
 
-        Returns a Boolean, True if the feature is not contained within the shape, False otherwise.
+        Returns a Boolean, True if the feature is not contained within the
+        shape, False otherwise.
 
         **EXAMPLE**
 
@@ -2357,9 +2525,10 @@ class Feature(object):
         """
         return not self.isContainedWithin(shape)
 
-    def _pointInsidePolygon(self,point,polygon):
+    def _pointInsidePolygon(self, point, polygon):
         """
-        returns true if tuple point (x,y) is inside polygon of the form ((a,b),(c,d),...,(a,b)) the polygon should be closed
+        returns true if tuple point (x,y) is inside polygon of the form
+        ((a,b),(c,d),...,(a,b)) the polygon should be closed
 
         """
         # try:
@@ -2368,19 +2537,22 @@ class Feature(object):
         #     logger.warning("Unable to import cv2")
         #     return False
 
-        if( len(polygon) < 3 ):
-            logger.warning("feature._pointInsidePolygon - this is not a valid polygon")
+        if len(polygon) < 3:
+            logger.warning(
+                "feature._pointInsidePolygon - this is not a valid polygon")
             return False
 
-        if( not isinstance(polygon,list)):
-            logger.warning("feature._pointInsidePolygon - this is not a valid polygon")
+        if not isinstance(polygon, list):
+            logger.warning(
+                "feature._pointInsidePolygon - this is not a valid polygon")
             return False
 
-        #if( not isinstance(point,tuple) ):
+            #if( not isinstance(point,tuple) ):
             #if( len(point) == 2 ):
             #    point = tuple(point)
             #else:
-            #    logger.warning("feature._pointInsidePolygon - this is not a valid point")
+            #    logger.warning("feature._pointInsidePolygon - this is not a "
+            #                   "valid point")
             #    return False
         #if( cv2.__version__ == '$Rev:4557'):
         counter = 0
@@ -2392,35 +2564,34 @@ class Feature(object):
         #for p2 in poly:
         N = len(poly)
         p1 = poly[0]
-        for i in range(1,N+1):
-            p2 = poly[i%N]
-            if( point[1] > np.min((p1[1],p2[1])) ):
-                if( point[1] <= np.max((p1[1],p2[1])) ):
-                    if( point[0] <= np.max((p1[0],p2[0])) ):
-                        if( p1[1] != p2[1] ):
-                            test = float((point[1]-p1[1])*(p2[0]-p1[0]))/float(((p2[1]-p1[1])+p1[0]))
-                            if( p1[0] == p2[0] or point[0] <= test ):
+        for i in range(1, N + 1):
+            p2 = poly[i % N]
+            if point[1] > np.min((p1[1], p2[1])):
+                if point[1] <= np.max((p1[1], p2[1])):
+                    if point[0] <= np.max((p1[0], p2[0])):
+                        if p1[1] != p2[1]:
+                            test = float((point[1] - p1[1]) * (p2[0] - p1[0]))\
+                                / float(((p2[1] - p1[1]) + p1[0]))
+                            if p1[0] == p2[0] or point[0] <= test:
                                 counter = counter + 1
             p1 = p2
 
-        if( counter % 2 == 0 ):
+        if counter % 2 == 0:
             retVal = False
             return retVal
         return retVal
-        #else:
-        #    result = cv2.pointPolygonTest(np.array(polygon,dtype='float32'),point,0)
-        #    return result > 0 
 
     def boundingCircle(self):
         """
         **SUMMARY**
 
-        This function calculates the minimum bounding circle of the blob in the image
-        as an (x,y,r) tuple
+        This function calculates the minimum bounding circle of the blob in the
+        image as an (x,y,r) tuple
 
         **RETURNS**
 
-        An (x,y,r) tuple where (x,y) is the center of the circle and r is the radius
+        An (x,y,r) tuple where (x,y) is the center of the circle and r is the
+        radius
 
         **EXAMPLE**
 
@@ -2440,15 +2611,13 @@ class Feature(object):
         contour = self.contour()
 
         points = []
-        # list of contour points converted to suitable format to pass into cv2.minEnclosingCircle()
+        # list of contour points converted to suitable format to pass
+        # into cv2.minEnclosingCircle()
         for pair in contour:
             points.append([[pair[0], pair[1]]])
 
         points = np.array(points)
 
-        (cen, rad) = cv2.minEnclosingCircle(points);
+        (cen, rad) = cv2.minEnclosingCircle(points)
 
         return (cen[0], cen[1], rad)
-
-
-#---------------------------------------------
