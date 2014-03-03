@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import time, webbrowser
-from SimpleCV import *
+from simplecv import *
 
 #create JPEG streamers
 js = JpegStreamer(8080)

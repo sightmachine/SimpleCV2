@@ -1,4 +1,4 @@
-from SimpleCV import Camera, Image, Color, TemporalColorTracker, ROI, Display
+from simplecv import Camera, Image, Color, TemporalColorTracker, ROI, Display
 import matplotlib.pyplot as plt
 
 cam = Camera(1)

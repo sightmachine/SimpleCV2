@@ -4,7 +4,7 @@ This program basically simulates some kind of 80's music video.
 '''
 print __doc__
 import sys, time, socket
-from SimpleCV import *
+from simplecv import *
 
 cam = Camera()
 

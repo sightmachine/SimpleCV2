@@ -5,7 +5,7 @@ maxframes that are set using some basic image math
 '''
 print __doc__
 from operator import add
-from SimpleCV import *
+from simplecv import *
 
 js = JpegStreamer(8080)
 #create JPEG streamers

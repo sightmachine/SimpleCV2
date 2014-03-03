@@ -7,7 +7,7 @@ of a green background
 '''
 print __doc__
 
-from SimpleCV import *
+from simplecv import *
 
 gs = Image("greenscreen.png", sample=True)
 gs.show()

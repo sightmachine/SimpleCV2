@@ -13,10 +13,10 @@ The only amount of SimpleCV code is found in the process_image() function
 print __doc__
 
 import gtk
-import SimpleCV
+import simplecv
 import gobject
 
-cam = SimpleCV.Camera()
+cam = simplecv.Camera()
 
 class app(gtk.Window):
 

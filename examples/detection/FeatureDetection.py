@@ -15,8 +15,8 @@ want to retrain then just right click to reset.
 print __doc__
 
 import time
-from SimpleCV import Color, Image, np, Camera
-from SimpleCV.Display import Display
+from simplecv import Color, Image, np, Camera
+from simplecv.display import Display
 cam = Camera()
 display = Display((640,480)) # create our display
 

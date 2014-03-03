@@ -1,4 +1,4 @@
-from SimpleCV import *
+from simplecv import *
 
 print ""
 print "This program runs a list of test for machine learning on"

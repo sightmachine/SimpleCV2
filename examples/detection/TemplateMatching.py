@@ -9,7 +9,7 @@ you will probably want to look into img.findKeypoints()
 print __doc__
 
 
-from SimpleCV import *
+from simplecv import *
 import sys, time, socket
 
 source = Image("templatetest.png", sample=True) # the image to search

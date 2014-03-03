@@ -7,7 +7,7 @@ this are typically blobs on the images, so we do a blob search to count
 the number of blobs and if they exist then motion has occured
 '''
 import sys, time, socket
-from SimpleCV import *
+from simplecv import *
 
 cam = Camera() #setup the camera
 

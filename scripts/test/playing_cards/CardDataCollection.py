@@ -1,4 +1,4 @@
-from SimpleCV import Image, Display,Camera,Color
+from simplecv import Image, Display,Camera,Color
 import glob,os
 import pygame as pg
 from CardUtil import SUITS, RANKS, MISC

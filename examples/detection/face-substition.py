@@ -7,7 +7,7 @@ image should auto scale to match the size of the face.
 """
 print __doc__
 
-from SimpleCV import Camera, Display, HaarCascade, Image
+from simplecv import Camera, Display, HaarCascade, Image
 
 #initialize the camera
 cam = Camera()

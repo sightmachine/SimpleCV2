@@ -1,9 +1,9 @@
 from setuptools import setup, find_packages
 
-setup(name="SimpleCV",
+setup(name="simplecv",
       version=1.3,
       download_url='https://github.com/sightmachine/SimpleCV/zipball/1.3',
-      description="Make Computers See with SimpleCV, the Python Framework for Machine Vision",
+      description="Make Computers See with simplecv, the Python Framework for Machine Vision",
       long_description=("Framework for computer (machine) vision in Python, providing a unified, pythonic interface "
                         "to image acquisition, conversion, manipulation, and feature extraction."),
       classifiers=[
@@ -27,7 +27,7 @@ setup(name="SimpleCV",
       zip_safe=False,
       requires=['cv2', 'cv', 'numpy', 'scipy', 'pygame', 'pil', 'svgwrite'],
       package_data={  # DO NOT REMOVE, NEEDED TO LOAD INLINE FILES i = Image('simplecv')
-                      'SimpleCV': ['data/sampleimages/*',
+                      'simplecv': ['data/sampleimages/*',
                                    'data/Features/HaarCascades/*',
                                    'data/Features/FaceRecognizer/*'
                                    'examples/arduino/*',
@@ -41,7 +41,7 @@ setup(name="SimpleCV",
       },
       entry_points={
           'console_scripts': [
-              'simplecv = SimpleCV.Shell:main',
+              'simplecv = simplecv.shell:main',
           ],
       },
       )

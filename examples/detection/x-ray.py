@@ -8,7 +8,7 @@ basic image operation and overlay back onto the original image.
 """
 print __doc__
 
-from SimpleCV import Camera, Display
+from simplecv import Camera, Display
 
 # Initialize the camera
 cam = Camera() 

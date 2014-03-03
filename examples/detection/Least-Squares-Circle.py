@@ -7,7 +7,7 @@ The program basically takes in a shape and tries to find the size of it.
 '''
 print __doc__
 
-from SimpleCV import *
+from simplecv import *
 from scipy import optimize
 
 img = Image("derp.png", sample=True)

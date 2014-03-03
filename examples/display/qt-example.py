@@ -11,7 +11,7 @@ import os
 import sys
 import signal
 from PyQt4 import uic, QtGui, QtCore
-from SimpleCV import *
+from simplecv import *
 
 
 try:

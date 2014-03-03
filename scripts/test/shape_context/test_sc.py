@@ -1,4 +1,4 @@
-from SimpleCV import *
+from simplecv import *
 
 color = Color()
 img = Image('badge.png')

@@ -5,7 +5,7 @@ were you are verifying that the correct number of pills are present
 '''
 
 
-from SimpleCV import *
+from simplecv import *
 
 pillcolor = (153, 198, 252)  #This is set manually, you could either open the image you want and pick the color, or use blob detection to find the blob and do .meanColor() to get the RGB value
 i = Image("pills.png", sample=True)

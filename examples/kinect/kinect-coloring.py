@@ -2,8 +2,8 @@
 
 import time, webbrowser
 from operator import add
-from SimpleCV import Color, ColorCurve, Kinect, Image, pg, np
-from SimpleCV.Display import Display
+from simplecv import Color, ColorCurve, Kinect, Image, pg, np
+from simplecv.display import Display
 
 d = Display(flags = pg.FULLSCREEN)
 #create video streams

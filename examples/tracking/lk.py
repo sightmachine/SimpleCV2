@@ -2,7 +2,7 @@
 Example of Lucas Kanade Tracker
 """
 
-from SimpleCV import *
+from simplecv import *
 
 def lktest():
     cam = Camera()

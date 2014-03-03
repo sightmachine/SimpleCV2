@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from SimpleCV import *
+from simplecv import *
 import time
 
 c = Camera()

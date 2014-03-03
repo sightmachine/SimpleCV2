@@ -2,7 +2,7 @@
 
 
 from operator import add
-from SimpleCV import *
+from simplecv import *
 
 cam = Camera()
 display = Display((800,600))

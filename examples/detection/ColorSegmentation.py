@@ -1,7 +1,7 @@
 import time
-from SimpleCV import *
-from SimpleCV.Display import Display, pg
-from SimpleCV.Segmentation import ColorSegmentation
+from simplecv import *
+from simplecv.display import Display, pg
+from simplecv.segmentation import ColorSegmentation
 segmentation = ColorSegmentation()
 cam = Camera()
 SegmentMode = False

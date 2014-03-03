@@ -2,7 +2,7 @@
 
 import sys
 import os
-from SimpleCV import *
+from simplecv import *
 
 def threedee_me(left, right, offset):
     (r,g,b)=left.splitChannels()

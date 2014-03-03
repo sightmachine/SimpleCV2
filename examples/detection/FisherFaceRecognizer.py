@@ -1,4 +1,4 @@
-from SimpleCV import *
+from simplecv import *
 import time
 """
 This is an example of HOW-TO use FaceRecognizer to recognize gender

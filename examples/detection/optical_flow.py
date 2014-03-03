@@ -1,4 +1,4 @@
-from SimpleCV import *
+from simplecv import *
 
 def movement_check(x = 0,y = 0,t=1):
     direction = ""

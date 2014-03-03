@@ -1,4 +1,4 @@
-from SimpleCV import *
+from simplecv import *
 #from FeatureUtils import *
 from CardUtil import *
 from PlayingCardFactory import *

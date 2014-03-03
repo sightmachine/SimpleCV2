@@ -1,6 +1,6 @@
-from SimpleCV import Camera, Display
-from SimpleCV.Color import Color
-from SimpleCV.Segmentation.MOGSegmentation import MOGSegmentation
+from simplecv import Camera, Display
+from simplecv.color import Color
+from simplecv.segmentation.mog_segmentation import MOGSegmentation
 
 mog = MOGSegmentation(history = 200, nMixtures = 5, backgroundRatio = 0.3, noiseSigma = 16, learningRate = 0.3)
   

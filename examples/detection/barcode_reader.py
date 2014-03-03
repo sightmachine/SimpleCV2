@@ -17,8 +17,8 @@ print __doc__
 
 import time
 import csv
-from SimpleCV import Color, ColorCurve, Camera, Image, pg, np, cv
-from SimpleCV.Display import Display
+from simplecv import Color, ColorCurve, Camera, Image, pg, np, cv
+from simplecv.display import Display
 
 cam = Camera()
 display = Display((800,600))

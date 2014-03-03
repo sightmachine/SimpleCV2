@@ -11,7 +11,7 @@ The only amount of SimpleCV code is found in the process_image() function
 print __doc__
 
 import gtk
-import SimpleCV
+import simplecv
 
 
 class app(gtk.Window):
@@ -74,7 +74,7 @@ class app(gtk.Window):
     '''
     def process_image(self):
         #Start SimpleCV Code
-        img = SimpleCV.Image('lenna').rotate90()
+        img = simplecv.Image('lenna').rotate90()
         edges = img.edges(self.edge_threshold)
         numpy_img = edges.getNumpy()
         #End SimpleCV Code

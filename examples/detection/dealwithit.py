@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import time
-from SimpleCV import *
+from simplecv import *
 
 def check_eyes(eyes):
     return (eyes and len(eyes) >= 2)

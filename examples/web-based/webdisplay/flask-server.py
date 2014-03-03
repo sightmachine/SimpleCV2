@@ -20,11 +20,11 @@ from flask import Flask, jsonify, render_template, request
 from werkzeug import SharedDataMiddleware
 import tempfile, os
 import simplejson as json
-import SimpleCV
+import simplecv
 
 
 app = Flask(__name__)
-cam = SimpleCV.Camera()
+cam = simplecv.Camera()
 
 @app.route('/')
 def show(name=None):

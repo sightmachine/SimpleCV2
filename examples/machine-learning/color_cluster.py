@@ -4,7 +4,7 @@ it could be used in machine learning as a color classifier
 '''
 print __doc__
 
-from SimpleCV import *
+from simplecv import *
 disp = Display((640,528))
 cam = Camera()
 count = 0

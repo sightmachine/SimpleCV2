@@ -1,4 +1,4 @@
-from SimpleCV import *
+from simplecv import *
 
 c = Camera()
 

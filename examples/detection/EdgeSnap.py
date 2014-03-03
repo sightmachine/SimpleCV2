@@ -7,7 +7,7 @@ Right-click to start the process, Detected Edge points will be shown in Red
 '''
 print __doc__
 
-from SimpleCV import *
+from simplecv import *
 
 
 

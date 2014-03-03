@@ -10,7 +10,7 @@ The data set should auto download, if not you can get it from:
 https://github.com/downloads/sightmachine/SimpleCV/nuts_bolts.zip
 '''
 print __doc__
-from SimpleCV import *
+from simplecv import *
 from sklearn.svm import LinearSVC
 from sklearn.linear_model import LogisticRegression
 import numpy as np

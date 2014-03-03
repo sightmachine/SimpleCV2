@@ -1,6 +1,6 @@
 #!/usr/bin/python
-from SimpleCV import *
-from SimpleCV.DrawingLayer import DrawingLayer
+from simplecv import *
+from simplecv.drawing_layer import DrawingLayer
 import os
 
 img = Image("../../sampleimages/color.jpg")

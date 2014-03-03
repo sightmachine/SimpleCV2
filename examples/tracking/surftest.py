@@ -2,7 +2,7 @@
 Example of SURFTracker
 """
 
-from SimpleCV import *
+from simplecv import *
 
 def surftest():
     cam = Camera()

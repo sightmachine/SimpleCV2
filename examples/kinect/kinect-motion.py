@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
-from SimpleCV import Kinect, Image, pg, np, time
-from SimpleCV.Display import Display
+from simplecv import Kinect, Image, pg, np, time
+from simplecv.display import Display
 
 d = Display(flags = pg.FULLSCREEN)
 #create video streams

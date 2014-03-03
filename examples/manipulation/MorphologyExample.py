@@ -6,7 +6,7 @@ for more information see:
 http://en.wikipedia.org/wiki/Mathematical_morphology
 '''
 print __doc__
-from SimpleCV import *
+from simplecv import *
 
 display = Display(resolution = (800, 600)) #create a new display to draw images on
 cam = Camera() #initialize the camera

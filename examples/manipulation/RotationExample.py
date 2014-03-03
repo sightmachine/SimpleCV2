@@ -5,7 +5,7 @@ and put back into a display.
 '''
 print __doc__
 
-from SimpleCV import *
+from simplecv import *
 
 font_size = 30
 sleep_for = 3 #seconds to sleep for

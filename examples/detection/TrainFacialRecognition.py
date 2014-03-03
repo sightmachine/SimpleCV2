@@ -1,4 +1,4 @@
-from SimpleCV import *
+from simplecv import *
 import time
 
 # This file shows you how to train Fisher Face Recognition

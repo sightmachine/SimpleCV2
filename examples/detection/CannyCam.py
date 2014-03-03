@@ -7,7 +7,7 @@ see it change over time
 '''
 print __doc__
 
-from SimpleCV import *
+from simplecv import *
 
 cam = Camera() #initialize the camera
 max_threshold = 300 # this is used for the edge detection

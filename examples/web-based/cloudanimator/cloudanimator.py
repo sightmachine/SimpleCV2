@@ -6,7 +6,7 @@
 # Using jpegcam as flash webcam library:
 # http://code.google.com/p/jpegcam/
 import os, tempfile, webbrowser, urllib, cherrypy, socket
-from SimpleCV import *
+from simplecv import *
 from images2gif import writeGif
 import pdb
 

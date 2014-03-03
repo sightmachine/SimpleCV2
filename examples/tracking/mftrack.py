@@ -1,4 +1,4 @@
-from SimpleCV import *
+from simplecv import *
 # Example for Media Flow Tracker.
 def foo(image):
     return image.meanColor()

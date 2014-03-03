@@ -1,5 +1,5 @@
-from SimpleCV import Image, Features, Color, ImageSet, Display
-from SimpleCV.MachineLearning import TurkingModule
+from simplecv import Image, features, Color, ImageSet, Display
+from simplecv.machine_learning import TurkingModule
 # This example shows how to use the turking module.
 # by turking we mean manually sorting and classifying images
 # ostensibly for supervised learning

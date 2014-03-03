@@ -5,7 +5,7 @@ This program uses a Color model to try and do segmentation based on color
 print __doc__
 
 import time
-from SimpleCV import *
+from simplecv import *
 
 c = Camera()
 i = c.getImage()

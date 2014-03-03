@@ -1,4 +1,4 @@
-from SimpleCV import Camera, VideoStream, Color, Display
+from simplecv import Camera, VideoStream, Color, Display
 from subprocess import call # to run command line programs
 """
 This script requires ffmpeg and googlecl

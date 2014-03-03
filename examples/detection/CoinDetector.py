@@ -15,7 +15,7 @@ quarter - 24.26 mm
 
 print __doc__
 
-from SimpleCV import *
+from simplecv import *
 # A quarter is 24.26mm or 0.955in
 quarterSize = 24.26 #millimeters
 

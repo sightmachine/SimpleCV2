@@ -1,4 +1,4 @@
-from SimpleCV import Image, Camera, Display, Color
+from simplecv import Image, Camera, Display, Color
 import pygame as pg
 import numpy as np
 from pylab import *

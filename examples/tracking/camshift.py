@@ -1,4 +1,4 @@
-from SimpleCV import *
+from simplecv import *
 # Example for CAMShift Tracker
 def foo(image):
     return image.meanColor()

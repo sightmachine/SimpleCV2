@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
 from operator import add
-from SimpleCV import *
-from SimpleCV.Display import Display
+from simplecv import *
+from simplecv.display import Display
 
 d = Display(flags = pg.FULLSCREEN)
 #create video streams

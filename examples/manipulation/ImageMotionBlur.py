@@ -5,7 +5,7 @@ Use Left/Right Arrow keys to change angle
 """
 print __doc__
 
-from SimpleCV import *
+from simplecv import *
 import pygame
 import time
 

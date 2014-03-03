@@ -6,7 +6,7 @@ This program basically does face detection an blurs the face out.
 """
 print __doc__
 
-from SimpleCV import Camera, Display, HaarCascade
+from simplecv import Camera, Display, HaarCascade
 
 # Initialize the camera
 cam = Camera()

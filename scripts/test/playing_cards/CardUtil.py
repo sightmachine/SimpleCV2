@@ -1,5 +1,5 @@
 from glob import glob
-from SimpleCV import Image, ImageSet
+from simplecv import Image, ImageSet
 
 SUITS = ('c', 'd', 'h', 's')
 RANKS = ('2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A')

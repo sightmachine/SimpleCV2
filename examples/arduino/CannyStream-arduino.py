@@ -19,7 +19,7 @@ but the Arduino IDE should tell you where you should mount the Arduino from.
 print __doc__
 
 import time
-from SimpleCV import Camera
+from simplecv import Camera
 from pyfirmata import Arduino, util
 
 

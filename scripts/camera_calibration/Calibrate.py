@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
 import webbrowser, sys, time, random
-from SimpleCV import Camera, Image, JpegStreamer, Color
-from SimpleCV.Display import Display
+from simplecv import Camera, Image, JpegStreamer, Color
+from simplecv.display import Display
 from scipy.spatial.distance import euclidean as distance
 """
 This script can be used to quickly calibrate a camera

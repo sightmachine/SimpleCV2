@@ -1,4 +1,4 @@
-from SimpleCV import *
+from simplecv import *
 img = Image('lenna')
 
 img1 = img.toYCrCb()
