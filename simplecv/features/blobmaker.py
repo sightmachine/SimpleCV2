@@ -1,6 +1,8 @@
 import sys
 import warnings
-from simplecv.base import cv, np, logger
+import numpy as np
+
+from simplecv.base import cv, logger
 
 
 class BlobMaker:

@@ -1,8 +1,11 @@
 import warnings
+import re
 import scipy.stats as sps
+import scipy.spatial.distance as spsd
+import numpy as np
 from math import sin, cos, pi
 
-from simplecv.base import re, cv, np, spsd, LazyProperty
+from simplecv.base import cv, LazyProperty
 from simplecv.features.features import Feature, FeatureSet
 from simplecv.color import Color
 from simplecv.image_class import Image
