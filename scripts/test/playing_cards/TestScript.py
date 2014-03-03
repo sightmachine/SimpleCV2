@@ -53,7 +53,7 @@ for d in datapoints:
         vl.draw(color=Color.RED,width=3)
         hl.draw(color=Color.BLUE,width=3)
 
-#         derp = GetParallelSets(l)
+#         derp = get_parallel_sets(l)
 #         color = Color()
 #         for d in derp:
 # #            img.clearLayers()
