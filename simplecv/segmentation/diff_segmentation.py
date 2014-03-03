@@ -138,7 +138,7 @@ class DiffSegmentation(SegmentationBase):
     def __getstate__(self):
         mydict = self.__dict__.copy()
         self.mBlobMaker = None
-        del mydict['mBlobMaker']
+        del mydict['blobmaker']
         return mydict
 
     def __setstate__(self, mydict):

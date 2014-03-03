@@ -126,7 +126,7 @@ class MOGSegmentation(SegmentationBase):
         mydict = self.__dict__.copy()
         self.mBlobMaker = None
         self.mDiffImg = None
-        del mydict['mBlobMaker']
+        del mydict['blobmaker']
         del mydict['mDiffImg']
         return mydict
 

@@ -134,7 +134,7 @@ class RunningSegmentation(SegmentationBase):
         self.mBlobMaker = None
         self.mModelImg = None
         self.mDiffImg = None
-        del mydict['mBlobMaker']
+        del mydict['blobmaker']
         del mydict['mModelImg']
         del mydict['mDiffImg']
         return mydict

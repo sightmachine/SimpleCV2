@@ -17,7 +17,7 @@ def identifyGender():
         feat.sortArea()[-1].draw()
 
     f.load(LAUNCH_PATH + "/data/Features/FaceRecognizer/GenderData.xml")
-    w, h = f.imageSize
+    w, h = f.image_size
     crop_image = crop_image.resize(w, h)
     label, confidence = f.predict(crop_image)
     print label

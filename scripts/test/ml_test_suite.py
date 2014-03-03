@@ -25,7 +25,7 @@ n=50
 
 display = Display(resolution = (w,h))
 
-hue = HueHistogramFeatureExtractor(mNBins=16)
+hue = HueHistogramFeatureExtractor(nbins=16)
 edge = EdgeHistogramFeatureExtractor()
 bof = BOFFeatureExtractor()
 bof.load('../data/Features/cbdata.txt')

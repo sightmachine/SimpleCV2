@@ -1,9 +1,11 @@
-from simplecv.base import *
+import warnings
+import numpy as np
+import re
+
 from simplecv.image_class import Image
 
 
 class FaceRecognizer():
-
     def __init__(self):
         """
         Create a Face Recognizer Class using Fisher Face Recognizer. Uses
@@ -14,7 +16,7 @@ class FaceRecognizer():
         self.train_imgs = None
         self.train_labels = None
         self.csvfiles = []
-        self.imageSize = None
+        self.image_size = None
         self.labels_dict = {}
         self.labels_set = []
         self.int_labels = []
@@ -26,8 +28,9 @@ class FaceRecognizer():
 
         try:
             import cv2
+
             self.model = cv2.createFisherFaceRecognizer()
-        except ImportError, AttributeError:
+        except (ImportError, AttributeError):
             self.supported = False
             warnings.warn("Fisher Recognizer is supported by OpenCV >= 2.4.4")
 
@@ -56,11 +59,11 @@ class FaceRecognizer():
         **EXAMPLES**
 
         >>> f = FaceRecognizer()
-        >>> imgs1 = ImageSet(path/to/images_of_type1)
+        >>> imgs1 = ImageSet('path/to/images_of_type1')
         >>> labels1 = [0]*len(imgs1)
-        >>> imgs2 = ImageSet(path/to/images_of_type2)
+        >>> imgs2 = ImageSet('path/to/images_of_type2')
         >>> labels2 = [1]*len(imgs2)
-        >>> imgs3 = ImageSet(path/to/images_of_type3)
+        >>> imgs3 = ImageSet('path/to/images_of_type3')
         >>> labels3 = [2]*len(imgs3)
         >>> imgs = imgs1 + imgs2 + imgs3
         >>> labels = labels1 + labels2 + labels3
@@ -91,6 +94,7 @@ class FaceRecognizer():
             images = []
             labels = []
             import csv
+
             try:
                 f = open(csvfile, "rb")
             except IOError:
@@ -124,9 +128,9 @@ class FaceRecognizer():
                           "training images. Training not initiated.")
             return None
 
-        self.imageSize = images[0].size()
-        w, h = self.imageSize
-        images = [img if img.size() == self.imageSize else img.resize(w, h)
+        self.image_size = images[0].size()
+        w, h = self.image_size
+        images = [img if img.size() == self.image_size else img.resize(w, h)
                   for img in images]
 
         self.int_labels = [self.labels_dict[key] for key in labels]
@@ -190,16 +194,16 @@ class FaceRecognizer():
             warnings.warn("Fisher Recognizer is supported by OpenCV >= 2.4.4")
             return None
 
-        if image.size() != self.imageSize:
-            w, h = self.imageSize
+        if image.size() != self.image_size:
+            w, h = self.image_size
             image = image.resize(w, h)
 
         cv2img = image.getGrayNumpyCv2()
         label, confidence = self.model.predict(cv2img)
-        retLabel = self.labels_dict_rev.get(label)
-        if not retLabel:
-            retLabel = label
-        return retLabel,confidence
+        ret_label = self.labels_dict_rev.get(label)
+        if not ret_label:
+            ret_label = label
+        return ret_label, confidence
 
     # def update():
     #     OpenCV 2.4.4 doens't support update yet. It asks to train.
@@ -224,11 +228,11 @@ class FaceRecognizer():
         **EXAMPLES**
 
         >>> f = FaceRecognizer()
-        >>> imgs1 = ImageSet(path/to/images_of_type1)
+        >>> imgs1 = ImageSet('path/to/images_of_type1')
         >>> labels1 = [0]*len(imgs1)
-        >>> imgs2 = ImageSet(path/to/images_of_type2)
+        >>> imgs2 = ImageSet('path/to/images_of_type2')
         >>> labels2 = [1]*len(imgs2)
-        >>> imgs3 = ImageSet(path/to/images_of_type3)
+        >>> imgs3 = ImageSet('path/to/images_of_type3')
         >>> labels3 = [2]*len(imgs3)
         >>> imgs = imgs1 + imgs2 + imgs3
         >>> labels = labels1 + labels2 + labels3
@@ -280,7 +284,7 @@ class FaceRecognizer():
         loadfile.close()
         w = int(tsize ** 0.5)
         h = tsize / w
-        while(w * h != tsize):
+        while w * h != tsize:
             w += 1
             h = tsize / w
-        self.imageSize = (w, h)
+        self.image_size = (w, h)

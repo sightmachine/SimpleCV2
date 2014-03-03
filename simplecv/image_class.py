@@ -13951,7 +13951,7 @@ class Image:
             warnings.warn("SimpleCV.Features.FaceRecognizer object required.")
             return None
 
-        w, h = recognizer.imageSize
+        w, h = recognizer.image_size
         label = recognizer.predict(self.resize(w, h))
         return label
 

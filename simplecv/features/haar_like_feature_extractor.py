@@ -1,7 +1,6 @@
-from simplecv.base import *
-from simplecv.image_class import Image
-from simplecv.features.haar_like_feature import *
-from simplecv.features.feature_extractor_base import *
+from simplecv.features.haar_like_feature import HaarLikeFeature
+from simplecv.features.feature_extractor_base import FeatureExtractorBase
+
 
 class HaarLikeFeatureExtractor(FeatureExtractorBase):
     """
@@ -14,22 +13,23 @@ class HaarLikeFeatureExtractor(FeatureExtractorBase):
     http://en.wikipedia.org/wiki/Haar-like_features
     """
 
-    mFeatureSet = None
-    mDo45 = True
+    featureset = None
+    do45 = True
+
     def __init__(self, fname=None, do45=True):
         """
         fname - The feature file name
         do45 - if this is true we use the regular integral image plus the
         45 degree integral image
         """
-        #we define the black (positive) and white (negative) regions of an image
-        #to get our haar wavelet
-        self.mDo45 = True
-        self.mFeatureset=None;
-        if(fname is not None):
-            self.readWavelets(fname)
+        # we define the black (positive) and white (negative) regions of an
+        # image to get our haar wavelet
+        self.do45 = True
+        self.featureset = None
+        if fname is not None:
+            self.read_wavelets(fname)
 
-    def readWavelets(self, fname,nfeats=-1):
+    def read_wavelets(self, fname, nfeats=-1):
         """
         fname = file name
         nfeats = number of features to load from file -1 -> All features
@@ -41,37 +41,37 @@ class HaarLikeFeatureExtractor(FeatureExtractorBase):
         # nfeats = number of features to load
         # -1 loads all
         # otherwise loads min(nfeats,features in file)
-        self.mFeatureSet = []
-        f = open(fname,'r')
+        self.featureset = []
+        f = open(fname, 'r')
         #line = f.readline()
         #count = int(line)
         temp = f.read()
         f.close()
         data = temp.split()
         count = int(data.pop(0))
-        self.mFeatureset = []
-        if(nfeats > -1):
-            count = min(count,nfeats)
+        self.featureset = []
+        if nfeats > -1:
+            count = min(count, nfeats)
         while len(data) > 0:
             name = data.pop(0)
-            nRegions = int(data.pop(0))
+            nregions = int(data.pop(0))
             region = []
-            for i in range(nRegions):
-                region.append(tuple(map(float,data[0:5])))
+            for i in range(nregions):
+                region.append(tuple(map(float, data[0:5])))
                 data = data[5:]
 
-            feat = HaarLikeFeature(name,region)
-            self.mFeatureSet.append(feat)
+            feat = HaarLikeFeature(name, region)
+            self.featureset.append(feat)
         return None
 
-    def saveWavelets(self, fname):
+    def save_wavelets(self, fname):
         """
         Save wavelets to file
         """
-        f = open(fname,'w')
-        f.write(str(len(self.mFeatureSet))+'\n\n')
-        for i in range(len(self.mFeatureSet)):
-            self.mFeatureSet[i].writeToFile(f)
+        f = open(fname, 'w')
+        f.write(str(len(self.featureset)) + '\n\n')
+        for i in range(len(self.featureset)):
+            self.featureset[i].writeToFile(f)
         f.close()
         return None
 
@@ -81,36 +81,35 @@ class HaarLikeFeatureExtractor(FeatureExtractorBase):
         the Haar cascades, and returns the result as a feature vector.
         """
         regular = img.integralImage()
-        retVal = []
+        result = []
 
-        for i in range(len(self.mFeatureSet)):
-            retVal.append(self.mFeatureSet[i].apply(regular))
-        if(self.mDo45):
+        for i in range(len(self.featureset)):
+            result.append(self.featureset[i].apply(regular))
+        if self.do45:
             slant = img.integralImage(tilted=True)
-            for i in range(len(self.mFeatureSet)):
-                retVal.append(self.mFeatureSet[i].apply(regular))
-        return retVal
+            for i in range(len(self.featureset)):
+                result.append(self.featureset[i].apply(regular))
+        return result
 
-    def getFieldNames(self):
+    def get_field_names(self):
         """
         This method gives the names of each field in the feature vector in the
         order in which they are returned. For example, 'xpos' or 'width'
         """
-        retVal = []
-        for i in range( len(self.mFeatureSet)):
-            retVal.append(self.mFeatureSet[i].mName)
-        if( self.mDo45 ):
-            for i in range( len(self.mFeatureSet)):
-                name = "Angle_"+self.mFeatureSet[i].mName
-                retVal.append(name)
-        return retVal
+        field_names = []
+        for i in range(len(self.featureset)):
+            field_names.append(self.featureset[i].mName)
+        if self.do45:
+            for i in range(len(self.featureset)):
+                name = "Angle_" + self.featureset[i].mName
+                field_names.append(name)
+        return field_names
 
-
-    def getNumFields(self):
+    def get_num_fields(self):
         """
         This method returns the total number of fields in the feature vector.
         """
         mult = 1
-        if(self.mDo45):
+        if self.do45:
             mult = 2
-        return mult*len(self.mFeatureset)
+        return mult * len(self.featureset)

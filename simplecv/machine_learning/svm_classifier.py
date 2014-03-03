@@ -131,7 +131,7 @@ class SVMClassifier:
         self.__dict__ = mydict
         colNames = []
         for extractor in self.mFeatureExtractors:
-            colNames.extend(extractor.getFieldNames())
+            colNames.extend(extractor.get_field_names())
         self.mOrangeDomain = orange.Domain(map(orange.FloatVariable,colNames),orange.EnumVariable("type",values=self.mClassNames))
         self.mDataSetOrange = orange.ExampleTable(self.mOrangeDomain,self.mDataSetRaw)
         self.mClassifier = self.mSVMPrototype(self.mDataSetOrange)
@@ -260,7 +260,7 @@ class SVMClassifier:
 
         colNames = []
         for extractor in self.mFeatureExtractors:
-            colNames.extend(extractor.getFieldNames())
+            colNames.extend(extractor.get_field_names())
 
         if(count <= 0):
             logger.warning("No features extracted - bailing")
@@ -333,7 +333,7 @@ class SVMClassifier:
         self.mClassNames = classNames
         colNames = []
         for extractor in self.mFeatureExtractors:
-            colNames.extend(extractor.getFieldNames())
+            colNames.extend(extractor.get_field_names())
             self.mOrangeDomain = orange.Domain(map(orange.FloatVariable,colNames),orange.EnumVariable("type",values=self.mClassNames))
 
         dataset = []
