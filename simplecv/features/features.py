@@ -12,12 +12,15 @@
 #     _mSrcImgW = None
 #     mSrcImgH = None
 
+import re
 import copy
 import types
 import warnings
 from math import sqrt
+import numpy as np
+import scipy.spatial.distance as spsd
 
-from simplecv.base import np, re, spsd, logger
+from simplecv.base import logger
 from simplecv.color import Color
 
 
