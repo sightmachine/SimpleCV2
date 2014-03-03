@@ -10,6 +10,7 @@ from simplecv.features.features import Feature, FeatureSet
 from simplecv.color import Color
 from simplecv.image_class import Image
 from simplecv.features.detection import ShapeContextDescriptor
+from simplecv.features import Line, Corner
 
 
 class Blob(Feature):
@@ -1539,6 +1540,3 @@ class Blob(Feature):
                  points])
             features = FeatureSet([lines, farpoints])
             return features
-
-
-from simplecv.features import Line, Corner
