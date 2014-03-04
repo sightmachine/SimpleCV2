@@ -1,5 +1,5 @@
-from simplecv.features.haar_like_feature import HaarLikeFeature
 from simplecv.features.feature_extractor_base import FeatureExtractorBase
+from simplecv.features.haar_like_feature import HaarLikeFeature
 
 
 class HaarLikeFeatureExtractor(FeatureExtractorBase):

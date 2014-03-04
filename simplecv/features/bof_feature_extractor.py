@@ -1,9 +1,10 @@
-import warnings
-import os
 import glob
+import os
+import warnings
+
+import numpy as np
 import scipy.cluster.vq as cluster
 import scipy.spatial.distance as spsd
-import numpy as np
 
 from simplecv.base import cv, IMAGE_FORMATS
 from simplecv.image_class import Image

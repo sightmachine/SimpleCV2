@@ -1,16 +1,17 @@
-import warnings
+from math import sin, cos, pi
 import re
+import warnings
+
+import numpy as np
 import scipy.stats as sps
 import scipy.spatial.distance as spsd
-import numpy as np
-from math import sin, cos, pi
 
 from simplecv.base import cv, LazyProperty
-from simplecv.features.features import Feature, FeatureSet
 from simplecv.color import Color
-from simplecv.image_class import Image
 from simplecv.features.detection import ShapeContextDescriptor
+from simplecv.features.features import Feature, FeatureSet
 from simplecv.features import Line, Corner
+from simplecv.image_class import Image
 
 
 class Blob(Feature):

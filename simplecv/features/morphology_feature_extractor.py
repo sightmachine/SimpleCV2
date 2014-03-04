@@ -1,5 +1,5 @@
-from simplecv.features.feature_extractor_base import FeatureExtractorBase
 from simplecv.features.blobmaker import BlobMaker
+from simplecv.features.feature_extractor_base import FeatureExtractorBase
 
 
 class MorphologyFeatureExtractor(FeatureExtractorBase):

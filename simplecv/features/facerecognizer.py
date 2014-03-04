@@ -1,6 +1,7 @@
-import warnings
-import numpy as np
 import re
+import warnings
+
+import numpy as np
 
 from simplecv.image_class import Image
 

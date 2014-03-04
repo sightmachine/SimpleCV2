@@ -1,11 +1,12 @@
 import sys
 import warnings
+
 import numpy as np
 
 from simplecv.base import cv, logger
-from simplecv.image_class import Image
-from simplecv.features.features import FeatureSet
 from simplecv.features.blob import Blob
+from simplecv.features.features import FeatureSet
+from simplecv.image_class import Image
 
 
 class BlobMaker:

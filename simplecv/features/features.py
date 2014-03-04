@@ -12,11 +12,12 @@
 #     _mSrcImgW = None
 #     mSrcImgH = None
 
-import re
 import copy
+from math import sqrt
+import re
 import types
 import warnings
-from math import sqrt
+
 import numpy as np
 import scipy.spatial.distance as spsd
 

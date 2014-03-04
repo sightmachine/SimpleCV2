@@ -11,14 +11,15 @@ the right hand rule.
 '''
 from copy import copy
 from math import atan2, sqrt, pi, sin, cos, radians
+
 import numpy as np
-import scipy.spatial.distance as spsd
 import pickle
+import scipy.spatial.distance as spsd
 
 from simplecv.base import cv, logger
-from simplecv.image_class import Image
 from simplecv.color import Color
 from simplecv.features.features import Feature, FeatureSet
+from simplecv.image_class import Image
 
 
 class Corner(Feature):
@@ -438,7 +439,7 @@ class Line(Feature):
     def cropToImageEdges(self):
         """
         **SUMMARY**
-        
+
         Returns the line with endpoints on edges of image. If some endpoints
         lies inside image then those points remain the same without extension
         to the edges.
@@ -523,7 +524,7 @@ class Line(Feature):
     def getYIntercept(self):
         """
         **SUMMARY**
-        
+
         Returns the y intercept based on the lines equation.  Note that this
         point is potentially not contained in the image itself
 
@@ -547,8 +548,8 @@ class Line(Feature):
     def extendToImageEdges(self):
         """
         **SUMMARY**
-        
-        Returns the line with endpoints on edges of image. 
+
+        Returns the line with endpoints on edges of image.
 
         **RETURNS**
 
@@ -720,7 +721,7 @@ class Barcode(Feature):
         Returns the area defined by the quandrangle formed by the boundary
         points
 
- 
+
         **RETURNS**
 
         An integer area value.
@@ -1916,7 +1917,7 @@ class ShapeContextDescriptor(Feature):
 class ROI(Feature):
     """
     This class creates a region of interest that inherit from one
-    or more features or no features at all. 
+    or more features or no features at all.
     """
     x = 0  # the center x coordinate
     y = 0  # the center y coordinate
@@ -1947,7 +1948,7 @@ class ROI(Feature):
         * *y* - this is usually a second point or set of y values.
         * *w* - a width
         * *h* - a height.
-       
+
         **RETURNS**
 
         Nothing.
@@ -1961,7 +1962,7 @@ class ROI(Feature):
 
         """
         #After forgetting to set img=Image I put this catch
-        # in to save some debugging headache. 
+        # in to save some debugging headache.
         if isinstance(y, Image):
             self.image = y
             y = None
@@ -1999,7 +2000,7 @@ class ROI(Feature):
         Contract/Expand the roi. By default use a percentage, otherwise use
         pixels. This is all done relative to the center of the roi
 
-        
+
         **PARAMETERS**
 
         * *w* - the percent to grow shrink the region is the only parameter,
@@ -2008,7 +2009,7 @@ class ROI(Feature):
         * *percentage* - If true use percentages (e.g. 2 doubles the size),
          otherwise use pixel values.
         * *h* - a height.
-       
+
         **RETURNS**
 
         Nothing.
@@ -2048,14 +2049,14 @@ class ROI(Feature):
     def translate(self, x=0, y=0):
         """
         **SUMMARY**
-        
+
         Move the roi.
-        
+
         **PARAMETERS**
 
         * *x* - Move the ROI horizontally.
         * *y* - Move the ROI vertically
-               
+
         **RETURNS**
 
         Nothing.
@@ -2080,7 +2081,7 @@ class ROI(Feature):
     def toXYWH(self):
         """
         **SUMMARY**
-        
+
         Get the ROI as a list of the top left corner's x and y position
         and the roi's width and height in pixels.
 
@@ -2100,7 +2101,7 @@ class ROI(Feature):
     def toTLAndBR(self):
         """
         **SUMMARY**
-        
+
         Get the ROI as a list of tuples of the ROI's top left
         corner and bottom right corner.
 
@@ -2113,18 +2114,18 @@ class ROI(Feature):
         >>> roi = ROI(10,10,100,100,img)
         >>> roi.translate(30,30)
         >>> print roi.toTLAndBR()
-        
+
         """
         return [(self.xtl, self.ytl), (self.xtl + self.w, self.ytl + self.h)]
 
     def toPoints(self):
         """
         **SUMMARY**
-        
+
         Get the ROI as a list of four points that make up the bounding
         rectangle.
-       
-        
+
+
         **RETURNS**
 
         A list of the form [(x,y),(x,y),(x,y),(x,y)]
@@ -2144,12 +2145,12 @@ class ROI(Feature):
     def toUnitXYWH(self):
         """
         **SUMMARY**
-        
+
         Get the ROI as a list, the values are top left x, to left y,
         width and height. These values are scaled to unit values with
-        respect to the source image.. 
-       
-        
+        respect to the source image..
+
+
         **RETURNS**
 
         A list of the form [x,y,w,h]
@@ -2176,7 +2177,7 @@ class ROI(Feature):
     def toUnitTLAndBR(self):
         """
         **SUMMARY**
-        
+
         Get the ROI as a list of tuples of the ROI's top left
         corner and bottom right corner. These coordinates are in unit
         length values with respect to the source image.
@@ -2190,7 +2191,7 @@ class ROI(Feature):
         >>> roi = ROI(10,10,100,100,img)
         >>> roi.translate(30,30)
         >>> print roi.toUnitTLAndBR()
-        
+
         """
 
         if (self.image is None):
@@ -2212,11 +2213,11 @@ class ROI(Feature):
     def toUnitPoints(self):
         """
         **SUMMARY**
-        
+
         Get the ROI as a list of four points that make up the bounding
         rectangle. Each point is represented in unit coordinates with respect
         to the source image.
-        
+
         **RETURNS**
 
         A list of the form [(x,y),(x,y),(x,y),(x,y)]
@@ -2245,12 +2246,12 @@ class ROI(Feature):
     def CoordTransformX(self, x, intype="ROI", output="SRC"):
         """
         **SUMMARY**
-        
+
         Transform a single or a set of x values from one reference frame to
         another.
 
         Options are:
-        
+
         SRC - the coordinates of the source image.
         ROI - the coordinates of the ROI
         ROI_UNIT - unit coordinates in the frame of reference of the ROI
@@ -2291,12 +2292,12 @@ class ROI(Feature):
     def CoordTransformY(self, y, intype="ROI", output="SRC"):
         """
         **SUMMARY**
-        
+
         Transform a single or a set of y values from one reference frame to
         another.
 
         Options are:
-        
+
         SRC - the coordinates of the source image.
         ROI - the coordinates of the ROI
         ROI_UNIT - unit coordinates in the frame of reference of the ROI
@@ -2338,11 +2339,11 @@ class ROI(Feature):
     def CoordTransformPts(self, pts, intype="ROI", output="SRC"):
         """
         **SUMMARY**
-        
+
         Transform a set of (x,y) values from one reference frame to another.
 
         Options are:
-        
+
         SRC - the coordinates of the source image.
         ROI - the coordinates of the ROI
         ROI_UNIT - unit coordinates in the frame of reference of the ROI
@@ -2438,17 +2439,17 @@ class ROI(Feature):
          at 50% of the ROI.
         * *srcVals* - Use x values relative to the source image rather than
          relative to the ROI.
-        
-        
+
+
         **RETURNS**
-        
-        Returns a feature set of ROIs split from the source ROI. 
+
+        Returns a feature set of ROIs split from the source ROI.
 
         **EXAMPLE**
 
         >>> roi = ROI(0,0,100,100,img)
         >>> splits = roi.splitX(50) # create two ROIs
-        
+
         """
         retVal = FeatureSet()
         if (unitVals and srcVals):
@@ -2496,16 +2497,16 @@ class ROI(Feature):
          at 50% of the ROI.
         * *srcVals* - Use x values relative to the source image rather than
          relative to the ROI.
-        
+
         **RETURNS**
-        
-        Returns a feature set of ROIs split from the source ROI. 
+
+        Returns a feature set of ROIs split from the source ROI.
 
         **EXAMPLE**
 
         >>> roi = ROI(0,0,100,100,img)
         >>> splits = roi.splitY(50) # create two ROIs
-        
+
         """
         retVal = FeatureSet()
         if (unitVals and srcVals):
@@ -2537,7 +2538,7 @@ class ROI(Feature):
     def merge(self, regions):
         """
         **SUMMARY**
-        
+
         Combine another region, or regions with this ROI. Everything must be
         in the source image coordinates. Regions can be a ROIs, [ROI],
         features, FeatureSets, or anything that can be cajoled into a region.
@@ -2546,7 +2547,7 @@ class ROI(Feature):
 
         * *regions* - A region or list of regions. Regions are just about
          anything that has position.
-        
+
 
         **RETURNS**
 
@@ -2559,7 +2560,7 @@ class ROI(Feature):
         >>>  print roi.toXYWH()
         >>>  roi.merge(blob[2])
         >>>  print roi.toXYWH()
-        
+
         """
         result = self._standardize(regions)
         if result is not None:
@@ -2590,7 +2591,7 @@ class ROI(Feature):
         """
 
         Completely alter roi using whatever source coordinates you wish.
-        
+
         """
         if isinstance(x, Feature):
             self.subFeatures.append(x)
@@ -2708,7 +2709,7 @@ class ROI(Feature):
                 return [x, y, w, h]
         elif isinstance(x, ROI):
             x, y, w, h = x.toXYWH()
-        #If it's a feature extract what we need    
+        #If it's a feature extract what we need
         elif isinstance(x, FeatureSet) and len(x) > 0:
             #double check that everything in the list is a feature
             features = [feat for feat in x if isinstance(feat, Feature)]

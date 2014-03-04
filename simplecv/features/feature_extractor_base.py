@@ -1,5 +1,5 @@
-import pickle
 import abc
+import pickle
 
 
 class FeatureExtractorBase(object):
