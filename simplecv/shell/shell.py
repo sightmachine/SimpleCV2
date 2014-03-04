@@ -15,19 +15,16 @@
 # more info:
 # http://www.simplecv.org
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-
-#load system libraries
-from subprocess import call
+import logging
+import os
 import platform
-import webbrowser
+from subprocess import call
 import sys
+import webbrowser
 
-from simplecv.__init__ import *
-
-#Load simpleCV libraries
-from simplecv.shell.tutorial import *
-from simplecv.shell.example import *
+from simplecv.base import init_logging, logger, IPython
+from simplecv.shell.tutorial import magic_tutorial
+from simplecv.shell.example import magic_examples
 
 try:
     from simplecv import __version__ as SIMPLECV_VERSION
@@ -40,6 +37,7 @@ def shellclear():
     if platform.system() == "Windows":
         return
     call("clear")
+
 
 #method to get magic_* methods working in bpython
 def make_magic(method):
@@ -76,11 +74,14 @@ def hist(arg):
 def magic_clear(self, arg):
     shellclear()
 
+
 def magic_forums(self, arg):
     webbrowser.open('http://help.simplecv.org/questions/')
 
+
 def magic_walkthrough(self, arg):
     webbrowser.open('http://examples.simplecv.org/en/latest/')
+
 
 def magic_docs(self, arg):
     webbrowser.open('http://www.simplecv.org/docs/')
@@ -173,7 +174,7 @@ def setup_plain():
 def run_notebook(mainArgs):
 
     if IPython.__version__.startswith('1.'):
-        """Run the ipython notebook server"""
+        # Run the ipython notebook server
         from IPython.html import notebookapp
         from IPython.html.services.kernels import kernelmanager
     else:

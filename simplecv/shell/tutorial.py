@@ -2,15 +2,16 @@
 
 # A Basic SimpleCV interactive shell tutorial
 
-#load required libraries
-from SimpleCV import *
-
-from subprocess import call
 from code import InteractiveInterpreter
 import platform
+from subprocess import call
 
-lb = "\n" #linebreak
-tb = "\t" #tab
+from simplecv.camera import Camera
+from simplecv.features import FeatureSet
+from simplecv.image_class import Image
+
+lb = "\n"  # linebreak
+tb = "\t"  # tab
 tutorial_interpreter = InteractiveInterpreter(globals())
 logo = None
 img = None
@@ -19,22 +20,26 @@ thumb = None
 eroded = None
 cropped = None
 
-#Command to clear the shell screen
+
 def shellclear():
+    """
+    Command to clear the shell screen
+    """
     if platform.system() == "Windows":
         return
     call("clear")
+
 
 def attempt(variable_name, desired_class):
     prompt_and_run()
     variable = globals().get(variable_name)
 
-    if isinstance(variable,desired_class):
+    if isinstance(variable, desired_class):
         if desired_class == Image:
             if variable.isEmpty():
                 print lb
-                print "Although you can create empty Images on SimpleCV, let's not"
-                print "play with that now!"
+                print "Although you can create empty Images on SimpleCV, "
+                print "let's not play with that now!"
                 print lb
                 return False
 
@@ -42,22 +47,26 @@ def attempt(variable_name, desired_class):
 
     return False
 
+
 def prompt_and_run():
 
     command = raw_input("SimpleCV:> ")
     tutorial_interpreter.runsource(command)
     return command
 
+
 def request_show_command():
     while True:
         if prompt_and_run().endswith('.show()'):
             return
+
 
 def end_tutorial():
     print lb
     print "Type 'quit' to leave the tutorials, or press Enter to move on!"
     command = raw_input("SimpleCV:> ")
     return command.lower() == 'quit'
+
 
 def end_of_tutorial():
     print lb
@@ -66,6 +75,7 @@ def end_of_tutorial():
     print "For more help, go to www.simplecv.org, and don't forget about the"
     print "help function!"
     print lb
+
 
 def command_loop(command, desired_tuple):
     while True:
@@ -76,7 +86,9 @@ def command_loop(command, desired_tuple):
             return
 
         print lb
-        print "Oops! %s is still not %s" % (desired_tuple[0], str(desired_tuple[1]))
+        print "Oops! %s is still not %s" % (
+            desired_tuple[0], str(desired_tuple[1]))
+
 
 def tutorial_image():
     shellclear()
@@ -99,7 +111,7 @@ def tutorial_image():
     print lb
     print "img = Image(URL_TO_MY_PICTURE) or img = Image(PATH_TO_MY_PICTURE)"
     print lb
-    cmd =  "Example: img = Image('http://simplecv.org/logo.jpg')"
+    cmd = "Example: img = Image('http://simplecv.org/logo.jpg')"
 
     desired_tuple = ('img', Image)
     command_loop(cmd, desired_tuple)
@@ -118,7 +130,7 @@ def tutorial_image():
     print "Next tutorial: Saving Images"
     if not end_tutorial():
         tutorial_save()
-    return
+
 
 def tutorial_save():
     shellclear()
@@ -169,9 +181,9 @@ def tutorial_camera():
     shellclear()
     print "Camera"
     print lb
-    print "As long as your camera driver is supported then you shouldn't have a"
-    print "problem. Type 'skip' to skip the camera tutorial, or press Enter to"
-    print "continue."
+    print "As long as your camera driver is supported then you shouldn't have "
+    print "a problem. Type 'skip' to skip the camera tutorial, or press Enter "
+    print "to continue."
     print lb
 
     command = raw_input("SimpleCV:> ")
@@ -203,7 +215,7 @@ def tutorial_camera():
     print "Next tutorial: Copying Images"
     if not end_tutorial():
         tutorial_copy()
-    return
+
 
 def tutorial_copy():
     shellclear()
@@ -222,7 +234,7 @@ def tutorial_copy():
 
     while True:
         command_loop(cmd, desired_tuple)
-        if clone != img: #Returns False if they have different addresses.
+        if clone != img:  # Returns False if they have different addresses.
             break
 
         print "You have to use the copy() function!"
@@ -241,15 +253,15 @@ def tutorial_copy():
     print "Next tutorial: Manipulating Images"
     if not end_tutorial():
         tutorial_manipulation()
-    return
+
 
 def tutorial_manipulation():
     shellclear()
     print "Manipulating Images"
     print lb
-    print "Now we can easily load and save images. It's time to start doing some"
-    print "image processing with them. Let's make img, which we already have, a"
-    print "90x90 thumbnail:"
+    print "Now we can easily load and save images. It's time to start doing "
+    print "some image processing with them. Let's make img, which we already "
+    print "have, a 90x90 thumbnail:"
 
     global img
     if not img:
@@ -261,7 +273,7 @@ def tutorial_manipulation():
 
     while True:
         command_loop(cmd, desired_tuple)
-        if thumb.size() == (90,90):
+        if thumb.size() == (90, 90):
             break
 
         print "Your thumbnail's size isn't 90x90! Try again!"
@@ -279,8 +291,8 @@ def tutorial_manipulation():
     command_loop(cmd, desired_tuple)
 
     print lb
-    print "Display it with eroded.show(). It should look almost as if the image"
-    print "was made if ink and had water spoiled on it."
+    print "Display it with eroded.show(). It should look almost as if the "
+    print "image was made if ink and had water spoiled on it."
     print lb
     request_show_command()
 
@@ -298,15 +310,14 @@ def tutorial_manipulation():
     print lb
     print "That went from the coordinate in (X,Y), which is (0,0) and is the"
     print "top left corner of the picture, to coordinates (100,100) in the"
-    print "(X,Y) and cropped a picture from that which is 50 pixels by 50 pixels."
+    print "(X,Y) and cropped a picture from that which is 50 pixels by 50 "
+    print "pixels."
 
     print lb
     print "Alright! This was tutorial 5/6."
     print "Next tutorial: Features"
     if not end_tutorial():
         tutorial_features()
-    return
-
 
 
 def tutorial_slicing():
@@ -343,7 +354,7 @@ def tutorial_slicing():
     shellclear()
     print "Correct, you just returned a 5 pixel by 5 pixel image object"
     print lb
-    return
+
 
 def tutorial_features():
     shellclear()
@@ -356,7 +367,8 @@ def tutorial_features():
     print "something like when comparing things like fruit. In this case the"
     print "features could be the shape and the color, amongst others."
     print lb
-    print "What features are in SimpleCV is an abstract representation of that."
+    print "What features are in SimpleCV is an abstract representation of " \
+          "that."
     print "You take your image, then perform a function on it, and get back"
     print "features or another image with them applied. The crop example is"
     print "a case where an image is returned after we perform something."
@@ -381,9 +393,9 @@ def tutorial_features():
     print lb
 
     print "Tip: If your are unsure what parameters to pass, you can always use"
-    print "the built in help support by typing help(Image.findCorners). Keep in"
-    print "mind that this help works for all of the functions available in"
-    print "SimpleCV"
+    print "the built in help support by typing help(Image.findCorners). Keep "
+    print "in mind that this help works for all of the functions available in"
+    print "simplecv"
     print lb
 
     print "We can also do that with blobs. Try it:"
@@ -416,7 +428,8 @@ def tutorial_features():
 
     print lb
     print lb
-    print "There's also a small trick built into SimpleCV to do this even faster"
+    print "There's also a small trick built into SimpleCV " \
+          "to do this even faster"
     print lb
     tutorial_interpreter.runsource("img = Image('lenna')")
     print "img = Image('lenna') (already done for you)"
@@ -433,22 +446,25 @@ def tutorial_features():
     print lb
     print "Alright! This was tutorial 6/6."
     #print "Next tutorial: ..."
-    return
-
-def magic_tutorial(self,arg):
-    tutorials_dict = {'image': tutorial_image, 'save': tutorial_save,
-                     'camera': tutorial_camera, 'manipulation': tutorial_manipulation,
-                     'copy': tutorial_copy, 'features': tutorial_features}
 
 
-    if (arg == ""):
+def magic_tutorial(self, arg):
+    tutorials_dict = {
+        'image': tutorial_image, 'save': tutorial_save,
+        'camera': tutorial_camera, 'manipulation': tutorial_manipulation,
+        'copy': tutorial_copy, 'features': tutorial_features
+    }
+
+    if arg == "":
         shellclear()
         print "+--------------------------------+"
-        print " Welcome to the SimpleCV tutorial "
+        print " Welcome to the simplecv tutorial "
         print "+--------------------------------+"
         print lb
-        print "At anytime on the SimpleCV Interactive Shell you can type tutorial,"
-        print "then press the tab key and it will autocomplete any tutorial that"
+        print "At anytime on the simplecv Interactive " \
+              "Shell you can type tutorial,"
+        print "then press the tab key and it will " \
+              "autocomplete any tutorial that"
         print "is currently available."
         print lb
         print "Let's start off with Loading and Saving images!"
