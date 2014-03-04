@@ -1,14 +1,13 @@
-from simplecv.base import *
-from simplecv.features import Feature, FeatureSet, BlobMaker
 from simplecv.color_model import ColorModel
-from simplecv.color import Color
+from simplecv.features import BlobMaker
 from simplecv.image_class import Image
 from simplecv.segmentation.segmentation_base import SegmentationBase
 
+
 class ColorSegmentation(SegmentationBase):
     """
-    Perform color segmentation based on a color model or color provided. This class
-    uses color_model.py to create a color model.
+    Perform color segmentation based on a color model or color provided. This
+    class uses color_model.py to create a color model.
     """
     mColorModel = []
     mError = False
@@ -23,21 +22,18 @@ class ColorSegmentation(SegmentationBase):
         self.mTruthImg = Image()
         self.mBlobMaker = BlobMaker()
 
-
     def addImage(self, img):
         """
         Add a single image to the segmentation algorithm
         """
         self.mTruthImg = img
         self.mCurImg = self.mColorModel.threshold(img)
-        return
-
 
     def isReady(self):
         """
         Returns true if the camera has a segmented image ready.
         """
-        return True;
+        return True
 
     def isError(self):
         """
@@ -45,14 +41,13 @@ class ColorSegmentation(SegmentationBase):
         Eventually we'll consruct a syntax of errors so this becomes
         more expressive
         """
-        return self.mError #need to make a generic error checker
+        return self.mError  # need to make a generic error checker
 
     def resetError(self):
         """
         Clear the previous error.
         """
-        self.mError = false
-        return
+        self.mError = False
 
     def reset(self):
         """
@@ -78,7 +73,7 @@ class ColorSegmentation(SegmentationBase):
         """
         return the segmented blobs from the fg/bg image
         """
-        return self.mBlobMaker.extractFromBinary(self.mCurImg,self.mTruthImg)
+        return self.mBlobMaker.extractFromBinary(self.mCurImg, self.mTruthImg)
 
     # The following are class specific methods
 

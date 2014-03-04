@@ -1,13 +1,14 @@
-from simplecv.base import *
-from simplecv.features import Feature, FeatureSet, BlobMaker
+from simplecv.base import cv
+from simplecv.features import BlobMaker
 from simplecv.image_class import Image
 from simplecv.segmentation.segmentation_base import SegmentationBase
+
 
 class RunningSegmentation(SegmentationBase):
     """
     RunningSegmentation performs segmentation using a running background model.
-    This model uses an accumulator which performs a running average of previous frames
-    where:
+    This model uses an accumulator which performs a running average of previous
+    frames where:
     accumulator = ((1-alpha)input_image)+((alpha)accumulator)
     """
 
@@ -21,7 +22,7 @@ class RunningSegmentation(SegmentationBase):
     mGrayOnly = True
     mReady = False
 
-    def __init__(self, alpha=0.7, thresh=(20,20,20)):
+    def __init__(self, alpha=0.7, thresh=(20, 20, 20)):
         """
         Create an running background difference.
         alpha - the update weighting where:
@@ -42,21 +43,23 @@ class RunningSegmentation(SegmentationBase):
         """
         Add a single image to the segmentation algorithm
         """
-        if( img is None ):
+        if img is None:
             return
 
         self.mColorImg = img
-        if( self.mModelImg == None ):
-            self.mModelImg = Image(cv.CreateImage((img.width,img.height), cv.IPL_DEPTH_32F, 3))
-            self.mDiffImg = Image(cv.CreateImage((img.width,img.height), cv.IPL_DEPTH_32F, 3))
+        if self.mModelImg is None:
+            self.mModelImg = Image(
+                cv.CreateImage((img.width, img.height), cv.IPL_DEPTH_32F, 3))
+            self.mDiffImg = Image(
+                cv.CreateImage((img.width, img.height), cv.IPL_DEPTH_32F, 3))
         else:
             # do the difference
-            cv.AbsDiff(self.mModelImg.getBitmap(),img.getFPMatrix(),self.mDiffImg.getBitmap())
+            cv.AbsDiff(self.mModelImg.getBitmap(), img.getFPMatrix(),
+                       self.mDiffImg.getBitmap())
             #update the model
-            cv.RunningAvg(img.getFPMatrix(),self.mModelImg.getBitmap(),self.mAlpha)
+            cv.RunningAvg(img.getFPMatrix(), self.mModelImg.getBitmap(),
+                          self.mAlpha)
             self.mReady = True
-        return
-
 
     def isReady(self):
         """
@@ -64,21 +67,19 @@ class RunningSegmentation(SegmentationBase):
         """
         return self.mReady
 
-
     def isError(self):
         """
         Returns true if the segmentation system has detected an error.
         Eventually we'll consruct a syntax of errors so this becomes
         more expressive
         """
-        return self.mError #need to make a generic error checker
+        return self.mError  # need to make a generic error checker
 
     def resetError(self):
         """
         Clear the previous error.
         """
-        self.mError = false
-        return
+        self.mError = False
 
     def reset(self):
         """
@@ -101,7 +102,7 @@ class RunningSegmentation(SegmentationBase):
         """
         retVal = None
         img = self._floatToInt(self.mDiffImg)
-        if( whiteFG ):
+        if whiteFG:
             retVal = img.binarize(thresh=self.mThresh)
         else:
             retVal = img.binarize(thresh=self.mThresh).invert()
@@ -112,20 +113,19 @@ class RunningSegmentation(SegmentationBase):
         return the segmented blobs from the fg/bg image
         """
         retVal = []
-        if( self.mColorImg is not None and self.mDiffImg is not None ):
-
+        if self.mColorImg is not None and self.mDiffImg is not None:
             eightBit = self._floatToInt(self.mDiffImg)
-            retVal = self.mBlobMaker.extractFromBinary(eightBit.binarize(thresh=self.mThresh),self.mColorImg)
+            retVal = self.mBlobMaker.extractFromBinary(
+                eightBit.binarize(thresh=self.mThresh), self.mColorImg)
 
         return retVal
 
-
-    def _floatToInt(self,input):
+    def _floatToInt(self, input):
         """
         convert a 32bit floating point cv array to an int array
         """
-        temp = cv.CreateImage((input.width,input.height), cv.IPL_DEPTH_8U, 3)
-        cv.Convert(input.getBitmap(),temp)
+        temp = cv.CreateImage((input.width, input.height), cv.IPL_DEPTH_8U, 3)
+        cv.Convert(input.getBitmap(), temp)
 
         return Image(temp)
 
