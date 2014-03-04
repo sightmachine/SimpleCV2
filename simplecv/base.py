@@ -101,19 +101,6 @@ try:
 except ImportError:
     PYSCREENSHOT_ENABLED = False
 
-ORANGE_ENABLED = True
-try:
-    try:
-        import orange
-    except ImportError:
-        import Orange; import orange
-
-    import orngTest #for cross validation
-    import orngStat
-    import orngEnsemble # for bagging / boosting
-
-except ImportError:
-    ORANGE_ENABLED = False
 
 class InitOptionsHandler(object):
     """
@@ -348,25 +335,25 @@ def set_logging(log_level,myfilename = None):
 
 def system():
     """
-    
+
     **SUMMARY**
-    
+
     Output of this function includes various informations related to system and library.
-    
+
     Main purpose:
     - While submiting a bug, report the output of this function
     - Checking the current version and later upgrading the library based on the output
-    
+
     **RETURNS**
-    
+
     None
 
     **EXAMPLE**
-      
+
       >>> import simplecv
       >>> simplecv.system()
-      
-      
+
+
     """
     try :
         import platform
