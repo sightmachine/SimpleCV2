@@ -1,7 +1,16 @@
+import warnings
+
+import numpy as np
+
+from simplecv.base import cv
 from simplecv.color import Color
-from simplecv.base import time, cv, np
-from simplecv.features.features import Feature, FeatureSet
+from simplecv.features.features import FeatureSet
 from simplecv.image_class import Image
+
+try:
+    import cv2
+except ImportError:
+    pass
 
 
 class TrackSet(FeatureSet):
@@ -28,10 +37,10 @@ class TrackSet(FeatureSet):
         import cv2
     except ImportError:
         warnings.warn("OpenCV >= 2.3.1 required.")
-    
+
     def __init__(self):
         self.kalman = None
-        self.predict_pt = (0,0)
+        self.predict_pt = (0, 0)
         self.__kalman()
 
     def append(self, f):
@@ -55,11 +64,11 @@ class TrackSet(FeatureSet):
             ... img = img1
         >>> ts.append(CAMShift(img,bb,ellipse))
         """
-        list.append(self,f)
+        list.append(self, f)
         ts = self
         if ts[0].area <= 0:
             return
-        f.sizeRatio = float(ts[-1].area)/float(ts[0].area)
+        f.sizeRatio = float(ts[-1].area) / float(ts[0].area)
         f.vel = self.__pixelVelocity()
         f.rt_vel = self.__pixleVelocityRealTime()
         self.__setKalman()
@@ -69,13 +78,15 @@ class TrackSet(FeatureSet):
         f.predict_pt = self.predict_pt
         f.state_pt = self.state_pt
 
-    # Issue #256 - (Bug) Memory management issue due to too many number of images.
+    # Issue #256 - (Bug) Memory management issue due
+    # to too many number of images.
     def trimList(self, num):
         """
         **SUMMARY**
 
-        Trims the TrackSet(lists of all the saved objects) to save memory. It is implemented in
-        Image.track() by default, but if you want to trim the list manually, use this.
+        Trims the TrackSet(lists of all the saved objects) to save memory. It
+        is implemented in Image.track() by default, but if you want to trim
+        the list manually, use this.
 
         **RETURNS**
 
@@ -121,11 +132,13 @@ class TrackSet(FeatureSet):
         """
         **SUMMARY**
 
-        Draw the complete path traced by the center of the object on current frame
+        Draw the complete path traced by the center of the object on current
+        frame
 
         **PARAMETERS**
 
-        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
+        * *color* - The color to draw the object. Either an BGR tuple or a
+         member of the :py:class:`Color` class.
         * *thickness* - Thickness of the tracing path.
 
         **RETURNS**
@@ -144,8 +157,9 @@ class TrackSet(FeatureSet):
 
         ts = self
         img = self[-1].image
-        for i in range(len(ts)-1):
-            img.drawLine((ts[i].center),(ts[i+1].center), color=color, thickness=thickness)
+        for i in range(len(ts) - 1):
+            img.drawLine((ts[i].center), (ts[i + 1].center), color=color,
+                         thickness=thickness)
 
     def draw(self, color=Color.GREEN, rad=1, thickness=1):
         """
@@ -155,8 +169,10 @@ class TrackSet(FeatureSet):
 
         **PARAMETERS**
 
-        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
-        * *rad* - Radius of the circle to be plotted on the center of the object.
+        * *color* - The color to draw the object. Either an BGR tuple or a
+         member of the :py:class:`Color` class.
+        * *rad* - Radius of the circle to be plotted on the center of the
+         object.
         * *thickness* - Thickness of the boundary of the center circle.
 
         **RETURNS**
@@ -182,7 +198,8 @@ class TrackSet(FeatureSet):
 
         **PARAMETERS**
 
-        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
+        * *color* - The color to draw the object. Either an BGR tuple or a
+         member of the :py:class:`Color` class.
         * *thickness* - Thickness of the boundary of the bounding box.
 
         **RETURNS**
@@ -291,7 +308,7 @@ class TrackSet(FeatureSet):
         """
         ts = self
         if len(ts) < 2:
-            return (0,0)
+            return (0, 0)
         dx = ts[-1].x - ts[-2].x
         dy = ts[-1].y - ts[-2].y
         return (dx, dy)
@@ -334,11 +351,11 @@ class TrackSet(FeatureSet):
         """
         ts = self
         if len(ts) < 2:
-            return (0,0)
+            return (0, 0)
         dx = ts[-1].x - ts[-2].x
         dy = ts[-1].y - ts[-2].y
         dt = ts[-1].time - ts[-2].time
-        return (float(dx)/dt, float(dy)/dt)
+        return (float(dx) / dt, float(dy) / dt)
 
     def pixleVelocityRealTime(self):
         """
@@ -370,7 +387,8 @@ class TrackSet(FeatureSet):
 
         **PARAMETERS**
         * *pos* - A tuple consisting of x, y values. where to put to the text
-        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
+        * *color* - The color to draw the object. Either an BGR tuple or a
+         member of the :py:class:`Color` class.
         * *size* - Fontsize of the text
 
         **RETURNS**
@@ -390,7 +408,7 @@ class TrackSet(FeatureSet):
         img = f.image
         if not pos:
             imgsize = img.size()
-            pos = (imgsize[0]-120, 10)
+            pos = (imgsize[0] - 120, 10)
         if not size:
             size = 16
         text = "x = %d  y = %d" % (f.x, f.y)
@@ -404,7 +422,8 @@ class TrackSet(FeatureSet):
 
         **PARAMETERS**
         * *pos* - A tuple consisting of x, y values. where to put to the text
-        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
+        * *color* - The color to draw the object. Either an BGR tuple or a
+         member of the :py:class:`Color` class.
         * *size* - Fontsize of the text
 
         **RETURNS**
@@ -424,7 +443,7 @@ class TrackSet(FeatureSet):
         img = f.image
         if not pos:
             imgsize = img.size()
-            pos = (imgsize[0]-120, 30)
+            pos = (imgsize[0] - 120, 30)
         if not size:
             size = 16
         text = "size = %f" % (f.sizeRatio)
@@ -434,11 +453,13 @@ class TrackSet(FeatureSet):
         """
         **SUMMARY**
 
-        show the Pixel Veloctiy (pixel/frame) of the object in text on the current frame.
+        show the Pixel Veloctiy (pixel/frame) of the object in text on the
+        current frame.
 
         **PARAMETERS**
         * *pos* - A tuple consisting of x, y values. where to put to the text
-        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
+        * *color* - The color to draw the object. Either an BGR tuple or a
+         member of the :py:class:`Color` class.
         * *size* - Fontsize of the text
 
         **RETURNS**
@@ -459,22 +480,24 @@ class TrackSet(FeatureSet):
         vel = f.vel
         if not pos:
             imgsize = img.size()
-            pos = (imgsize[0]-120, 50)
+            pos = (imgsize[0] - 120, 50)
         if not size:
             size = 16
         text = "Vx = %.2f Vy = %.2f" % (vel[0], vel[1])
         img.drawText(text, pos[0], pos[1], color, size)
-        img.drawText("in pixels/frame", pos[0], pos[1]+size, color, size)
+        img.drawText("in pixels/frame", pos[0], pos[1] + size, color, size)
 
     def showPixelVelocityRT(self, pos=None, color=Color.GREEN, size=None):
         """
         **SUMMARY**
 
-        show the Pixel Veloctiy (pixels/second) of the object in text on the current frame.
+        show the Pixel Veloctiy (pixels/second) of the object in text on the
+        current frame.
 
         **PARAMETERS**
         * *pos* - A tuple consisting of x, y values. where to put to the text
-        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
+        * *color* - The color to draw the object. Either an BGR tuple or a
+         member of the :py:class:`Color` class.
         * *size* - Fontsize of the text
 
         **RETURNS**
@@ -495,12 +518,12 @@ class TrackSet(FeatureSet):
         vel_rt = f.rt_vel
         if not pos:
             imgsize = img.size()
-            pos = (imgsize[0]-120, 90)
+            pos = (imgsize[0] - 120, 90)
         if not size:
             size = 16
         text = "Vx = %.2f Vy = %.2f" % (vel_rt[0], vel_rt[1])
         img.drawText(text, pos[0], pos[1], color, size)
-        img.drawText("in pixels/second", pos[0], pos[1]+size, color, size)
+        img.drawText("in pixels/second", pos[0], pos[1] + size, color, size)
 
     def processTrack(self, func):
         """
@@ -509,11 +532,13 @@ class TrackSet(FeatureSet):
         This method lets you use your own function on the entire imageset.
 
         **PARAMETERS**
-        * *func* - some user defined function for SimpleCV.ImageClass.Image object
+        * *func* - some user defined function for SimpleCV.ImageClass.Image
+         object
 
         **RETURNS**
 
-        * *list* - list of the values returned by the function when applied on all the images
+        * *list* - list of the values returned by the function when applied on
+         all the images
 
         **EXAMPLE**
 
@@ -528,7 +553,8 @@ class TrackSet(FeatureSet):
         **SUMMARY**
 
         Get Background of the Image. For more info read
-        http://opencvpython.blogspot.in/2012/07/background-extraction-using-running.html
+        http://opencvpython.blogspot.in/2012/07/
+        background-extraction-using-running.html
 
         **PARAMETERS**
         No Parameters
@@ -539,7 +565,7 @@ class TrackSet(FeatureSet):
 
         **EXAMPLE**
 
-        >>> while (some_condition):
+        >>> while some_condition:
             ... img1 = cam.getImage()
             ... ts = img1.track("camshift", ts1, img, bb)
             ... img = img1
@@ -550,7 +576,7 @@ class TrackSet(FeatureSet):
         avg = np.float32(f)
         for img in imgs[1:]:
             f = img
-            cv2.accumulateWeighted(f,avg,0.01)
+            cv2.accumulateWeighted(f, avg, 0.01)
             res = cv2.convertScaleAbs(avg)
         return Image(res, cv2image=True)
 
@@ -569,27 +595,27 @@ class TrackSet(FeatureSet):
             self.kalman_x = ts[-2].x
             self.kalman_y = ts[-2].y
 
-        self.kalman.state_pre[0,0]  = self.kalman_x
-        self.kalman.state_pre[1,0]  = self.kalman_y
-        self.kalman.state_pre[2,0]  = self.predict_pt[0]
-        self.kalman.state_pre[3,0]  = self.predict_pt[1]
+        self.kalman.state_pre[0, 0] = self.kalman_x
+        self.kalman.state_pre[1, 0] = self.kalman_y
+        self.kalman.state_pre[2, 0] = self.predict_pt[0]
+        self.kalman.state_pre[3, 0] = self.predict_pt[1]
 
-        self.kalman.transition_matrix[0,0] = 1
-        self.kalman.transition_matrix[0,1] = 0
-        self.kalman.transition_matrix[0,2] = 1
-        self.kalman.transition_matrix[0,3] = 0
-        self.kalman.transition_matrix[1,0] = 0
-        self.kalman.transition_matrix[1,1] = 1
-        self.kalman.transition_matrix[1,2] = 0
-        self.kalman.transition_matrix[1,3] = 1
-        self.kalman.transition_matrix[2,0] = 0
-        self.kalman.transition_matrix[2,1] = 0
-        self.kalman.transition_matrix[2,2] = 1
-        self.kalman.transition_matrix[2,3] = 0
-        self.kalman.transition_matrix[3,0] = 0
-        self.kalman.transition_matrix[3,1] = 0
-        self.kalman.transition_matrix[3,2] = 0
-        self.kalman.transition_matrix[3,3] = 1
+        self.kalman.transition_matrix[0, 0] = 1
+        self.kalman.transition_matrix[0, 1] = 0
+        self.kalman.transition_matrix[0, 2] = 1
+        self.kalman.transition_matrix[0, 3] = 0
+        self.kalman.transition_matrix[1, 0] = 0
+        self.kalman.transition_matrix[1, 1] = 1
+        self.kalman.transition_matrix[1, 2] = 0
+        self.kalman.transition_matrix[1, 3] = 1
+        self.kalman.transition_matrix[2, 0] = 0
+        self.kalman.transition_matrix[2, 1] = 0
+        self.kalman.transition_matrix[2, 2] = 1
+        self.kalman.transition_matrix[2, 3] = 0
+        self.kalman.transition_matrix[3, 0] = 0
+        self.kalman.transition_matrix[3, 1] = 0
+        self.kalman.transition_matrix[3, 2] = 0
+        self.kalman.transition_matrix[3, 3] = 1
 
         cv.SetIdentity(self.kalman.measurement_matrix, cv.RealScalar(1))
         cv.SetIdentity(self.kalman.process_noise_cov, cv.RealScalar(1e-5))
@@ -598,11 +624,14 @@ class TrackSet(FeatureSet):
 
     def __predictKalman(self):
         self.kalman_prediction = cv.KalmanPredict(self.kalman)
-        self.predict_pt  = (self.kalman_prediction[0,0], self.kalman_prediction[1,0])
+        self.predict_pt = (self.kalman_prediction[0, 0],
+                           self.kalman_prediction[1, 0])
 
     def __correctKalman(self):
-        self.kalman_estimated = cv.KalmanCorrect(self.kalman, self.kalman_measurement)
-        self.state_pt = (self.kalman_estimated[0,0], self.kalman_estimated[1,0])
+        self.kalman_estimated = cv.KalmanCorrect(self.kalman,
+                                                 self.kalman_measurement)
+        self.state_pt = (self.kalman_estimated[0, 0],
+                         self.kalman_estimated[1, 0])
 
     def __changeMeasure(self):
         ts = self
@@ -634,7 +663,8 @@ class TrackSet(FeatureSet):
         """
         **SUMMARY**
 
-        Returns a numpy array of the predicted x (vertical) coordinate of each feature.
+        Returns a numpy array of the predicted x (vertical) coordinate of each
+        feature.
 
         **RETURNS**
 
@@ -655,7 +685,8 @@ class TrackSet(FeatureSet):
         """
         **SUMMARY**
 
-        Returns a numpy array of the predicted y (vertical) coordinate of each feature.
+        Returns a numpy array of the predicted y (vertical) coordinate of each
+        feature.
 
         **RETURNS**
 
@@ -680,8 +711,10 @@ class TrackSet(FeatureSet):
 
         **PARAMETERS**
 
-        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
-        * *rad* - Radius of the circle to be plotted on the center of the object.
+        * *color* - The color to draw the object. Either an BGR tuple or a
+         member of the :py:class:`Color` class.
+        * *rad* - Radius of the circle to be plotted on the center of the
+         object.
         * *thickness* - Thickness of the boundary of the center circle.
 
         **RETURNS**
@@ -707,8 +740,10 @@ class TrackSet(FeatureSet):
 
         **PARAMETERS**
 
-        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
-        * *rad* - Radius of the circle to be plotted on the center of the object.
+        * *color* - The color to draw the object. Either an BGR tuple or a
+         member of the :py:class:`Color` class.
+        * *rad* - Radius of the circle to be plotted on the center of the
+         object.
         * *thickness* - Thickness of the boundary of the center circle.
 
         **RETURNS**
@@ -730,11 +765,13 @@ class TrackSet(FeatureSet):
         """
         **SUMMARY**
 
-        Draw the complete predicted path of the center of the object on current frame
+        Draw the complete predicted path of the center of the object on current
+        frame
 
         **PARAMETERS**
 
-        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
+        * *color* - The color to draw the object. Either an BGR tuple or a
+         member of the :py:class:`Color` class.
         * *thickness* - Thickness of the tracing path.
 
         **RETURNS**
@@ -753,8 +790,9 @@ class TrackSet(FeatureSet):
 
         ts = self
         img = self[-1].image
-        for i in range(1, len(ts)-1):
-            img.drawLine((ts[i].predict_pt),(ts[i+1].predict_pt), color=color, thickness=thickness)
+        for i in range(1, len(ts) - 1):
+            img.drawLine((ts[i].predict_pt), (ts[i + 1].predict_pt),
+                         color=color, thickness=thickness)
 
     def showPredictedCoordinates(self, pos=None, color=Color.GREEN, size=None):
         """
@@ -764,7 +802,8 @@ class TrackSet(FeatureSet):
 
         **PARAMETERS**
         * *pos* - A tuple consisting of x, y values. where to put to the text
-        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
+        * *color* - The color to draw the object. Either an BGR tuple or a
+         member of the :py:class:`Color` class.
         * *size* - Fontsize of the text
 
         **RETURNS**
@@ -798,7 +837,8 @@ class TrackSet(FeatureSet):
 
         **PARAMETERS**
         * *pos* - A tuple consisting of x, y values. where to put to the text
-        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
+        * *color* - The color to draw the object. Either an BGR tuple or a
+         member of the :py:class:`Color` class.
         * *size* - Fontsize of the text
 
         **RETURNS**
@@ -891,11 +931,13 @@ class TrackSet(FeatureSet):
         """
         **SUMMARY**
 
-        Draw the complete corrected path of the center of the object on current frame
+        Draw the complete corrected path of the center of the object on current
+        frame
 
         **PARAMETERS**
 
-        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
+        * *color* - The color to draw the object. Either an BGR tuple or a
+         member of the :py:class:`Color` class.
         * *thickness* - Thickness of the tracing path.
 
         **RETURNS**
@@ -914,5 +956,6 @@ class TrackSet(FeatureSet):
 
         ts = self
         img = self[-1].image
-        for i in range(len(ts)-1):
-            img.drawLine((ts[i].state_pt),(ts[i+1].state_pt), color=color, thickness=thickness)
+        for i in range(len(ts) - 1):
+            img.drawLine((ts[i].state_pt), (ts[i + 1].state_pt), color=color,
+                         thickness=thickness)

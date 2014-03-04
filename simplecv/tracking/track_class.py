@@ -1,10 +1,15 @@
+import time
+
+import numpy as np
+
 from simplecv.color import Color
-from simplecv.base import time, np
-from simplecv.features.features import Feature, FeatureSet
+from simplecv.features.features import Feature
+
 try:
     import cv2
 except ImportError:
     pass
+
 
 class Track(Feature):
     """
@@ -15,6 +20,7 @@ class Track(Feature):
     common attributes are kept in this class
 
     """
+
     def __init__(self, img, bb):
         """
         **SUMMARY**
@@ -39,8 +45,8 @@ class Track(Feature):
         self.bb_x, self.bb_y, self.w, self.h = self.bb
         self.x, self.y = self.center = self.getCenter()
         self.sizeRatio = 1
-        self.vel = (0,0)
-        self.rt_vel = (0,0)
+        self.vel = (0, 0)
+        self.rt_vel = (0, 0)
         self.area = self.getArea()
         self.time = time.time()
         self.cv2numpy = self.image.getNumpyCv2()
@@ -61,7 +67,7 @@ class Track(Feature):
         >>> track = Track(img, bb)
         >>> cen = track.getCenter()
         """
-        return (self.bb_x+self.w/2,self.bb_y+self.h/2)
+        return (self.bb_x + self.w / 2, self.bb_y + self.h / 2)
 
     def getArea(self):
         """
@@ -78,7 +84,7 @@ class Track(Feature):
         >>> track = Track(img, bb)
         >>> area = track.getArea()
         """
-        return self.w*self.h
+        return self.w * self.h
 
     def getImage(self):
         """
@@ -122,8 +128,10 @@ class Track(Feature):
 
         **PARAMETERS**
 
-        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
-        * *rad* - Radius of the circle to be plotted on the center of the object.
+        * *color* - The color to draw the object. Either an BGR tuple or a
+         member of the :py:class:`Color` class.
+        * *rad* - Radius of the circle to be plotted on the center of the
+         object.
         * *thickness* - Thickness of the boundary of the center circle.
 
         **RETURNS**
@@ -147,7 +155,8 @@ class Track(Feature):
 
         **PARAMETERS**
 
-        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
+        * *color* - The color to draw the object. Either an BGR tuple or a
+         member of the :py:class:`Color` class.
         * *thickness* - Thickness of the boundary of the bounding box.
 
         **RETURNS**
@@ -171,7 +180,8 @@ class Track(Feature):
 
         **PARAMETERS**
         * *pos* - A tuple consisting of x, y values. where to put to the text
-        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
+        * *color* - The color to draw the object. Either an BGR tuple or a
+         member of the :py:class:`Color` class.
         * *size* - Fontsize of the text
 
         **RETURNS**
@@ -188,7 +198,7 @@ class Track(Feature):
         img = f.image
         if not pos:
             imgsize = img.size()
-            pos = (imgsize[0]-120, 10)
+            pos = (imgsize[0] - 120, 10)
         if not size:
             size = 16
         text = "x = %d  y = %d" % (f.x, f.y)
@@ -202,7 +212,8 @@ class Track(Feature):
 
         **PARAMETERS**
         * *pos* - A tuple consisting of x, y values. where to put to the text
-        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
+        * *color* - The color to draw the object. Either an BGR tuple or a
+         member of the :py:class:`Color` class.
         * *size* - Fontsize of the text
 
         **RETURNS**
@@ -221,7 +232,7 @@ class Track(Feature):
         img = f.image
         if not pos:
             imgsize = img.size()
-            pos = (imgsize[0]-120, 30)
+            pos = (imgsize[0] - 120, 30)
         if not size:
             size = 16
         text = "size = %f" % (f.sizeRatio)
@@ -231,11 +242,13 @@ class Track(Feature):
         """
         **SUMMARY**
 
-        Show the Pixel Veloctiy (pixel/frame) of the object in text on the image.
+        Show the Pixel Veloctiy (pixel/frame) of the object in text on the
+        image.
 
         **PARAMETERS**
         * *pos* - A tuple consisting of x, y values. where to put to the text
-        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
+        * *color* - The color to draw the object. Either an BGR tuple or a
+         member of the :py:class:`Color` class.
         * *size* - Fontsize of the text
 
         **RETURNS**
@@ -255,22 +268,24 @@ class Track(Feature):
         vel = f.vel
         if not pos:
             imgsize = img.size()
-            pos = (imgsize[0]-120, 90)
+            pos = (imgsize[0] - 120, 90)
         if not size:
             size = 16
         text = "Vx = %.2f Vy = %.2f" % (vel[0], vel[1])
         img.drawText(text, pos[0], pos[1], color, size)
-        img.drawText("in pixels/frame", pos[0], pos[1]+size, color, size)
+        img.drawText("in pixels/frame", pos[0], pos[1] + size, color, size)
 
     def showPixelVelocityRT(self, pos=None, color=Color.GREEN, size=None):
         """
         **SUMMARY**
 
-        Show the Pixel Veloctiy (pixels/second) of the object in text on the image.
+        Show the Pixel Veloctiy (pixels/second) of the object in text on the
+        image.
 
         **PARAMETERS**
         * *pos* - A tuple consisting of x, y values. where to put to the text
-        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
+        * *color* - The color to draw the object. Either an BGR tuple or a
+         member of the :py:class:`Color` class.
         * *size* - Fontsize of the text
 
         **RETURNS**
@@ -290,12 +305,12 @@ class Track(Feature):
         vel_rt = f.vel_rt
         if not pos:
             imgsize = img.size()
-            pos = (imgsize[0]-120, 50)
+            pos = (imgsize[0] - 120, 50)
         if not size:
             size = 16
         text = "Vx = %.2f Vy = %.2f" % (vel_rt[0], vel_rt[1])
         img.drawText(text, pos[0], pos[1], color, size)
-        img.drawText("in pixels/second", pos[0], pos[1]+size, color, size)
+        img.drawText("in pixels/second", pos[0], pos[1] + size, color, size)
 
     def processTrack(self, func):
         """
@@ -304,7 +319,8 @@ class Track(Feature):
         This method lets you use your own function on the current image.
 
         **PARAMETERS**
-        * *func* - some user defined function for SimpleCV.ImageClass.Image object
+        * *func* - some user defined function for SimpleCV.ImageClass.Image
+         object
 
         **RETURNS**
 
@@ -346,8 +362,10 @@ class Track(Feature):
 
         **PARAMETERS**
 
-        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
-        * *rad* - Radius of the circle to be plotted on the center of the object.
+        * *color* - The color to draw the object. Either an BGR tuple or a
+         member of the :py:class:`Color` class.
+        * *rad* - Radius of the circle to be plotted on the center of the
+         object.
         * *thickness* - Thickness of the boundary of the center circle.
 
         **RETURNS**
@@ -371,7 +389,8 @@ class Track(Feature):
 
         **PARAMETERS**
         * *pos* - A tuple consisting of x, y values. where to put to the text
-        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
+        * *color* - The color to draw the object. Either an BGR tuple or a
+         member of the :py:class:`Color` class.
         * *size* - Fontsize of the text
 
         **RETURNS**
@@ -422,7 +441,8 @@ class Track(Feature):
 
         **PARAMETERS**
         * *pos* - A tuple consisting of x, y values. where to put to the text
-        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
+        * *color* - The color to draw the object. Either an BGR tuple or a
+         member of the :py:class:`Color` class.
         * *size* - Fontsize of the text
 
         **RETURNS**
@@ -453,8 +473,10 @@ class Track(Feature):
 
         **PARAMETERS**
 
-        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
-        * *rad* - Radius of the circle to be plotted on the center of the object.
+        * *color* - The color to draw the object. Either an BGR tuple or a
+         member of the :py:class:`Color` class.
+        * *rad* - Radius of the circle to be plotted on the center of the
+         object.
         * *thickness* - Thickness of the boundary of the center circle.
 
         **RETURNS**
@@ -470,6 +492,7 @@ class Track(Feature):
         f = self
         f.image.drawCircle(f.state_pt, rad, color, thickness)
 
+
 class CAMShiftTrack(Track):
     """
     **SUMMARY**
@@ -480,11 +503,13 @@ class CAMShiftTrack(Track):
 
     CAMShift class has "ellipse" attribute which is not present in Track
     """
+
     def __init__(self, img, bb, ellipse):
         """
         **SUMMARY**
 
-        Initializes all the required parameters and attributes of the CAMShift class.
+        Initializes all the required parameters and attributes of the CAMShift
+        class.
 
         **PARAMETERS**
 
@@ -520,14 +545,15 @@ class CAMShiftTrack(Track):
         """
         return self.ellipse
 
+
 class LKTrack(Track):
     """
     **SUMMARY**
 
     LK Tracking class is used for Lucas-Kanade Track algorithm. It's
     derived from Track Class. Apart from all the properties of Track class,
-    LK has few other properties. Since in LK tracking method, we obtain tracking
-    points, we have functionalities to draw those points on the image.
+    LK has few other properties. Since in LK tracking method, we obtain
+    tracking points, we have functionalities to draw those points on the image.
 
     """
 
@@ -592,25 +618,29 @@ class LKTrack(Track):
         >>> track = LKTrack(image, bb, pts)
         >>> track.drawTrackerPoints()
         """
-        if type(self.pts) is not type(None):
+        if self.pts is not None:
             for pt in self.pts:
-                self.image.drawCircle(ctr=pt, rad=radius, thickness=thickness, color=color)
+                self.image.drawCircle(ctr=pt, rad=radius, thickness=thickness,
+                                      color=color)
+
 
 class SURFTrack(Track):
     """
     **SUMMARY**
 
-    SURFTracker class is used for SURF Based keypoints matching tracking algorithm.
-    It's derived from Track Class. Apart from all the properties of Track class SURFTracker
-    has few other properties.
+    SURFTracker class is used for SURF Based keypoints matching tracking
+    algorithm. It's derived from Track Class. Apart from all the properties of
+    Track class SURFTracker has few other properties.
 
     Matches keypoints from the template image and the current frame.
     flann based matcher is used to match the keypoints.
-    Density based clustering is used classify points as in-region (of bounding box)
-    and out-region points. Using in-region points, new bounding box is predicted using
-    k-means.
+    Density based clustering is used classify points as in-region (of bounding
+    box) and out-region points. Using in-region points, new bounding box is
+    predicted using k-means.
     """
-    def __init__(self, img, new_pts, detector, descriptor, templateImg, skp, sd, tkp, td):
+
+    def __init__(self, img, new_pts, detector, descriptor, templateImg, skp,
+                 sd, tkp, td):
         """
         **SUMMARY**
 
@@ -619,7 +649,8 @@ class SURFTrack(Track):
         **PARAMETERS**
 
         * *img* - SimpleCV.Image
-        * *new_pts* - List of all the tracking points found in the image. - list of cv2.KeyPoint
+        * *new_pts* - List of all the tracking points found in the image. -
+         list of cv2.KeyPoint
         * *detector* - SURF detector - cv2.FeatureDetector
         * *descriptor* - SURF descriptor - cv2.DescriptorExtractor
         * *templateImg* - Template Image (First image) - SimpleCV.Image
@@ -633,7 +664,8 @@ class SURFTrack(Track):
         SimpleCV.tracking.TrackClass.SURFTrack object
 
         **EXAMPLE**
-        >>> track = SURFTracker(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
+        >>> track = SURFTracker(image, pts, detector, descriptor, temp, skp,
+            ...                 sd, tkp, td)
         """
         if td is None:
             bb = (1, 1, 1, 1)
@@ -665,15 +697,17 @@ class SURFTrack(Track):
             return
 
         np_pts = np.asarray([kp.pt for kp in new_pts])
-        t, pts, center = cv2.kmeans(np.asarray(np_pts, dtype=np.float32), K=1, bestLabels=None,
-                            criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_MAX_ITER, 1, 10), attempts=1,
-                            flags=cv2.KMEANS_RANDOM_CENTERS)
+        t, pts, center = cv2.kmeans(
+            np.asarray(np_pts, dtype=np.float32), K=1,
+            bestLabels=None,
+            criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_MAX_ITER,
+                      1, 10), attempts=1, flags=cv2.KMEANS_RANDOM_CENTERS)
         max_x = int(max(np_pts[:, 0]))
         min_x = int(min(np_pts[:, 0]))
         max_y = int(max(np_pts[:, 1]))
         min_y = int(min(np_pts[:, 1]))
 
-        bb =  (min_x-5, min_y-5, max_x-min_x+5, max_y-min_y+5)
+        bb = (min_x - 5, min_y - 5, max_x - min_x + 5, max_y - min_y + 5)
 
         self = Track.__init__(self, img, bb)
         self.templateImg = templateImg
@@ -697,7 +731,8 @@ class SURFTrack(Track):
 
         **EXAMPLE**
 
-        >>> track = SURFTrack(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
+        >>> track = SURFTrack(image, pts, detector, descriptor,
+            ...               temp, skp, sd, tkp, td)
         >>> pts = track.getTrackedPoints()
         """
         return self.pts
@@ -719,12 +754,14 @@ class SURFTrack(Track):
 
         **EXAMPLE**
 
-        >>> track = SURFTrack(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
+        >>> track = SURFTrack(image, pts, detector, descriptor,
+            ...               temp, skp, sd, tkp, td)
         >>> track.drawTrackerPoints()
         """
-        if type(self.pts) is not type(None):
+        if self.pts is not None:
             for pt in self.pts:
-                self.image.drawCircle(ctr=pt, rad=radius, thickness=thickness, color=color)
+                self.image.drawCircle(ctr=pt, rad=radius, thickness=thickness,
+                                      color=color)
 
     def getDetector(self):
         """
@@ -738,7 +775,8 @@ class SURFTrack(Track):
 
         **EXAMPLE**
 
-        >>> track = SURFTrack(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
+        >>> track = SURFTrack(image, pts, detector, descriptor, temp,
+            ...               skp, sd, tkp, td)
         >>> detector = track.getDetector()
         """
         return self.detector
@@ -755,7 +793,8 @@ class SURFTrack(Track):
 
         **EXAMPLE**
 
-        >>> track = SURFTrack(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
+        >>> track = SURFTrack(image, pts, detector, descriptor, temp,
+            ...               skp, sd, tkp, td)
         >>> descriptor= track.getDescriptor()
         """
         return self.descriptor
@@ -772,7 +811,8 @@ class SURFTrack(Track):
 
         **EXAMPLE**
 
-        >>> track = SURFTrack(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
+        >>> track = SURFTrack(image, pts, detector, descriptor,
+            ...               temp, skp, sd, tkp, td)
         >>> skp = track.getImageKeyPoints()
         """
         return self.skp
@@ -789,7 +829,8 @@ class SURFTrack(Track):
 
         **EXAMPLE**
 
-        >>> track = SURFTrack(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
+        >>> track = SURFTrack(image, pts, detector, descriptor,
+            ...               temp, skp, sd, tkp, td)
         >>> sd = track.getImageDescriptor()
         """
         return self.sd
@@ -806,7 +847,8 @@ class SURFTrack(Track):
 
         **EXAMPLE**
 
-        >>> track = SURFTrack(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
+        >>> track = SURFTrack(image, pts, detector, descriptor,
+            ...               temp, skp, sd, tkp, td)
         >>> tkp = track.getTemplateKeyPoints()
         """
         return self.tkp
@@ -823,7 +865,8 @@ class SURFTrack(Track):
 
         **EXAMPLE**
 
-        >>> track = SURFTrack(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
+        >>> track = SURFTrack(image, pts, detector, descriptor,
+            ...               temp, skp, sd, tkp, td)
         >>> td = track.getTemplateDescriptor()
         """
         return self.td
@@ -840,10 +883,12 @@ class SURFTrack(Track):
 
         **EXAMPLE**
 
-        >>> track = SURFTrack(image, pts, detector, descriptor, temp, skp, sd, tkp, td)
+        >>> track = SURFTrack(image, pts, detector, descriptor,
+            ...               temp, skp, sd, tkp, td)
         >>> templateImg = track.getTemplateImage()
         """
         return self.templateImg
+
 
 class MFTrack(Track):
     """
@@ -853,14 +898,13 @@ class MFTrack(Track):
     derived from Track Class. Apart from all the properties of Track class,
     MFTracker has few other properties.
 
-    Media Flow Tracker is the base tracker that is used in OpenTLD. It is based on
-    Optical Flow. It calculates optical flow of the points in the bounding box from
-    frame 1 to frame 2 and from frame 2 to frame 1 and using back track error, removes
-    false positives. As the name suggests, it takes the median of the flow, and eliminates
-    points.
-
-
+    Media Flow Tracker is the base tracker that is used in OpenTLD. It is based
+    on Optical Flow. It calculates optical flow of the points in the bounding
+    box from frame 1 to frame 2 and from frame 2 to frame 1 and using back
+    track error, removes false positives. As the name suggests, it takes the
+    median of the flow, and eliminates points.
     """
+
     def __init__(self, img, bb, shift):
         """
         **SUMMARY**
@@ -905,11 +949,13 @@ class MFTrack(Track):
         """
         **SUMMARY**
 
-        Show the Pixel Veloctiy (pixels/second) of the object in text on the image.
+        Show the Pixel Veloctiy (pixels/second) of the object in text on the
+        image.
 
         **PARAMETERS**
         * *pos* - A tuple consisting of x, y values. where to put to the text
-        * *color* - The color to draw the object. Either an BGR tuple or a member of the :py:class:`Color` class.
+        * *color* - The color to draw the object. Either an BGR tuple or a
+         member of the :py:class:`Color` class.
         * *size* - Fontsize of the text
 
         **RETURNS**
@@ -929,9 +975,9 @@ class MFTrack(Track):
         shift = f.shift
         if not pos:
             imgsize = img.size()
-            pos = (imgsize[0]-120, 50)
+            pos = (imgsize[0] - 120, 50)
         if not size:
             size = 16
         text = "Shift = %.2f" % (shift)
         img.drawText(text, pos[0], pos[1], color, size)
-        img.drawText("in pixels/second", pos[0], pos[1]+size, color, size)
+        img.drawText("in pixels/second", pos[0], pos[1] + size, color, size)
