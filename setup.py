@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(name="simplecv",
-      version=1.3,
+      version=2.0,
       download_url='https://github.com/sightmachine/SimpleCV/zipball/1.3',
       description="Make Computers See with simplecv, the Python Framework for Machine Vision",
       long_description=("Framework for computer (machine) vision in Python, providing a unified, pythonic interface "
