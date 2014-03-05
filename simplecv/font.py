@@ -2,8 +2,7 @@
 #
 # This library is used to add fonts to images
 
-#load required libraries
-from simplecv.base import *
+from PIL import ImageFont as pilImageFont
 
 
 class Font:
@@ -68,7 +67,8 @@ class Font:
 
         if new_font in self._fonts:
             self._fontface = new_font
-            font_to_use = self._fontpath + self._fontface + "/" + self._fontface + self._extension
+            font_to_use = self._fontpath + self._fontface + "/" + \
+                self._fontface + self._extension
         else:
             self._fontface = new_font
             font_to_use = new_font
@@ -80,7 +80,7 @@ class Font:
         Set the font point size. i.e. 16pt
         """
         print type(size)
-        if type(size) == int:
+        if isinstance(size, int):
             self._fontsize = size
         else:
             print "please provide an integer"

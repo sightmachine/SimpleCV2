@@ -1,18 +1,15 @@
-#!/usr/bin/env python
-
-import sys
-import os
+import numpy as np
+import pygame as pg
 import svgwrite
-#from SimpleCV.base import *
-from simplecv.color import *
 
-
+from simplecv.color import Color
 
 #DOCS
 #TESTS
 #IMAGE AGNOSTIC
 #RESIZE
 #ADD IMAGE INTERFACE
+
 
 class DrawingLayer:
     """
@@ -34,21 +31,21 @@ class DrawingLayer:
     _mFontName = ""
     _mFontSize = 0
     _mDefaultAlpha = 255
-    _mAlphaDelta = 1 #This is used to track the changed value in alpha
+    _mAlphaDelta = 1  # This is used to track the changed value in alpha
     _mSVG = ""
     width = 0
     height = 0
 
     def __init__(self, (width, height)):
         #pg.init()
-        if( not pg.font.get_init() ):
+        if not pg.font.get_init():
             pg.font.init()
 
         self._mSVG = svgwrite.Drawing(size=(width, height))
 
         self.width = width
         self.height = height
-        self._mSurface = pg.Surface((width, height), flags = pg.SRCALPHA)
+        self._mSurface = pg.Surface((width, height), flags=pg.SRCALPHA)
         self._mDefaultAlpha = 255
         self._mClearColor = pg.Color(0, 0, 0, 0)
 
@@ -63,23 +60,24 @@ class DrawingLayer:
         self._mFont = pg.font.Font(self._mFontName, self._mFontSize)
 
     def __repr__(self):
-        return "<SimpleCV.DrawingLayer Object size (%d, %d)>" % (self.width, self.height)
-
+        return "<SimpleCV.DrawingLayer Object size (%d, %d)>" % (
+            self.width, self.height)
 
     def setDefaultAlpha(self, alpha):
         """
         This method sets the default alpha value for all methods called on this
-        layer. The default value starts out at 255 which is completely transparent.
+        layer. The default value starts out at 255 which is completely
+         transparent.
         """
-        if(alpha >= 0 and alpha <= 255 ):
+        if alpha >= 0 and alpha <= 255:
             self._mDefaultAlpha = alpha
-        return None
 
     def getDefaultAlpha(self):
         """
         Returns the default alpha value.
         """
         return self._mDefaultAlpha
+
     def setLayerAlpha(self, alpha):
         """
         This method sets the alpha value of the entire layer in a single
@@ -90,27 +88,26 @@ class DrawingLayer:
         # Get access to the alpha band of the image.
         pixels_alpha = pg.surfarray.pixels_alpha(self._mSurface)
         # Do a floating point multiply, by alpha 100, on each alpha value.
-        # Then truncate the values (convert to integer) and copy back into the surface.
-        pixels_alpha[...] = (np.ones(pixels_alpha.shape)*(alpha)).astype(np.uint8)
+        # Then truncate the values (convert to integer) and copy back into
+        # the surface.
+        pixels_alpha[...] = (np.ones(pixels_alpha.shape) * (alpha)).astype(
+            np.uint8)
 
         # Unlock the surface.
 
-        self._mAlphaDelta = alpha / 255.0 #update the changed state
-
-        del pixels_alpha
-        return None
+        self._mAlphaDelta = alpha / 255.0  # update the changed state
 
     def getSVG(self):
-        return(self._mSVG.tostring())
+        return (self._mSVG.tostring())
 
     def _getSurface(self):
-        return(self._mSurface)
+        return (self._mSurface)
 
-    def _csvRGB2pgColor(self, color, alpha = -1):
-        if(alpha == -1):
+    def _csvRGB2pgColor(self, color, alpha=-1):
+        if alpha == -1:
             alpha = self._mDefaultAlpha
 
-        if(color == Color.DEFAULT):
+        if color == Color.DEFAULT:
             color = self._mDefaultColor
         retVal = pg.Color(color[0], color[1], color[2], alpha)
         return retVal
@@ -124,17 +121,18 @@ class DrawingLayer:
         """
         self._mDefaultColor = color
 
-    def line(self, start, stop, color = Color.DEFAULT, width = 1, antialias = True, alpha = -1 ):
+    def line(self, start, stop, color=Color.DEFAULT, width=1, antialias=True,
+             alpha=-1):
         """
         Draw a single line from the (x,y) tuple start to the (x,y) tuple stop.
         Optional parameters:
 
-        color - The object's color as a simple CVColor object, if no value  is sepcified
-                the default is used.
+        color - The object's color as a simple CVColor object, if no value is
+                specified the default is used.
 
         alpha - The alpha blending for the object. If this value is -1 then the
-                layer default value is used. A value of 255 means opaque, while 0
-                means transparent.
+                layer default value is used. A value of 255 means opaque,
+                while 0 means transparent.
 
         width - The line width in pixels.
 
@@ -149,30 +147,31 @@ class DrawingLayer:
             alpha - Int
 
         """
-        if(antialias and width == 1):
-            pg.draw.aaline(self._mSurface, self._csvRGB2pgColor(color, alpha), start, stop, width)
+        if (antialias and width == 1):
+            pg.draw.aaline(self._mSurface, self._csvRGB2pgColor(color, alpha),
+                           start, stop, width)
         else:
-            pg.draw.line(self._mSurface, self._csvRGB2pgColor(color, alpha), start, stop, width)
+            pg.draw.line(self._mSurface, self._csvRGB2pgColor(color, alpha),
+                         start, stop, width)
 
         startInt = tuple(int(x) for x in start)
         stopInt = tuple(int(x) for x in stop)
         self._mSVG.add(self._mSVG.line(start=startInt, end=stopInt))
 
-        return None
-
-    def lines(self, points, color = Color.DEFAULT, antialias = True, alpha = -1, width = 1 ):
+    def lines(self, points, color=Color.DEFAULT, antialias=True, alpha=-1,
+              width=1):
         """
-        Draw a set of lines from the list of (x,y) tuples points. Lines are draw
-        between each successive pair of points.
+        Draw a set of lines from the list of (x,y) tuples points. Lines are
+        draw between each successive pair of points.
 
         Optional parameters:
 
-        color - The object's color as a simple CVColor object, if no value  is sepcified
-                the default is used.
+        color - The object's color as a simple CVColor object, if no value is
+                specified the default is used.
 
         alpha - The alpha blending for the object. If this value is -1 then the
-                layer default value is used. A value of 255 means opaque, while 0
-                means transparent.
+                layer default value is used. A value of 255 means opaque,
+                while 0 means transparent.
 
         width - The line width in pixels.
 
@@ -186,12 +185,12 @@ class DrawingLayer:
             width - Int
 
         """
-        if(antialias and width == 1):
-            pg.draw.aalines(self._mSurface, self._csvRGB2pgColor(color, alpha), 0, points, width)
+        if (antialias and width == 1):
+            pg.draw.aalines(self._mSurface, self._csvRGB2pgColor(color, alpha),
+                            0, points, width)
         else:
-            pg.draw.lines(self._mSurface, self._csvRGB2pgColor(color, alpha), 0, points, width)
-
-
+            pg.draw.lines(self._mSurface, self._csvRGB2pgColor(color, alpha),
+                          0, points, width)
 
         lastPoint = points[0]
         for point in points[1:]:
@@ -200,48 +199,49 @@ class DrawingLayer:
             self._mSVG.add(self._mSVG.line(start=lastPoint, end=point))
             lastPoint = point
 
-        return None
-
     #need two points(TR,BL), center+W+H, and TR+W+H
-    def rectangle(self, topLeft, dimensions, color = Color.DEFAULT, width = 1, filled = False, alpha = -1 ):
+    def rectangle(self, topLeft, dimensions, color=Color.DEFAULT, width=1,
+                  filled=False, alpha=-1):
         """
         Draw a rectangle given the topLeft the (x,y) coordinate of the top left
         corner and dimensions (w,h) tge width and height
 
-        color - The object's color as a simple CVColor object, if no value  is sepcified
-                the default is used.
+        color - The object's color as a simple CVColor object, if no value is
+                specified the default is used.
 
         alpha - The alpha blending for the object. If this value is -1 then the
-                layer default value is used. A value of 255 means opaque, while 0
-                means transparent.
+                layer default value is used. A value of 255 means opaque,
+                while 0 means transparent.
 
-        w -     The line width in pixels. This does not work if antialiasing is enabled.
+        w -     The line width in pixels. This does not work if antialiasing
+                is enabled.
 
         filled -The rectangle is filled in
         """
-        if(filled):
+        if (filled):
             width = 0
         r = pg.Rect((topLeft[0], topLeft[1]), (dimensions[0], dimensions[1]))
-        pg.draw.rect(self._mSurface, self._csvRGB2pgColor(color, alpha), r, width)
+        pg.draw.rect(self._mSurface, self._csvRGB2pgColor(color, alpha), r,
+                     width)
 
         tlInt = tuple(int(x) for x in topLeft)
         dimInt = tuple(int(x) for x in dimensions)
         self._mSVG.add(self._mSVG.rect(insert=tlInt, size=dimInt))
 
-        return None
-
-    def rectangle2pts(self, pt0, pt1, color = Color.DEFAULT, width = 1, filled = False, alpha = -1 ):
+    def rectangle2pts(self, pt0, pt1, color=Color.DEFAULT, width=1,
+                      filled=False, alpha=-1):
         """
         Draw a rectangle given two (x,y) points
 
-        color - The object's color as a simple CVColor object, if no value  is sepcified
-                the default is used.
+        color - The object's color as a simple CVColor object, if no value is
+                specified the default is used.
 
         alpha - The alpha blending for the object. If this value is -1 then the
-                layer default value is used. A value of 255 means opaque, while 0
-                means transparent.
+                layer default value is used. A value of 255 means opaque,
+                while 0 means transparent.
 
-        w -     The line width in pixels. This does not work if antialiasing is enabled.
+        w -     The line width in pixels. This does not work if antialiasing is
+                enabled.
 
         filled -The rectangle is filled in
         """
@@ -249,39 +249,42 @@ class DrawingLayer:
         h = 0
         x = 0
         y = 0
-        if(pt0[0] > pt1[0]):
-            w = pt0[0]-pt1[0]
+        if (pt0[0] > pt1[0]):
+            w = pt0[0] - pt1[0]
             x = pt1[0]
         else:
-            w = pt1[0]-pt0[0]
+            w = pt1[0] - pt0[0]
             x = pt0[0]
-        if(pt0[1] > pt1[1]):
-            h = pt0[1]-pt1[1]
+        if (pt0[1] > pt1[1]):
+            h = pt0[1] - pt1[1]
             y = pt1[1]
         else:
-            h = pt1[1]-pt0[1]
+            h = pt1[1] - pt0[1]
             y = pt0[1]
-        if(filled):
+        if (filled):
             width = 0
-        r = pg.Rect((x,y),(w,h))
-        pg.draw.rect(self._mSurface, self._csvRGB2pgColor(color, alpha), r, width)
+        r = pg.Rect((x, y), (w, h))
+        pg.draw.rect(self._mSurface, self._csvRGB2pgColor(color, alpha), r,
+                     width)
 
-        self._mSVG.add(self._mSVG.rect(insert=(int(x),int(y)), size=(int(w),int(h))))
+        self._mSVG.add(
+            self._mSVG.rect(insert=(int(x), int(y)), size=(int(w), int(h))))
 
-        return None
-
-    def centeredRectangle(self, center, dimensions, color = Color.DEFAULT, width = 1, filled = False, alpha = -1 ):
+    def centeredRectangle(self, center, dimensions, color=Color.DEFAULT,
+                          width=1, filled=False, alpha=-1):
         """
-        Draw a rectangle given the center (x,y) of the rectangle and dimensions (width, height)
+        Draw a rectangle given the center (x,y) of the rectangle and dimensions
+        (width, height)
 
-        color - The object's color as a simple CVColor object, if no value  is sepcified
-                the default is used.
+        color - The object's color as a simple CVColor object, if no value is
+                speccified the default is used.
 
         alpha - The alpha blending for the object. If this value is -1 then the
-                layer default value is used. A value of 255 means opaque, while 0
-                means transparent.
+                layer default value is used. A value of 255 means opaque, while
+                0 means transparent.
 
-        w -     The line width in pixels. This does not work if antialiasing is enabled.
+        w -     The line width in pixels. This does not work if antialiasing is
+                enabled.
 
         filled -The rectangle is filled in
 
@@ -295,60 +298,68 @@ class DrawingLayer:
             alpha - Int
 
         """
-        if(filled):
+        if filled:
             width = 0
         xtl = center[0] - (dimensions[0] / 2)
         ytl = center[1] - (dimensions[1] / 2)
         r = pg.Rect(xtl, ytl, dimensions[0], dimensions[1])
-        pg.draw.rect(self._mSurface, self._csvRGB2pgColor(color, alpha), r, width)
+        pg.draw.rect(self._mSurface, self._csvRGB2pgColor(color, alpha), r,
+                     width)
 
         dimInt = tuple(int(x) for x in dimensions)
-        self._mSVG.add(self._mSVG.rect(insert=(int(xtl), int(ytl)), size=dimInt))
+        self._mSVG.add(
+            self._mSVG.rect(insert=(int(xtl), int(ytl)), size=dimInt))
 
-        return None
-
-
-    def polygon(self, points, color = Color.DEFAULT, width = 1, filled = False, antialias = True, alpha = -1):
+    def polygon(self, points, color=Color.DEFAULT, width=1, filled=False,
+                antialias=True, alpha=-1):
         """
         Draw a polygon from a list of (x,y)
 
-        color - The object's color as a simple CVColor object, if no value  is sepcified
-                the default is used.
+        color - The object's color as a simple CVColor object, if no value is
+                specified the default is used.
 
         alpha - The alpha blending for the object. If this value is -1 then the
-                layer default value is used. A value of 255 means opaque, while 0
-                means transparent.
+                layer default value is used. A value of 255 means opaque,
+                while 0 means transparent.
 
         width - The
         width in pixels. This does not work if antialiasing is enabled.
 
         filled -The object is filled in
 
-        antialias - Draw the edges of the object antialiased. Note this does not work when the object is filled.
+        antialias - Draw the edges of the object antialiased. Note this does
+        not work when the object is filled.
         """
-        if(filled):
+        if (filled):
             width = 0
-        if(not filled):
-            if(antialias and width == 1):
-                pg.draw.aalines(self._mSurface, self._csvRGB2pgColor(color, alpha), True, points, width)
+        if (not filled):
+            if (antialias and width == 1):
+                pg.draw.aalines(self._mSurface,
+                                self._csvRGB2pgColor(color, alpha), True,
+                                points, width)
             else:
-                pg.draw.lines(self._mSurface, self._csvRGB2pgColor(color, alpha), True, points, width)
+                pg.draw.lines(self._mSurface,
+                              self._csvRGB2pgColor(color, alpha), True, points,
+                              width)
         else:
-            pg.draw.polygon(self._mSurface, self._csvRGB2pgColor(color, alpha), points, width)
+            pg.draw.polygon(self._mSurface, self._csvRGB2pgColor(color, alpha),
+                            points, width)
         return None
 
-    def circle(self, center, radius, color = Color.DEFAULT, width = 1, filled = False, alpha = -1, antialias = True):
+    def circle(self, center, radius, color=Color.DEFAULT, width=1,
+               filled=False, alpha=-1, antialias=True):
         """
         Draw a circle given a location and a radius.
 
-        color - The object's color as a simple CVColor object, if no value  is sepcified
-                the default is used.
+        color - The object's color as a simple CVColor object, if no value is
+                sepcified the default is used.
 
         alpha - The alpha blending for the object. If this value is -1 then the
-                layer default value is used. A value of 255 means opaque, while 0
-                means transparent.
+                layer default value is used. A value of 255 means opaque,
+                while 0 means transparent.
 
-        width - The line width in pixels. This does not work if antialiasing is enabled.
+        width - The line width in pixels. This does not work if antialiasing is
+                enabled.
 
         filled -The object is filled in
 
@@ -361,30 +372,35 @@ class DrawingLayer:
             alpha - Int
             antialias - Int
         """
-        if(filled):
+        if (filled):
             width = 0
-        if antialias == False or width > 1 or filled:
-            pg.draw.circle(self._mSurface, self._csvRGB2pgColor(color, alpha), center, int(radius), int(width))
+        if antialias is False or width > 1 or filled:
+            pg.draw.circle(self._mSurface, self._csvRGB2pgColor(color, alpha),
+                           center, int(radius), int(width))
         else:
-            pg.gfxdraw.aacircle(self._mSurface, int(center[0]), int(center[1]), int(radius), self._csvRGB2pgColor(color, alpha))
+            pg.gfxdraw.aacircle(self._mSurface, int(center[0]), int(center[1]),
+                                int(radius),
+                                self._csvRGB2pgColor(color, alpha))
 
         cenInt = tuple(int(x) for x in center)
         self._mSVG.add(self._mSVG.circle(center=cenInt, r=radius))
 
         return None
 
-    def ellipse(self, center, dimensions, color = Color.DEFAULT, width = 1, filled = False, alpha = -1):
+    def ellipse(self, center, dimensions, color=Color.DEFAULT, width=1,
+                filled=False, alpha=-1):
         """
         Draw an ellipse given a location and a dimensions.
 
-        color - The object's color as a simple CVColor object, if no value  is sepcified
-                the default is used.
+        color - The object's color as a simple CVColor object, if no value is
+                sepcified the default is used.
 
         alpha - The alpha blending for the object. If this value is -1 then the
-                layer default value is used. A value of 255 means opaque, while 0
-                means transparent.
+                layer default value is used. A value of 255 means opaque,
+                while 0 means transparent.
 
-        width - The line width in pixels. This does not work if antialiasing is enabled.
+        width - The line width in pixels. This does not work if antialiasing is
+                enabled.
 
         filled -The object is filled in
 
@@ -396,27 +412,30 @@ class DrawingLayer:
             filled - Boolean
             alpha - Int
         """
-        if(filled):
+        if (filled):
             width = 0
-        r = pg.Rect(center[0] - (dimensions[0] / 2), center[1] - (dimensions[1] / 2), dimensions[0], dimensions[1])
-        pg.draw.ellipse(self._mSurface, self._csvRGB2pgColor(color, alpha), r, width)
+        r = pg.Rect(center[0] - (dimensions[0] / 2),
+                    center[1] - (dimensions[1] / 2), dimensions[0],
+                    dimensions[1])
+        pg.draw.ellipse(self._mSurface, self._csvRGB2pgColor(color, alpha), r,
+                        width)
 
         cenInt = tuple(int(x) for x in center)
         dimInt = tuple(int(x) for x in dimensions)
-        self._mSVG.add(self._mSVG.ellipse(center=centInt, r=dimInt))
+        self._mSVG.add(self._mSVG.ellipse(center=cenInt, r=dimInt))
 
         return None
 
-    def bezier(self, points, steps, color = Color.DEFAULT, alpha = -1):
+    def bezier(self, points, steps, color=Color.DEFAULT, alpha=-1):
         """
         Draw a bezier curve based on a control point and the a number of stapes
 
-        color - The object's color as a simple CVColor object, if no value  is sepcified
-                the default is used.
+        color - The object's color as a simple CVColor object, if no value is
+                sepcified the default is used.
 
         alpha - The alpha blending for the object. If this value is -1 then the
-                layer default value is used. A value of 255 means opaque, while 0
-                means transparent
+                layer default value is used. A value of 255 means opaque,
+                while 0 means transparent
 
         Parameters:
             points - list
@@ -426,7 +445,8 @@ class DrawingLayer:
 
 
         """
-        pg.gfxdraw.bezier(self._mSurface, points, steps, self._csvRGB2pgColor(color, alpha))
+        pg.gfxdraw.bezier(self._mSurface, points, steps,
+                          self._csvRGB2pgColor(color, alpha))
         return None
 
     def setFontBold(self, doBold):
@@ -466,16 +486,16 @@ class DrawingLayer:
 
     def listFonts(self):
         """
-        This method returns a list of strings corresponding to the fonts available
-        on the current system.
+        This method returns a list of strings corresponding to the fonts
+        available on the current system.
         """
         return pg.font.get_fonts()
 
-
     def setFontSize(self, sz):
         """
-        This method sets the font size roughly in points. A size of 10 is almost
-        too small to read. A size of 20 is roughly 10 pixels high and a good choice.
+        This method sets the font size roughly in points. A size of 10 is
+        almost too small to read. A size of 20 is roughly 10 pixels high and a
+        good choice.
 
         Parameters:
             sz = Int
@@ -484,7 +504,7 @@ class DrawingLayer:
         self._mFont = pg.font.Font(self._mFontName, self._mFontSize)
         return None
 
-    def text(self, text, location, color = Color.DEFAULT, alpha = -1):
+    def text(self, text, location, color=Color.DEFAULT, alpha=-1):
         """
         Write the a text string at a given location
 
@@ -492,12 +512,12 @@ class DrawingLayer:
 
         location-The location to place the top right corner of the text
 
-        color - The object's color as a simple CVColor object, if no value  is sepcified
-                the default is used.
+        color - The object's color as a simple CVColor object, if no value is
+                specified the default is used.
 
         alpha - The alpha blending for the object. If this value is -1 then the
-                layer default value is used. A value of 255 means opaque, while 0
-                means transparent.
+                layer default value is used. A value of 255 means opaque,
+                while 0 means transparent.
 
         Parameters:
             text - String
@@ -506,23 +526,26 @@ class DrawingLayer:
             alpha - Int
 
         """
-        if(len(text)<0):
+        if (len(text) < 0):
             return None
-        tsurface = self._mFont.render(text, True, self._csvRGB2pgColor(color, alpha))
-        if(alpha == -1):
+        tsurface = self._mFont.render(text, True,
+                                      self._csvRGB2pgColor(color, alpha))
+        if (alpha == -1):
             alpha = self._mDefaultAlpha
         #this is going to be slow, dumb no native support.
         #see http://www.mail-archive.com/pygame-users@seul.org/msg04323.html
         # Get access to the alpha band of the image.
         pixels_alpha = pg.surfarray.pixels_alpha(tsurface)
         # Do a floating point multiply, by alpha 100, on each alpha value.
-        # Then truncate the values (convert to integer) and copy back into the surface.
+        # Then truncate the values (convert to integer)
+        # and copy back into the surface.
         pixels_alpha[...] = (pixels_alpha * (alpha / 255.0)).astype(np.uint8)
         # Unlock the surface.
         del pixels_alpha
         self._mSurface.blit(tsurface, location)
 
-        fontStyle = "font-size: {}px;".format(self._mFontSize - 7) # Adjust for web
+        fontStyle = "font-size: {}px;".format(
+            self._mFontSize - 7)  # Adjust for web
         if self._mFontBold:
             fontStyle += "font-weight: bold;"
         if self._mFontItalic:
@@ -531,37 +554,41 @@ class DrawingLayer:
             fontStyle += "text-decoration: underline;"
         if self._mFontName:
             fontStyle += "font-family: \"{}\";".format(self._mFontName)
-        alteredLocation = (location[0], location[1] + self.textDimensions(text)[1])
+        alteredLocation = (location[0],
+                           location[1] + self.textDimensions(text)[1])
         altInt = tuple(int(x) for x in alteredLocation)
         self._mSVG.add(self._mSVG.text(text, insert=altInt, style=fontStyle))
         return None
 
     def textDimensions(self, text):
         """
-        The textDimensions function takes a string and returns the dimensions (width, height)
-        of this text being rendered on the screen.
+        The textDimensions function takes a string and returns the dimensions
+        (width, height) of this text being rendered on the screen.
         """
-        tsurface = self._mFont.render(text, True, self._csvRGB2pgColor(Color.WHITE, 255))
+        tsurface = self._mFont.render(text, True,
+                                      self._csvRGB2pgColor(Color.WHITE, 255))
         return (tsurface.get_width(), tsurface.get_height())
 
-    def ezViewText(self, text, location, fgcolor = Color.WHITE, bgcolor = Color.BLACK):
+    def ezViewText(self, text, location, fgcolor=Color.WHITE,
+                   bgcolor=Color.BLACK):
         """
-        ezViewText works just like text but it sets both the foreground and background
-        color and overwrites the image pixels. Use this method to make easily
-        viewable text on a dynamic video stream.
+        ezViewText works just like text but it sets both the foreground and
+        background color and overwrites the image pixels. Use this method to
+        make easily viewable text on a dynamic video stream.
 
         fgcolor - The color of the text.
 
         bgcolor - The background color for the text are.
         """
-        if(len(text)<0):
-            return None
+        if len(text) < 0:
+            return
         alpha = 255
-        tsurface = self._mFont.render(text, True, self._csvRGB2pgColor(fgcolor, alpha), self._csvRGB2pgColor(bgcolor, alpha))
+        tsurface = self._mFont.render(text, True,
+                                      self._csvRGB2pgColor(fgcolor, alpha),
+                                      self._csvRGB2pgColor(bgcolor, alpha))
         self._mSurface.blit(tsurface, location)
-        return None
 
-    def sprite(self,img,pos=(0,0),scale=1.0,rot=0.0,alpha=255):
+    def sprite(self, img, pos=(0, 0), scale=1.0, rot=0.0, alpha=255):
         """
         sprite draws a sprite (a second small image) onto the current layer.
         The sprite can be loaded directly from a supported image file like a
@@ -569,34 +596,35 @@ class DrawingLayer:
 
         pos - the (x,y) position of the upper left hand corner of the sprite
 
-        scale - a scale multiplier as a float value. E.g. 1.1 makes the sprite 10% bigger
+        scale - a scale multiplier as a float value. E.g. 1.1 makes the sprite
+                10% bigger
 
         rot = a rotation angle in degrees
 
         alpha = an alpha value 255=opaque 0=transparent.
         """
 
-        if( not pg.display.get_init() ):
+        if not pg.display.get_init():
             pg.display.init()
 
-        if(img.__class__.__name__=='str'):
+        if img.__class__.__name__ == 'str':
             image = pg.image.load(img, "RGB")
-        elif(img.__class__.__name__=='Image' ):
+        elif img.__class__.__name__ == 'Image':
             image = img.getPGSurface()
         else:
-            image = img # we assume we have a surface
+            image = img  # we assume we have a surface
         image = image.convert(self._mSurface)
-        if(rot != 0.00):
-            image = pg.transform.rotate(image,rot)
-        if(scale != 1.0):
-            image = pg.transform.scale(image,(int(image.get_width()*scale),int(image.get_height()*scale)))
+        if rot != 0.00:
+            image = pg.transform.rotate(image, rot)
+        if scale != 1.0:
+            image = pg.transform.scale(image,
+                                       (int(image.get_width() * scale),
+                                        int(image.get_height() * scale)))
         pixels_alpha = pg.surfarray.pixels_alpha(image)
         pixels_alpha[...] = (pixels_alpha * (alpha / 255.0)).astype(np.uint8)
-        del pixels_alpha
-        self._mSurface.blit(image,pos)
+        self._mSurface.blit(image, pos)
 
-
-    def blit(self, img, coordinates = (0,0)):
+    def blit(self, img, coordinates=(0, 0)):
         """
         Blit one image onto the drawing layer at upper left coordinates
 
@@ -617,7 +645,6 @@ class DrawingLayer:
             overlay - Pygame Surface
         """
         self._mSurface = overlay
-        return None
 
     #get rid of all drawing
     def clear(self):
@@ -625,8 +652,8 @@ class DrawingLayer:
         This method removes all of the drawing on this layer (i.e. the layer is
         erased completely)
         """
-        self._mSurface = pg.Surface((int(self.width), int(self.height)),flags = pg.SRCALPHA)
-        return None
+        self._mSurface = pg.Surface((int(self.width), int(self.height)),
+                                    flags=pg.SRCALPHA)
 
     def renderToSurface(self, surf):
         """
@@ -636,8 +663,7 @@ class DrawingLayer:
             surf - Pygame Surface
         """
         surf.blit(self._mSurface, (0, 0))
-        return(surf)
-
+        return surf
 
     def renderToOtherLayer(self, otherLayer):
         """
