@@ -1,5 +1,5 @@
 from simplecv.color_model import ColorModel
-from simplecv.features import BlobMaker
+from simplecv.features.blobmaker import BlobMaker
 from simplecv.image_class import Image
 from simplecv.segmentation.segmentation_base import SegmentationBase
 

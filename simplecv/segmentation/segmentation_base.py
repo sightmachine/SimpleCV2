@@ -7,7 +7,7 @@ class SegmentationBase(object):
     Right now I am going to keep this class as brain dead and single threaded
     as possible just so I can get the hang of abc in python. The idea behind a
     segmentation object is that you pass it frames, it does some sort of
-    operations and you get a foreground / background segemnted image.
+    operations and you get a foreground / background segmented image.
     Eventually I would like these processes to by asynchronous and
     multithreaded so that they can raise specific image processing events.
     """
@@ -34,7 +34,7 @@ class SegmentationBase(object):
         """
         Add a single image to the segmentation algorithm
         """
-        return
+        pass
 
     @abc.abstractmethod
     def isReady(self):
@@ -64,6 +64,7 @@ class SegmentationBase(object):
         """
         Perform a reset of the segmentation systems underlying data.
         """
+        pass
 
     @abc.abstractmethod
     def getRawImage(self):
@@ -71,6 +72,7 @@ class SegmentationBase(object):
         Return the segmented image with white representing the foreground
         and black the background.
         """
+        pass
 
     @abc.abstractmethod
     def getSegmentedImage(self, whiteFG=True):
@@ -78,9 +80,11 @@ class SegmentationBase(object):
         Return the segmented image with white representing the foreground
         and black the background.
         """
+        pass
 
     @abc.abstractmethod
     def getSegmentedBlobs(self):
         """
         return the segmented blobs from the fg/bg image
         """
+        pass

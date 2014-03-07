@@ -1,5 +1,5 @@
 from simplecv.base import cv
-from simplecv.features import BlobMaker
+from simplecv.features.blobmaker import BlobMaker
 from simplecv.image_class import Image
 from simplecv.segmentation.segmentation_base import SegmentationBase
 

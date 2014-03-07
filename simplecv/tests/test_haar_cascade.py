@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from simplecv import *
+from simplecv.image_class import Image
 
 FACECASCADE = 'face.xml'
 
@@ -10,15 +10,17 @@ testoutput = "../data/sampleimages/orson_welles_face.jpg"
 testneighbor_in = "../data/sampleimages/04000.jpg"
 testneighbor_out = "../data/sampleimages/04000_face.jpg"
 
+
 def test_haarcascade():
     img = Image(testimage)
     faces = img.findHaarFeatures(FACECASCADE)
 
-    if (faces):
+    if faces:
         faces.draw()
         img.save(testoutput)
     else:
         assert False
+
 
 def test_minneighbors(img_in=testneighbor_in, img_out=testneighbor_out):
     img = Image(img_in)
@@ -27,4 +29,5 @@ def test_minneighbors(img_in=testneighbor_in, img_out=testneighbor_out):
         faces.draw()
         img.save(img_out)
     # if len(faces) > 1
-    assert len(faces) <= 1, "Haar Cascade is potentially ignoring the 'HIGH' min_neighbors of 20"
+    assert len(faces) <= 1, "Haar Cascade is potentially ignoring the " \
+                            "'HIGH' min_neighbors of 20"

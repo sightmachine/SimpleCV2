@@ -9,8 +9,8 @@ import scipy.spatial.distance as spsd
 from simplecv.base import cv, LazyProperty
 from simplecv.color import Color
 from simplecv.features.detection import ShapeContextDescriptor
+from simplecv.features.detection import Line, Corner
 from simplecv.features.features import Feature, FeatureSet
-from simplecv.features import Line, Corner
 from simplecv.image_class import Image
 
 

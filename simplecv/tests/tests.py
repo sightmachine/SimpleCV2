@@ -1,4 +1,3 @@
-
 # /usr/bin/python
 # To run this test you need python nose tools installed
 # Run test just use:
@@ -10,9 +9,32 @@
 # test_detection_lines().  This makes it easier to verify visually
 # that all the correct test per operation exist
 
-import os, sys, pickle, operator
-from simplecv import *
+import os
+import sys
+import pickle
+import operator
+from math import sqrt
+import tempfile
+
+import numpy as np
 from nose.tools import with_setup, nottest
+
+from simplecv import cv, logger, npArray2cvMat
+from simplecv.color import Color, ColorCurve, ColorMap
+from simplecv.color_model import ColorModel
+from simplecv.camera import FrameSource
+from simplecv.drawing_layer import DrawingLayer
+from simplecv.image_class import Image, ImageSet, ColorSpace
+from simplecv.features.features import FeatureSet
+from simplecv.features.blobmaker import BlobMaker
+from simplecv.features.detection import Corner, Line, ROI
+from simplecv.linescan import LineScan
+from simplecv.dft import DFT
+from simplecv.segmentation.color_segmentation import ColorSegmentation
+from simplecv.segmentation.running_segmentation import RunningSegmentation
+from simplecv.segmentation.diff_segmentation import DiffSegmentation
+from simplecv.features.haar_cascade import HaarCascade
+from simplecv.features.facerecognizer import FaceRecognizer
 
 VISUAL_TEST = False  # if TRUE we save the images - otherwise we DIFF against them - the default is False
 SHOW_WARNING_TESTS = False  # show that warnings are working - tests will pass but warnings are generated.

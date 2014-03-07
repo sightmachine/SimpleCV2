@@ -2,7 +2,11 @@ import time
 
 import numpy as np
 
-from simplecv import ImageSet, Camera, VirtualCamera, ROI, Color, LineScan
+from simplecv.camera import Camera, VirtualCamera
+from simplecv.color import Color
+from simplecv.features.detection import ROI
+from simplecv.image_class import ImageSet
+from simplecv.linescan import LineScan
 
 
 class TemporalColorTracker:

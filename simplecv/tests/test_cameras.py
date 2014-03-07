@@ -1,11 +1,11 @@
 #!/usr/bin/python
 
-import os, sys
-from simplecv import *
 from nose.tools import with_setup
 
+from simplecv.camera import Camera, VirtualCamera
 
-testoutput = "sampleimages/cam.jpg"
+
+testoutput = "../data/sampleimages/cam.jpg"
 
 
 def test_virtual_camera_constructor():
@@ -17,14 +17,12 @@ def test_virtual_camera_constructor():
         print str(i) + ": " + str(props[i]) + "\n"
 
 
-    pass
-
 def test_camera_image():
     mycam = Camera(0)
 
     img = mycam.getImage()
     img.save(testoutput)
-    pass
+
 
 def test_camera_multiple_instances():
     cam1 = Camera()
@@ -35,9 +33,8 @@ def test_camera_multiple_instances():
     if not cam1 or not cam2 or not img1 or not img2:
         assert False
 
-    cam3 = Camera(0) # assuming the default camera index is 0
+    cam3 = Camera(0)  # assuming the default camera index is 0
     img3 = cam3.getImage()
 
     if not cam3 or not img3:
         assert False
-    pass

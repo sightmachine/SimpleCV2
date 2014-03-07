@@ -3,12 +3,18 @@
 # Run test just use:
 #   nosetest test_optional.py
 #
+import tempfile
 
-import os, sys, pickle
-from simplecv import *
 from nose.tools import with_setup, nottest
 
-SHOW_WARNING_TESTS = False  # show that warnings are working - tests will pass but warnings are generated.
+from simplecv.base import logger
+from simplecv.color import Color
+from simplecv.image_class import Image
+from simplecv.camera import ScreenCamera
+
+
+SHOW_WARNING_TESTS = False  # show that warnings are working
+                            # tests will pass but warnings are generated.
 
 #colors
 black = Color.BLACK
@@ -53,12 +59,15 @@ alphaSrcImg = "../data/sampleimages/GreenMaskSource.png"
 #standards path
 standard_path = "../data/test/standard/"
 
+
 #These function names are required by nose test, please leave them as is
 def setup_context():
     img = Image(testimage)
 
+
 def destroy_context():
     img = ""
+
 
 @with_setup(setup_context, destroy_context)
 def test_detection_barcode():
@@ -70,19 +79,21 @@ def test_detection_barcode():
     img1 = Image(testimage)
     img2 = Image(testbarcode)
 
-    if( SHOW_WARNING_TESTS ):
+    if SHOW_WARNING_TESTS:
         nocode = img1.findBarcode()
-        if nocode: #we should find no barcode in our test image
+        if nocode:  # we should find no barcode in our test image
             assert False
         code = img2.findBarcode()
         code.draw()
         if code.points:
             pass
-        result = [img1,img2]
+        result = [img1, img2]
         name_stem = "test_detection_barcode"
-        perform_diff(result,name_stem)
+        # FIXME: no function perform_diff
+        perform_diff(result, name_stem)
     else:
         pass
+
 
 def test_detection_ocr():
     img = Image(ocrimage)
@@ -94,13 +105,15 @@ def test_detection_ocr():
     else:
         pass
 
+
 def test_image_webp_load():
     #only run if webm suppport exist on system
     try:
         import webm
     except:
-        if( SHOW_WARNING_TESTS ):
-            logger.warning("Couldn't run the webp test as optional webm library required")
+        if SHOW_WARNING_TESTS:
+            logger.warning("Couldn't run the webp test as optional webm "
+                           "library required")
         pass
 
     else:
@@ -112,13 +125,15 @@ def test_image_webp_load():
         else:
             pass
 
+
 def test_image_webp_save():
     #only run if webm suppport exist on system
     try:
         import webm
     except:
-        if( SHOW_WARNING_TESTS ):
-            logger.warning("Couldn't run the webp test as optional webm library required")
+        if SHOW_WARNING_TESTS:
+            logger.warning("Couldn't run the webp test as optional "
+                           "webm library required")
         pass
 
     else:
@@ -129,20 +144,22 @@ def test_image_webp_save():
         else:
             assert False
 
+
 def test_screenshot():
     try:
         import pyscreenshot
     except:
-        if( SHOW_WARNING_TESTS ):
-            logger.warning("Couldn't run the pyscreenshot test. Install pyscreenshot library")
+        if SHOW_WARNING_TESTS:
+            logger.warning("Couldn't run the pyscreenshot test. "
+                           "Install pyscreenshot library")
         pass
     sc = ScreenCamera()
     res = sc.getResolution()
     img = sc.getImage()
-    crop = (res[0]/4,res[1]/4,res[0]/2,res[1]/2)
+    crop = (res[0]/4, res[1]/4, res[0]/2, res[1]/2)
     sc.setROI(crop)
     cropImg = sc.getImage()
-    if img and cropImg :
+    if img and cropImg:
         assert True
     else:
         assert False

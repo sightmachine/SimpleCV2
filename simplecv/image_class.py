@@ -32,6 +32,7 @@ from simplecv.color import Color, ColorCurve
 from simplecv.display import Display
 from simplecv.drawing_layer import DrawingLayer
 from simplecv.exif import process_file
+from simplecv.features.features import FeatureSet, Feature
 from simplecv.linescan import LineScan
 from simplecv.stream import JpegStreamer, VideoStream
 
@@ -3704,7 +3705,7 @@ class Image:
         :py:meth:`findBlobsFromPalette`
         :py:meth:`smartFindBlobs`
         """
-        if (maxsize == 0):
+        if maxsize == 0:
             maxsize = self.width * self.height
         #create a single channel image, thresholded to parameters
 
@@ -3751,7 +3752,7 @@ class Image:
 
         >>> img = Image("lenna")
         >>> fs = img.findSkintoneBlobs()
-        >>> if( fs is not None ):
+        >>> if fs is not None:
         >>>     fs.draw()
 
         **NOTES**
@@ -3767,7 +3768,7 @@ class Image:
         :py:meth:`findBlobsFromPalette`
         :py:meth:`smartFindBlobs`
         """
-        if (maxsize == 0):
+        if maxsize == 0:
             maxsize = self.width * self.height
         mask = self.getSkintoneMask(dilate_iter)
         blobmaker = BlobMaker()
@@ -14954,7 +14955,8 @@ class Image:
             return None
 
         if not isinstance(recognizer, FaceRecognizer):
-            warnings.warn("SimpleCV.Features.FaceRecognizer object required.")
+            warnings.warn("simplecv.features.facerecognizer.FaceRecognizer "
+                          "object required.")
             return None
 
         w, h = recognizer.image_size
@@ -14997,7 +14999,8 @@ class Image:
             return None
 
         if not isinstance(recognizer, FaceRecognizer):
-            warnings.warn("SimpleCV.Features.FaceRecognizer object required.")
+            warnings.warn("simplecv.features.facerecognizer.FaceRecognizer "
+                          "object required.")
             return None
 
         if not cascade:
@@ -15620,7 +15623,7 @@ class Image:
             warnings.warn("OpenCV >= 2.3 required to use this.")
             return None
 
-        from simplecv.features import ROI
+        from simplecv.features.detection import ROI
 
         if roi:  # roi is anything that can be taken to be an roi
             roi = ROI(roi, self)
@@ -15801,10 +15804,11 @@ class Image:
         filteredimage = flt.applyFilter(self, grayscale)
         return filteredimage
 
-from simplecv.features import (FeatureSet, Feature, Barcode, Corner,
-                               HaarFeature, Line, Chessboard, TemplateMatch,
-                               BlobMaker, Circle, KeyPoint, Motion,
-                               KeypointMatch, FaceRecognizer)
-from simplecv.tracking import (camshiftTracker, lkTracker, surfTracker,
-                               mfTracker, TrackSet)
+# FIXME: circular import
+from simplecv.features.detection import Barcode, Corner, HaarFeature, Line,\
+    Chessboard, TemplateMatch, Circle, KeyPoint, Motion, KeypointMatch
+from simplecv.tracking import camshiftTracker, lkTracker, surfTracker,\
+    mfTracker, TrackSet
+from simplecv.features.facerecognizer import FaceRecognizer
+from simplecv.features.blobmaker import BlobMaker
 from simplecv.dft import DFT
