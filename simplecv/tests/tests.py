@@ -2014,6 +2014,7 @@ def test_draw_keypoint_matches():
 
 def test_basic_palette():
     img = Image(testimageclr)
+    img = img.scale(0.1)  # scale down the image to reduce test time
     img._generatePalette(10,False)
     if( img._mPalette is not None and
         img._mPaletteMembers is not None and
@@ -2030,6 +2031,7 @@ def test_basic_palette():
 
 def test_palettize():
     img = Image(testimageclr)
+    img = img.scale(0.1)  # scale down the image to reduce test time
     img2 = img.palettize(bins=20,hue=False)
     img3 = img.palettize(bins=3,hue=True)
     img4 = img.palettize(centroids=[Color.WHITE,Color.RED,Color.BLUE,Color.GREEN,Color.BLACK])
@@ -2044,7 +2046,9 @@ def test_palettize():
 
 def test_repalette():
     img = Image(testimageclr)
+    img = img.scale(0.1)  # scale down the image to reduce test time
     img2 = Image(bottomImg)
+    img2 = img2.scale(0.1)  # scale down the image to reduce test time
     p = img.getPalette()
     img3 = img2.rePalette(p)
     p = img.getPalette(hue=True)
@@ -2058,6 +2062,7 @@ def test_repalette():
 
 def test_drawPalette():
     img = Image(testimageclr)
+    img = img.scale(0.1)  # scale down the image to reduce test time
     img1 = img.drawPaletteColors()
     img2 = img.drawPaletteColors(horizontal=False)
     img3 = img.drawPaletteColors(size=(69,420) )
@@ -2069,6 +2074,7 @@ def test_drawPalette():
 
 def test_palette_binarize():
     img = Image(testimageclr)
+    img = img.scale(0.1)  # scale down the image to reduce test time
     p = img.getPalette()
     img2 = img.binarizeFromPalette(p[0:5])
     p = img.getPalette(hue=True)
@@ -2078,6 +2084,7 @@ def test_palette_binarize():
 
 def test_palette_blobs():
     img = Image(testimageclr)
+    img = img.scale(0.1)  # scale down the image to reduce test time
     p = img.getPalette()
     b1 = img.findBlobsFromPalette(p[0:5])
     b1.draw()

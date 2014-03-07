@@ -9397,6 +9397,8 @@ class Image:
         ImageClass.findBlobsFromPalette(self, palette_selection, dilate = 0,
                                         minsize=5, maxsize=0)
         """
+        # FIXME: There is a performance issue
+
         if self._mPaletteBins != bins or self._mDoHuePalette != hue:
             total = float(self.width * self.height)
             percentages = []
