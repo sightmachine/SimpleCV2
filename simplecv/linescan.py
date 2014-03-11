@@ -41,35 +41,14 @@ class LineScan(list):
         if isinstance(args, np.ndarray):
             args = args.tolist()
         list.__init__(self, args)
-        self.image = None
-        self.pt1 = None
-        self.pt2 = None
-        self.row = None
-        self.col = None
-        self.channel = -1
-        for key in kwargs:
-            if key == 'point_loc':
-                if kwargs[key] is not None:
-                    self.point_loc = kwargs[key]
-            if key == 'image':
-                if kwargs[key] is not None:
-                    self.img = kwargs[key]
-            if key == 'pt1':
-                if kwargs[key] is not None:
-                    self.pt1 = kwargs[key]
-            if key == 'pt2':
-                if kwargs[key] is not None:
-                    self.pt2 = kwargs[key]
-            if key == "x":
-                if kwargs[key] is not None:
-                    self.col = kwargs[key]
-            if key == "y":
-                if kwargs[key] is not None:
-                    self.row = kwargs[key]
-            if key == "channel":
-                if kwargs[key] is not None:
-                    self.channel = kwargs[key]
 
+        self.image = kwargs.get('image', None)
+        self.pt1 = kwargs.get('pt1', None)
+        self.pt2 = kwargs.get('pt2', None)
+        self.row = kwargs.get('x', None)
+        self.col = kwargs.get('y', None)
+        self.channel = kwargs.get('channel', -1)
+        self.point_loc = kwargs.get('point_loc', None)
         if self.point_loc is None:
             self.point_loc = zip(range(0, len(self)), range(0, len(self)))
 
@@ -265,9 +244,9 @@ class LineScan(list):
         temp = np.array(self, dtype='float32')
         vmax = np.max(temp)
         vmin = np.min(temp)
-        a = np.min(value_range)
-        b = np.max(value_range)
-        temp = (((b - a) / (vmax - vmin)) * (temp - vmin)) + a
+        vrmin = np.min(value_range)
+        vrmax = np.max(value_range)
+        temp = (((vrmax - vrmin) / (vmax - vmin)) * (temp - vmin)) + vrmin
         ret_value = LineScan(list(temp[:]), image=self.image,
                              point_loc=self.point_loc,
                              pt1=self.pt1, pt2=self.pt2)
@@ -368,9 +347,9 @@ class LineScan(list):
 
         """
         temp = np.array(self, dtype='float32')
-        d = [0]
-        d += list(temp[1:] - temp[0:-1])
-        ret_value = LineScan(d, image=self.image, point_loc=self.point_loc,
+        drv = [0]
+        drv += list(temp[1:] - temp[0:-1])
+        ret_value = LineScan(drv, image=self.image, point_loc=self.point_loc,
                              pt1=self.pt1, pt2=self.pt2)
         #ret_value.image = self.image
         #ret_value.point_loc = self.point_loc
@@ -474,14 +453,16 @@ class LineScan(list):
 
         """
         signal = sps.resample(self, n)
-        pts = np.array(self.point_loc)
+        # FIXME: some unused code?
+        #pts = np.array(self.point_loc)
         # we assume the pixel points are linear
         # so we can totally do this better manually
         #x = np.linspace(pts[0, 0], pts[-1, 0], n)
         #y = np.linspace(pts[0, 1], pts[-1, 1], n)
 
         ret_value = LineScan(list(signal), image=self.image,
-                             point_loc=self.point_loc, pt1=self.pt1, pt2=self.pt2)
+                             point_loc=self.point_loc,
+                             pt1=self.pt1, pt2=self.pt2)
         ret_value._update(self)
         return ret_value
 
@@ -822,6 +803,7 @@ class LineScan(list):
         ret_value._update(self)
         return ret_value
 
+    # FIXME:  max value need to be used
     def invert(self, max=255):
         """
         **SUMMARY**
