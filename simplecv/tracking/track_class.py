@@ -67,7 +67,7 @@ class Track(Feature):
         >>> track = Track(img, bb)
         >>> cen = track.getCenter()
         """
-        return (self.bb_x + self.w / 2, self.bb_y + self.h / 2)
+        return self.bb_x + self.w / 2, self.bb_y + self.h / 2
 
     def getArea(self):
         """
@@ -235,7 +235,7 @@ class Track(Feature):
             pos = (imgsize[0] - 120, 30)
         if not size:
             size = 16
-        text = "size = %f" % (f.sizeRatio)
+        text = "size = %f" % f.sizeRatio
         img.draw_text(text, pos[0], pos[1], color, size)
 
     def showPixelVelocity(self, pos=None, color=Color.GREEN, size=None):
@@ -621,7 +621,7 @@ class LKTrack(Track):
         if self.pts is not None:
             for pt in self.pts:
                 self.image.draw_circle(ctr=pt, rad=radius, thickness=thickness,
-                                      color=color)
+                                       color=color)
 
 
 class SURFTrack(Track):
@@ -761,7 +761,7 @@ class SURFTrack(Track):
         if self.pts is not None:
             for pt in self.pts:
                 self.image.draw_circle(ctr=pt, rad=radius, thickness=thickness,
-                                      color=color)
+                                       color=color)
 
     def getDetector(self):
         """
@@ -978,6 +978,6 @@ class MFTrack(Track):
             pos = (imgsize[0] - 120, 50)
         if not size:
             size = 16
-        text = "Shift = %.2f" % (shift)
+        text = "Shift = %.2f" % shift
         img.draw_text(text, pos[0], pos[1], color, size)
         img.draw_text("in pixels/second", pos[0], pos[1] + size, color, size)

@@ -6,8 +6,10 @@ try:
     import cv2
 except ImportError:
     pass
-1
+
 from simplecv.tracking import SURFTrack
+
+# FIXME: Uncompleted code
 
 
 def surfTracker(img, bb, ts, **kwargs):
@@ -52,7 +54,7 @@ def surfTracker(img, bb, ts, **kwargs):
     >>> img = cam.getImage()
     >>> bb = (100, 100, 300, 300) # get BB from somewhere
     >>> ts = surfTracker(img, bb, ts, eps_val=0.7, distance=150)
-    >>> while (some_condition_here):
+    >>> while some_condition_here:
         ... img = cam.getImage()
         ... bb = ts[-1].bb
         ... ts = surfTracker(img, bb, ts, eps_val=0.7, distance=150)
@@ -94,7 +96,7 @@ def surfTracker(img, bb, ts, **kwargs):
         descriptor = cv2.DescriptorExtractor_create("SURF")
 
         templateImg_cv2 = templateImg.get_numpy_cv2()[bb[1]:bb[1] + bb[3],
-                                                    bb[0]:bb[0] + bb[2]]
+                                                      bb[0]:bb[0] + bb[2]]
         tkp = detector.detect(templateImg_cv2)
         tkp, td = descriptor.compute(templateImg_cv2, tkp)
 

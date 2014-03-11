@@ -62,7 +62,7 @@ class TrackSet(FeatureSet):
             ... img1 = cam.getImage()
             ... ts = img1.track("camshift", ts1, img, bb)
             ... img = img1
-        >>> ts.append(CAMShift(img,bb,ellipse))
+        >>> ts.append(CAMShift(img, bb, ellipse))
         """
         list.append(self, f)
         ts = self
@@ -158,8 +158,8 @@ class TrackSet(FeatureSet):
         ts = self
         img = self[-1].image
         for i in range(len(ts) - 1):
-            img.draw_line((ts[i].center), (ts[i + 1].center), color=color,
-                         thickness=thickness)
+            img.draw_line(ts[i].center, ts[i + 1].center, color=color,
+                          thickness=thickness)
 
     def draw(self, color=Color.GREEN, rad=1, thickness=1):
         """
@@ -308,10 +308,10 @@ class TrackSet(FeatureSet):
         """
         ts = self
         if len(ts) < 2:
-            return (0, 0)
+            return 0, 0
         dx = ts[-1].x - ts[-2].x
         dy = ts[-1].y - ts[-2].y
-        return (dx, dy)
+        return dx, dy
 
     def pixelVelocity(self):
         """
@@ -351,11 +351,11 @@ class TrackSet(FeatureSet):
         """
         ts = self
         if len(ts) < 2:
-            return (0, 0)
+            return 0, 0
         dx = ts[-1].x - ts[-2].x
         dy = ts[-1].y - ts[-2].y
         dt = ts[-1].time - ts[-2].time
-        return (float(dx) / dt, float(dy) / dt)
+        return float(dx) / dt, float(dy) / dt
 
     def pixleVelocityRealTime(self):
         """
@@ -446,7 +446,7 @@ class TrackSet(FeatureSet):
             pos = (imgsize[0] - 120, 30)
         if not size:
             size = 16
-        text = "size = %f" % (f.sizeRatio)
+        text = "size = %f" % f.sizeRatio
         img.draw_text(text, pos[0], pos[1], color, size)
 
     def showPixelVelocity(self, pos=None, color=Color.GREEN, size=None):
@@ -791,8 +791,8 @@ class TrackSet(FeatureSet):
         ts = self
         img = self[-1].image
         for i in range(1, len(ts) - 1):
-            img.draw_line((ts[i].predict_pt), (ts[i + 1].predict_pt),
-                         color=color, thickness=thickness)
+            img.draw_line(ts[i].predict_pt, ts[i + 1].predict_pt,
+                          color=color, thickness=thickness)
 
     def showPredictedCoordinates(self, pos=None, color=Color.GREEN, size=None):
         """
@@ -957,5 +957,5 @@ class TrackSet(FeatureSet):
         ts = self
         img = self[-1].image
         for i in range(len(ts) - 1):
-            img.draw_line((ts[i].state_pt), (ts[i + 1].state_pt), color=color,
-                         thickness=thickness)
+            img.draw_line(ts[i].state_pt, ts[i + 1].state_pt, color=color,
+                          thickness=thickness)
