@@ -3,6 +3,7 @@
 # This library is used to modify different color properties of images
 
 import random
+
 from colorsys import rgb_to_hsv, hsv_to_rgb
 from numpy import array, minimum, maximum, linspace
 from scipy.interpolate import UnivariateSpline
@@ -298,7 +299,7 @@ class Color(object):
         >>> c = Color.get_lightness((22,35,230))
 
         **NOTES**
-        
+
         Lightness Method: value = (max(R,G,B)+min(R,G,B))/2
 
         """
@@ -324,7 +325,7 @@ class Color(object):
         >>> c = Color.get_luminosity((22, 35, 230))
 
         **NOTES**
-        
+
         Luminosity Method: value = 0.21*R + 0.71*G + 0.07*B
 
         """
@@ -340,7 +341,7 @@ class ColorCurve(object):
     least 4 point pairs.  Either of these must map in a 255x255 space.
     The curve can then be used in the apply_rgb_curve, applyHSVCurve, and
     applyInstensityCurve functions.
-    
+
     Note:
     The points should be in strictly increasing order of their first elements
     (X-coordinates)
@@ -351,19 +352,21 @@ class ColorCurve(object):
     >>> clr = ColorCurve([[0, 0], [100, 120], [180, 230], [255, 255]])
     >>> img.apply_intensity_curve(clr)
 
-    the only property, 'curve' is a linear array with 256 elements from 0 to 255
+    the only property, 'curve' is a linear array with 256 elements from 0 to
+    255
     """
     curve = ""
 
     def __init__(self, curve_vals):
         in_bins = linspace(0, 255, 256)
         if type(curve_vals) == UnivariateSpline:
+            # FIXME: uresolver reference to 'curvVals'
             self.curve = curvVals(in_bins)
         else:
             curve_vals = array(curve_vals)
             spline = UnivariateSpline(curve_vals[:, 0], curve_vals[:, 1], s=1)
             #nothing above 255, nothing below 0
-            self.curve = maximum(minimum(spline(in_bins), 255), 0) 
+            self.curve = maximum(minimum(spline(in_bins), 255), 0)
 
 
 class ColorMap(object):
