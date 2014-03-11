@@ -219,7 +219,7 @@ class TurkingModule(object):
             for sample in samples:
                 if showKeys:
                     sample = self._draw_controls(sample, font_size, color,
-                                                spacing)
+                                                 spacing)
 
                 sample.save(disp)
                 got_key = False
@@ -248,7 +248,7 @@ class TurkingModule(object):
         * *fname* - the file fame.
         """
         save_this = [self.classes, self.directoryMap, self.classMap,
-                    self.countMap]
+                     self.countMap]
         pickle.dump(save_this, open(fname, "wb"))
 
         # TODO: eventually we should allow the user to randomly
