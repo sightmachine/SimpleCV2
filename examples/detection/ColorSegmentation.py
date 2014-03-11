@@ -19,9 +19,9 @@ while not display.isDone():
     mystring = "( " +str(display.mouseX)+" , "+str(display.mouseY)+" )"
     #print((display.mouseX,display.mouseY))
     if SegmentMode:
-        segmentation.addImage(img)
-        if(segmentation.isReady()):
-            img = segmentation.getSegmentedImage()
+        segmentation.add_image(img)
+        if(segmentation.is_ready()):
+            img = segmentation.get_segmented_image()
             img = img.erode(iterations = 2).dilate().invert()
             img.dl().ez_view_text(mystring, (30,30))
             img = img.apply_layers()

@@ -39,7 +39,7 @@ class RunningSegmentation(SegmentationBase):
         self.mColorImg = None
         self.mBlobMaker = BlobMaker()
 
-    def addImage(self, img):
+    def add_image(self, img):
         """
         Add a single image to the segmentation algorithm
         """
@@ -61,13 +61,13 @@ class RunningSegmentation(SegmentationBase):
                           self.mAlpha)
             self.mReady = True
 
-    def isReady(self):
+    def is_ready(self):
         """
         Returns true if the camera has a segmented image ready.
         """
         return self.mReady
 
-    def isError(self):
+    def is_error(self):
         """
         Returns true if the segmentation system has detected an error.
         Eventually we'll consruct a syntax of errors so this becomes
@@ -75,7 +75,7 @@ class RunningSegmentation(SegmentationBase):
         """
         return self.mError  # need to make a generic error checker
 
-    def resetError(self):
+    def reset_error(self):
         """
         Clear the previous error.
         """
@@ -88,27 +88,27 @@ class RunningSegmentation(SegmentationBase):
         self.mModelImg = None
         self.mDiffImg = None
 
-    def getRawImage(self):
+    def get_raw_image(self):
         """
         Return the segmented image with white representing the foreground
         and black the background.
         """
         return self._floatToInt(self.mDiffImg)
 
-    def getSegmentedImage(self, whiteFG=True):
+    def get_segmented_image(self, white_fg=True):
         """
         Return the segmented image with white representing the foreground
         and black the background.
         """
         retVal = None
         img = self._floatToInt(self.mDiffImg)
-        if whiteFG:
+        if white_fg:
             retVal = img.binarize(thresh=self.mThresh)
         else:
             retVal = img.binarize(thresh=self.mThresh).invert()
         return retVal
 
-    def getSegmentedBlobs(self):
+    def get_segmented_blobs(self):
         """
         return the segmented blobs from the fg/bg image
         """

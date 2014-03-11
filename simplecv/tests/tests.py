@@ -1555,9 +1555,9 @@ def test_segmentation_diff():
     segmentor = DiffSegmentation()
     i1 = Image("logo")
     i2 = Image("logo_inverted")
-    segmentor.addImage(i1)
-    segmentor.addImage(i2)
-    blobs = segmentor.getSegmentedBlobs()
+    segmentor.add_image(i1)
+    segmentor.add_image(i2)
+    blobs = segmentor.get_segmented_blobs()
     if blobs is None:
         assert False
     else:
@@ -1568,9 +1568,9 @@ def test_segmentation_running():
     segmentor = RunningSegmentation()
     i1 = Image("logo")
     i2 = Image("logo_inverted")
-    segmentor.addImage(i1)
-    segmentor.addImage(i2)
-    blobs = segmentor.getSegmentedBlobs()
+    segmentor.add_image(i1)
+    segmentor.add_image(i2)
+    blobs = segmentor.get_segmented_blobs()
     if blobs is None:
         assert False
     else:
@@ -1581,9 +1581,9 @@ def test_segmentation_color():
     segmentor = ColorSegmentation()
     i1 = Image("logo")
     i2 = Image("logo_inverted")
-    segmentor.addImage(i1)
-    segmentor.addImage(i2)
-    blobs = segmentor.getSegmentedBlobs()
+    segmentor.add_image(i1)
+    segmentor.add_image(i2)
+    blobs = segmentor.get_segmented_blobs()
     if blobs is None:
         assert False
     else:

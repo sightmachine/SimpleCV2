@@ -30,21 +30,21 @@ class SegmentationBase(object):
         output.close()
 
     @abc.abstractmethod
-    def addImage(self, img):
+    def add_image(self, img):
         """
         Add a single image to the segmentation algorithm
         """
         pass
 
     @abc.abstractmethod
-    def isReady(self):
+    def is_ready(self):
         """
         Returns true if the camera has a segmented image ready.
         """
         return False
 
     @abc.abstractmethod
-    def isError(self):
+    def is_error(self):
         """
         Returns true if the segmentation system has detected an error.
         Eventually we'll consruct a syntax of errors so this becomes
@@ -53,7 +53,7 @@ class SegmentationBase(object):
         return False
 
     @abc.abstractmethod
-    def resetError(self):
+    def reset_error(self):
         """
         Clear the previous error.
         """
@@ -67,7 +67,7 @@ class SegmentationBase(object):
         pass
 
     @abc.abstractmethod
-    def getRawImage(self):
+    def get_raw_image(self):
         """
         Return the segmented image with white representing the foreground
         and black the background.
@@ -75,7 +75,7 @@ class SegmentationBase(object):
         pass
 
     @abc.abstractmethod
-    def getSegmentedImage(self, whiteFG=True):
+    def get_segmented_image(self, white_fg=True):
         """
         Return the segmented image with white representing the foreground
         and black the background.
@@ -83,7 +83,7 @@ class SegmentationBase(object):
         pass
 
     @abc.abstractmethod
-    def getSegmentedBlobs(self):
+    def get_segmented_blobs(self):
         """
         return the segmented blobs from the fg/bg image
         """

@@ -18,9 +18,9 @@ class DiffSegmentation(SegmentationBase):
     >>> segmentor = DiffSegmentation()
     >>> cam = Camera()
     >>> while(1):
-    >>>    segmentor.addImage(cam.getImage())
-    >>>    if(segmentor.isReady()):
-    >>>        img = segmentor.getSegmentedImage()
+    >>>    segmentor.add_image(cam.getImage())
+    >>>    if(segmentor.is_ready()):
+    >>>        img = segmentor.get_segmented_image()
 
     """
     mError = False
@@ -42,7 +42,7 @@ class DiffSegmentation(SegmentationBase):
         self.mColorImg = None
         self.mBlobMaker = BlobMaker()
 
-    def addImage(self, img):
+    def add_image(self, img):
         """
         Add a single image to the segmentation algorithm
         """
@@ -73,7 +73,7 @@ class DiffSegmentation(SegmentationBase):
 
         return
 
-    def isReady(self):
+    def is_ready(self):
         """
         Returns true if the camera has a segmented image ready.
         """
@@ -82,7 +82,7 @@ class DiffSegmentation(SegmentationBase):
         else:
             return True
 
-    def isError(self):
+    def is_error(self):
         """
         Returns true if the segmentation system has detected an error.
         Eventually we'll consruct a syntax of errors so this becomes
@@ -90,7 +90,7 @@ class DiffSegmentation(SegmentationBase):
         """
         return self.mError  # need to make a generic error checker
 
-    def resetError(self):
+    def reset_error(self):
         """
         Clear the previous error.
         """
@@ -105,26 +105,26 @@ class DiffSegmentation(SegmentationBase):
         self.mLastImg = None
         self.mDiffImg = None
 
-    def getRawImage(self):
+    def get_raw_image(self):
         """
         Return the segmented image with white representing the foreground
         and black the background.
         """
         return self.mDiffImg
 
-    def getSegmentedImage(self, whiteFG=True):
+    def get_segmented_image(self, white_fg=True):
         """
         Return the segmented image with white representing the foreground
         and black the background.
         """
         retVal = None
-        if whiteFG:
+        if white_fg:
             retVal = self.mDiffImg.binarize(thresh=self.mThreshold)
         else:
             retVal = self.mDiffImg.binarize(thresh=self.mThreshold).invert()
         return retVal
 
-    def getSegmentedBlobs(self):
+    def get_segmented_blobs(self):
         """
         return the segmented blobs from the fg/bg image
         """

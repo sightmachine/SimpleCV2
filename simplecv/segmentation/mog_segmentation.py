@@ -60,7 +60,7 @@ class MOGSegmentation(SegmentationBase):
         self.mBSMOG = cv2.BackgroundSubtractorMOG(history, nMixtures,
                                                   backgroundRatio, noiseSigma)
 
-    def addImage(self, img):
+    def add_image(self, img):
         """
         Add a single image to the segmentation algorithm
         """
@@ -73,13 +73,13 @@ class MOGSegmentation(SegmentationBase):
             cv2image=True)
         self.mReady = True
 
-    def isReady(self):
+    def is_ready(self):
         """
         Returns true if the camera has a segmented image ready.
         """
         return self.mReady
 
-    def isError(self):
+    def is_error(self):
         """
         Returns true if the segmentation system has detected an error.
         Eventually we'll consruct a syntax of errors so this becomes
@@ -87,7 +87,7 @@ class MOGSegmentation(SegmentationBase):
         """
         return self.mError  # need to make a generic error checker
 
-    def resetError(self):
+    def reset_error(self):
         """
         Clear the previous error.
         """
@@ -100,21 +100,21 @@ class MOGSegmentation(SegmentationBase):
         self.mModelImg = None
         self.mDiffImg = None
 
-    def getRawImage(self):
+    def get_raw_image(self):
         """
         Return the segmented image with white representing the foreground
         and black the background.
         """
         return self.mDiffImg
 
-    def getSegmentedImage(self, whiteFG=True):
+    def get_segmented_image(self, white_fg=True):
         """
         Return the segmented image with white representing the foreground
         and black the background.
         """
         return self.mDiffImg
 
-    def getSegmentedBlobs(self):
+    def get_segmented_blobs(self):
         """
         return the segmented blobs from the fg/bg image
         """

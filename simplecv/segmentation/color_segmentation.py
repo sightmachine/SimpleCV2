@@ -22,20 +22,20 @@ class ColorSegmentation(SegmentationBase):
         self.mTruthImg = Image()
         self.mBlobMaker = BlobMaker()
 
-    def addImage(self, img):
+    def add_image(self, img):
         """
         Add a single image to the segmentation algorithm
         """
         self.mTruthImg = img
         self.mCurImg = self.mColorModel.threshold(img)
 
-    def isReady(self):
+    def is_ready(self):
         """
         Returns true if the camera has a segmented image ready.
         """
         return True
 
-    def isError(self):
+    def is_error(self):
         """
         Returns true if the segmentation system has detected an error.
         Eventually we'll consruct a syntax of errors so this becomes
@@ -43,7 +43,7 @@ class ColorSegmentation(SegmentationBase):
         """
         return self.mError  # need to make a generic error checker
 
-    def resetError(self):
+    def reset_error(self):
         """
         Clear the previous error.
         """
@@ -55,21 +55,21 @@ class ColorSegmentation(SegmentationBase):
         """
         self.mColorModel.reset()
 
-    def getRawImage(self):
+    def get_raw_image(self):
         """
         Return the segmented image with white representing the foreground
         and black the background.
         """
         return self.mCurImg
 
-    def getSegmentedImage(self, whiteFG=True):
+    def get_segmented_image(self, white_fg=True):
         """
         Return the segmented image with white representing the foreground
         and black the background.
         """
         return self.mCurImg
 
-    def getSegmentedBlobs(self):
+    def get_segmented_blobs(self):
         """
         return the segmented blobs from the fg/bg image
         """
