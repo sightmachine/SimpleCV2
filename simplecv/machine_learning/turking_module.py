@@ -1,27 +1,11 @@
-import glob
 import os
-import os.path as osp
+import glob
 import pickle
 
 from simplecv import Display, Color, ImageSet
 
 
-ORANGE_ENABLED = True
-try:
-    try:
-        import orange
-    except ImportError:
-        import Orange
-
-    import orngTest  # for cross validation
-    import orngStat
-    import orngEnsemble  # for bagging / boosting
-
-except ImportError:
-    ORANGE_ENABLED = False
-
-
-class TurkingModule:
+class TurkingModule(object):
     """
     This class is a helper utility for automatically turking
     image data for supervsed learning. This class helps you
@@ -98,18 +82,15 @@ class TurkingModule:
         # this should work
 
         if preprocess is None:
-            def fakeProcess(img):
+            def fake_pre_process(img):
                 return [img]
-
-            preprocess = fakeProcess
+            preprocess = fake_pre_process
         self.preProcess = preprocess
 
         if postprocess is None:
-            def fakePostProcess(img):
+            def fake_post_process(img):
                 return img
-
-            postprocess = fakePostProcess
-
+            postprocess = fake_post_process
         self.postProcess = postprocess
 
         self.srcImgs = ImageSet()
@@ -117,37 +98,36 @@ class TurkingModule:
         if isinstance(source_paths, ImageSet):
             self.srcImgs = source_paths
         else:
-            for sp in source_paths:
-                print "Loading " + sp
-                imgSet = ImageSet(sp)
+            for isp in source_paths:
+                print "Loading " + isp
+                imgSet = ImageSet(isp)
                 print "Loaded " + str(len(imgSet))
                 self.srcImgs += imgSet
 
-        if not osp.exists(out_path):
+        if not os.path.exists(out_path):
             os.mkdir(out_path)
-        for c in classList:
-            outdir = out_path + c + '/'
-            self.directoryMap[c] = outdir
-            if not osp.exists(outdir):
+        for class_item in classList:
+            outdir = out_path + class_item + '/'
+            self.directoryMap[class_item] = outdir
+            if not os.path.exists(outdir):
                 os.mkdir(outdir)
 
-        for c in classList:
-            searchstr = self.directoryMap[c] + '*.png'
-            fc = glob.glob(searchstr)
-            self.countMap[c] = len(fc)
-            self.classMap[c] = ImageSet(self.directoryMap[c])
+        for class_item in classList:
+            searchstr = self.directoryMap[class_item] + '*.png'
+            self.countMap[class_item] = len(glob.glob(searchstr))
+            self.classMap[class_item] = ImageSet(self.directoryMap[class_item])
 
-    def _saveIt(self, img, classType):
+    def _save_it(self, img, class_type):
         img.clear_layers()
-        path = self.out_path + classType + "/" + classType + str(
-            self.countMap[classType]) + ".png"
+        path = self.out_path + class_type + "/" + class_type + str(
+            self.countMap[class_type]) + ".png"
         print "Saving: " + path
         img = self.postProcess(img)
-        self.classMap[classType].append(img)
+        self.classMap[class_type].append(img)
         img.save(path)
-        self.countMap[classType] = self.countMap[classType] + 1
+        self.countMap[class_type] += 1
 
-    def getClass(self, className):
+    def getClass(self, class_name):
         """
         **SUMMARY**
 
@@ -163,25 +143,23 @@ class TurkingModule:
 
         **EXAMPLE**
 
-        >>>> # Do turking
-        >>>> iset = turkModule.getClass('cats')
+        >>>> turker = TurkingModule(['./data/'], ['./turked/'],
+                                    ['apple','banana','cherry'], ['a','b','c'],
+                                    preProcess=GetBlobs, postProcess=ScaleInv]
+        >>>> iset = turker.getClass('cats')
         >>>> iset.show()
         """
-        if (className in self.classMap):
-            return self.classMap[className]
-        else:
-            return None
+        return self.classMap.get(class_name)
 
-    def _drawControls(self, img, font_size, color, spacing):
-        img.draw_text("space - skip", 10, spacing, fontsize=font_size,
-                     color=color)
-        img.draw_text("esc - exit", 10, 2 * spacing, fontsize=font_size,
-                     color=color)
-        y = 3 * spacing
+    def _draw_controls(self, img, font_size, color, spacing):
+        img.draw_text("space - skip", 10, spacing, color, font_size)
+        img.draw_text("esc - exit", 10, 2 * spacing, color, font_size)
+
+        y_crd = 3 * spacing
         for k, cls in self.keyMap.items():
-            str = k + " - " + cls
-            img.draw_text(str, 10, y, fontsize=font_size, color=color)
-            y = y + spacing
+            txt = k + " - " + cls
+            img.draw_text(txt, 10, y_crd, color, font_size)
+            y_crd += spacing
         return img
 
     def turk(self, saveOriginal=False, disp_size=(800, 600), showKeys=True,
@@ -235,28 +213,27 @@ class TurkingModule:
         the process
         """
         disp = Display(disp_size)
-        bail = False
         for img in self.srcImgs:
             print img.filename
             samples = self.preProcess(img)
             for sample in samples:
                 if showKeys:
-                    sample = self._drawControls(sample, font_size, color,
+                    sample = self._draw_controls(sample, font_size, color,
                                                 spacing)
 
                 sample.save(disp)
-                gotKey = False
-                while not gotKey:
-                    keys = disp.checkEvents(True)
+                got_key = False
+                while not got_key:
+                    keys = disp.check_events(True)
                     for k in keys:
                         if k in self.keyMap:
                             if saveOriginal:
-                                self._saveIt(img, self.keyMap[k])
+                                self._save_it(img, self.keyMap[k])
                             else:
-                                self._saveIt(sample, self.keyMap[k])
-                            gotKey = True
+                                self._save_it(sample, self.keyMap[k])
+                            got_key = True
                         if k == 'space':
-                            gotKey = True  # skip
+                            got_key = True  # skip
                         if k == 'escape':
                             return
 
@@ -270,10 +247,10 @@ class TurkingModule:
 
         * *fname* - the file fame.
         """
-        saveThis = [self.classes, self.directoryMap, self.classMap,
+        save_this = [self.classes, self.directoryMap, self.classMap,
                     self.countMap]
-        pickle.dump(saveThis, open(fname, "wb"))
+        pickle.dump(save_this, open(fname, "wb"))
 
-        # todo: eventually we should allow the user to randomly
+        # TODO: eventually we should allow the user to randomly
         # split up the data set and then save it.
         # def splitTruthTest(self)
