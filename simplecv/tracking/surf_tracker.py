@@ -7,7 +7,7 @@ try:
 except ImportError:
     pass
 
-from simplecv.tracking import SURFTrack
+from simplecv.tracking.track_class import SURFTrack
 
 # FIXME: Uncompleted code
 
@@ -118,8 +118,8 @@ def surfTracker(img, bb, ts, **kwargs):
         return None
 
     if sd is None:
-        track = SURFTracker(img, skp, detector, descriptor, templateImg, skp,
-                            sd, tkp, td)
+        track = SURFTrack(img, skp, detector, descriptor, templateImg, skp,
+                          sd, tkp, td)
         return track
 
     # flann based matcher

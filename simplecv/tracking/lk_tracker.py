@@ -7,7 +7,7 @@ try:
 except ImportError:
     pass
 
-from simplecv.tracking import LKTrack
+from simplecv.tracking.track_class import LKTrack
 
 
 def lkTracker(img, bb, ts, oldimg, **kwargs):
@@ -69,7 +69,7 @@ def lkTracker(img, bb, ts, oldimg, **kwargs):
     >>> bb = (100, 100, 300, 300) # get BB from somewhere
     >>> ts = lkTracker(img, bb, ts, img, maxCorners=4000, qualityLevel=0.5,
         ...            winSize=(12,12))
-    >>> while (some_condition_here):
+    >>> while some_condition_here:
         ... img = cam.getImage()
         ... bb = ts[-1].bb
         ... prevImg = img
@@ -116,7 +116,7 @@ def lkTracker(img, bb, ts, oldimg, **kwargs):
                                  minDistance=minDistance, blockSize=blockSize)
     if pt is None:
         print "no points"
-        track = LK(img, bb, pt)
+        track = LKTrack(img, bb, pt)
         return track
 
     for i in xrange(len(pt)):
@@ -156,7 +156,7 @@ def lkTracker(img, bb, ts, oldimg, **kwargs):
         dy.append(p2[1] - p1[1])
 
     if not dx or not dy:
-        track = LK(img, bb, new_pts)
+        track = LKTrack(img, bb, new_pts)
         return track
 
     cen_dx = round(sum(dx) / len(dx)) / 3

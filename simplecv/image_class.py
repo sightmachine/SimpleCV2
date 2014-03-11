@@ -1,24 +1,24 @@
-import warnings
-import urllib2
-import re
+from cStringIO import StringIO
+import cStringIO
+import glob
+import itertools
 import math
 import os
-import time
-import itertools
-import tempfile
-import cStringIO
-from cStringIO import StringIO
-import types
-import glob
-import sys
 import random
+import re
+import sys
+import tempfile
+import time
+import types
+import urllib2
+import warnings
 
-import cv2
-import numpy as np
 from numpy import int32
 from numpy import uint8
 from PIL import Image as pil
 from PIL.GifImagePlugin import getheader, getdata
+import cv2
+import numpy as np
 import scipy.cluster.vq as scv
 import scipy.linalg as nla  # for linear algebra / least squares
 import scipy.ndimage as ndimage
@@ -35,6 +35,12 @@ from simplecv.exif import process_file
 from simplecv.features.features import FeatureSet, Feature
 from simplecv.linescan import LineScan
 from simplecv.stream import JpegStreamer, VideoStream
+from simplecv.tracking.cam_shift_tracker import camshiftTracker
+from simplecv.tracking.lk_tracker import lkTracker
+from simplecv.tracking.mf_tracker import mfTracker
+from simplecv.tracking.surf_tracker import surfTracker
+from simplecv.tracking.track_set import TrackSet
+
 
 if not init_options_handler.headless:
     import pygame as pg
@@ -15825,8 +15831,6 @@ class Image:
 # FIXME: circular import
 from simplecv.features.detection import Barcode, Corner, HaarFeature, Line,\
     Chessboard, TemplateMatch, Circle, KeyPoint, Motion, KeypointMatch
-from simplecv.tracking import camshiftTracker, lkTracker, surfTracker,\
-    mfTracker, TrackSet
 from simplecv.features.facerecognizer import FaceRecognizer
 from simplecv.features.blobmaker import BlobMaker
 from simplecv.dft import DFT

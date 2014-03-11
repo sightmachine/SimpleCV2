@@ -1,6 +1,6 @@
 import numpy as np
 
-from simplecv.tracking import CAMShiftTrack
+from simplecv.tracking.track_class import CAMShiftTrack
 
 try:
     import cv2
@@ -51,7 +51,7 @@ def camshiftTracker(img, bb, ts, **kwargs):
     >>> bb = (100, 100, 300, 300) # get BB from somewhere
     >>> ts = CAMShiftTracker(img, bb, ts, lower=(40, 120, 120),
         ...                  upper=(80, 200, 200), num_frames=30)
-    >>> while (some_condition_here):
+    >>> while some_condition_here:
         ... img = cam.getImage()
         ... bb = ts[-1].bb
         ... ts = CAMShiftTracker(img, bb, ts, lower=(40, 120, 120),

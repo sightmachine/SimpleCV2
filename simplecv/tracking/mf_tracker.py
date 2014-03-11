@@ -2,6 +2,8 @@ from copy import copy
 
 import numpy as np
 
+from simplecv.tracking.track_class import MFTrack
+
 try:
     import cv2
 except ImportError:
@@ -52,7 +54,7 @@ def mfTracker(img, bb, ts, oldimg, **kwargs):
     >>> img = cam.getImage()
     >>> bb = (100, 100, 300, 300) # get BB from somewhere
     >>> ts = MFTracker(img, bb, ts, img, numM=15, numN=15, winsize=12)
-    >>> while (some_condition_here):
+    >>> while some_condition_here:
         ... img = cam.getImage()
         ... bb = ts[-1].bb
         ... prevImg = img
@@ -162,7 +164,7 @@ def fbtrack(imgI, imgJ, bb, numM=10, numN=10, margin=5, winsize_ncc=10,
 
     newBB, scaleshift = predictBB(bb, startPoints, targetPoints, nAfterFbUsage)
     #print newBB, "fbtrack passing newBB"
-    return (newBB, scaleshift)
+    return newBB, scaleshift
 
 
 def lktrack(img1, img2, ptsI, nPtsI, winsize_ncc=10, win_size_lk=4,
@@ -432,7 +434,7 @@ def predictBB(bb0, pt0, pt1, nPts):
 
     shift = getMedianUnmanaged(dist0)
     if shift is None:
-        return (bb0, 1.0)
+        return bb0, 1.0
 
     # too much variation in shift is due to some errors
     if shift > 1.1 or shift < 0.9:
@@ -455,7 +457,7 @@ def predictBB(bb0, pt0, pt1, nPts):
 
     bb1 = (int(x1), int(y1), int(x2), int(y2))
 
-    return (bb1, shift)
+    return bb1, shift
 
 
 def getBB(pt0, pt1):
@@ -526,6 +528,3 @@ def normCrossCorrelation(img1, img2, pt0, pt1, status, winsize,
         patch2 = cv2.getRectSubPix(img2, (winsize, winsize), tuple(pt1[i]))
         match[i] = cv2.matchTemplate(patch1, patch2, method)
     return match
-
-
-from simplecv.tracking import MFTrack

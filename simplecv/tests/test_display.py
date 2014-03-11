@@ -6,7 +6,7 @@ import pickle
 
 import numpy as np
 
-from simplecv import cv
+from simplecv.base import cv
 from simplecv.camera import FrameSource
 from simplecv.color import Color, ColorCurve
 from simplecv.color_model import ColorModel

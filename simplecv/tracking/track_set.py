@@ -5,7 +5,6 @@ import numpy as np
 from simplecv.base import cv
 from simplecv.color import Color
 from simplecv.features.features import FeatureSet
-from simplecv.image_class import Image
 
 try:
     import cv2
@@ -578,6 +577,7 @@ class TrackSet(FeatureSet):
             f = img
             cv2.accumulateWeighted(f, avg, 0.01)
             res = cv2.convertScaleAbs(avg)
+        from simplecv.image_class import Image
         return Image(res, cv2image=True)
 
     def __kalman(self):
