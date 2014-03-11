@@ -125,7 +125,7 @@ class Line(Feature):
         drawing layer.
         """
         self.image.draw_line(self.end_points[0], self.end_points[1], color,
-                            width)
+                             width)
 
     def length(self):
         """
@@ -246,16 +246,16 @@ class Line(Feature):
 
                 # if we have error in either direction, we're going to use the
                 # px above or below
-                if (error > 0):  #
+                if error > 0:  #
                     px.append(self.image[x + 1, y])
                     weights.append(error)
 
-                if (error < 0):
+                if error < 0:
                     px.append(self.image[x - 1, y])
                     weights.append(abs(error))
 
                 error = error + (1.0 / d_err)  # we use the reciprocal of error
-                if (error >= 0.5):
+                if error >= 0.5:
                     x = x + 1
                     error = error - 1.0
 
@@ -267,7 +267,7 @@ class Line(Feature):
         #multiply each color tuple by its weight
 
         temp = sum(weighted_clrs) / sum(weight_arr)  # return the weighted avg
-        return (float(temp[0]), float(temp[1]), float(temp[2]))
+        return float(temp[0]), float(temp[1]), float(temp[2])
 
     def findIntersection(self, line):
         """
@@ -292,13 +292,13 @@ class Line(Feature):
             x = self.end_points[0][0]
             y = line.slope * (x - line.end_points[1][0]) + line.end_points[1][
                 1]
-            return (x, y)
+            return x, y
 
         if line.slope == float("inf"):
             x = line.end_points[0][0]
             y = self.slope * (x - self.end_points[1][0]) + self.end_points[1][
                 1]
-            return (x, y)
+            return x, y
 
         m1 = self.slope
         x12, y12 = self.end_points[1]
@@ -308,7 +308,7 @@ class Line(Feature):
         x = (m1 * x12 - m2 * x22 + y22 - y12) / float(m1 - m2)
         y = (m1 * m2 * (x12 - x22) - m2 * y12 + m1 * y22) / float(m1 - m2)
 
-        return (x, y)
+        return x, y
 
     def isParallel(self, line):
         """
@@ -426,7 +426,7 @@ class Line(Feature):
         #first find the leftmost point
         a = 0
         b = 1
-        if (self.end_points[a][0] > self.end_points[b][0]):
+        if self.end_points[a][0] > self.end_points[b][0]:
             b = 0
             a = 1
 
@@ -653,7 +653,7 @@ class Barcode(Feature):
             self.x += p[0]
             self.y += p[1]
 
-        if (numpoints):
+        if numpoints:
             self.x /= numpoints
             self.y /= numpoints
 
@@ -1154,7 +1154,7 @@ class Circle(Feature):
         >>> blobs[-1].distanceFrom(blobs[-2].coordinates())
 
         """
-        if (point[0] == -1 or point[1] == -1):
+        if point[0] == -1 or point[1] == -1:
             point = np.array(self.image.size()) / 2
         return spsd.euclidean(point, [self.x, self.y])
 
@@ -1445,7 +1445,7 @@ class KeyPoint(Feature):
         Given a point (default to center of the image), return the euclidean
         distance of x,y from this point
         """
-        if (point[0] == -1 or point[1] == -1):
+        if point[0] == -1 or point[1] == -1:
             point = np.array(self.image.size()) / 2
         return spsd.euclidean(point, [self.x, self.y])
 
@@ -1663,15 +1663,15 @@ class Motion(Feature):
         """
         mag = self.magnitude()
         if mag != 0.00:
-            return (float(self.dx) / mag, float(self.dy) / mag)
+            return float(self.dx) / mag, float(self.dy) / mag
         else:
-            return (0.00, 0.00)
+            return 0.00, 0.00
 
     def vector(self):
         """
         Returns the raw direction vector as an (x,y) tuple.
         """
-        return (self.dx, self.dy)
+        return self.dx, self.dy
 
     def windowSz(self):
         """
@@ -2160,7 +2160,7 @@ class ROI(Feature):
         >>> roi = ROI(10,10,100,100,img)
         >>> print roi.toUnitXYWH()
         """
-        if (self.image is None):
+        if self.image is None:
             return None
         srcw = float(self.image.width)
         srch = float(self.image.height)
@@ -2194,7 +2194,7 @@ class ROI(Feature):
 
         """
 
-        if (self.image is None):
+        if self.image is None:
             return None
         srcw = float(self.image.width)
         srch = float(self.image.height)
@@ -2228,7 +2228,7 @@ class ROI(Feature):
         >>> print roi.toUnitPoints()
         """
 
-        if (self.image is None):
+        if self.image is None:
             return None
         srcw = float(self.image.width)
         srch = float(self.image.height)
@@ -2236,9 +2236,9 @@ class ROI(Feature):
         retVal = []
         for p in pts:
             x, y = p
-            if (x != 0):
+            if x != 0:
                 x = x / srcw
-            if (y != 0):
+            if y != 0:
                 y = y / srch
             retVal.append((x, y))
         return retVal
@@ -2452,11 +2452,11 @@ class ROI(Feature):
 
         """
         retVal = FeatureSet()
-        if (unitVals and srcVals):
+        if unitVals and srcVals:
             logger.warning("Not sure how you would like to split the feature")
             return None
 
-        if (not isinstance(x, (list, tuple))):
+        if not isinstance(x, (list, tuple)):
             x = [x]
 
         if unitVals:
@@ -2509,11 +2509,11 @@ class ROI(Feature):
 
         """
         retVal = FeatureSet()
-        if (unitVals and srcVals):
+        if unitVals and srcVals:
             logger.warning("Not sure how you would like to split the feature")
             return None
 
-        if (not isinstance(y, (list, tuple))):
+        if not isinstance(y, (list, tuple)):
             y = [y]
 
         if unitVals:
@@ -2580,7 +2580,7 @@ class ROI(Feature):
             elif isinstance(regions, Feature):
                 self.subFeatures.append(regions)
             elif isinstance(regions, (list, tuple)):
-                if (isinstance(regions[0], ROI)):
+                if isinstance(regions[0], ROI):
                     for r in regions:
                         self.subFeatures += r.subFeatures
                 elif isinstance(regions[0], Feature):
@@ -2665,7 +2665,7 @@ class ROI(Feature):
         >>> img = Image("OWS.jpg")
         >>> blobs = img.find_blobs(128)
         >>> for b in blobs:
-        >>>    if (b.mean_color() == color.WHITE):
+        >>>    if b.mean_color() == color.WHITE:
         >>>       print "Found a white thing"
 
         """
@@ -2722,7 +2722,7 @@ class ROI(Feature):
             w = xmax - xmin
             h = ymax - ymin
 
-        elif (isinstance(x, Feature)):
+        elif isinstance(x, Feature):
             theFeature = x
             x = theFeature.points[0][0]
             y = theFeature.points[0][1]
@@ -2846,6 +2846,6 @@ class ROI(Feature):
 
     def crop(self):
         retVal = None
-        if (self.image is not None):
+        if self.image is not None:
             retVal = self.image.crop(self.xtl, self.ytl, self.w, self.h)
         return retVal

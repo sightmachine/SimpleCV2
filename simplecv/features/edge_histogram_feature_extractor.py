@@ -27,7 +27,7 @@ class EdgeHistogramFeatureExtractor(FeatureExtractorBase):
         min_line = 0.01 * p
         gap = 0.1 * p
         fs = img.find_lines(threshold=10, minlinelength=min_line,
-                           maxlinegap=gap)
+                            maxlinegap=gap)
         ls = fs.length() / p  # normalize to image length
         angs = fs.angle()
         lhist = np.histogram(ls, self.nbins, normed=True, range=(0, 1))
