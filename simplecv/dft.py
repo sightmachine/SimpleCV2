@@ -18,7 +18,7 @@ class DFT(object):
 
     **PARAMETERS**
 
-    Any of the following parameters can be supplied to create 
+    Any of the following parameters can be supplied to create
     a simple DFT object.
 
     * *width*        - width of the filter
@@ -27,16 +27,16 @@ class DFT(object):
     * *size*         - size of the filter (width, height)
     * *_numpy*       - numpy array of the filter
     * *_image*       - SimpleCV.Image of the filter
-    * *_dia*         - diameter of the filter 
+    * *_dia*         - diameter of the filter
                       (applicable for gaussian, butterworth, notch)
-    * *_type*        - Type of the filter 
-    * *_order*       - order of the butterworth filter 
+    * *_type*        - Type of the filter
+    * *_order*       - order of the butterworth filter
     * *_freqpass*    - frequency of the filter (lowpass, highpass, bandpass)
     * *_x_cutoff_low*  - Lower horizontal cut off frequency for lowpassfilter
     * *_y_cutoff_low*  - Lower vertical cut off frequency for lowpassfilter
     * *_x_cutoff_high* - Upper horizontal cut off frequency for highpassfilter
     * *_y_cutoff_high* - Upper vertical cut off frequency for highassfilter
-    
+
 
 
     **EXAMPLE**
@@ -160,8 +160,8 @@ class DFT(object):
                       - list - provide a list of three diameters to create
                                a 3 channel filter
         * *size*      - size of the filter (width, height)
-        * *highpass*: -  bool 
-                         True: highpass filter 
+        * *highpass*: -  bool
+                         True: highpass filter
                          False: lowpass filter
 
         **RETURNS**
@@ -185,11 +185,12 @@ class DFT(object):
             stacked_filter = DFT()
             for d in dia:
                 stacked_filter = stacked_filter._stack_filters(
-                                 self.create_gaussian_filter(d, size, highpass))
+                    self.create_gaussian_filter(d, size, highpass))
             image = Image(stacked_filter._numpy)
             ret_value = DFT(numpyarray=stacked_filter._numpy, image=image,
                             dia=dia, channels=len(dia), size=size,
-                            type="Gaussian", frequency=stacked_filter._freqpass)
+                            type="Gaussian",
+                            frequency=stacked_filter._freqpass)
             return ret_value
 
         freqpass = "lowpass"
@@ -208,7 +209,8 @@ class DFT(object):
         return ret_value
 
     @classmethod
-    def create_butterworth_filter(self, dia=400, size=(64, 64), order=2, highpass=False):
+    def create_butterworth_filter(self, dia=400, size=(64, 64), order=2,
+                                  highpass=False):
         """
         **SUMMARY**
 
@@ -221,8 +223,8 @@ class DFT(object):
                                a 3 channel filter
         * *size*      - size of the filter (width, height)
         * *order*     - order of the filter
-        * *highpass*: -  bool 
-                         True: highpass filter 
+        * *highpass*: -  bool
+                         True: highpass filter
                          False: lowpass filter
 
         **RETURNS**
@@ -245,7 +247,7 @@ class DFT(object):
             stackedfilter = DFT()
             for d in dia:
                 stackedfilter = stackedfilter._stack_filters(
-                       self.create_butterworth_filter(d, size, order, highpass))
+                    self.create_butterworth_filter(d, size, order, highpass))
             image = Image(stackedfilter._numpy)
             ret_value = DFT(numpyarray=stackedfilter._numpy, image=image,
                             dia=dia, channels=len(dia), size=size,
@@ -267,7 +269,7 @@ class DFT(object):
                         type="Butterworth", frequency=freqpass)
         return ret_value
 
-    @classmethod    
+    @classmethod
     def create_lowpass_filter(self, x_cutoff, y_cutoff=None, size=(64, 64)):
         """
         **SUMMARY**
@@ -303,14 +305,15 @@ class DFT(object):
         >>> flt = DFT.create_lowpass_filter(x_cutoff=[75], y_cutoff=[35],\
                                             size=(320, 280))
 
-        >>> flt = DFT.create_lowpass_filter(x_cutoff=[75, 100, 125], y_cutoff=35,\
+        >>> flt = DFT.create_lowpass_filter(x_cutoff=[75, 100, 125], \
+                                            y_cutoff=35,\
                                             size=(320, 280))
         >>> # y_cutoff will be [35, 35, 35]
 
         >>> flt = DFT.create_lowpass_filter(x_cutoff=[75, 113, 124],\
                                             y_cutoff=[35, 45, 90],\
                                             size=(320, 280))
-        
+
         >>> img = Image('lenna')
         >>> flt.apply_filter(img).show()
         """
@@ -329,7 +332,7 @@ class DFT(object):
             stacked_filter = DFT()
             for xfreq, yfreq in zip(x_cutoff, y_cutoff):
                 stacked_filter = stacked_filter._stack_filters(
-                                 self.create_lowpass_filter(xfreq, yfreq, size))
+                    self.create_lowpass_filter(xfreq, yfreq, size))
             image = Image(stacked_filter._numpy)
             ret_value = DFT(numpyarray=stacked_filter._numpy, image=image,
                             x_cutoff_low=x_cutoff, y_cutoff_low=y_cutoff,
@@ -390,14 +393,15 @@ class DFT(object):
         >>> flt = DFT.create_highpass_filter(x_cutoff=[75], y_cutoff=[35],\
                                              size=(320, 280))
 
-        >>> flt = DFT.create_highpass_filter(x_cutoff=[75, 100, 125], y_cutoff=35,\
+        >>> flt = DFT.create_highpass_filter(x_cutoff=[75, 100, 125], \
+                                             y_cutoff=35,\
                                              size=(320, 280))
         >>> # y_cutoff will be [35, 35, 35]
 
         >>> flt = DFT.create_highpass_filter(x_cutoff=[75, 113, 124],\
                                              y_cutoff=[35, 45, 90],\
                                              size=(320, 280))
-        
+
         >>> img = Image('lenna')
         >>> flt.apply_filter(img).show()
         """
@@ -416,7 +420,7 @@ class DFT(object):
             stacked_filter = DFT()
             for xfreq, yfreq in zip(x_cutoff, y_cutoff):
                 stacked_filter = stacked_filter._stack_filters(
-                               self.create_highpass_filter(xfreq, yfreq, size))
+                    self.create_highpass_filter(xfreq, yfreq, size))
             image = Image(stacked_filter._numpy)
             ret_value = DFT(numpyarray=stacked_filter._numpy, image=image,
                             x_cutoff_high=x_cutoff, y_cutoff_high=y_cutoff,
@@ -436,8 +440,9 @@ class DFT(object):
         return highpass_filter
 
     @classmethod
-    def create_bandpass_filter(self, x_cutoff_low, x_cutoff_high, y_cutoff_low=None,
-                               y_cutoff_high=None, size=(64, 64)):
+    def create_bandpass_filter(self, x_cutoff_low, x_cutoff_high,
+                               y_cutoff_low=None, y_cutoff_high=None,
+                               size=(64, 64)):
         """
         **SUMMARY**
 
@@ -446,14 +451,17 @@ class DFT(object):
         **PARAMETERS**
 
         * *x_cutoff_low*    -  int - horizontal lower cut off frequency
-                            - list - provide a list of three cut off frequencies
+                            - list - provide a list of three cut off
+                                     frequencies
         * *x_cutoff_high*   -  int - horizontal higher cut off frequency
-                            - list - provide a list of three cut off frequencies
+                            - list - provide a list of three cut off
+                                     frequencies
         * *y_cutoff_low*    -  int - vertical lower cut off frequency
-                            - list - provide a list of three cut off frequencies
+                            - list - provide a list of three cut off
+                                     frequencies
         * *y_cutoff_high*   -  int - verical higher cut off frequency
-                            - list - provide a list of three cut off frequencies
-                                     to create a 3 channel filter
+                            - list - provide a list of three cut off
+                                     frequencies to create a 3 channel filter
         * *size*            - size of the filter (width, height)
 
         **RETURNS**
@@ -463,21 +471,27 @@ class DFT(object):
         **EXAMPLE**
 
         >>> flt = DFT.create_bandpass_filter(x_cutoff_low=75,\
-                                             x_cutoff_high=190, size=(320, 280))
+                                             x_cutoff_high=190, \
+                                             size=(320, 280))
 
         >>> flt = DFT.create_bandpass_filter(x_cutoff_low=[75],\
-                                             x_cutoff_high=[190], size=(320, 280))
+                                             x_cutoff_high=[190], \
+                                             size=(320, 280))
 
         >>> flt = DFT.create_bandpass_filter(x_cutoff_low=[75, 120, 132],\
                                              x_cutoff_high=[190, 210, 234],\
                                              size=(320, 280))
 
-        >>> flt = DFT.create_bandpass_filter(x_cutoff_low=75, x_cutoff_high=190,\
-                                             y_cutoff_low=60, y_cutoff_high=210,\
+        >>> flt = DFT.create_bandpass_filter(x_cutoff_low=75, \
+                                             x_cutoff_high=190, \
+                                             y_cutoff_low=60, \
+                                             y_cutoff_high=210, \
                                              size=(320, 280))
 
-        >>> flt = DFT.create_bandpass_filter(x_cutoff_low=[75], x_cutoff_high=[190],\
-                                             y_cutoff_low=[60], y_cutoff_high=[210],\
+        >>> flt = DFT.create_bandpass_filter(x_cutoff_low=[75], \
+                                             x_cutoff_high=[190],\
+                                             y_cutoff_low=[60], \
+                                             y_cutoff_high=[210],\
                                              size=(320, 280))
 
         >>> flt = DFT.create_bandpass_filter(x_cutoff_low=[75, 120, 132],\
@@ -485,12 +499,13 @@ class DFT(object):
                                              y_cutoff_low=[70, 110, 112],\
                                              y_cutoff_high=[180, 220, 220],\
                                              size=(320, 280))
-        
+
         >>> img = Image('lenna')
         >>> flt.apply_filter(img).show()
         """
         lowpass = self.create_lowpass_filter(x_cutoff_low, y_cutoff_low, size)
-        highpass = self.create_highpass_filter(x_cutoff_high, y_cutoff_high, size)
+        highpass = self.create_highpass_filter(x_cutoff_high, y_cutoff_high,
+                                               size)
         lowpassnumpy = lowpass._numpy
         highpassnumpy = highpass._numpy
         bandpassnumpy = lowpassnumpy + highpassnumpy
@@ -498,13 +513,16 @@ class DFT(object):
         img = Image(bandpassnumpy)
         bandpass_filter = DFT(size=size, image=img,
                               numpyarray=bandpassnumpy, type="bandpass",
-                              x_cutoff_low=x_cutoff_low, y_cutoff_low=y_cutoff_low,
-                              x_cutoff_high=x_cutoff_high, y_cutoff_high=y_cutoff_high,
+                              x_cutoff_low=x_cutoff_low,
+                              y_cutoff_low=y_cutoff_low,
+                              x_cutoff_high=x_cutoff_high,
+                              y_cutoff_high=y_cutoff_high,
                               frequency="bandpass", channels=lowpass.channels)
         return bandpass_filter
 
     @classmethod
-    def create_notch_filter(self, dia1, dia2=None, cen=None, size=(64, 64), ftype="lowpass"):
+    def create_notch_filter(self, dia1, dia2=None, cen=None, size=(64, 64),
+                            ftype="lowpass"):
         """
         **SUMMARY**
 
@@ -520,7 +538,7 @@ class DFT(object):
                        - list - provide a list of three diameters to create
                                a 3 channel filter
         * *cen*        - tuple (x, y) center of the disk shaped notch
-                         if not provided, it will be at the center of the 
+                         if not provided, it will be at the center of the
                          filter
         * *size*       - size of the filter (width, height)
         * *ftype*:     - lowpass or highpass filter
@@ -532,7 +550,8 @@ class DFT(object):
 
         >>> notch = DFT.create_notch_filter(dia1=200, cen=(200, 200),\
                                             size=(512, 512), type="highpass")
-        >>> notch = DFT.create_notch_filter(dia1=200, dia2=300, cen=(200, 200),\
+        >>> notch = DFT.create_notch_filter(dia1=200, dia2=300, \
+                                            cen=(200, 200), \
                                             size=(512, 512))
         >>> img = Image('lenna')
         >>> notch.apply_filter(img).show()
@@ -564,7 +583,7 @@ class DFT(object):
             stacked_filter = DFT()
             for d1, d2, c in zip(dia1, dia2, cen):
                 stacked_filter = stacked_filter._stack_filters(
-                              self.create_notch_filter(d1, d2, c, size, ftype))
+                    self.create_notch_filter(d1, d2, c, size, ftype))
             image = Image(stacked_filter._numpy)
             ret_value = DFT(numpyarray=stacked_filter._numpy, image=image,
                             dia=dia1+dia2, channels=len(dia1), size=size,
@@ -608,9 +627,9 @@ class DFT(object):
         **PARAMETERS**
 
         * *image*     - SimpleCV.Image image
-        * *grayscale* - if this value is True we perfrom the operation on the 
+        * *grayscale* - if this value is True we perfrom the operation on the
                         DFT of the gray version of the image and the result is
-                        gray image. If grayscale is true we perform the 
+                        gray image. If grayscale is true we perform the
                         operation on each channel and the recombine them to
                         create the result.
 
@@ -773,7 +792,7 @@ class DFT(object):
         >>> flt3 = DFT.create_gaussian_filter(dia=70, size=(380, 240))
         >>> flt = flt1.stack_filters(flt2, flt3) # 3 channel filter
         """
-        if not(self.channels == 1 and flt1.channels == 1 and 
+        if not(self.channels == 1 and flt1.channels == 1 and
                flt2.channels == 1):
             warnings.warn("Filters must have only 1 channel")
             return None
