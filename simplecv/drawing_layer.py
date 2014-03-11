@@ -14,7 +14,7 @@ from simplecv.color import Color
 #ADD IMAGE INTERFACE
 
 
-class DrawingLayer:
+class DrawingLayer(object):
     """
     DrawingLayer gives you a way to mark up Image classes without changing
     the image data itself. This class wraps pygame's Surface class and
@@ -26,16 +26,16 @@ class DrawingLayer:
     image2 = Image("/path/to/image2.png")
     image.dl().blit(image2) #write image 2 on top of image
     """
-    _mSurface = []
-    _mDefaultColor = 0
-    _mFontColor = 0
-    _mClearColor = 0
-    _mFont = 0
-    _mFontName = ""
-    _mFontSize = 0
-    _mDefaultAlpha = 255
-    _mAlphaDelta = 1  # This is used to track the changed value in alpha
-    _mSVG = ""
+    surface = []
+    default_color = 0
+    font_color = 0
+    clear_color = 0
+    font = 0
+    font_name = ""
+    font_size = 0
+    default_alpha = 255
+    alpha_delta = 1  # This is used to track the changed value in alpha
+    svg = ""
     width = 0
     height = 0
 
@@ -44,23 +44,22 @@ class DrawingLayer:
         if not pg.font.get_init():
             pg.font.init()
 
-        self._mSVG = svgwrite.Drawing(size=(width, height))
-
+        self.svg = svgwrite.Drawing(size=(width, height))
         self.width = width
         self.height = height
-        self._mSurface = pg.Surface((width, height), flags=pg.SRCALPHA)
-        self._mDefaultAlpha = 255
-        self._mClearColor = pg.Color(0, 0, 0, 0)
+        self.surface = pg.Surface((width, height), flags=pg.SRCALPHA)
+        self.default_alpha = 255
+        self.clear_color = pg.Color(0, 0, 0, 0)
 
-        self._mSurface.fill(self._mClearColor)
-        self._mDefaultColor = Color.BLACK
+        self.surface.fill(self.clear_color)
+        self.default_color = Color.BLACK
 
-        self._mFontSize = 18
-        self._mFontName = None
-        self._mFontBold = False
-        self._mFontItalic = False
-        self._mFontUnderline = False
-        self._mFont = pg.font.Font(self._mFontName, self._mFontSize)
+        self.font_size = 18
+        self.font_name = None
+        self.font_bold = False
+        self.font_italic = False
+        self.font_underline = False
+        self.font = pg.font.Font(self.font_name, self.font_size)
 
     def __repr__(self):
         return "<SimpleCV.DrawingLayer Object size (%d, %d)>" % (
@@ -73,13 +72,13 @@ class DrawingLayer:
          transparent.
         """
         if 0 <= alpha <= 255:
-            self._mDefaultAlpha = alpha
+            self.default_alpha = alpha
 
     def get_default_alpha(self):
         """
         Returns the default alpha value.
         """
-        return self._mDefaultAlpha
+        return self.default_alpha
 
     def set_layer_alpha(self, alpha):
         """
@@ -87,9 +86,9 @@ class DrawingLayer:
         pass. This is helpful for merging layers with transparency.
         """
 
-        self._mSurface.set_alpha(alpha)
+        self.surface.set_alpha(alpha)
         # Get access to the alpha band of the image.
-        pixels_alpha = pg.surfarray.pixels_alpha(self._mSurface)
+        pixels_alpha = pg.surfarray.pixels_alpha(self.surface)
         # Do a floating point multiply, by alpha 100, on each alpha value.
         # Then truncate the values (convert to integer) and copy back into
         # the surface.
@@ -97,20 +96,20 @@ class DrawingLayer:
 
         # Unlock the surface.
 
-        self._mAlphaDelta = alpha / 255.0  # update the changed state
+        self.alpha_delta = alpha / 255.0  # update the changed state
 
     def get_svg(self):
-        return self._mSVG.tostring()
+        return self.svg.tostring()
 
     def _get_surface(self):
-        return self._mSurface
+        return self.surface
 
     def _csv_rgb_to_pg_color(self, color, alpha=-1):
         if alpha == -1:
-            alpha = self._mDefaultAlpha
+            alpha = self.default_alpha
 
         if color == Color.DEFAULT:
-            color = self._mDefaultColor
+            color = self.default_color
         ret_value = pg.Color(color[0], color[1], color[2], alpha)
         return ret_value
 
@@ -121,7 +120,7 @@ class DrawingLayer:
         Parameters:
             color - Color object or Color Tuple
         """
-        self._mDefaultColor = color
+        self.default_color = color
 
     def line(self, start, stop, color=Color.DEFAULT, width=1, antialias=True,
              alpha=-1):
@@ -150,17 +149,17 @@ class DrawingLayer:
 
         """
         if antialias and width == 1:
-            pg.draw.aaline(self._mSurface,
+            pg.draw.aaline(self.surface,
                            self._csv_rgb_to_pg_color(color, alpha),
                            start, stop, width)
         else:
-            pg.draw.line(self._mSurface,
+            pg.draw.line(self.surface,
                          self._csv_rgb_to_pg_color(color, alpha),
                          start, stop, width)
 
         start_int = tuple(int(x) for x in start)
         stop_int = tuple(int(x) for x in stop)
-        self._mSVG.add(self._mSVG.line(start=start_int, end=stop_int))
+        self.svg.add(self.svg.line(start=start_int, end=stop_int))
 
     def lines(self, points, color=Color.DEFAULT, antialias=True, alpha=-1,
               width=1):
@@ -190,19 +189,19 @@ class DrawingLayer:
 
         """
         if antialias and width == 1:
-            pg.draw.aalines(self._mSurface,
+            pg.draw.aalines(self.surface,
                             self._csv_rgb_to_pg_color(color, alpha),
                             0, points, width)
         else:
-            pg.draw.lines(self._mSurface,
+            pg.draw.lines(self.surface,
                           self._csv_rgb_to_pg_color(color, alpha),
                           0, points, width)
 
         last_point = points[0]
         for point in points[1:]:
-            l_int = tuple(int(x) for x in last_point)
-            p_int = tuple(int(x) for x in point)
-            self._mSVG.add(self._mSVG.line(start=last_point, end=point))
+            last_int = tuple(int(x) for x in last_point)
+            curr_int = tuple(int(x) for x in point)
+            self.svg.add(self.svg.line(start=last_int, end=curr_int))
             last_point = point
 
     #need two points(TR,BL), center+W+H, and TR+W+H
@@ -226,13 +225,14 @@ class DrawingLayer:
         """
         if filled:
             width = 0
-        r = pg.Rect((top_left[0], top_left[1]), (dimensions[0], dimensions[1]))
-        pg.draw.rect(self._mSurface, self._csv_rgb_to_pg_color(color, alpha),
-                     r, width)
+        rect = pg.Rect((top_left[0], top_left[1]),
+                       (dimensions[0], dimensions[1]))
+        pg.draw.rect(self.surface, self._csv_rgb_to_pg_color(color, alpha),
+                     rect, width)
 
         tl_int = tuple(int(x) for x in top_left)
         dim_int = tuple(int(x) for x in dimensions)
-        self._mSVG.add(self._mSVG.rect(insert=tl_int, size=dim_int))
+        self.svg.add(self.svg.rect(insert=tl_int, size=dim_int))
 
     def rectangle_to_pts(self, pt0, pt1, color=Color.DEFAULT, width=1,
                          filled=False, alpha=-1):
@@ -251,10 +251,7 @@ class DrawingLayer:
 
         filled -The rectangle is filled in
         """
-        w = 0
-        h = 0
-        x = 0
-        y = 0
+
         if pt0[0] > pt1[0]:
             w = pt0[0] - pt1[0]
             x = pt1[0]
@@ -269,12 +266,12 @@ class DrawingLayer:
             y = pt0[1]
         if filled:
             width = 0
-        r = pg.Rect((x, y), (w, h))
-        pg.draw.rect(self._mSurface, self._csv_rgb_to_pg_color(color, alpha),
-                     r, width)
+        rect = pg.Rect((x, y), (w, h))
+        pg.draw.rect(self.surface, self._csv_rgb_to_pg_color(color, alpha),
+                     rect, width)
 
-        self._mSVG.add(
-            self._mSVG.rect(insert=(int(x), int(y)), size=(int(w), int(h))))
+        self.svg.add(
+            self.svg.rect(insert=(int(x), int(y)), size=(int(w), int(h))))
 
     def centered_rectangle(self, center, dimensions, color=Color.DEFAULT,
                            width=1, filled=False, alpha=-1):
@@ -308,13 +305,13 @@ class DrawingLayer:
             width = 0
         xtl = center[0] - (dimensions[0] / 2)
         ytl = center[1] - (dimensions[1] / 2)
-        r = pg.Rect(xtl, ytl, dimensions[0], dimensions[1])
-        pg.draw.rect(self._mSurface, self._csv_rgb_to_pg_color(color, alpha),
-                     r, width)
+        rect = pg.Rect(xtl, ytl, dimensions[0], dimensions[1])
+        pg.draw.rect(self.surface, self._csv_rgb_to_pg_color(color, alpha),
+                     rect, width)
 
         dim_int = tuple(int(x) for x in dimensions)
-        self._mSVG.add(
-            self._mSVG.rect(insert=(int(xtl), int(ytl)), size=dim_int))
+        self.svg.add(
+            self.svg.rect(insert=(int(xtl), int(ytl)), size=dim_int))
 
     def polygon(self, points, color=Color.DEFAULT, width=1, filled=False,
                 antialias=True, alpha=-1):
@@ -340,16 +337,16 @@ class DrawingLayer:
             width = 0
         if not filled:
             if antialias and width == 1:
-                pg.draw.aalines(self._mSurface,
+                pg.draw.aalines(self.surface,
                                 self._csv_rgb_to_pg_color(color, alpha), True,
                                 points, width)
             else:
-                pg.draw.lines(self._mSurface,
+                pg.draw.lines(self.surface,
                               self._csv_rgb_to_pg_color(color, alpha), True,
                               points, width)
         else:
-            pg.draw.polygon(self._mSurface, self._csv_rgb_to_pg_color(color,
-                                                                      alpha),
+            pg.draw.polygon(self.surface, self._csv_rgb_to_pg_color(color,
+                                                                    alpha),
                             points, width)
         return None
 
@@ -382,16 +379,16 @@ class DrawingLayer:
         if filled:
             width = 0
         if antialias is False or width > 1 or filled:
-            pg.draw.circle(self._mSurface,
+            pg.draw.circle(self.surface,
                            self._csv_rgb_to_pg_color(color, alpha),
                            center, int(radius), int(width))
         else:
-            pg.gfxdraw.aacircle(self._mSurface, int(center[0]), int(center[1]),
+            pg.gfxdraw.aacircle(self.surface, int(center[0]), int(center[1]),
                                 int(radius),
                                 self._csv_rgb_to_pg_color(color, alpha))
 
         cen_int = tuple(int(x) for x in center)
-        self._mSVG.add(self._mSVG.circle(center=cen_int, r=radius))
+        self.svg.add(self.svg.circle(center=cen_int, r=radius))
 
         return None
 
@@ -422,15 +419,15 @@ class DrawingLayer:
         """
         if filled:
             width = 0
-        r = pg.Rect(center[0] - (dimensions[0] / 2),
-                    center[1] - (dimensions[1] / 2), dimensions[0],
-                    dimensions[1])
-        pg.draw.ellipse(self._mSurface,
-                        self._csv_rgb_to_pg_color(color, alpha), r, width)
+        rect = pg.Rect(center[0] - (dimensions[0] / 2),
+                       center[1] - (dimensions[1] / 2), dimensions[0],
+                       dimensions[1])
+        pg.draw.ellipse(self.surface,
+                        self._csv_rgb_to_pg_color(color, alpha), rect, width)
 
         cen_int = tuple(int(x) for x in center)
         dim_int = tuple(int(x) for x in dimensions)
-        self._mSVG.add(self._mSVG.ellipse(center=cen_int, r=dim_int))
+        self.svg.add(self.svg.ellipse(center=cen_int, r=dim_int))
 
         return None
 
@@ -453,7 +450,7 @@ class DrawingLayer:
 
 
         """
-        pg.gfxdraw.bezier(self._mSurface, points, steps,
+        pg.gfxdraw.bezier(self.surface, points, steps,
                           self._csv_rgb_to_pg_color(color, alpha))
         return None
 
@@ -461,24 +458,24 @@ class DrawingLayer:
         """
         This method sets and unsets the current font to be bold.
         """
-        self._mFontBold = do_bold
-        self._mFont.set_bold(do_bold)
+        self.font_bold = do_bold
+        self.font.set_bold(do_bold)
         return None
 
     def set_font_italic(self, do_italic):
         """
         This method sets and unsets the current font to be italic.
         """
-        self._mFontItalic = do_italic
-        self._mFont.set_italic(do_italic)
+        self.font_italic = do_italic
+        self.font.set_italic(do_italic)
         return None
 
     def set_font_underline(self, do_underline):
         """
         This method sets and unsets the current font to be underlined
         """
-        self._mFontUnderline = do_underline
-        self._mFont.set_underline(do_underline)
+        self.font_underline = do_underline
+        self.font.set_underline(do_underline)
         return None
 
     def select_font(self, font_name):
@@ -488,8 +485,8 @@ class DrawingLayer:
         is a string with the font name.
         """
         full_name = pg.font.match_font(font_name)
-        self._mFontName = full_name
-        self._mFont = pg.font.Font(self._mFontName, self._mFontSize)
+        self.font_name = full_name
+        self.font = pg.font.Font(self.font_name, self.font_size)
         return None
 
     @staticmethod
@@ -500,7 +497,7 @@ class DrawingLayer:
         """
         return pg.font.get_fonts()
 
-    def set_font_size(self, sz):
+    def set_font_size(self, size):
         """
         This method sets the font size roughly in points. A size of 10 is
         almost too small to read. A size of 20 is roughly 10 pixels high and a
@@ -509,8 +506,8 @@ class DrawingLayer:
         Parameters:
             sz = Int
         """
-        self._mFontSize = sz
-        self._mFont = pg.font.Font(self._mFontName, self._mFontSize)
+        self.font_size = size
+        self.font = pg.font.Font(self.font_name, self.font_size)
         return None
 
     def text(self, text, location, color=Color.DEFAULT, alpha=-1):
@@ -537,10 +534,10 @@ class DrawingLayer:
         """
         if len(text) < 0:
             return None
-        tsurface = self._mFont.render(text, True,
-                                      self._csv_rgb_to_pg_color(color, alpha))
+        tsurface = self.font.render(text, True,
+                                    self._csv_rgb_to_pg_color(color, alpha))
         if alpha == -1:
-            alpha = self._mDefaultAlpha
+            alpha = self.default_alpha
         #this is going to be slow, dumb no native support.
         #see http://www.mail-archive.com/pygame-users@seul.org/msg04323.html
         # Get access to the alpha band of the image.
@@ -551,22 +548,22 @@ class DrawingLayer:
         pixels_alpha[...] = (pixels_alpha * (alpha / 255.0)).astype(uint8)
         # Unlock the surface.
         del pixels_alpha
-        self._mSurface.blit(tsurface, location)
+        self.surface.blit(tsurface, location)
 
         font_style = "font-size: {}px;".format(
-            self._mFontSize - 7)  # Adjust for web
-        if self._mFontBold:
+            self.font_size - 7)  # Adjust for web
+        if self.font_bold:
             font_style += "font-weight: bold;"
-        if self._mFontItalic:
+        if self.font_italic:
             font_style += "font-style: italic;"
-        if self._mFontUnderline:
+        if self.font_underline:
             font_style += "text-decoration: underline;"
-        if self._mFontName:
-            font_style += "font-family: \"{}\";".format(self._mFontName)
+        if self.font_name:
+            font_style += "font-family: \"{}\";".format(self.font_name)
         altered_location = (location[0],
                             location[1] + self.text_dimensions(text)[1])
         alt_int = tuple(int(x) for x in altered_location)
-        self._mSVG.add(self._mSVG.text(text, insert=alt_int, style=font_style))
+        self.svg.add(self.svg.text(text, insert=alt_int, style=font_style))
         return None
 
     def text_dimensions(self, text):
@@ -574,9 +571,9 @@ class DrawingLayer:
         The text_dimensions function takes a string and returns the dimensions
         (width, height) of this text being rendered on the screen.
         """
-        tsurface = self._mFont.render(text, True,
-                                      self._csv_rgb_to_pg_color(Color.WHITE,
-                                                                255))
+        tsurface = self.font.render(text, True,
+                                    self._csv_rgb_to_pg_color(Color.WHITE,
+                                                              255))
         return tsurface.get_width(), tsurface.get_height()
 
     def ez_view_text(self, text, location, fgcolor=Color.WHITE,
@@ -593,12 +590,10 @@ class DrawingLayer:
         if len(text) < 0:
             return
         alpha = 255
-        tsurface = self._mFont.render(text, True,
-                                      self._csv_rgb_to_pg_color(fgcolor,
-                                                                alpha),
-                                      self._csv_rgb_to_pg_color(bgcolor,
-                                                                alpha))
-        self._mSurface.blit(tsurface, location)
+        tsurface = self.font.render(text, True,
+                                    self._csv_rgb_to_pg_color(fgcolor, alpha),
+                                    self._csv_rgb_to_pg_color(bgcolor, alpha))
+        self.surface.blit(tsurface, location)
 
     def sprite(self, img, pos=(0, 0), scale=1.0, rot=0.0, alpha=255):
         """
@@ -625,7 +620,7 @@ class DrawingLayer:
             image = img.get_pg_surface()
         else:
             image = img  # we assume we have a surface
-        image = image.convert(self._mSurface)
+        image = image.convert(self.surface)
         if rot != 0.00:
             image = pg.transform.rotate(image, rot)
         if scale != 1.0:
@@ -634,7 +629,7 @@ class DrawingLayer:
                                         int(image.get_height() * scale)))
         pixels_alpha = pg.surfarray.pixels_alpha(image)
         pixels_alpha[...] = (pixels_alpha * (alpha / 255.0)).astype(uint8)
-        self._mSurface.blit(image, pos)
+        self.surface.blit(image, pos)
 
     def blit(self, img, coordinates=(0, 0)):
         """
@@ -647,7 +642,7 @@ class DrawingLayer:
         """
 
         #can we set a color mode so we can do a little bit of masking here?
-        self._mSurface.blit(img.get_pg_surface(), coordinates)
+        self.surface.blit(img.get_pg_surface(), coordinates)
 
     def replace_overlay(self, overlay):
         """
@@ -656,7 +651,7 @@ class DrawingLayer:
         Parameters:
             overlay - Pygame Surface
         """
-        self._mSurface = overlay
+        self.surface = overlay
 
     #get rid of all drawing
     def clear(self):
@@ -664,8 +659,8 @@ class DrawingLayer:
         This method removes all of the drawing on this layer (i.e. the layer is
         erased completely)
         """
-        self._mSurface = pg.Surface((int(self.width), int(self.height)),
-                                    flags=pg.SRCALPHA)
+        self.surface = pg.Surface((int(self.width), int(self.height)),
+                                  flags=pg.SRCALPHA)
 
     def render_to_surface(self, surf):
         """
@@ -674,7 +669,7 @@ class DrawingLayer:
         Parameters:
             surf - Pygame Surface
         """
-        surf.blit(self._mSurface, (0, 0))
+        surf.blit(self.surface, (0, 0))
         return surf
 
     def render_to_other_layer(self, other_layer):
@@ -684,4 +679,4 @@ class DrawingLayer:
         Parameters:
             other_layer - Pygame Surface
         """
-        other_layer._mSurface.blit(self._mSurface, (0, 0))
+        other_layer.surface.blit(self.surface, (0, 0))
