@@ -1,9 +1,9 @@
 # SimpleCV Color Model Library
 #
 # This library is used to model the color of foreground and background objects
+from pickle import load, dump
 
 from numpy import array, cast, ndarray, right_shift, unique, where
-from pickle import load, dump
 
 from simplecv.base import logger
 from simplecv.image_class import Image
@@ -17,11 +17,12 @@ class ColorModel(object):
     objects by using a a training set of images.
 
     You can create the color model with any number of "training" images, or
-    add images to the model with add() and remove().  Then for your data images,
-    you can useThresholdImage() to return a segmented picture.
+    add images to the model with add() and remove().  Then for your data
+    images, you can useThresholdImage() to return a segmented picture.
 
     """
-    #TODO: Discretize the colorspace into smaller intervals,eg r=[0-7][8-15] etc
+    #TODO: Discretize the colorspace into smaller intervals,eg r=[0-7][8-15]
+    # etc
     #TODO: Work in HSV space
     is_background = True
     data = {}
@@ -66,8 +67,9 @@ class ColorModel(object):
         rshft = right_shift(ret, self.bits)  # right shift 4 bits
 
         if len(rshft.shape) > 1:
-            uniques = unique(rshft.view([('', rshft.dtype)]*rshft.shape[1]))\
-                            .view(rshft.dtype).reshape(-1, 3)
+            uniques = unique(
+                rshft.view([('', rshft.dtype)]*rshft.shape[1])
+            ).view(rshft.dtype).reshape(-1, 3)
         else:
             uniques = [rshft]
         #create a unique set of colors.  I had to look this one up
@@ -138,7 +140,7 @@ class ColorModel(object):
         >>> cm.remove(Color.BLACK)
 
         """
-        self.data = dict.fromkeys(set(self.data) ^\
+        self.data = dict.fromkeys(set(self.data) ^
                                   set(self._make_canonical(data)), 1)
 
     def threshold(self, img):
@@ -206,7 +208,8 @@ class ColorModel(object):
        """
         # reverse the color, cast to uint8, right shift
         # convert to string, check dict
-        color_name = right_shift(cast['uint8'](color[::-1]), self.bits).tostring()
+        color_name = right_shift(cast['uint8'](color[::-1]),
+                                 self.bits).tostring()
         return color_name in self.data
 
     def set_is_foreground(self):
