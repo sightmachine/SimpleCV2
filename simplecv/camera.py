@@ -41,7 +41,9 @@ try:
 except ImportError:
     ARAVIS_ENABLED = False
 
-from simplecv.base import cv, pg, logger, SYSTEM, PIL_ENABLED, StringIO, npArray2cvMat
+from simplecv.base import cv, pg, logger, SYSTEM, PIL_ENABLED, StringIO, \
+    npArray2cvMat
+
 if PIL_ENABLED:
     from simplecv.base import pil
 
@@ -65,16 +67,18 @@ class FrameBufferThread(threading.Thread):
     by your camera are fresh.
 
     """
+
     def run(self):
         global _cameras
         while 1:
             for cam in _cameras:
                 if cam.pygame_camera:
-                    cam.pygame_buffer = cam.capture.get_image(cam.pygame_buffer)
+                    cam.pygame_buffer = cam.capture.get_image(
+                        cam.pygame_buffer)
                 else:
                     cv.GrabFrame(cam.capture)
                 cam.set_thread_capture_time = time.time()
-            time.sleep(0.04) # max 25 fps, if you're lucky
+            time.sleep(0.04)  # max 25 fps, if you're lucky
 
 
 class FrameSource(object):
@@ -86,10 +90,10 @@ class FrameSource(object):
 
 
     """
-    _calib_matrix = "" # Intrinsic calibration matrix
-    _dist_coeff = "" # Distortion matrix
-    _thread_capture_time = '' # when the last picture was taken
-    capture_time = '' # timestamp of the last aquired image
+    _calib_matrix = ""  # Intrinsic calibration matrix
+    _dist_coeff = ""  # Distortion matrix
+    _thread_capture_time = ''  # when the last picture was taken
+    capture_time = ''  # timestamp of the last aquired image
 
     def __init__(self):
         return
@@ -137,15 +141,16 @@ class FrameSource(object):
         """
         # This routine was adapted from code originally written by:
         # Abid. K  -- abidrahman2@gmail.com
-        # See: https://github.com/abidrahmank/OpenCV-Python/blob/master/Other_Examples/camera_calibration.py
+        # See: https://github.com/abidrahmank/OpenCV-Python/blob/master/
+        # Other_Examples/camera_calibration.py
 
         warn_thresh = 1
-        n_boards = 0                    # no of boards
-        board_w = int(dimensions[0])    # number of horizontal corners
-        board_h = int(dimensions[1])    # number of vertical corners
+        n_boards = 0  # no of boards
+        board_w = int(dimensions[0])  # number of horizontal corners
+        board_h = int(dimensions[1])  # number of vertical corners
         n_boards = int(len(image_list))
-        board_n = board_w * board_h     # no of total corners
-        board_sz = (board_w, board_h)   # size of board
+        board_n = board_w * board_h  # no of total corners
+        board_sz = (board_w, board_h)  # size of board
         if n_boards < warn_thresh:
             logger.warning("FrameSource.calibrate: We suggest using 20 or more\
                             images to perform camera calibration!")
@@ -166,14 +171,14 @@ class FrameSource(object):
         while successes < n_boards:
             img = image_list[img_idx]
             (_, corners) = cv.FindChessboardCorners(
-                                                img.get_grayscale_matrix(),
-                                                board_sz,
-                                                cv.CV_CALIB_CB_ADAPTIVE_THRESH |
-                                                 cv.CV_CALIB_CB_FILTER_QUADS)
+                img.get_grayscale_matrix(),
+                board_sz,
+                cv.CV_CALIB_CB_ADAPTIVE_THRESH |
+                cv.CV_CALIB_CB_FILTER_QUADS)
             corners = cv.FindCornerSubPix(img.get_grayscale_matrix(),
                                           corners, (11, 11), (-1, -1),
                                           (cv.CV_TERMCRIT_EPS +
-                                            cv.CV_TERMCRIT_ITER, 30, 0.1))
+                                           cv.CV_TERMCRIT_ITER, 30, 0.1))
             # if got a good image, draw chess board
             #if found == 1:
             #    corner_count = len(corners)
@@ -186,8 +191,10 @@ class FrameSource(object):
                 for j in range(board_n):
                     cv.Set2D(image_points, k, 0, corners[j][0])
                     cv.Set2D(image_points, k, 1, corners[j][1])
-                    cv.Set2D(object_points, k, 0, grid_sz*(float(j)/board_w))
-                    cv.Set2D(object_points, k, 1, grid_sz*(float(j)%board_w))
+                    cv.Set2D(object_points, k, 0,
+                             grid_sz * (float(j) / board_w))
+                    cv.Set2D(object_points, k, 1,
+                             grid_sz * (float(j) % board_w))
                     cv.Set2D(object_points, k, 2, 0.0)
                     k = k + 1
                 cv.Set2D(point_counts, successes, 0, board_n)
@@ -195,8 +202,9 @@ class FrameSource(object):
 
         # now assigning new matrices according to view_count
         if successes < warn_thresh:
-            logger.warning("FrameSource.calibrate: You have %d good images for \
-               calibration we recommend at least %d", successes, warn_thresh)
+            logger.warning("FrameSource.calibrate: You have %d good images "
+                           "for calibration we recommend at least %d",
+                           successes, warn_thresh)
 
         object_points2 = cv.CreateMat(successes * board_n, 3, cv.CV_32FC1)
         image_points2 = cv.CreateMat(successes * board_n, 2, cv.CV_32FC1)
@@ -241,7 +249,8 @@ class FrameSource(object):
         matrix and return the result.
 
         If given a 1xN 2D cvmat or a 2xN numpy array, it will un-distort
-        points of measurement and return them in the original coordinate system.
+        points of measurement and return them in the original coordinate
+        system.
 
         **PARAMETERS**
 
@@ -259,15 +268,15 @@ class FrameSource(object):
 
 
         """
-        if type(self._calib_matrix) != cv.cvmat or\
-          type(self._dist_coeff) != cv.cvmat:
-            logger.warning("FrameSource.undistort: This operation requires \
-                            calibration, please load the calibration matrix")
+        if type(self._calib_matrix) != cv.cvmat \
+                or type(self._dist_coeff) != cv.cvmat:
+            logger.warning("FrameSource.undistort: This operation requires "
+                           "calibration, please load the calibration matrix")
             return None
 
-        if type(image_or_2darray) == InstanceType and\
-          image_or_2darray.__class__ == Image:
-            in_img = image_or_2darray # we have an image
+        if type(image_or_2darray) == InstanceType \
+                and image_or_2darray.__class__ == Image:
+            in_img = image_or_2darray  # we have an image
             ret_val = in_img.get_empty()
             cv.Undistort2(in_img.get_bitmap(), ret_val,
                           self._calib_matrix, self._dist_coeff)
@@ -287,11 +296,11 @@ class FrameSource(object):
 
             #undistorted.x = (x* focalX + principalX);
             #undistorted.y = (y* focalY + principalY);
-            return (np.array(upoints[:, 0]) *\
-                [self.get_camera_matrix()[0, 0],\
-                 self.get_camera_matrix()[1, 1]] +\
-                [self.get_camera_matrix()[0, 2],\
-                 self.get_camera_matrix()[1, 2]])[:, 0]
+            return (np.array(upoints[:, 0]) *
+                    [self.get_camera_matrix()[0, 0],
+                     self.get_camera_matrix()[1, 1]] +
+                    [self.get_camera_matrix()[0, 2],
+                     self.get_camera_matrix()[1, 2]])[:, 0]
 
     def get_image_undistort(self):
         """
@@ -378,7 +387,7 @@ class FrameSource(object):
         """
         self._calib_matrix = cv.Load(filename + "Intrinsic.xml")
         self._dist_coeff = cv.Load(filename + "Distortion.xml")
-        return True if type(self._dist_coeff) == cv.cvmat and\
+        return True if type(self._dist_coeff) == cv.cvmat and \
                        type(self._calib_matrix) == cv.cvmat else False
 
     def live(self):
@@ -411,16 +420,15 @@ class FrameSource(object):
             elapsed_time = time.time() - start_time
 
             if display.mouse_left:
-                txt = "coord: (" + str(display.mouse_x) + ","\
+                txt = "coord: (" + str(display.mouse_x) + "," \
                       + str(display.mouse_y) + ")"
                 image.dl().text(txt, (10, image.height / 2), color=col)
-                txt = "color: " + str(image.get_pixel(display.mouse_x,\
+                txt = "color: " + str(image.get_pixel(display.mouse_x,
                                                       display.mouse_y))
                 image.dl().text(txt, (10, (image.height / 2) + 10), color=col)
-                print "coord: (" + str(display.mouse_x) + ","\
-                      + str(display.mouse_y) + "), color: "\
+                print "coord: (" + str(display.mouse_x) + "," \
+                      + str(display.mouse_y) + "), color: " \
                       + str(image.get_pixel(display.mouse_x, display.mouse_y))
-
 
             if elapsed_time > 0 and elapsed_time < 5:
                 image.dl().text("In live mode", (10, 10), color=col)
@@ -453,27 +461,27 @@ class Camera(FrameSource):
     on linux by looking for /dev/video* devices.
 
     This class wrappers OpenCV's cvCapture class and associated methods.
-    Read up on OpenCV's CaptureFromCAM method for more details if you need finer
-    control than just basic frame retrieval
+    Read up on OpenCV's CaptureFromCAM method for more details if you need
+    finer control than just basic frame retrieval
 
     """
-    capture = ""   #cvCapture object
+    capture = ""  # cvCapture object
     thread = ""
     pygame_camera = False
     pygame_buffer = ""
 
-
     prop_map = {"width": cv.CV_CAP_PROP_FRAME_WIDTH,
-        "height": cv.CV_CAP_PROP_FRAME_HEIGHT,
-        "brightness": cv.CV_CAP_PROP_BRIGHTNESS,
-        "contrast": cv.CV_CAP_PROP_CONTRAST,
-        "saturation": cv.CV_CAP_PROP_SATURATION,
-        "hue": cv.CV_CAP_PROP_HUE,
-        "gain": cv.CV_CAP_PROP_GAIN,
-        "exposure": cv.CV_CAP_PROP_EXPOSURE}
+                "height": cv.CV_CAP_PROP_FRAME_HEIGHT,
+                "brightness": cv.CV_CAP_PROP_BRIGHTNESS,
+                "contrast": cv.CV_CAP_PROP_CONTRAST,
+                "saturation": cv.CV_CAP_PROP_SATURATION,
+                "hue": cv.CV_CAP_PROP_HUE,
+                "gain": cv.CV_CAP_PROP_GAIN,
+                "exposure": cv.CV_CAP_PROP_EXPOSURE}
     #human readable to CV constant property mapping
 
-    def __init__(self, camera_index=-1, prop_set={}, threaded=True, calibrationfile=''):
+    def __init__(self, camera_index=-1, prop_set={}, threaded=True,
+                 calibrationfile=''):
         """
         **SUMMARY**
 
@@ -514,16 +522,16 @@ class Camera(FrameSource):
         self.threaded = False
         self.capture = None
 
-        if SYSTEM == "Linux" and -1 in _index and\
-          camera_index != -1 and camera_index not in _index:
-            process = subprocess.Popen(["lsof /dev/video"+str(camera_index)],
-                                        shell=True, stdout=subprocess.PIPE)
+        if SYSTEM == "Linux" and -1 in _index \
+                and camera_index != -1 and camera_index not in _index:
+            process = subprocess.Popen(["lsof /dev/video" + str(camera_index)],
+                                       shell=True, stdout=subprocess.PIPE)
             (stdoutdata, _) = process.communicate()
             if stdoutdata:
                 camera_index = -1
 
-        elif SYSTEM == "Linux" and\
-          camera_index == -1 and -1 not in _index:
+        elif SYSTEM == "Linux" \
+                and camera_index == -1 and -1 not in _index:
             process = subprocess.Popen(["lsof /dev/video*"],
                                        shell=True, stdout=subprocess.PIPE)
             (stdoutdata, _) = process.communicate()
@@ -551,30 +559,33 @@ class Camera(FrameSource):
         if "delay" in prop_set:
             time.sleep(prop_set['delay'])
 
-        if SYSTEM == "Linux" and (prop_set.has_key("height") or\
-          cv.GrabFrame(self.capture) == False):
+        if SYSTEM == "Linux" and ("height" in prop_set
+                                  or not cv.GrabFrame(self.capture)):
             import pygame.camera
+
             pygame.camera.init()
-            threaded = True  #pygame must be threaded
+            threaded = True  # pygame must be threaded
             if camera_index == -1:
                 camera_index = 0
                 self.index = camera_index
                 _index.append(camera_index)
                 print _index
-            if prop_set.has_key("height") and prop_set.has_key("width"):
+            if "height" in prop_set and "width" in prop_set:
                 self.capture = pygame.camera.Camera("/dev/video" +
                                                     str(camera_index),
-                                        (prop_set['width'], prop_set['height']))
+                                                    (prop_set['width'],
+                                                     prop_set['height']))
             else:
                 self.capture = pygame.camera.Camera("/dev/video" +
-                                                     str(camera_index))
+                                                    str(camera_index))
 
             try:
                 self.capture.start()
             except Exception, e:
                 logger.warning("caught exception: %r", e)
-                logger.warning("SimpleCV can't seem to find a camera on your \
-                             system, or the drivers do not work with SimpleCV.")
+                logger.warning("SimpleCV can't seem to find a camera on your "
+                               "system, or the drivers do not work with "
+                               "simplecv.")
                 return
             time.sleep(0)
             self.pygame_buffer = self.capture.get_image()
@@ -602,7 +613,7 @@ class Camera(FrameSource):
                 _camera_polling_thread = FrameBufferThread()
                 _camera_polling_thread.daemon = True
                 _camera_polling_thread.start()
-                time.sleep(0) #yield to thread
+                time.sleep(0)  # yield to thread
 
         if calibrationfile:
             self.load_calibration(calibrationfile)
@@ -768,7 +779,8 @@ class VirtualCamera(FrameSource):
             return None
 
         else:
-            if isinstance(self.source, str) and not os.path.exists(self.source):
+            if isinstance(self.source, str) and not os.path.exists(
+                    self.source):
                 print 'Error: In VirtualCamera()\n\t"%s" \
                        was not found.' % self.source
                 return None
@@ -787,13 +799,12 @@ class VirtualCamera(FrameSource):
                     the contents of your ImageSet, it must be a directory, \
                     list of directories, or an ImageSet object')
 
-
         elif self.sourcetype == 'video':
 
             self.capture = cv.CaptureFromFile(self.source)
             cv.SetCaptureProperty(self.capture,
                                   cv.CV_CAP_PROP_POS_FRAMES,
-                                  self.start-1)
+                                  self.start - 1)
 
         elif self.sourcetype == 'directory':
             pass
@@ -871,13 +882,13 @@ class VirtualCamera(FrameSource):
             if not start:
                 cv.SetCaptureProperty(self.capture,
                                       cv.CV_CAP_PROP_POS_FRAMES,
-                                      self.start-1)
+                                      self.start - 1)
             else:
                 if start == 0:
                     start = 1
                 cv.SetCaptureProperty(self.capture,
                                       cv.CV_CAP_PROP_POS_FRAMES,
-                                      start-1)
+                                      start - 1)
 
         else:
             self.counter = 0
@@ -904,11 +915,11 @@ class VirtualCamera(FrameSource):
 
         """
         if self.sourcetype == 'video':
-            number_frame = int(cv.GetCaptureProperty(self.capture,
-                                                     cv.CV_CAP_PROP_POS_FRAMES))
+            number_frame = int(cv.GetCaptureProperty(
+                self.capture, cv.CV_CAP_PROP_POS_FRAMES))
             cv.SetCaptureProperty(self.capture,
                                   cv.CV_CAP_PROP_POS_FRAMES,
-                                  frame-1)
+                                  frame - 1)
             img = self.get_image()
             cv.SetCaptureProperty(self.capture,
                                   cv.CV_CAP_PROP_POS_FRAMES,
@@ -949,8 +960,8 @@ class VirtualCamera(FrameSource):
 
         """
         if self.sourcetype == 'video':
-            number_frame = int(cv.GetCaptureProperty(self.capture,
-                                                     cv.CV_CAP_PROP_POS_FRAMES))
+            number_frame = int(cv.GetCaptureProperty(
+                self.capture, cv.CV_CAP_PROP_POS_FRAMES))
             cv.SetCaptureProperty(self.capture,
                                   cv.CV_CAP_PROP_POS_FRAMES,
                                   number_frame + number - 1)
@@ -982,8 +993,8 @@ class VirtualCamera(FrameSource):
 
         """
         if self.sourcetype == 'video':
-            number_frame = int(cv.GetCaptureProperty(self.capture,
-                                                     cv.CV_CAP_PROP_POS_FRAMES))
+            number_frame = int(cv.GetCaptureProperty(
+                self.capture, cv.CV_CAP_PROP_POS_FRAMES))
             return number_frame
         else:
             return self.counter
@@ -1056,11 +1067,11 @@ class VirtualCamera(FrameSource):
                         #max_file = fname
                         self.lastmtime = mtime
                         max_full_path = os.path.abspath(
-                                                   os.path.join(dirname, fname))
+                            os.path.join(dirname, fname))
 
         #if file is being written, block until mtime is at least 100ms old
         while time.mktime(time.localtime()) - \
-              os.stat(max_full_path).st_mtime < 0.1:
+                os.stat(max_full_path).st_mtime < 0.1:
             time.sleep(0)
 
         return max_full_path
@@ -1089,8 +1100,9 @@ class Kinect(FrameSource):
         """
         self.device_number = device_number
         if not FREENECT_ENABLED:
-            logger.warning("You don't seem to have the freenect library \
-                            installed. This will make it hard to use a Kinect.")
+            logger.warning("You don't seem to have the freenect library "
+                           "installed. This will make it hard to use "
+                           "a Kinect.")
 
     #this code was borrowed from
     #https://github.com/amiller/libfreenect-goodies
@@ -1112,8 +1124,9 @@ class Kinect(FrameSource):
 
         """
         if not FREENECT_ENABLED:
-            logger.warning("You don't seem to have the freenect library \
-                            installed. This will make it hard to use a Kinect.")
+            logger.warning("You don't seem to have the freenect library "
+                           "installed. This will make it hard to use "
+                           "a Kinect.")
             return
 
         video = freenect.sync_get_video(self.device_number)[0]
@@ -1143,13 +1156,14 @@ class Kinect(FrameSource):
         """
 
         if not FREENECT_ENABLED:
-            logger.warning("You don't seem to have the freenect library \
-                            installed. This will make it hard to use a Kinect.")
+            logger.warning("You don't seem to have the freenect library "
+                           "installed. This will make it hard to use "
+                           "a Kinect.")
             return
 
         depth = freenect.sync_get_depth(self.device_number)[0]
         self.capture_time = time.time()
-        np.clip(depth, 0, 2**10 - 1, depth)
+        np.clip(depth, 0, 2 ** 10 - 1, depth)
         depth >>= 2
         depth = depth.astype(np.uint8).transpose()
 
@@ -1160,8 +1174,9 @@ class Kinect(FrameSource):
     def get_depth_matrix(self):
 
         if not FREENECT_ENABLED:
-            logger.warning("You don't seem to have the freenect library \
-                            installed. This will make it hard to use a Kinect.")
+            logger.warning("You don't seem to have the freenect library "
+                           "installed. This will make it hard to use "
+                           "a Kinect.")
             return
 
         self.capture_time = time.time()
@@ -1205,11 +1220,11 @@ class JpegStreamReader(threading.Thread):
             stream_file = urllib2.urlopen(self.url)
 
         headers = stream_file.info()
-        if headers.has_key("content-type"):
+        if "content-type" in headers:
             # force ucase first char
             headers['Content-type'] = headers['content-type']
 
-        if not headers.has_key("Content-type"):
+        if "Content-type" not in headers:
             logger.warning("Tried to load a JpegStream from " + self.url +
                            ", but didn't find a content-type header!")
             return
@@ -1246,8 +1261,8 @@ class JpegStreamReader(threading.Thread):
                 (_, length) = data.split(":")
                 length = int(length.strip())
 
-            if re.search("JFIF", data, re.I) or\
-              re.search("\xff\xd8\xff\xdb", data) or len(data) > 55:
+            if re.search("JFIF", data, re.I) or \
+                    re.search("\xff\xd8\xff\xdb", data) or len(data) > 55:
                 # we have reached the start of the image
                 buff = ''
                 if length and length > len(data):
@@ -1266,8 +1281,8 @@ class JpegStreamReader(threading.Thread):
                     data = boundary
                     continue
 
-            data = stream_file.readline() #load the next (header) line
-            time.sleep(0) #let the other threads go
+            data = stream_file.readline()  # load the next (header) line
+            time.sleep(0)  # let the other threads go
 
     def get_thread_capture_time(self):
         return self._thread_capture_time
@@ -1335,6 +1350,7 @@ class JpegStreamCamera(FrameSource):
 
 _SANE_INIT = False
 
+
 class Scanner(FrameSource):
     """
     **SUMMARY**
@@ -1377,9 +1393,10 @@ class Scanner(FrameSource):
     max_x = None
     max_y = None
 
-    def __init__(self, id=0, properties={"mode":"color"}):
+    def __init__(self, id=0, properties={"mode": "color"}):
         global _SANE_INIT
         import sane
+
         if not _SANE_INIT:
             try:
                 sane.init()
@@ -1397,7 +1414,7 @@ class Scanner(FrameSource):
 
         self.device = sane.open(self.usbid)
         self.max_x = self.device.br_x
-        self.max_y = self.device.br_y #save our extents for later
+        self.max_y = self.device.br_y  # save our extents for later
 
         for name, value in properties.items():
             setattr(self.device, name, value)
@@ -1552,7 +1569,8 @@ class Scanner(FrameSource):
     def px2mm(self, pixels=1):
         """
         **SUMMARY**
-        Helper function to convert native scanner resolution to millimeter units
+        Helper function to convert native scanner resolution to millimeter
+        units
 
         **RETURNS**
         Float value
@@ -1568,8 +1586,8 @@ class DigitalCamera(FrameSource):
     """
     **SUMMARY**
 
-    The DigitalCamera takes a point-and-shoot camera or high-end slr and uses it
-    as a Camera.  The current frame can always be accessed with getPreview()
+    The DigitalCamera takes a point-and-shoot camera or high-end slr and uses
+    it as a Camera.  The current frame can always be accessed with getPreview()
 
     Requires the PiggyPhoto Library: https://github.com/alexdu/piggyphoto
 
@@ -1659,7 +1677,8 @@ class ScreenCamera():
     ScreenCapture is a camera class would allow you to capture
     all or part of the screen and return it as a color image.
 
-    Requires the pyscreenshot Library: https://github.com/vijaym123/pyscreenshot
+    Requires the pyscreenshot Library: https://github.com/vijaym123/
+    pyscreenshot
 
     **EXAMPLE**
     >>> sc = ScreenCamera()
@@ -1673,9 +1692,8 @@ class ScreenCamera():
 
     def __init__(self):
         if not PYSCREENSHOT_ENABLED:
-            warnings.warn("Initializing pyscreenshot failed. \
-                pyscreenshot not found.")
-            return None
+            warnings.warn("Initializing pyscreenshot failed. "
+                          "pyscreenshot not found.")
 
     @classmethod
     def get_resolution(cls):
@@ -1762,6 +1780,7 @@ def set_obj_param(obj, params, param_name):
     if param_value is not None:
         setattr(obj, param_name, param_value)
 
+
 class StereoImage(object):
     """
     **SUMMARY**
@@ -1809,7 +1828,8 @@ class StereoImage(object):
         """
         **SUMMARY**
 
-        This method returns the fundamental matrix F such that (P_2).T F P_1 = 0
+        This method returns the fundamental matrix F
+        such that (P_2).T F P_1 = 0
 
         **PARAMETERS**
 
@@ -1840,7 +1860,7 @@ class StereoImage(object):
         (kpts1, desc1) = self.image_left._get_raw_keypoints(thresh)
         (kpts2, desc2) = self.image_right._get_raw_keypoints(thresh)
 
-        if desc1 == None or desc2 == None:
+        if desc1 is None or desc2 is None:
             logger.warning("We didn't get any descriptors. Image might \
                             be too uniform or blurry.")
             return None
@@ -1868,7 +1888,7 @@ class StereoImage(object):
         matched_pts1 = pts1[idx[result]].squeeze()
         matched_pts2 = pts2[result]
         (fnd_mat, mask) = cv2.findFundamentalMat(matched_pts1, matched_pts2,
-                                                  method=cv.CV_FM_LMEDS)
+                                                 method=cv.CV_FM_LMEDS)
 
         inlier_ind = mask.nonzero()[0]
         matched_pts1 = matched_pts1[inlier_ind, :]
@@ -1876,7 +1896,7 @@ class StereoImage(object):
 
         matched_pts1 = matched_pts1[:, ::-1.00]
         matched_pts2 = matched_pts2[:, ::-1.00]
-        return (fnd_mat, matched_pts1, matched_pts2)
+        return fnd_mat, matched_pts1, matched_pts2
 
     def find_homography(self, thresh=500.00, min_dist=0.15):
         """
@@ -1914,7 +1934,7 @@ class StereoImage(object):
         (kpts1, desc1) = self.image_left._get_raw_keypoints(thresh)
         (kpts2, desc2) = self.image_right._get_raw_keypoints(thresh)
 
-        if desc1 == None or desc2 == None:
+        if desc1 is None or desc2 is None:
             logger.warning("We didn't get any descriptors. Image might be \
                             too uniform or blurry.")
             return None
@@ -1950,7 +1970,7 @@ class StereoImage(object):
 
         matched_pts1 = matched_pts1[:, ::-1.00]
         matched_pts2 = matched_pts2[:, ::-1.00]
-        return (hmg, matched_pts1, matched_pts2)
+        return hmg, matched_pts1, matched_pts2
 
     def find_disparity_map(self, n_disparity=16, method='BM'):
         """
@@ -1959,12 +1979,14 @@ class StereoImage(object):
         **PARAMETERS**
 
         * *method* :
-                 *BM* - Block Matching algorithm, this is a real time algorithm.
+                 *BM* - Block Matching algorithm, this is a real time
+                 algorithm.
                  *SGBM* - Semi Global Block Matching algorithm,
                           this is not a real time algorithm.
                  *GC* - Graph Cut algorithm, This is not a real time algorithm.
 
-        * *n_disparity* - Maximum disparity value. This should be multiple of 16
+        * *n_disparity* - Maximum disparity value. This should be multiple
+        of 16
         * *scale* - Scale factor
 
         **RETURNS**
@@ -1985,7 +2007,7 @@ class StereoImage(object):
         if n_disparity % 16 != 0:
             if n_disparity < 16:
                 n_disparity = 16
-            n_disparity = (n_disparity/16)*16
+            n_disparity = (n_disparity / 16) * 16
         try:
             if method == 'BM':
                 dsp = cv.CreateMat(colums, rows, cv.CV_32F)
@@ -2000,11 +2022,13 @@ class StereoImage(object):
                 #state.speckleRange = 32
                 #state.speckleWindowSize = 100
                 state.uniquenessRatio = 15
-                cv.FindStereoCorrespondenceBM(gray_left, gray_right, dsp, state)
+                cv.FindStereoCorrespondenceBM(gray_left, gray_right, dsp,
+                                              state)
                 dsp_visual = cv.CreateMat(colums, rows, cv.CV_8U)
                 cv.Normalize(dsp, dsp_visual, 0, 256, cv.CV_MINMAX)
                 dsp_visual = Image(dsp_visual)
-                return Image(dsp_visual.get_bitmap(), colorSpace=ColorSpace.GRAY)
+                return Image(dsp_visual.get_bitmap(),
+                             colorSpace=ColorSpace.GRAY)
 
             elif method == 'GC':
                 dsp_left = cv.CreateMat(colums, rows, cv.CV_32F)
@@ -2023,9 +2047,11 @@ class StereoImage(object):
             elif method == 'SGBM':
                 try:
                     import cv2
+
                     ver = cv2.__version__
                     if ver.startswith("$Rev :"):
-                        logger.warning("Can't use SGBM without OpenCV >= 2.4.0")
+                        logger.warning(
+                            "Can't use SGBM without OpenCV >= 2.4.0")
                         return None
                 except ImportError:
                     logger.warning("Can't use SGBM without OpenCV >= 2.4.0")
@@ -2056,7 +2082,7 @@ class StereoImage(object):
                             due to the Images are stereo in nature.")
             return None
 
-    def eline (self, point, fnd_mat, which_image):
+    def eline(self, point, fnd_mat, which_image):
         """
         **SUMMARY**
 
@@ -2095,8 +2121,10 @@ class StereoImage(object):
                                      npArray2cvMat(fnd_mat), line)
         line_np_array = np.array(line).squeeze()
         line_np_array = line_np_array[[1.00, 0, 2]]
-        pts1 = (pts1[0], (-line_np_array[2]-line_np_array[0]*pts1[0])/line_np_array[1])
-        pts2 = (pts2[0], (-line_np_array[2]-line_np_array[0]*pts2[0])/line_np_array[1])
+        pts1 = (pts1[0], (-line_np_array[2] - line_np_array[0] * pts1[0])
+                / line_np_array[1])
+        pts2 = (pts2[0], (-line_np_array[2] - line_np_array[0] * pts2[0])
+                / line_np_array[1])
         if which_image == 1:
             return Line(self.image_left, [pts1, pts2])
         elif which_image == 2:
@@ -2137,7 +2165,7 @@ class StereoImage(object):
         else:
             corres_pt = np.linalg.inv(hmg) * point.T
         corres_pt = corres_pt / corres_pt[2]
-        return (float(corres_pt[1]), float(corres_pt[0]))
+        return float(corres_pt[1]), float(corres_pt[0])
 
     def get_3d_image(self, rpj_mat, method="BM", state=None):
         """
@@ -2191,6 +2219,7 @@ class StereoImage(object):
         except ImportError:
             cv2flag = False
         import cv2.cv as cv
+
         (rows, colums) = self.size
         if method == "BM":
             sbm = cv.CreateStereoBMState()
@@ -2212,11 +2241,10 @@ class StereoImage(object):
             set_obj_param(sbm, state, "textureThreshold")
             set_obj_param(sbm, state, "preFilterType")
 
-
-
             gray_left = img_left.get_grayscale_matrix()
             gray_right = img_right.get_grayscale_matrix()
-            cv.FindStereoCorrespondenceBM(gray_left, gray_right, disparity, sbm)
+            cv.FindStereoCorrespondenceBM(gray_left, gray_right, disparity,
+                                          sbm)
             disparity_visual = cv.CreateMat(colums, rows, cv.CV_8U)
 
         elif method == "SGBM":
@@ -2231,7 +2259,6 @@ class StereoImage(object):
                          "speckleRange": 8, "disp12MaxDiff": 1,
                          "fullDP": False}
                 set_obj_param(sbm, state, "disp12MaxDiff")
-
 
             set_obj_param(sbm, state, "SADWindowSize")
             set_obj_param(sbm, state, "preFilterCap")
@@ -2335,7 +2362,8 @@ class StereoImage(object):
 class StereoCamera(object):
     """
     Stereo Camera is a class dedicated for calibration stereo camera.
-    It also has functionalites for rectification and getting undistorted Images.
+    It also has functionalites for rectification and getting undistorted
+    Images.
 
     This class can be used to calculate various parameters
     related to both the camera's :
@@ -2350,8 +2378,8 @@ class StereoCamera(object):
     def __init__(self):
         return
 
-    def stereo_calibration(self, cam_left, cam_right, nboards=30,\
-                           chessboard=(8, 5), grid_size=0.027,\
+    def stereo_calibration(self, cam_left, cam_right, nboards=30,
+                           chessboard=(8, 5), grid_size=0.027,
                            win_size=(352, 288)):
         """
 
@@ -2368,7 +2396,8 @@ class StereoCamera(object):
         * cam_left - Left camera index.
         * cam_right - Right camera index.
         * nboards - Number of samples or multiple views of the chessboard in
-                    different positions and orientations with your stereo camera
+                    different positions and orientations with your stereo
+                    camera
         * chessboard - A tuple of Cols, Rows in
                        the chessboard (used for calibration).
         * grid_size - chessboard grid size in real units
@@ -2408,7 +2437,7 @@ class StereoCamera(object):
             cv.SetCaptureProperty(capture_left, cv.CV_CAP_PROP_FRAME_HEIGHT,
                                   win_size[1])
             frame_left = cv.QueryFrame(capture_left)
-            cv.FindChessboardCorners(frame_left, (chessboard))
+            cv.FindChessboardCorners(frame_left, chessboard)
 
             capture_right = cv.CaptureFromCAM(cam_right)
             cv.SetCaptureProperty(capture_right, cv.CV_CAP_PROP_FRAME_WIDTH,
@@ -2416,7 +2445,7 @@ class StereoCamera(object):
             cv.SetCaptureProperty(capture_right, cv.CV_CAP_PROP_FRAME_HEIGHT,
                                   win_size[1])
             frame_right = cv.QueryFrame(capture_right)
-            cv.FindChessboardCorners(frame_right, (chessboard))
+            cv.FindChessboardCorners(frame_right, chessboard)
         except Exception:
             print "Error Initialising the Left and Right camera"
             return None
@@ -2436,7 +2465,8 @@ class StereoCamera(object):
         D1 = cv.CreateMat(1, 5, cv.CV_64F)
         D2 = cv.CreateMat(1, 5, cv.CV_64F)
 
-        # matrices governing the rotation and translation from camera 1 to camera 2
+        # matrices governing the rotation and translation from camera 1
+        # to camera 2
         R = cv.CreateMat(3, 3, cv.CV_64F)
         T = cv.CreateMat(3, 1, cv.CV_64F)
 
@@ -2451,15 +2481,15 @@ class StereoCamera(object):
             cv.Flip(frame_right, frame_right, 1)
             k = cv.WaitKey(3)
 
-            cor1 = cv.FindChessboardCorners(frame_left, (chessboard))
+            cor1 = cv.FindChessboardCorners(frame_left, chessboard)
             if cor1[0]:
-                cv.DrawChessboardCorners(frame_left, (chessboard),
+                cv.DrawChessboardCorners(frame_left, chessboard,
                                          cor1[1], cor1[0])
                 cv.ShowImage(left, frame_left)
 
-            cor2 = cv.FindChessboardCorners(frame_right, (chessboard))
+            cor2 = cv.FindChessboardCorners(frame_right, chessboard)
             if cor2[0]:
-                cv.DrawChessboardCorners(frame_right, (chessboard),
+                cv.DrawChessboardCorners(frame_right, chessboard,
                                          cor2[1], cor2[0])
                 cv.ShowImage(right, frame_right)
 
@@ -2479,13 +2509,12 @@ class StereoCamera(object):
                     for i in range(nboards):
                         for j in range(chessboard[1]):
                             for k in range(chessboard[0]):
-                                cv.Set1D(object_points, i * cbrd_mlt +\
-                                         j * chessboard[0] + k,
+                                cv.Set1D(object_points,
+                                         i * cbrd_mlt + j * chessboard[0] + k,
                                          (k * grid_size, j * grid_size, 0))
 
                     for i in range(nboards):
                         cv.Set1D(num_points, i, cbrd_mlt)
-
 
                     cv.SetIdentity(CM1)
                     cv.SetIdentity(CM2)
@@ -2495,14 +2524,14 @@ class StereoCamera(object):
                     print "Running stereo calibration..."
                     del cam_left
                     del cam_right
-                    cv.StereoCalibrate(object_points, image_points1,
-                                       image_points2, num_points, CM1, D1, CM2,
-                                       D2, win_size, R, T, E, F,
-                                      flags=cv.CV_CALIB_SAME_FOCAL_LENGTH | \
-                                            cv.CV_CALIB_ZERO_TANGENT_DIST)
+                    cv.StereoCalibrate(
+                        object_points, image_points1, image_points2,
+                        num_points, CM1, D1, CM2, D2, win_size, R, T, E, F,
+                        flags=cv.CV_CALIB_SAME_FOCAL_LENGTH
+                        | cv.CV_CALIB_ZERO_TANGENT_DIST)
 
                     print "Done."
-                    return (CM1, CM2, D1, D2, R, T, E, F)
+                    return CM1, CM2, D1, D2, R, T, E, F
 
             cv.ShowImage(left, frame_left)
             cv.ShowImage(right, frame_right)
@@ -2555,9 +2584,9 @@ class StereoCamera(object):
         >>> calibration = StereoCam.stereo_calibration(1,2,nboards=40)
         >>> StereoCam.save_calibration(calibration,fname="Stereo1")
         """
-        filenames = (fname+"CM1.txt", fname+"CM2.txt", fname+"D1.txt",
-                     fname+"D2.txt", fname+"R.txt", fname+"T.txt",
-                     fname+"E.txt", fname+"F.txt")
+        filenames = (fname + "CM1.txt", fname + "CM2.txt", fname + "D1.txt",
+                     fname + "D2.txt", fname + "R.txt", fname + "T.txt",
+                     fname + "E.txt", fname + "F.txt")
         try:
             (CM1, CM2, D1, D2, R, T, E, F) = calibration
             cv.Save("{0}/{1}".format(cdir, filenames[0]), CM1)
@@ -2611,9 +2640,9 @@ class StereoCamera(object):
         >>> loadedCalibration = StereoCam.load_calibration(fname="Stereo1")
 
         """
-        filenames = (fname+"CM1.txt", fname+"CM2.txt", fname+"D1.txt",
-                    fname+"D2.txt", fname+"R.txt", fname+"T.txt",
-                    fname+"E.txt", fname+"F.txt")
+        filenames = (fname + "CM1.txt", fname + "CM2.txt", fname + "D1.txt",
+                     fname + "D2.txt", fname + "R.txt", fname + "T.txt",
+                     fname + "E.txt", fname + "F.txt")
         try:
             CM1 = cv.Load("{0}/{1}".format(dir, filenames[0]))
             CM2 = cv.Load("{0}/{1}".format(dir, filenames[1]))
@@ -2624,12 +2653,12 @@ class StereoCamera(object):
             E = cv.Load("{0}/{1}".format(dir, filenames[6]))
             F = cv.Load("{0}/{1}".format(dir, filenames[7]))
             print "Calibration files loaded from dir '{0}'.".format(dir)
-            return (CM1, CM2, D1, D2, R, T, E, F)
+            return CM1, CM2, D1, D2, R, T, E, F
 
         except Exception:
             return False
 
-    def stereo_rectify(self, calibration=None, win_size=(352,288)):
+    def stereo_rectify(self, calibration=None, win_size=(352, 288)):
         """
 
         **SUMMARY**
@@ -2686,9 +2715,9 @@ class StereoCamera(object):
         roi.append(min(leftroi[2], rightroi[2]))
         roi.append(min(leftroi[3], rightroi[3]))
         print "Done."
-        return (R1, R2, P1, P2, Q, roi)
+        return R1, R2, P1, P2, Q, roi
 
-    def get_images_undistort(self, img_left, img_right, calibration,\
+    def get_images_undistort(self, img_left, img_right, calibration,
                              rectification, win_size=(352, 288)):
         """
         **SUMMARY**
@@ -2736,7 +2765,8 @@ class StereoCamera(object):
         cv.Remap(img_right, dst2, map2x, map2y)
         return Image(dst1), Image(dst2)
 
-    def get_3d_image(self, left_index, right_index, rpj_mat, method="BM", state=None):
+    def get_3d_image(self, left_index, right_index, rpj_mat, method="BM",
+                     state=None):
         """
         **SUMMARY**
 
@@ -2837,14 +2867,12 @@ class AVTCameraThread(threading.Thread):
     logger = None
     framerate = 0
 
-
     def __init__(self, camera):
         super(AVTCameraThread, self).__init__()
         self._stop = threading.Event()
         self.camera = camera
         self.lock = threading.Lock()
         self.name = 'Thread-Camera-ID-' + str(self.camera.uniqueid)
-
 
     def run(self):
         counter = 0
@@ -2856,9 +2884,10 @@ class AVTCameraThread(threading.Thread):
             frame = self.camera._get_frame(1000)
 
             if frame:
-                img = Image(pil.fromstring(self.camera.imgformat,
-                           (self.camera.width, self.camera.height),
-                        frame.ImageBuffer[:int(frame.ImageBufferSize)]))
+                img = Image(pil.fromstring(
+                    self.camera.imgformat,
+                    (self.camera.width, self.camera.height),
+                    frame.ImageBuffer[:int(frame.ImageBufferSize)]))
             self.camera._buffer.appendleft(img)
 
             self.camera.runCommand("AcquisitionStop")
@@ -2870,8 +2899,6 @@ class AVTCameraThread(threading.Thread):
                 self.camera.framerate = counter
                 counter = 0
                 timestamp = time.time()
-
-
 
     def stop(self):
         self._stop.set()
@@ -2904,7 +2931,9 @@ AVT_CAMERA_ERRORS = [
     ("ePvErrForbidden", "Attribute write forbidden at this time"),
     ("ePvErrUnavailable", "Attribute is not available at this time"),
     ("ePvErrFirewall", "A firewall is blocking the traffic (Windows only)"),
-  ]
+]
+
+
 def pverr(errcode):
     if errcode:
         raise Exception(": ".join(AVT_CAMERA_ERRORS[errcode]))
@@ -2936,11 +2965,10 @@ class AVTCamera(FrameSource):
     >>> img.show()
     """
 
-
-    _buffer = None # Buffer to store images
-    _buffersize = 10 # Number of images to keep
-                     # in the rolling image buffer for threads
-    _lastimage = None # Last image loaded into memory
+    _buffer = None  # Buffer to store images
+    _buffersize = 10  # Number of images to keep
+    # in the rolling image buffer for threads
+    _lastimage = None  # Last image loaded into memory
     _thread = None
     _framerate = 0
     threaded = False
@@ -3089,9 +3117,7 @@ class AVTCamera(FrameSource):
         "StatPacketsReceived": ("Uint32", "R/V"),
         "StatPacketsRequested": ("Uint32", "R/V"),
         "StatPacketResent": ("Uint32", "R/V")
-        }
-
-
+    }
 
     class AVTCameraInfo(ct.Structure):
         """
@@ -3112,19 +3138,19 @@ class AVTCamera(FrameSource):
         _fields_ = [
             ("StructVer", ct.c_ulong),
             ("UniqueId", ct.c_ulong),
-            ("CameraName", ct.c_char*32),
-            ("ModelName", ct.c_char*32),
-            ("PartNumber", ct.c_char*32),
-            ("SerialNumber", ct.c_char*32),
-            ("FirmwareVersion", ct.c_char*32),
+            ("CameraName", ct.c_char * 32),
+            ("ModelName", ct.c_char * 32),
+            ("PartNumber", ct.c_char * 32),
+            ("SerialNumber", ct.c_char * 32),
+            ("FirmwareVersion", ct.c_char * 32),
             ("PermittedAccess", ct.c_long),
             ("InterfaceId", ct.c_ulong),
             ("InterfaceType", ct.c_int)
         ]
 
         def __repr__(self):
-            return "<SimpleCV.Camera.AVTCameraInfo - \
-                    UniqueId: %s>" % (self.UniqueId)
+            return "<SimpleCV.Camera.AVTCameraInfo " \
+                   "- UniqueId: %s>" % self.UniqueId
 
     class AVTFrame(ct.Structure):
         _fields_ = [
@@ -3132,8 +3158,8 @@ class AVTCamera(FrameSource):
             ("ImageBufferSize", ct.c_ulong),
             ("AncillaryBuffer", ct.c_int),
             ("AncillaryBufferSize", ct.c_int),
-            ("Context", ct.c_int*4),
-            ("_reserved1", ct.c_ulong*8),
+            ("Context", ct.c_int * 4),
+            ("_reserved1", ct.c_ulong * 8),
 
             ("Status", ct.c_int),
             ("ImageSize", ct.c_ulong),
@@ -3148,7 +3174,7 @@ class AVTCamera(FrameSource):
             ("FrameCount", ct.c_ulong),
             ("TimestampLo", ct.c_ulong),
             ("TimestampHi", ct.c_ulong),
-            ("_reserved2", ct.c_ulong*32)
+            ("_reserved2", ct.c_ulong * 32)
         ]
 
         def __init__(self, buffersize):
@@ -3183,11 +3209,12 @@ class AVTCamera(FrameSource):
         camlist = self.list_all_cameras()
 
         if not len(camlist):
-            raise Exception("Couldn't find any cameras with the PvAVT driver. \
-                           Use SampleViewer to confirm you have one connected.")
+            raise Exception("Couldn't find any cameras with the PvAVT "
+                            "driver. Use SampleViewer to confirm you have one "
+                            "connected.")
 
-        if camera_id < 9000: #camera was passed as an index reference
-            if camera_id == -1:  #accept -1 for "first camera"
+        if camera_id < 9000:  # camera was passed as an index reference
+            if camera_id == -1:  # accept -1 for "first camera"
                 camera_id = 0
 
             camera_id = camlist[camera_id].UniqueId
@@ -3197,11 +3224,11 @@ class AVTCamera(FrameSource):
         init_count = 0
         #wait until camera is availble:
         while self.dll.PvCameraOpen(camera_id, 0, ct.byref(self.handle)) != 0:
-            if init_count > 4: # Try to connect 5 times before giving up
+            if init_count > 4:  # Try to connect 5 times before giving up
                 raise Exception('Could not connect to camera, please \
                                  verify with SampleViewer you can connect')
             init_count += 1
-            time.sleep(1) # sleep and retry to connect to camera in a second
+            time.sleep(1)  # sleep and retry to connect to camera in a second
 
         pverr(self.dll.PvCaptureStart(self.handle))
         self.uniqueid = camera_id
@@ -3228,7 +3255,6 @@ class AVTCamera(FrameSource):
 
         for prop in properties:
             self.set_property(prop, properties[prop])
-
 
         if threaded:
             self._thread = AVTCameraThread(self)
@@ -3258,13 +3284,12 @@ class AVTCamera(FrameSource):
         List of AVTCameraInfo objects, otherwise empty list
 
         """
-        camlist = (self.AVTCameraInfo*100)()
+        camlist = (self.AVTCameraInfo * 100)()
         starttime = time.time()
         while int(camlist[0].UniqueId) == 0 and time.time() - starttime < 10:
             self.dll.PvCameraListEx(ct.byref(camlist), 100,
                                     None, ct.sizeof(self.AVTCameraInfo))
-            time.sleep(0.1) #keep checking for cameras until timeout
-
+            time.sleep(0.1)  # keep checking for cameras until timeout
 
         return [cam for cam in camlist if cam.UniqueId != 0]
 
@@ -3437,9 +3462,9 @@ class AVTCamera(FrameSource):
         else:
             self.run_command("AcquisitionStart")
             frame = self._get_frame()
-            img = Image(pil.fromstring(self.imgformat,
-                                       (self.width, self.height),
-                                frame.ImageBuffer[:int(frame.ImageBufferSize)]))
+            img = Image(pil.fromstring(
+                self.imgformat, (self.width, self.height),
+                frame.ImageBuffer[:int(frame.ImageBufferSize)]))
             self.run_command("AcquisitionStop")
 
         return img
@@ -3453,9 +3478,9 @@ class AVTCamera(FrameSource):
         self.set_property('FrameStartTriggerMode', 'FreeRun')
 
     def unbuffer(self):
-        img = Image(pil.fromstring(self.imgformat,
-                                   (self.width, self.height),
-                      self.frame.ImageBuffer[:int(self.frame.ImageBufferSize)]))
+        img = Image(pil.fromstring(
+            self.imgformat, (self.width, self.height),
+            self.frame.ImageBuffer[:int(self.frame.ImageBufferSize)]))
 
         return img
 
@@ -3477,7 +3502,8 @@ class AVTCamera(FrameSource):
                                                ct.byref(frame), None))
             try:
                 pverr(self.dll.PvCaptureWaitForFrameDone(self.handle,
-                                                      ct.byref(frame), timeout))
+                                                         ct.byref(frame),
+                                                         timeout))
             except Exception, e:
                 print "Exception waiting for frame: ", e
                 raise e
@@ -3494,29 +3520,28 @@ class GigECamera(Camera):
         GigE Camera driver via Aravis
     """
     plist = [
-       'available_pixel_formats',
-       'available_pixel_formats_as_display_names',
-       'available_pixel_formats_as_strings',
-       'binning',
-       'device_id',
-       'exposure_time',
-       'exposure_time_bounds',
-       'frame_rate',
-       'frame_rate_bounds',
-       'gain',
-       'gain_bounds',
-       'height_bounds',
-       'model_name',
-       'payload',
-       'pixel_format',
-       'pixel_format_as_string',
-       'region',
-       'sensor_size',
-       'trigger_source',
-       'vendor_name',
-       'width_bounds'
-      ]
-
+        'available_pixel_formats',
+        'available_pixel_formats_as_display_names',
+        'available_pixel_formats_as_strings',
+        'binning',
+        'device_id',
+        'exposure_time',
+        'exposure_time_bounds',
+        'frame_rate',
+        'frame_rate_bounds',
+        'gain',
+        'gain_bounds',
+        'height_bounds',
+        'model_name',
+        'payload',
+        'pixel_format',
+        'pixel_format_as_string',
+        'region',
+        'sensor_size',
+        'trigger_source',
+        'vendor_name',
+        'width_bounds'
+    ]
 
     #def __init__(self, camera_id=None, properties={}, threaded=False):
     def __init__(self, properties={}, threaded=False):
@@ -3532,7 +3557,6 @@ class GigECamera(Camera):
         self._pixel_mode = "RGB"
         if properties.get("mode", False):
             self._pixel_mode = properties.pop("mode")
-
 
         if self._pixel_mode == "gray":
             self._cam.set_pixel_format(Aravis.PIXEL_FORMAT_MONO_8)
@@ -3598,7 +3622,7 @@ class GigECamera(Camera):
         see function camera.get_property_list()
         '''
 
-        if name == None:
+        if name is None:
             print "You need to provide a property, available properties are:"
             print ""
             for prop in self.get_property_list():
@@ -3623,7 +3647,7 @@ class GigECamera(Camera):
         see function camera.get_property_list()
         '''
 
-        if name == None:
+        if name is None:
             print "You need to provide a property, available properties are:"
             print ""
             for prop in self.get_property_list():
@@ -3642,12 +3666,11 @@ class GigECamera(Camera):
                    is not in correct format'.format(name)
             return None
 
-
     def get_all_properties(self):
         '''
-        This function just prints out all the properties available to the camera
+        This function just prints out all the properties available to the
+        camera
         '''
 
         for prop in self.get_property_list():
             print "{}: {}".format(prop, self.get_property(prop))
-
