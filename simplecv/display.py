@@ -57,7 +57,7 @@ class Display(object):
     * mouse_right: the state of the right button.
     * mouse_middle: the state of the middle button.
     * mouse_wheel_up: scroll wheel has been moved up.
-    * mouse_wheel_down: the wheel has been clicked 
+    * mouse_wheel_down: the wheel has been clicked
                         towards the bottom of the mouse
 
     **EXAMPLE**
@@ -132,14 +132,15 @@ class Display(object):
           * 'standard' - A pygame window.
           * 'notebook' - Ipython Web Notebook output
 
-        * *headless* - If False we ignore healess mode. 
+        * *headless* - If False we ignore healess mode.
                        If true all rendering is suspended.
 
         **EXAMPLE**
 
         Once in IPython you can do the following:
 
-        >>> from SimpleCV import *
+        >>> from simplecv.display import Display
+        >>> from simplecv.image_class import Image
         >>> disp = Display(displaytype='notebook')
         >>> img = Image('simplecv')
         >>> img.save(disp)
@@ -165,14 +166,16 @@ class Display(object):
         self.right_button_down = None
         self.right_button_up = None
         self.pressed = None
-        self.displaytype = displaytype 
+        self.displaytype = displaytype
         # NOTE: NO PYGAME CALLS SHOULD BE MADE IN INIT AS THEY KILLL
-        # THE DISPLAY IN IPYTHON NOTEBOOKS       
-        self.mouse_raw_x = 0  # Raw x and y are the actual position on the screen
+        # THE DISPLAY IN IPYTHON NOTEBOOKS
+
+        # Raw x and y are the actual position on the screen
+        self.mouse_raw_x = 0
         self.mouse_raw_y = 0  # versus the position on the image.
         self.resolution = resolution
         if not displaytype == 'notebook':
-            self.screen = pg.display.set_mode(resolution, flags)        
+            self.screen = pg.display.set_mode(resolution, flags)
         scv_png = 'simplecv.png'
         # checks if simplecv.png exists
         #if os.path.isfile(os.path.join(LAUNCH_PATH, 'sampleimages', scv_png)):
@@ -401,9 +404,9 @@ class Display(object):
         * *img* -  the SimpleCV image to save to the display.
         * *fit* - When fit=False write frame will crop and
                   center the image as best it can.
-          If the image is too big it is cropped and centered. If it is too small
-          it is centered. If it is too big along one axis that axis is cropped
-          and the other axis is centered if necessary.
+          If the image is too big it is cropped and centered. If it is too
+          small it is centered. If it is too big along one axis that axis is
+          cropped and the other axis is centered if necessary.
 
 
         **RETURNS**
@@ -465,7 +468,7 @@ class Display(object):
             else:  # we need to grow the image by a percentage
                 wscale = 1.0-wscale
 
-            if  hscale > 1:
+            if hscale > 1:
                 hscale = 1 - (1.0/hscale)
             else:
                 hscale = 1.0 - hscale
@@ -486,7 +489,8 @@ class Display(object):
                 sfactor = float(self.resolution[0])/float(img.width)
                 targetw = int(float(img.width)*sfactor)
                 targeth = int(float(img.height)*sfactor)
-                if targetw > self.resolution[0] or targeth > self.resolution[1]:
+                if targetw > self.resolution[0] \
+                        or targeth > self.resolution[1]:
                     # aw shucks that still didn't work do the other way instead
                     sfactor = float(self.resolution[1])/float(img.height)
                     targetw = int(float(img.width)*sfactor)
@@ -502,7 +506,8 @@ class Display(object):
                 sfactor = float(self.resolution[1])/float(img.height)
                 targetw = int(float(img.width)*sfactor)
                 targeth = int(float(img.height)*sfactor)
-                if targetw > self.resolution[0] or targeth > self.resolution[1]:
+                if targetw > self.resolution[0] \
+                        or targeth > self.resolution[1]:
                     # aw shucks that still didn't work do the other way instead
                     sfactor = float(self.resolution[0])/float(img.width)
                     targetw = int(float(img.width)*sfactor)
@@ -540,8 +545,9 @@ class Display(object):
                 cornerx = targetx
                 cornery = targety
                 pgsurf = img.get_pg_surface()
-            elif img.width > self.resolution[0] and\
-                 img.height > self.resolution[1]:  # crop too big on both axes
+            elif img.width > self.resolution[0] \
+                    and img.height > self.resolution[1]:
+                # crop too big on both axes
                 targetw = self.resolution[0]
                 targeth = self.resolution[1]
                 targetx = 0
@@ -552,8 +558,8 @@ class Display(object):
                 cornery = -1*y
                 img = img.crop(x, y, targetw, targeth)
                 pgsurf = img.get_pg_surface()
-            elif img.width < self.resolution[0] and\
-                 img.height >= self.resolution[1]:  # height too big
+            elif img.width < self.resolution[0] \
+                    and img.height >= self.resolution[1]:  # height too big
                 # crop along the y dimension and center along the x dimension
                 targetw = img.width
                 targeth = self.resolution[1]
@@ -565,8 +571,8 @@ class Display(object):
                 cornery = -1 * y
                 img = img.crop(x, y, targetw, targeth)
                 pgsurf = img.get_pg_surface()
-            elif img.width > self.resolution[0] and\
-                 img.height <= self.resolution[1]:  # width too big
+            elif img.width > self.resolution[0] \
+                    and img.height <= self.resolution[1]:  # width too big
                 # crop along the y dimension and center along the x dimension
                 targetw = self.resolution[0]
                 targeth = img.height
@@ -600,7 +606,7 @@ class Display(object):
 
     def check_events(self, return_strings=False):
         """
-        
+
         **SUMMARY**
 
         CheckEvents checks the pygame event queue and sets the internal display
@@ -613,9 +619,9 @@ class Display(object):
 
         **PARAMETERS**
 
-        return_strings - pygame returns an enumerated int by default, 
+        return_strings - pygame returns an enumerated int by default,
                          when this is set to true we return a list of strings.
-        
+
         **RETURNS**
 
         A list of key down events. Parse them with pg.K_<lowercase_letter>
@@ -639,8 +645,8 @@ class Display(object):
                 x = int((event.pos[0] - self.xoffset)*self.xscale)
                 y = int((event.pos[1] - self.yoffset)*self.yscale)
                 (self.mouse_x, self.mouse_y) = self._clamp(x, y)
-                self.mouse_left, self.mouse_middle,\
-                self.mouse_right = event.buttons
+                self.mouse_left, self.mouse_middle, self.mouse_right = \
+                    event.buttons
             if event.type == pg.MOUSEBUTTONUP:
 
                 self._set_button_state(0, event.button)
@@ -675,7 +681,8 @@ class Display(object):
         """
         **SUMMARY**
 
-        Checks the event queue and returns True if a quit event has been issued.
+        Checks the event queue and returns True if a quit event has been
+        issued.
 
         **RETURNS**
 

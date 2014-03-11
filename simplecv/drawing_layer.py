@@ -150,10 +150,12 @@ class DrawingLayer:
 
         """
         if antialias and width == 1:
-            pg.draw.aaline(self._mSurface, self._csv_rgb_to_pg_color(color, alpha),
+            pg.draw.aaline(self._mSurface,
+                           self._csv_rgb_to_pg_color(color, alpha),
                            start, stop, width)
         else:
-            pg.draw.line(self._mSurface, self._csv_rgb_to_pg_color(color, alpha),
+            pg.draw.line(self._mSurface,
+                         self._csv_rgb_to_pg_color(color, alpha),
                          start, stop, width)
 
         start_int = tuple(int(x) for x in start)
@@ -188,10 +190,12 @@ class DrawingLayer:
 
         """
         if antialias and width == 1:
-            pg.draw.aalines(self._mSurface, self._csv_rgb_to_pg_color(color, alpha),
+            pg.draw.aalines(self._mSurface,
+                            self._csv_rgb_to_pg_color(color, alpha),
                             0, points, width)
         else:
-            pg.draw.lines(self._mSurface, self._csv_rgb_to_pg_color(color, alpha),
+            pg.draw.lines(self._mSurface,
+                          self._csv_rgb_to_pg_color(color, alpha),
                           0, points, width)
 
         last_point = points[0]
@@ -205,8 +209,8 @@ class DrawingLayer:
     def rectangle(self, top_left, dimensions, color=Color.DEFAULT, width=1,
                   filled=False, alpha=-1):
         """
-        Draw a rectangle given the top_left the (x,y) coordinate of the top left
-        corner and dimensions (w,h) tge width and height
+        Draw a rectangle given the top_left the (x,y) coordinate of the top
+        left corner and dimensions (w,h) tge width and height
 
         color - The object's color as a simple CVColor object, if no value is
                 specified the default is used.
@@ -223,8 +227,8 @@ class DrawingLayer:
         if filled:
             width = 0
         r = pg.Rect((top_left[0], top_left[1]), (dimensions[0], dimensions[1]))
-        pg.draw.rect(self._mSurface, self._csv_rgb_to_pg_color(color, alpha), r,
-                     width)
+        pg.draw.rect(self._mSurface, self._csv_rgb_to_pg_color(color, alpha),
+                     r, width)
 
         tl_int = tuple(int(x) for x in top_left)
         dim_int = tuple(int(x) for x in dimensions)
@@ -266,8 +270,8 @@ class DrawingLayer:
         if filled:
             width = 0
         r = pg.Rect((x, y), (w, h))
-        pg.draw.rect(self._mSurface, self._csv_rgb_to_pg_color(color, alpha), r,
-                     width)
+        pg.draw.rect(self._mSurface, self._csv_rgb_to_pg_color(color, alpha),
+                     r, width)
 
         self._mSVG.add(
             self._mSVG.rect(insert=(int(x), int(y)), size=(int(w), int(h))))
@@ -305,8 +309,8 @@ class DrawingLayer:
         xtl = center[0] - (dimensions[0] / 2)
         ytl = center[1] - (dimensions[1] / 2)
         r = pg.Rect(xtl, ytl, dimensions[0], dimensions[1])
-        pg.draw.rect(self._mSurface, self._csv_rgb_to_pg_color(color, alpha), r,
-                     width)
+        pg.draw.rect(self._mSurface, self._csv_rgb_to_pg_color(color, alpha),
+                     r, width)
 
         dim_int = tuple(int(x) for x in dimensions)
         self._mSVG.add(
@@ -341,10 +345,11 @@ class DrawingLayer:
                                 points, width)
             else:
                 pg.draw.lines(self._mSurface,
-                              self._csv_rgb_to_pg_color(color, alpha), True, points,
-                              width)
+                              self._csv_rgb_to_pg_color(color, alpha), True,
+                              points, width)
         else:
-            pg.draw.polygon(self._mSurface, self._csv_rgb_to_pg_color(color, alpha),
+            pg.draw.polygon(self._mSurface, self._csv_rgb_to_pg_color(color,
+                                                                      alpha),
                             points, width)
         return None
 
@@ -377,7 +382,8 @@ class DrawingLayer:
         if filled:
             width = 0
         if antialias is False or width > 1 or filled:
-            pg.draw.circle(self._mSurface, self._csv_rgb_to_pg_color(color, alpha),
+            pg.draw.circle(self._mSurface,
+                           self._csv_rgb_to_pg_color(color, alpha),
                            center, int(radius), int(width))
         else:
             pg.gfxdraw.aacircle(self._mSurface, int(center[0]), int(center[1]),
@@ -419,8 +425,8 @@ class DrawingLayer:
         r = pg.Rect(center[0] - (dimensions[0] / 2),
                     center[1] - (dimensions[1] / 2), dimensions[0],
                     dimensions[1])
-        pg.draw.ellipse(self._mSurface, self._csv_rgb_to_pg_color(color, alpha), r,
-                        width)
+        pg.draw.ellipse(self._mSurface,
+                        self._csv_rgb_to_pg_color(color, alpha), r, width)
 
         cen_int = tuple(int(x) for x in center)
         dim_int = tuple(int(x) for x in dimensions)
@@ -569,7 +575,8 @@ class DrawingLayer:
         (width, height) of this text being rendered on the screen.
         """
         tsurface = self._mFont.render(text, True,
-                                      self._csv_rgb_to_pg_color(Color.WHITE, 255))
+                                      self._csv_rgb_to_pg_color(Color.WHITE,
+                                                                255))
         return tsurface.get_width(), tsurface.get_height()
 
     def ez_view_text(self, text, location, fgcolor=Color.WHITE,
@@ -587,8 +594,10 @@ class DrawingLayer:
             return
         alpha = 255
         tsurface = self._mFont.render(text, True,
-                                      self._csv_rgb_to_pg_color(fgcolor, alpha),
-                                      self._csv_rgb_to_pg_color(bgcolor, alpha))
+                                      self._csv_rgb_to_pg_color(fgcolor,
+                                                                alpha),
+                                      self._csv_rgb_to_pg_color(bgcolor,
+                                                                alpha))
         self._mSurface.blit(tsurface, location)
 
     def sprite(self, img, pos=(0, 0), scale=1.0, rot=0.0, alpha=255):
