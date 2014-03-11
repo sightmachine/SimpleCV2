@@ -7,10 +7,10 @@ import numpy as np
 
 def get_parallel_sets(line_fs, parallel_thresh=2):
     result = []
-    sz = len(line_fs)
+    size = len(line_fs)
     #construct the pairwise cross product ignoring dupes
-    for i in range(0, sz):
-        for j in range(0, sz):
+    for i in range(0, size):
+        for j in range(0, size):
             if j <= i:
                 result.append(np.Inf)
             else:
@@ -18,10 +18,10 @@ def get_parallel_sets(line_fs, parallel_thresh=2):
 
     result = np.array(result)
     # reshape it
-    result = result.reshape(sz, sz)
+    result = result.reshape(size, size)
     # find the lines that are less than our thresh
-    l1, l2 = np.where(result < parallel_thresh)
-    idxs = zip(l1, l2)
+    line1, line2 = np.where(result < parallel_thresh)
+    idxs = zip(line1, line2)
     result = []
     # now construct the line pairs
     for idx in idxs:
@@ -30,4 +30,5 @@ def get_parallel_sets(line_fs, parallel_thresh=2):
 
 
 def parallel_distance(line1, line2):
+    # FIXME: need to be added
     pass
