@@ -9,25 +9,20 @@ class ColorSegmentation(SegmentationBase):
     Perform color segmentation based on a color model or color provided. This
     class uses color_model.py to create a color model.
     """
-    mColorModel = []
-    mError = False
-    mCurImg = []
-    mTruthImg = []
-    mBlobMaker = []
 
     def __init__(self):
-        self.mColorModel = ColorModel()
-        self.mError = False
-        self.mCurImg = Image()
-        self.mTruthImg = Image()
-        self.mBlobMaker = BlobMaker()
+        self.color_model = ColorModel()
+        self.error = False
+        self.cur_img = Image()
+        self.truth_img = Image()
+        self.blobmaker = BlobMaker()
 
     def add_image(self, img):
         """
         Add a single image to the segmentation algorithm
         """
-        self.mTruthImg = img
-        self.mCurImg = self.mColorModel.threshold(img)
+        self.truth_img = img
+        self.cur_img = self.color_model.threshold(img)
 
     def is_ready(self):
         """
@@ -41,54 +36,54 @@ class ColorSegmentation(SegmentationBase):
         Eventually we'll consruct a syntax of errors so this becomes
         more expressive
         """
-        return self.mError  # need to make a generic error checker
+        return self.error  # need to make a generic error checker
 
     def reset_error(self):
         """
         Clear the previous error.
         """
-        self.mError = False
+        self.error = False
 
     def reset(self):
         """
         Perform a reset of the segmentation systems underlying data.
         """
-        self.mColorModel.reset()
+        self.color_model.reset()
 
     def get_raw_image(self):
         """
         Return the segmented image with white representing the foreground
         and black the background.
         """
-        return self.mCurImg
+        return self.cur_img
 
     def get_segmented_image(self, white_fg=True):
         """
         Return the segmented image with white representing the foreground
         and black the background.
         """
-        return self.mCurImg
+        return self.cur_img
 
     def get_segmented_blobs(self):
         """
         return the segmented blobs from the fg/bg image
         """
-        return self.mBlobMaker.extractFromBinary(self.mCurImg, self.mTruthImg)
+        return self.blobmaker.extractFromBinary(self.cur_img, self.truth_img)
 
     # The following are class specific methods
 
-    def addToModel(self, data):
-        self.mColorModel.add(data)
+    def add_to_model(self, data):
+        self.color_model.add(data)
 
-    def subtractModel(self, data):
-        self.mColorModel.remove(data)
+    def subtract_model(self, data):
+        self.color_model.remove(data)
 
     def __getstate__(self):
         mydict = self.__dict__.copy()
-        self.mBlobMaker = None
+        self.blobmaker = None
         del mydict['blobmaker']
         return mydict
 
     def __setstate__(self, mydict):
         self.__dict__ = mydict
-        self.mBlobMaker = BlobMaker()
+        self.blobmaker = BlobMaker()
