@@ -54,10 +54,10 @@ class RunningSegmentation(SegmentationBase):
                 cv.CreateImage((img.width, img.height), cv.IPL_DEPTH_32F, 3))
         else:
             # do the difference
-            cv.AbsDiff(self.mModelImg.getBitmap(), img.getFPMatrix(),
-                       self.mDiffImg.getBitmap())
+            cv.AbsDiff(self.mModelImg.get_bitmap(), img.get_fp_matrix(),
+                       self.mDiffImg.get_bitmap())
             #update the model
-            cv.RunningAvg(img.getFPMatrix(), self.mModelImg.getBitmap(),
+            cv.RunningAvg(img.get_fp_matrix(), self.mModelImg.get_bitmap(),
                           self.mAlpha)
             self.mReady = True
 
@@ -125,7 +125,7 @@ class RunningSegmentation(SegmentationBase):
         convert a 32bit floating point cv array to an int array
         """
         temp = cv.CreateImage((input.width, input.height), cv.IPL_DEPTH_8U, 3)
-        cv.Convert(input.getBitmap(), temp)
+        cv.Convert(input.get_bitmap(), temp)
 
         return Image(temp)
 

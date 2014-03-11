@@ -32,4 +32,4 @@ class PlayingCard(Feature):
         Nothing - this is an inplace operation that modifies the source images
         drawing layer.
         """
-        self.image.drawCircle((self.x, self.y), 4, color, width)
+        self.image.draw_circle((self.x, self.y), 4, color, width)

@@ -13,12 +13,12 @@ min_size = 0.1 * cam.getProperty("width")*cam.getProperty("height") #Change thre
 thresh = 10 # frme difference threshold
 
 lastImg = cam.getImage();
-lastImg.drawText("Move around to get the party started!", 5,5, fontsize=12)
+lastImg.draw_text("Move around to get the party started!", 5,5, fontsize=12)
 lastImg.show()
 while True:
     newImg = cam.getImage()
     trackImg = newImg - lastImg # difference the images
-    blobs =  trackImg.findBlobs(-1, threshblocksize=99) #use adapative blob detection
+    blobs =  trackImg.find_blobs(-1, threshblocksize=99) #use adapative blob detection
     if blobs:
         blobs.draw(autocolor=True)
         trackImg.show()

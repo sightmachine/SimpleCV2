@@ -2,13 +2,13 @@
 #
 # This library is used to modify different color properties of images
 
-#load required libraries
 import random
-from simplecv.base import *
-from simplecv.image_class import *
+from colorsys import rgb_to_hsv, hsv_to_rgb
+from numpy import array, minimum, maximum, linspace
+from scipy.interpolate import UnivariateSpline
 
 
-class Color:
+class Color(object):
     """
     **SUMMARY**
 
@@ -24,7 +24,6 @@ class Color:
 
     To use Red, for instance if you want to do a line.draw(Color.RED)
     """
-    colorlist = []
 
     #Primary Colors
     BLACK = (0, 0, 0)
@@ -34,14 +33,13 @@ class Color:
     YELLOW = (255, 255, 0)
     RED = (255, 0, 0)
 
-    LEGO_BLUE = (0,50,150)
-    LEGO_ORANGE = (255,150,40)
+    LEGO_BLUE = (0, 50, 150)
+    LEGO_ORANGE = (255, 150, 40)
 
     VIOLET = (181, 126, 220)
     ORANGE = (255, 165, 0)
     GREEN = (0, 128, 0)
     GRAY = (128, 128, 128)
-
 
     #Extended Colors
     IVORY = (255, 255, 240)
@@ -72,54 +70,52 @@ class Color:
     CRIMSON = (220, 20, 60)
     DEFAULT = (0, 0, 0)
     # These are for the grab cut / findBlobsSmart
-    BACKGROUND = (0,0,0)
-    MAYBE_BACKGROUND = (64,64,64)
-    MAYBE_FOREGROUND =  (192,192,192)
-    FOREGROUND = (255,255,255)
-    WATERSHED_FG = (255,255,255) # Watershed foreground
-    WATERSHED_BG = (128,128,128) # Watershed background
-    WATERSHED_UNSURE = (0,0,0) # Watershed either fg or bg color
-    colorlist = [
-                BLACK,
-                WHITE,
-                BLUE,
-                YELLOW,
-                RED,
-                VIOLET,
-                ORANGE,
-                GREEN,
-                GRAY,
-                IVORY,
-                BEIGE,
-                WHEAT,
-                TAN,
-                KHAKI,
-                SILVER,
-                CHARCOAL,
-                NAVYBLUE,
-                ROYALBLUE,
-                MEDIUMBLUE,
-                AZURE,
-                CYAN,
-                AQUAMARINE,
-                TEAL,
-                FORESTGREEN,
-                OLIVE,
-                LIME,
-                GOLD,
-                SALMON,
-                HOTPINK,
-                FUCHSIA,
-                PUCE,
-                PLUM,
-                INDIGO,
-                MAROON,
-                CRIMSON,
-                DEFAULT
-                ]
+    BACKGROUND = (0, 0, 0)
+    MAYBE_BACKGROUND = (64, 64, 64)
+    MAYBE_FOREGROUND = (192, 192, 192)
+    FOREGROUND = (255, 255, 255)
+    WATERSHED_FG = (255, 255, 255)  # Watershed foreground
+    WATERSHED_BG = (128, 128, 128)  # Watershed background
+    WATERSHED_UNSURE = (0, 0, 0)  # Watershed either fg or bg color
+    colorlist = [BLACK,
+                 WHITE,
+                 BLUE,
+                 YELLOW,
+                 RED,
+                 VIOLET,
+                 ORANGE,
+                 GREEN,
+                 GRAY,
+                 IVORY,
+                 BEIGE,
+                 WHEAT,
+                 TAN,
+                 KHAKI,
+                 SILVER,
+                 CHARCOAL,
+                 NAVYBLUE,
+                 ROYALBLUE,
+                 MEDIUMBLUE,
+                 AZURE,
+                 CYAN,
+                 AQUAMARINE,
+                 TEAL,
+                 FORESTGREEN,
+                 OLIVE,
+                 LIME,
+                 GOLD,
+                 SALMON,
+                 HOTPINK,
+                 FUCHSIA,
+                 PUCE,
+                 PLUM,
+                 INDIGO,
+                 MAROON,
+                 CRIMSON,
+                 DEFAULT]
 
     @classmethod
-    def getRandom(cls):
+    def get_random(cls):
         """
         **SUMMARY**
 
@@ -132,17 +128,17 @@ class Color:
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> kp = img.findKeypoints()
+        >>> kp = img.find_keypoints()
         >>> for k in kp:
-        >>>    k.draw(color=Color.getRandom())
+        >>>    k.draw(color=Color.get_random())
         >>> img.show()
 
         """
-        r = random.randint(1, (len(cls.colorlist) - 1))
-        return cls.colorlist[r]
+        r_c = random.randint(1, (len(cls.colorlist) - 1))
+        return cls.colorlist[r_c]
 
-    @classmethod
-    def hsv(cls, tuple):
+    @staticmethod
+    def hsv(color_tuple):
         """
         **SUMMARY**
 
@@ -150,7 +146,7 @@ class Color:
 
         **PARAMETERS**
 
-        * *tuple* - an rgb tuple to convert to HSV.
+        * *color_tuple* - an rgb tuple to convert to HSV.
 
         **RETURNS**
 
@@ -161,13 +157,12 @@ class Color:
         >>> c = Color.RED
         >>> hsvc = Color.hsv(c)
 
-
         """
-        hsv_float = colorsys.rgb_to_hsv(*tuple)
-        return (hsv_float[0] * 180, hsv_float[1] * 255, hsv_float[2])
+        hsv_float = rgb_to_hsv(*color_tuple)
+        return hsv_float[0] * 180, hsv_float[1] * 255, hsv_float[2]
 
-    @classmethod
-    def getHueFromRGB(cls, tuple):
+    @staticmethod
+    def get_hue_from_rgb(color_tuple):
         """
         **SUMMARY**
 
@@ -175,7 +170,7 @@ class Color:
 
         **PARAMETERS**
 
-        * *tuple* - an rgb tuple to convert to HSV.
+        * *color_tuple* - an rgb tuple to convert to HSV.
 
         **RETURNS**
 
@@ -183,15 +178,15 @@ class Color:
 
         **EXAMPLE**
 
-        >>> i = Image("lenna")
-        >>> hue = Color.getHueFromRGB(i[100,300])
+        >>> img = Image("lenna")
+        >>> hue = Color.get_hue_from_rgb(img[100, 300])
 
         """
-        h_float = colorsys.rgb_to_hsv(*tuple)[0]
-        return h_float*180
+        hue_float = rgb_to_hsv(*color_tuple)[0]
+        return hue_float*180
 
-    @classmethod
-    def getHueFromBGR(self,color_tuple):
+    @staticmethod
+    def get_hue_from_bgr(color_tuple):
         """
         **SUMMARY**
 
@@ -207,18 +202,16 @@ class Color:
 
         **EXAMPLE**
 
-        >>> i = Image("lenna")
-        >>> color_tuple = tuple(reversed(i[100,300]))
-        >>> hue = Color.getHueFromRGB(color_tuple)
+        >>> img = Image("lenna")
+        >>> color_tuple = tuple(reversed(img[100, 300]))
+        >>> hue = Color.get_hue_from_rgb(color_tuple)
 
         """
-        a = color_tuple
-        print a
-        h_float = colorsys.rgb_to_hsv(*tuple(reversed(color_tuple)))[0]
+        h_float = rgb_to_hsv(*tuple(reversed(color_tuple)))[0]
         return h_float*180
 
-    @classmethod
-    def hueToRGB(self, h):
+    @staticmethod
+    def hue_to_rgb(hue):
         """
         **SUMMARY**
 
@@ -226,7 +219,7 @@ class Color:
 
         **PARAMETERS**
 
-        * *int* - a hue int to convert to RGB
+        * *hue* - a hue int to convert to RGB
 
         **RETURNS**
 
@@ -234,15 +227,15 @@ class Color:
 
         **EXAMPLE**
 
-        >>> c = Color.huetoRGB(0)
+        >>> c = Color.hue_to_rgb(0)
 
         """
-        h = h/180.0
-        r,g,b = colorsys.hsv_to_rgb(h,1,1)
-        return (round(255.0*r),round(255.0*g),round(255.0*b))
+        hue /= 180.0
+        red, green, blue = hsv_to_rgb(hue, 1, 1)
+        return round(255.0*red), round(255.0*green), round(255.0*blue)
 
     @classmethod
-    def hueToBGR(self,h):
+    def hue_to_bgr(cls, hue):
         """
         **SUMMARY**
 
@@ -250,7 +243,7 @@ class Color:
 
         **PARAMETERS**
 
-        * *int* - a hue int to convert to BGR
+        * *hue* - a hue int to convert to BGR
 
         **RETURNS**
 
@@ -258,13 +251,13 @@ class Color:
 
         **EXAMPLE**
 
-        >>> c = Color.huetoBGR(0)
+        >>> c = Color.hue_to_bgr(0)
 
         """
-        return(tuple(reversed(self.hueToRGB(h))))
+        return tuple(reversed(cls.hue_to_rgb(hue)))
 
-    @classmethod
-    def getAverageRGB(self,rgb):
+    @staticmethod
+    def get_average_rgb(rgb):
         """
         **SUMMARY**
 
@@ -280,13 +273,13 @@ class Color:
 
         **EXAMPLE**
 
-        >>> c = Color.getAverageRGB((22,35,230))
+        >>> c = Color.get_average_rgb((22,35,230))
 
         """
         return int(((rgb[0]+rgb[1]+rgb[2])/3))
 
-    @classmethod
-    def getLightness(self,rgb):
+    @staticmethod
+    def get_lightness(rgb):
         """
         **SUMMARY**
 
@@ -302,7 +295,7 @@ class Color:
 
         **EXAMPLE**
 
-        >>> c = Color.getLightness((22,35,230))
+        >>> c = Color.get_lightness((22,35,230))
 
         **NOTES**
         
@@ -311,8 +304,8 @@ class Color:
         """
         return int(((max(rgb)+min(rgb))/2))
 
-    @classmethod
-    def getLuminosity(self,rgb):
+    @staticmethod
+    def get_luminosity(rgb):
         """
         **SUMMARY**
 
@@ -328,7 +321,7 @@ class Color:
 
         **EXAMPLE**
 
-        >>> c = Color.getLuminosity((22,35,230))
+        >>> c = Color.get_luminosity((22, 35, 230))
 
         **NOTES**
         
@@ -337,14 +330,15 @@ class Color:
         """
         return int((0.21*rgb[0] + 0.71*rgb[1] + 0.07*rgb[2]))
 
-class ColorCurve:
+
+class ColorCurve(object):
     """
     **SUMMARY**
 
     ColorCurve is a color spline class for performing color correction.
     It can takeas parameters a SciPy Univariate spline, or an array with at
-    least 4 point pairs.  Either of these must map in a 255x255 space.  The curve
-    can then be used in the applyRGBCurve, applyHSVCurve, and
+    least 4 point pairs.  Either of these must map in a 255x255 space.
+    The curve can then be used in the apply_rgb_curve, applyHSVCurve, and
     applyInstensityCurve functions.
     
     Note:
@@ -353,25 +347,26 @@ class ColorCurve:
 
     **EXAMPLE**
 
-    >>> clr = ColorCurve([[0,0], [100, 120], [180, 230], [255, 255]])
-    >>> image.applyIntensityCurve(clr)
+    >>> img = Image("lenna")
+    >>> clr = ColorCurve([[0, 0], [100, 120], [180, 230], [255, 255]])
+    >>> img.apply_intensity_curve(clr)
 
-    the only property, mCurve is a linear array with 256 elements from 0 to 255
+    the only property, 'curve' is a linear array with 256 elements from 0 to 255
     """
-    mCurve = ""
+    curve = ""
 
-    def __init__(self, curve_vals ):
-        inBins = linspace(0, 255, 256)
-        if( type(curve_vals) == UnivariateSpline ):
-            self.mCurve = curvVals(inBins)
+    def __init__(self, curve_vals):
+        in_bins = linspace(0, 255, 256)
+        if type(curve_vals) == UnivariateSpline:
+            self.curve = curvVals(in_bins)
         else:
-            curve_vals = np.array(curve_vals)
-            aSpline = UnivariateSpline(curve_vals[:, 0], curve_vals[:, 1], s=1)
+            curve_vals = array(curve_vals)
+            spline = UnivariateSpline(curve_vals[:, 0], curve_vals[:, 1], s=1)
             #nothing above 255, nothing below 0
-            self.mCurve = np.maximum(np.minimum(aSpline(inBins),255),0) 
+            self.curve = maximum(minimum(spline(in_bins), 255), 0) 
 
 
-class ColorMap:
+class ColorMap(object):
     """
     **SUMMARY**
 
@@ -384,48 +379,53 @@ class ColorMap:
 
     * *color* - Tuple of colors which need to be mapped
 
-    * *startmap* * - This is the starting of the range of number with which we map the colors
+    * *start_map* * - This is the starting of the range of number
+                      with which we map the colors
 
-    * *endmap* * - This is the end of the range of the nmber with which we map the colors
+    * *end_map* * - This is the end of the range of the nmber
+                    with which we map the colors
 
     **EXAMPLE**
 
     This is useful for color coding elements by an attribute:
 
-    >>> blobs = image.findBlobs()
-    >>> cm = ColorMap(color = (Color.RED,Color.YELLOW,Color.BLUE),min(blobs.area()),max(blobs.area()))
+    >>> img = Image("lenna")
+    >>> blobs = img.find_blobs()
+    >>> cm = ColorMap(color = (Color.RED, Color.YELLOW, Color.BLUE),\
+                      min(blobs.area()), max(blobs.area()))
     >>>  for b in blobs:
     >>>    b.draw(cm[b.area()])
 
     """
     color = ()
-    endcolor = ()
-    startmap = 0
-    endmap = 0
-    colordistance = 0
-    valuerange = 0
+    end_color = ()
+    start_map = 0
+    end_map = 0
+    color_distance = 0
+    value_range = 0
 
-
-    def __init__(self, color, startmap, endmap):
-        self.color = np.array(color)
+    def __init__(self, color, start_map, end_map):
+        self.color = array(color)
         if self.color.ndim == 1:  # To check if only one color was passed
-            color = ((color[0],color[1],color[2]),Color.WHITE)
-            self.color = np.array(color)
-        self.startmap = float(startmap)
-        self.endmap = float(endmap)
-        self.valuerange = float(endmap - startmap) #delta
-        self.colordistance = self.valuerange / float(len(self.color)-1) #gap between colors
+            color = ((color[0], color[1], color[2]), Color.WHITE)
+            self.color = array(color)
+        self.start_map = float(start_map)
+        self.end_map = float(end_map)
+        self.value_range = float(end_map - start_map)  # delta
+        # gap between colors
+        self.color_distance = self.value_range / float(len(self.color)-1)
 
     def __getitem__(self, value):
-        if value > self.endmap:
-            value = self.endmap
-        elif value < self.startmap:
-            value = self.startmap
-        val = (value - self.startmap)/self.colordistance
+        if value > self.end_map:
+            value = self.end_map
+        elif value < self.start_map:
+            value = self.start_map
+        val = (value - self.start_map) / self.color_distance
         alpha = float(val - int(val))
         index = int(val)
         if index == len(self.color)-1:
             color = tuple(self.color[index])
-            return (int(color[0]), int(color[1]), int(color[2]))
-        color = tuple(self.color[index] * (1-alpha) + self.color[index+1] * (alpha))
-        return (int(color[0]), int(color[1]), int(color[2]))
+            return int(color[0]), int(color[1]), int(color[2])
+        color = tuple(self.color[index] * (1-alpha) +
+                      self.color[index+1] * alpha)
+        return int(color[0]), int(color[1]), int(color[2])

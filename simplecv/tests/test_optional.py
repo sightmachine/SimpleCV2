@@ -80,10 +80,10 @@ def test_detection_barcode():
     img2 = Image(testbarcode)
 
     if SHOW_WARNING_TESTS:
-        nocode = img1.findBarcode()
+        nocode = img1.find_barcode()
         if nocode:  # we should find no barcode in our test image
             assert False
-        code = img2.findBarcode()
+        code = img2.find_barcode()
         code.draw()
         if code.points:
             pass
@@ -98,7 +98,7 @@ def test_detection_barcode():
 def test_detection_ocr():
     img = Image(ocrimage)
 
-    foundtext = img.readText()
+    foundtext = img.read_text()
     print foundtext
     if(len(foundtext) <= 1):
         assert False
@@ -119,7 +119,7 @@ def test_image_webp_load():
     else:
         img = Image(webp)
 
-        if len(img.toString()) <= 1:
+        if len(img.to_string()) <= 1:
             assert False
 
         else:
@@ -154,11 +154,11 @@ def test_screenshot():
                            "Install pyscreenshot library")
         pass
     sc = ScreenCamera()
-    res = sc.getResolution()
-    img = sc.getImage()
+    res = sc.get_resolution()
+    img = sc.get_image()
     crop = (res[0]/4, res[1]/4, res[0]/2, res[1]/2)
-    sc.setROI(crop)
-    cropImg = sc.getImage()
+    sc.set_roi(crop)
+    cropImg = sc.get_image()
     if img and cropImg:
         assert True
     else:

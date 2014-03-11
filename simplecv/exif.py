@@ -88,7 +88,7 @@ def make_string(seq):
     str = ''
     for c in seq:
         # Screen out non-printing characters
-        if 32 <= c and c < 256:
+        if 32 <= c < 256:
             str += chr(c)
     # If no printing chars
     if not str:
@@ -99,7 +99,6 @@ def make_string(seq):
 # Special version to deal with the code in the first 8 bytes of a user comment.
 # First 8 bytes gives coding system e.g. ASCII vs. JIS vs Unicode
 def make_string_uc(seq):
-    code = seq[0:8]
     seq = seq[8:]
     # Of course, this is only correct if ASCII, and the standard explicitly
     # allows JIS and Unicode.
@@ -462,7 +461,7 @@ def nikon_ev_bias(seq):
     if whole != 0:
         ret_str = ret_str + str(whole) + " "
     if a == 0:
-        ret_str = ret_str + "EV"
+        ret_str += "EV"
     else:
         r = Ratio(a, b)
         ret_str = ret_str + r.__repr__() + " EV"
@@ -1189,8 +1188,8 @@ def s2n_intel(str):
     x = 0
     y = 0L
     for c in str:
-        x = x | (ord(c) << y)
-        y = y + 8
+        x |= ord(c) << y
+        y += 8
     return x
 
 
@@ -1274,7 +1273,7 @@ class EXIF_header:
         if signed:
             msb = 1L << (8 * length - 1)
             if val & msb:
-                val = val - (msb << 1)
+                val -= msb << 1
         return val
 
     # convert offset to string
@@ -1282,10 +1281,10 @@ class EXIF_header:
         s = ''
         for dummy in range(length):
             if self.endian == 'I':
-                s = s + chr(offset & 0xFF)
+                s += chr(offset & 0xFF)
             else:
                 s = chr(offset & 0xFF) + s
-            offset = offset >> 8
+            offset >>= 8
         return s
 
     # return first IFD
@@ -1353,7 +1352,7 @@ class EXIF_header:
                         tmp_offset = self.s2n(offset, 4)
                         offset = tmp_offset + ifd - 8
                         if self.fake_exif:
-                            offset = offset + 18
+                            offset += 18
                     else:
                         offset = self.s2n(offset, 4)
 

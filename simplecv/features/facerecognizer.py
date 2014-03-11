@@ -138,7 +138,7 @@ class FaceRecognizer():
         self.train_labels = labels
         labels = np.array(self.int_labels)
         self.train_imgs = images
-        cv2imgs = [img.getGrayNumpyCv2() for img in images]
+        cv2imgs = [img.get_gray_numpy_cv2() for img in images]
 
         self.model.train(cv2imgs, labels)
         # Not yet supported
@@ -199,7 +199,7 @@ class FaceRecognizer():
             w, h = self.image_size
             image = image.resize(w, h)
 
-        cv2img = image.getGrayNumpyCv2()
+        cv2img = image.get_gray_numpy_cv2()
         label, confidence = self.model.predict(cv2img)
         ret_label = self.labels_dict_rev.get(label)
         if not ret_label:

@@ -25,7 +25,7 @@ objectSize = 0
 
 img = Image('coins.jpg', sample=True)
 segmented = img.hueDistance(Color.BLACK)
-coins = img.invert().findBlobs(minsize=200)
+coins = img.invert().find_blobs(minsize=200)
 
 #Here we compute the scale factor
 if coins:

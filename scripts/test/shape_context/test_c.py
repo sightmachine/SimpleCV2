@@ -7,8 +7,8 @@ img2 = Image('JeepGood.png')
 img2 = img2.invert()
 #img2 = img2.resize(img.width,img.height)
 
-blobs = img.findBlobs()
-blobs2 = img2.findBlobs()
+blobs = img.find_blobs()
+blobs2 = img2.find_blobs()
 
 
 
@@ -24,7 +24,7 @@ for b in blobs:
         metric =  b.getMatchMetric(d)
         result = b.showCorrespondence(d,'bottom')
         title = "Match Quality: " + str(metric)
-        result.drawText(title,20,20,color=Color.RED,fontsize=42)
+        result.draw_text(title,20,20,color=Color.RED,fontsize=42)
         result.show()
         fname = "SanityCheckExample"+str(i)+".png"
         i = i+ 1

@@ -21,14 +21,14 @@ while display.isNotDone(): # loop until we tell the program to stop
         normaldisplay = not(normaldisplay)
         print "Display Mode:", "Normal" if normaldisplay else "Segmented"
 
-    img = cam.getImage().flipHorizontal() # grab image from camera
-    dist = img.colorDistance(simplecv.Color.BLACK).dilate(2) # try to separate colors in image
+    img = cam.getImage().flip_horizontal() # grab image from camera
+    dist = img.color_distance(simplecv.Color.BLACK).dilate(2) # try to separate colors in image
     segmented = dist.stretch(200,255) # really try to push out white colors
-    blobs = segmented.findBlobs() # search the image for blob objects
+    blobs = segmented.find_blobs() # search the image for blob objects
     if blobs: # if blobs are found
-        circles = blobs.filter([b.isCircle(0.2) for b in blobs]) # filter out only circle shaped blobs
+        circles = blobs.filter([b.is_circle(0.2) for b in blobs]) # filter out only circle shaped blobs
         if circles:
-            img.drawCircle((circles[-1].x, circles[-1].y), circles[-1].radius(),simplecv.Color.BLUE,3) # draw the circle on the main image
+            img.draw_circle((circles[-1].x, circles[-1].y), circles[-1].radius(),simplecv.Color.BLUE,3) # draw the circle on the main image
 
     if normaldisplay: # if normal display mode
         img.show()

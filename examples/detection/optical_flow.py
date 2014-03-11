@@ -34,7 +34,7 @@ def main():
         if( count < buffer ):
             count = count + 1
         else:
-            fs = current.findMotion(prev, window=15, method="BM")
+            fs = current.find_motion(prev, window=15, method="BM")
             lengthOfFs = len(fs)
             if fs:
                 #~ fs.draw(color=Color.RED)
@@ -47,7 +47,7 @@ def main():
                 dx = (dx / lengthOfFs)
                 dy = (dy / lengthOfFs)
                 motionStr = movement_check(dx,dy,t)
-                current.drawText(motionStr,10,10)
+                current.draw_text(motionStr,10,10)
 
         prev = current
         time.sleep(0.01)

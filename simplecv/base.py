@@ -457,3 +457,4 @@ IMAGE_FORMATS = ('*.[bB][mM][Pp]', '*.[Gg][Ii][Ff]',     '*.[Jj][Pp][Gg]',
 # if you hit this, you got a lot data.
 MAX_DIMENSION = 2 * 6000
 LAUNCH_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__)))
+SYSTEM = platform.system()

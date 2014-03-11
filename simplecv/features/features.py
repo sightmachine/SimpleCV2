@@ -38,7 +38,7 @@ class FeatureSet(list):
     **EXAMPLE**
 
     >>> image = Image("/path/to/image.png")
-    >>> lines = image.findLines()  #lines are the feature set
+    >>> lines = image.find_lines()  #lines are the feature set
     >>> lines.draw()
     >>> lines.x()
     >>> lines.crop()
@@ -94,7 +94,7 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> feats = img.findBlobs()
+        >>> feats = img.find_blobs()
         >>> feats.draw(color=Color.PUCE, width=3)
         >>> img.show()
 
@@ -131,7 +131,7 @@ class FeatureSet(list):
 
         **EXAMPLE**
         >>> img = Image("logo")
-        >>> feat = img.findBlobs()
+        >>> feat = img.find_blobs()
         >>> if feat: feat.draw()
         >>> img.show()
 
@@ -157,7 +157,7 @@ class FeatureSet(list):
 
         >>> img = Image("lenna")
         >>> img2 = img.invert()
-        >>> l = img.findLines()
+        >>> l = img.find_lines()
         >>> l2 = img.reassignImage(img2)
         >>> l2.show()
 
@@ -180,7 +180,7 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> feats = img.findBlobs()
+        >>> feats = img.find_blobs()
         >>> xs = feats.x()
         >>> print xs
 
@@ -200,7 +200,7 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> feats = img.findBlobs()
+        >>> feats = img.find_blobs()
         >>> xs = feats.y()
         >>> print xs
 
@@ -222,7 +222,7 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> feats = img.findBlobs()
+        >>> feats = img.find_blobs()
         >>> xs = feats.coordinates()
         >>> print xs
 
@@ -246,7 +246,7 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> feats = img.findBlobs()
+        >>> feats = img.find_blobs()
         >>> xs = feats.area()
         >>> print xs
 
@@ -266,7 +266,7 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> feats = img.findBlobs()
+        >>> feats = img.find_blobs()
         >>> feats = feats.sortArea()
         >>> print feats[-1] # biggest blob
         >>> print feats[0] # smallest blob
@@ -288,7 +288,7 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> feats = img.findBlobs()
+        >>> feats = img.find_blobs()
         >>> feats = feats.sortX()
         >>> print feats[-1] # biggest blob
         >>> print feats[0] # smallest blob
@@ -310,7 +310,7 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> feats = img.findBlobs()
+        >>> feats = img.find_blobs()
         >>> feats = feats.sortY()
         >>> print feats[-1] # biggest blob
         >>> print feats[0] # smallest blob
@@ -336,7 +336,7 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> feats = img.findBlobs()
+        >>> feats = img.find_blobs()
         >>> d = feats.distanceFrom()
         >>> d[0]  #show the 0th blobs distance to the center.
 
@@ -368,7 +368,7 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> feats = img.findBlobs()
+        >>> feats = img.find_blobs()
         >>> d = feats.sortDistance()
         >>> d[-1].show()  #show the 0th blobs distance to the center.
 
@@ -391,7 +391,7 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> feats = img.findBlobs()
+        >>> feats = img.find_blobs()
         >>> d = feats.distancePairs()
         >>> print d
 
@@ -412,7 +412,7 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> l = img.findLines()
+        >>> l = img.find_lines()
         >>> angs = l.angle()
         >>> print angs
 
@@ -432,7 +432,7 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> l = img.findLines()
+        >>> l = img.find_lines()
         >>> l = l.sortAngle()
         >>> print angs
 
@@ -452,7 +452,7 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("Lenna")
-        >>> l = img.findLines()
+        >>> l = img.find_lines()
         >>> lengt = l.length()
         >>> lengt[0] # length of the 0th element.
 
@@ -473,13 +473,13 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("Lenna")
-        >>> l = img.findLines().sortLength()
+        >>> l = img.find_lines().sortLength()
         >>> lengt[-1] # length of the 0th element.
 
         """
         return FeatureSet(sorted(self, key=lambda f: f.length()))
 
-    def meanColor(self):
+    def mean_color(self):
         """
         **SUMMARY**
 
@@ -494,19 +494,19 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> kp = img.findKeypoints()
-        >>> c = kp.meanColor()
+        >>> kp = img.find_keypoints()
+        >>> c = kp.mean_color()
 
 
         """
-        return np.array([f.meanColor() for f in self])
+        return np.array([f.mean_color() for f in self])
 
     def colorDistance(self, color=(0, 0, 0)):
         """
         **SUMMARY**
 
         Return a numpy array of the distance each features average color is
-        from a given color tuple (default black, so colorDistance() returns
+        from a given color tuple (default black, so color_distance() returns
         intensity)
 
         **PARAMETERS**
@@ -521,12 +521,12 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> circs = img.findCircle()
-        >>> d = circs.colorDistance(color=Color.BLUE)
+        >>> circs = img.find_circle()
+        >>> d = circs.color_distance(color=Color.BLUE)
         >>> print d
 
         """
-        return spsd.cdist(self.meanColor(), [color])[:, 0]
+        return spsd.cdist(self.mean_color(), [color])[:, 0]
 
     def sortColorDistance(self, color=(0, 0, 0)):
         """
@@ -534,7 +534,7 @@ class FeatureSet(list):
         first. Default is black, so sortColorDistance() will return darkest to
         brightest
         """
-        return FeatureSet(sorted(self, key=lambda f: f.colorDistance(color)))
+        return FeatureSet(sorted(self, key=lambda f: f.color_distance(color)))
 
     def filter(self, filterarray):
         """
@@ -588,7 +588,7 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("NotLenna")
-        >>> l = img.findLines()
+        >>> l = img.find_lines()
         >>> l.width()
 
         """
@@ -607,7 +607,7 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("NotLenna")
-        >>> l = img.findLines()
+        >>> l = img.find_lines()
         >>> l.height()
 
         """
@@ -626,7 +626,7 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("Lenna")
-        >>> blobs = img.findBlobs(128)
+        >>> blobs = img.find_blobs(128)
         >>> for b in blobs:
         >>>   newImg = b.crop()
         >>>   newImg.show()
@@ -661,9 +661,9 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("Lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> b = blobs[-1]
-        >>> lines = img.findLines()
+        >>> lines = img.find_lines()
         >>> inside = lines.inside(b)
 
         **NOTE**
@@ -706,9 +706,9 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("Lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> b = blobs[-1]
-        >>> lines = img.findLines()
+        >>> lines = img.find_lines()
         >>> outside = lines.outside(b)
 
         **NOTE**
@@ -749,9 +749,9 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("Lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> b = blobs[-1]
-        >>> lines = img.findLines()
+        >>> lines = img.find_lines()
         >>> outside = lines.overlaps(b)
 
         **NOTE**
@@ -792,9 +792,9 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("Lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> b = blobs[-1]
-        >>> lines = img.findLines()
+        >>> lines = img.find_lines()
         >>> outside = lines.above(b)
 
         **NOTE**
@@ -835,9 +835,9 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("Lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> b = blobs[-1]
-        >>> lines = img.findLines()
+        >>> lines = img.find_lines()
         >>> inside = lines.below(b)
 
         **NOTE**
@@ -878,9 +878,9 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("Lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> b = blobs[-1]
-        >>> lines = img.findLines()
+        >>> lines = img.find_lines()
         >>> left = lines.left(b)
 
         **NOTE**
@@ -921,9 +921,9 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("Lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> b = blobs[-1]
-        >>> lines = img.findLines()
+        >>> lines = img.find_lines()
         >>> right = lines.right(b)
 
         **NOTE**
@@ -958,7 +958,7 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("./sampleimages/EdgeTest1.png")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> es = blobs.onImageEdge()
         >>> es.draw(color=Color.RED)
         >>> img.show()
@@ -990,7 +990,7 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("./sampleimages/EdgeTest1.png")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> es = blobs.notOnImageEdge()
         >>> es.draw(color=Color.RED)
         >>> img.show()
@@ -1015,7 +1015,7 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("./sampleimages/EdgeTest1.png")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> tl = img.topLeftCorners()
         >>> print tl[0]
         """
@@ -1035,7 +1035,7 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("./sampleimages/EdgeTest1.png")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> bl = img.bottomLeftCorners()
         >>> print bl[0]
 
@@ -1055,7 +1055,7 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("./sampleimages/EdgeTest1.png")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> tl = img.bottomLeftCorners()
         >>> print tl[0]
 
@@ -1076,7 +1076,7 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("./sampleimages/EdgeTest1.png")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> tr = img.topRightCorners()
         >>> print tr[0]
 
@@ -1097,7 +1097,7 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("./sampleimages/EdgeTest1.png")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> br = img.bottomRightCorners()
         >>> print br[0]
 
@@ -1118,7 +1118,7 @@ class FeatureSet(list):
         **EXAMPLE**
 
         >>> img = Image("OWS.jpg")
-        >>> blobs = img.findBlobs(128)
+        >>> blobs = img.find_blobs(128)
         >>> print blobs.aspectRatio()
 
         """
@@ -1153,7 +1153,7 @@ class FeatureSet(list):
         **EXAMPLE**
 
           >>> img = Image("lenna")
-          >>> blobs = img.findBlobs()
+          >>> blobs = img.find_blobs()
           >>> clusters = blobs.cluster(method="kmeans",
           >>>       properties=["color"],
           >>>       k=5)
@@ -1239,7 +1239,7 @@ class Feature(object):
     * a draw() method,
     * an image property, referencing the originating Image object
     * x and y coordinates
-    * default functions for determining angle, area, meanColor, etc for
+    * default functions for determining angle, area, mean_color, etc for
      FeatureSets
     * in the Feature class, these functions assume the feature is 1px
 
@@ -1295,7 +1295,7 @@ class Feature(object):
 
         >>> img = Image("lenna")
         >>> img2 = img.invert()
-        >>> l = img.findLines()
+        >>> l = img.find_lines()
         >>> l2 = img.reassignImage(img2)
         >>> l2.show()
         """
@@ -1324,7 +1324,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("aerospace.png")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> for b in blobs:
         >>>    print b.coordinates()
 
@@ -1348,7 +1348,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("RedDog2.jpg")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> blobs[-1].draw()
         >>> img.show()
 
@@ -1369,7 +1369,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("logo")
-        >>> feat = img.findBlobs()
+        >>> feat = img.find_blobs()
         >>> feat[-1].show() #window pops up.
 
         """
@@ -1395,7 +1395,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("OWS.jpg")
-        >>> blobs = img.findBlobs(128)
+        >>> blobs = img.find_blobs(128)
         >>> blobs[-1].distanceFrom(blobs[-2].coordinates())
 
 
@@ -1404,7 +1404,7 @@ class Feature(object):
             point = np.array(self.image.size()) / 2
         return spsd.euclidean(point, [self.x, self.y])
 
-    def meanColor(self):
+    def mean_color(self):
         """
         **SUMMARY**
 
@@ -1417,15 +1417,15 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("OWS.jpg")
-        >>> blobs = img.findBlobs(128)
+        >>> blobs = img.find_blobs(128)
         >>> for b in blobs:
-        >>>    if (b.meanColor() == color.WHITE):
+        >>>    if (b.mean_color() == color.WHITE):
         >>>       print "Found a white thing"
 
         """
         return self.image[self.x, self.y]
 
-    def colorDistance(self, color=(0, 0, 0)):
+    def color_distance(self, color=(0, 0, 0)):
         """
         **SUMMARY**
 
@@ -1444,12 +1444,12 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("OWS.jpg")
-        >>> blobs = img.findBlobs(128)
+        >>> blobs = img.find_blobs(128)
         >>> for b in blobs:
-        >>>    print b.colorDistance(color.WHITE):
+        >>>    print b.color_distance(color.WHITE):
 
         """
-        return spsd.euclidean(np.array(color), np.array(self.meanColor()))
+        return spsd.euclidean(np.array(color), np.array(self.mean_color()))
 
     def angle(self):
         """
@@ -1469,7 +1469,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("OWS.jpg")
-        >>> blobs = img.findBlobs(128)
+        >>> blobs = img.find_blobs(128)
         >>> for b in blobs:
         >>>    if b.angle() == 0:
         >>>       print "I AM HORIZONTAL."
@@ -1494,7 +1494,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("OWS.jpg")
-        >>> blobs = img.findBlobs(128)
+        >>> blobs = img.find_blobs(128)
         >>> for b in blobs:
         >>>    if b.length() > 200:
         >>>       print "OH MY! - WHAT A BIG FEATURE YOU HAVE!"
@@ -1520,7 +1520,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("../sampleimages/EdgeTest1.png")
-        >>> b = img.findBlobs()
+        >>> b = img.find_blobs()
         >>> b[0].distanceToNearestEdge()
 
         """
@@ -1548,7 +1548,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("../sampleimages/EdgeTest1.png")
-        >>> b = img.findBlobs()
+        >>> b = img.find_blobs()
         >>> if b[0].onImageEdge():
         >>>     print "HELP! I AM ABOUT TO FALL OFF THE IMAGE"
 
@@ -1576,7 +1576,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("../sampleimages/EdgeTest1.png")
-        >>> b = img.findBlobs()
+        >>> b = img.find_blobs()
         >>> if b[0].notOnImageEdge():
         >>>     print "I am safe and sound."
 
@@ -1600,7 +1600,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("OWS.jpg")
-        >>> blobs = img.findBlobs(128)
+        >>> blobs = img.find_blobs(128)
         >>> b[0].aspectRatio()
 
         """
@@ -1620,7 +1620,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("OWS.jpg")
-        >>> blobs = img.findBlobs(128)
+        >>> blobs = img.find_blobs(128)
         >>> for b in blobs:
         >>>    if b.area() > 200:
         >>>       print b.area()
@@ -1641,7 +1641,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("OWS.jpg")
-        >>> blobs = img.findBlobs(128)
+        >>> blobs = img.find_blobs(128)
         >>> for b in blobs:
         >>>    if b.width() > b.height():
         >>>       print "wider than tall"
@@ -1665,7 +1665,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("OWS.jpg")
-        >>> blobs = img.findBlobs(128)
+        >>> blobs = img.find_blobs(128)
         >>> for b in blobs:
         >>>    if b.width() > b.height():
         >>>       print "wider than tall"
@@ -1689,7 +1689,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("OWS.jpg")
-        >>> blobs = img.findBlobs(128)
+        >>> blobs = img.find_blobs(128)
         >>> big = blobs[-1].crop()
         >>> big.show()
 
@@ -1777,7 +1777,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("OWS.jpg")
-        >>> blobs = img.findBlobs(128)
+        >>> blobs = img.find_blobs(128)
         >>> print blobs[-1].boundingBox()
 
         """
@@ -1799,7 +1799,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("OWS.jpg")
-        >>> blobs = img.findBlobs(128)
+        >>> blobs = img.find_blobs(128)
         >>> print blobs[-1].extents()
 
         """
@@ -1820,7 +1820,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("OWS.jpg")
-        >>> blobs = img.findBlobs(128)
+        >>> blobs = img.find_blobs(128)
         >>> print blobs[-1].minY()
 
         """
@@ -1841,7 +1841,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("OWS.jpg")
-        >>> blobs = img.findBlobs(128)
+        >>> blobs = img.find_blobs(128)
         >>> print blobs[-1].maxY()
 
         """
@@ -1862,7 +1862,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("OWS.jpg")
-        >>> blobs = img.findBlobs(128)
+        >>> blobs = img.find_blobs(128)
         >>> print blobs[-1].minX()
 
         """
@@ -1883,7 +1883,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("OWS.jpg")
-        >>> blobs = img.findBlobs(128)
+        >>> blobs = img.find_blobs(128)
         >>> print blobs[-1].maxX()
 
         """
@@ -1904,7 +1904,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("OWS.jpg")
-        >>> blobs = img.findBlobs(128)
+        >>> blobs = img.find_blobs(128)
         >>> print blobs[-1].topLeftCorner()
 
         """
@@ -1925,7 +1925,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("OWS.jpg")
-        >>> blobs = img.findBlobs(128)
+        >>> blobs = img.find_blobs(128)
         >>> print blobs[-1].bottomRightCorner()
 
         """
@@ -1946,7 +1946,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("OWS.jpg")
-        >>> blobs = img.findBlobs(128)
+        >>> blobs = img.find_blobs(128)
         >>> print blobs[-1].bottomLeftCorner()
 
         """
@@ -1967,7 +1967,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("OWS.jpg")
-        >>> blobs = img.findBlobs(128)
+        >>> blobs = img.find_blobs(128)
         >>> print blobs[-1].topRightCorner()
 
         """
@@ -2001,7 +2001,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("Lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> b = blobs[0]
         >>> if( blobs[-1].above(b) ):
         >>>    print "above the biggest blob"
@@ -2047,7 +2047,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("Lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> b = blobs[0]
         >>> if( blobs[-1].below(b) ):
         >>>    print "above the biggest blob"
@@ -2093,7 +2093,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("Lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> b = blobs[0]
         >>> if blobs[-1].right(b):
         >>>    print "right of the the blob"
@@ -2139,7 +2139,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("Lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> b = blobs[0]
         >>> if( blobs[-1].left(b) ):
         >>>    print "left of  the biggest blob"
@@ -2186,7 +2186,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("Lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> b = blobs[0]
         >>> if( blobs[-1].contains(b) ):
         >>>    print "this blob is contained in the biggest blob"
@@ -2277,7 +2277,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("Lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> b = blobs[0]
         >>> if( blobs[-1].overlaps(b) ):
         >>>    print "This blob overlaps the biggest blob"
@@ -2373,7 +2373,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("Lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> b = blobs[0]
         >>> if( blobs[-1].doesNotContain(b) ):
         >>>    print "above the biggest blob"
@@ -2409,7 +2409,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("Lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> b = blobs[0]
         >>> if( blobs[-1].doesNotOverlap(b) ):
         >>>    print "does not over overlap biggest blob"
@@ -2445,7 +2445,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("Lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> b = blobs[0]
         >>> if blobs[-1].isContainedWithin(b):
         >>>    print "inside the blob"
@@ -2521,7 +2521,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("Lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> b = blobs[0]
         >>> if( blobs[-1].isNotContainedWithin(b) ):
         >>>    print "Not inside the biggest blob"
@@ -2600,7 +2600,7 @@ class Feature(object):
         **EXAMPLE**
 
         >>> img = Image("RatMask.png")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> print blobs[-1].boundingCircle()
 
         """

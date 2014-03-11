@@ -23,8 +23,8 @@ while not display.isDone():
         if(segmentation.isReady()):
             img = segmentation.getSegmentedImage()
             img = img.erode(iterations = 2).dilate().invert()
-            img.dl().ezViewText(mystring, (30,30))
-            img = img.applyLayers()
+            img.dl().ez_view_text(mystring, (30,30))
+            img = img.apply_layers()
             display.writeFrame(img)
         if(display.mouseLeft):
             SegmentMode = False
@@ -50,10 +50,10 @@ while not display.isDone():
                 segmentation.addToModel(crop)
                 SegmentMode = True
                 mouse_down = False
-        img.addDrawingLayer(dl)
-        img.dl().ezViewText(mystring, (30,30))
+        img.add_drawing_layer(dl)
+        img.dl().ez_view_text(mystring, (30,30))
         #img.save(display)
-        img = img.applyLayers();
+        img = img.apply_layers();
         display.writeFrame(img)
 
     time.sleep(0.001)

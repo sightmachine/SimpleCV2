@@ -30,14 +30,14 @@ class Blob(Feature):
     **EXAMPLE**
 
     >>> img = Image("lenna")
-    >>> blobs = img.findBlobs()
+    >>> blobs = img.find_blobs()
     >>> blobs[-1].draw()
     >>> img.show()
 
     **SEE ALSO**
-    :py:meth:`findBlobs`
+    :py:meth:`find_blobs`
     :py:class:`BlobMaker`
-    :py:meth:`findBlobsFromMask`
+    :py:meth:`find_blobs_from_mask`
 
     """
     seq = ''  # the cvseq object that defines this blob
@@ -137,7 +137,7 @@ class Blob(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> print blobs[-1].perimeter()
 
         """
@@ -157,7 +157,7 @@ class Blob(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> print blobs[-1].hull()
 
         """
@@ -176,14 +176,14 @@ class Blob(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> print blobs[-1].contour()
 
         """
 
         return self.mContour
 
-    def meanColor(self):
+    def mean_color(self):
         """
         **SUMMARY**
 
@@ -197,18 +197,18 @@ class Blob(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
-        >>> print blobs[-1].meanColor()
+        >>> blobs = img.find_blobs()
+        >>> print blobs[-1].mean_color()
 
         """
         #print self.mBoundingBox
         hack = (
             self.mBoundingBox[0], self.mBoundingBox[1], self.mBoundingBox[2],
             self.mBoundingBox[3])
-        cv.SetImageROI(self.image.getBitmap(), hack)
+        cv.SetImageROI(self.image.get_bitmap(), hack)
         #may need the offset paramete
-        avg = cv.Avg(self.image.getBitmap(), self.mMask._getGrayscaleBitmap())
-        cv.ResetImageROI(self.image.getBitmap())
+        avg = cv.Avg(self.image.get_bitmap(), self.mMask._get_grayscale_bitmap())
+        cv.ResetImageROI(self.image.get_bitmap())
 
         return tuple(reversed(avg[0:3]))
 
@@ -226,7 +226,7 @@ class Blob(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> print blobs[-1].area()
         >>> print blobs[0].area()
 
@@ -267,7 +267,7 @@ class Blob(Feature):
                 (float(blp[0, 0]), float(blp[1, 0])),
                 (float(brp[0, 0]), float(brp[1, 0])))
 
-    def drawRect(self, layer=None, color=Color.DEFAULT, width=1, alpha=128):
+    def draw_rect(self, layer=None, color=Color.DEFAULT, width=1, alpha=128):
         """
         **SUMMARY**
 
@@ -291,8 +291,8 @@ class Blob(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
-        >>> blobs[-1].drawRect(color=Color.RED, width=-1,alpha=128)
+        >>> blobs = img.find_blobs()
+        >>> blobs[-1].draw_rect(color=Color.RED, width=-1,alpha=128)
         >>> img.show()
 
         """
@@ -332,7 +332,7 @@ class Blob(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> for b in blobs:
         >>>      b.drawMinRect(color=Color.RED, width=-1, alpha=128)
         >>> img.show()
@@ -365,7 +365,7 @@ class Blob(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> blob[-1].angle()
 
         """
@@ -395,7 +395,7 @@ class Blob(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> print blobs[-1].minRectX()
 
         """
@@ -416,7 +416,7 @@ class Blob(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> print blobs[-1].minRectY()
 
         """
@@ -436,7 +436,7 @@ class Blob(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> print blobs[-1].minRectWidth()
 
         """
@@ -456,7 +456,7 @@ class Blob(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> print blobs[-1].minRectHeight()
 
 
@@ -485,7 +485,7 @@ class Blob(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> blobs[-2].mImg.show()
         >>> blobs[-2].rectifyToMajorAxis(1)
         >>> blobs[-2].mImg.show()
@@ -528,7 +528,7 @@ class Blob(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> blobs[-2].mImg.show()
         >>> blobs[-2].rotate(90)
         >>> blobs[-2].mImg.show()
@@ -599,7 +599,7 @@ class Blob(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> blobs[-2].draw(color=Color.PUCE,width=-1,alpha=128)
         >>> img.show()
 
@@ -611,29 +611,29 @@ class Blob(Feature):
             #  copy the mask into 3 channels and
             #  multiply by the appropriate color
             maskred = cv.CreateImage(
-                cv.GetSize(self.mMask._getGrayscaleBitmap()), cv.IPL_DEPTH_8U,
+                cv.GetSize(self.mMask._get_grayscale_bitmap()), cv.IPL_DEPTH_8U,
                 1)
             maskgrn = cv.CreateImage(
-                cv.GetSize(self.mMask._getGrayscaleBitmap()), cv.IPL_DEPTH_8U,
+                cv.GetSize(self.mMask._get_grayscale_bitmap()), cv.IPL_DEPTH_8U,
                 1)
             maskblu = cv.CreateImage(
-                cv.GetSize(self.mMask._getGrayscaleBitmap()), cv.IPL_DEPTH_8U,
+                cv.GetSize(self.mMask._get_grayscale_bitmap()), cv.IPL_DEPTH_8U,
                 1)
 
             maskbit = cv.CreateImage(
-                cv.GetSize(self.mMask._getGrayscaleBitmap()), cv.IPL_DEPTH_8U,
+                cv.GetSize(self.mMask._get_grayscale_bitmap()), cv.IPL_DEPTH_8U,
                 3)
 
-            cv.ConvertScale(self.mMask._getGrayscaleBitmap(), maskred,
+            cv.ConvertScale(self.mMask._get_grayscale_bitmap(), maskred,
                             color[0] / 255.0)
-            cv.ConvertScale(self.mMask._getGrayscaleBitmap(), maskgrn,
+            cv.ConvertScale(self.mMask._get_grayscale_bitmap(), maskgrn,
                             color[1] / 255.0)
-            cv.ConvertScale(self.mMask._getGrayscaleBitmap(), maskblu,
+            cv.ConvertScale(self.mMask._get_grayscale_bitmap(), maskblu,
                             color[2] / 255.0)
 
             cv.Merge(maskblu, maskgrn, maskred, None, maskbit)
 
-            masksurface = Image(maskbit).getPGSurface()
+            masksurface = Image(maskbit).get_pg_surface()
             masksurface.set_colorkey(Color.BLACK)
             if alpha != -1:
                 masksurface.set_alpha(alpha)
@@ -668,7 +668,7 @@ class Blob(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> blobs[-2].drawOutline(color=Color.GREEN,width=3,alpha=128)
         >>> img.show()
 
@@ -714,7 +714,7 @@ class Blob(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> blobs = img.findBlobs(128)
+        >>> blobs = img.find_blobs(128)
         >>> blobs[-1].drawHoles(color=Color.GREEN,width=3,alpha=128)
         >>> img.show()
 
@@ -764,7 +764,7 @@ class Blob(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> blobs = img.findBlobs(128)
+        >>> blobs = img.find_blobs(128)
         >>> blobs[-1].drawHull(color=Color.GREEN, width=3, alpha=128)
         >>> img.show()
 
@@ -807,9 +807,9 @@ class Blob(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> blobs = img.findBlobs(128)
+        >>> blobs = img.find_blobs(128)
         >>> dl = DrawingLayer((img.width, img.height))
-        >>> blobs[-1].drawMaskToLayer(layer = dl)
+        >>> blobs[-1].draw_mask_to_layer(layer = dl)
         >>> dl.show()
 
         """
@@ -842,17 +842,17 @@ class Blob(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> blobs = img.findBlobs(128)
+        >>> blobs = img.find_blobs(128)
         >>> if blobs[-1].isSquare():
         >>>     print "it is hip to be square."
 
         """
         aspect_ratio = abs(1 - self.aspectRatio())
-        if self.isRectangle(tolerance) and aspect_ratio < ratiotolerance:
+        if self.is_rectangle(tolerance) and aspect_ratio < ratiotolerance:
             return True
         return False
 
-    def isRectangle(self, tolerance=0.05):
+    def is_rectangle(self, tolerance=0.05):
         """
         **SUMMARY**
 
@@ -872,7 +872,7 @@ class Blob(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> blobs = img.findBlobs(128)
+        >>> blobs = img.find_blobs(128)
         >>> if blobs[-1].isRecangle():
         >>>     print "it is hip to be square."
 
@@ -898,7 +898,7 @@ class Blob(Feature):
         return abs(1.0 - float(whitecount) / (
             self.minRectWidth() * self.minRectHeight()))
 
-    def isCircle(self, tolerance=0.05):
+    def is_circle(self, tolerance=0.05):
         """
         **SUMMARY**
 
@@ -940,7 +940,7 @@ class Blob(Feature):
         radius = min(w, h) / 2
         idealcircle.dl().circle((w / 2, h / 2), radius, filled=True,
                                 color=Color.WHITE)
-        idealcircle = idealcircle.applyLayers()
+        idealcircle = idealcircle.apply_layers()
         netdiff = (idealcircle - self.mHullMask) + (
             self.mHullMask - idealcircle)
         numblack, numwhite = netdiff.histogram(2)
@@ -959,9 +959,9 @@ class Blob(Feature):
 
         **EXAMPLE**
         >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
-        >>> img.drawCircle((blobs[-1].x, blobs[-1].y), 10, color=Color.RED)
-        >>> img.drawCircle((blobs[-1].centroid()), 10, color=Color.BLUE)
+        >>> blobs = img.find_blobs()
+        >>> img.draw_circle((blobs[-1].x, blobs[-1].y), 10, color=Color.RED)
+        >>> img.draw_circle((blobs[-1].centroid()), 10, color=Color.BLUE)
         >>> img.show()
 
         """
@@ -991,8 +991,8 @@ class Blob(Feature):
         retVal = cv.CreateImage((self.width(), self.height()), cv.IPL_DEPTH_8U,
                                 3)
         cv.Zero(retVal)
-        bmp = self.image.getBitmap()
-        mask = self.mMask.getBitmap()
+        bmp = self.image.get_bitmap()
+        mask = self.mMask.get_bitmap()
         tl = self.topLeftCorner()
         cv.SetImageROI(bmp, (tl[0], tl[1], self.width(), self.height()))
         cv.Copy(bmp, retVal, mask)
@@ -1031,8 +1031,8 @@ class Blob(Feature):
         retVal = cv.CreateImage((self.width(), self.height()), cv.IPL_DEPTH_8U,
                                 3)
         cv.Zero(retVal)
-        bmp = self.image.getBitmap()
-        mask = self.mHullMask.getBitmap()
+        bmp = self.image.get_bitmap()
+        mask = self.mHullMask.get_bitmap()
         tl = self.topLeftCorner()
         cv.SetImageROI(bmp, (tl[0], tl[1], self.width(), self.height()))
         cv.Copy(bmp, retVal, mask)
@@ -1067,7 +1067,7 @@ class Blob(Feature):
         Returns a SimpleCV Image of the convex hull, cropped to fit.
 
         >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> blobs[-1].hullImage().show()
 
         """
@@ -1092,7 +1092,7 @@ class Blob(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> blobs[-1].hullMask().show()
 
         """
@@ -1114,7 +1114,7 @@ class Blob(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> blobs[-1].blobImage().show()
 
 
@@ -1136,7 +1136,7 @@ class Blob(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> blobs[-1].blobMask().show()
 
 
@@ -1164,8 +1164,8 @@ class Blob(Feature):
         >>> cam = Camera()
         >>> img1 = cam.getImage()
         >>> img2 = cam.getImage()
-        >>> b1 = img1.findBlobs()
-        >>> b2 = img2.findBlobs()
+        >>> b1 = img1.find_blobs()
+        >>> b2 = img2.find_blobs()
         >>> for ba in b1:
         >>>     for bb in b2:
         >>>         print ba.match(bb)
@@ -1195,8 +1195,8 @@ class Blob(Feature):
         retVal = cv.CreateImage((self.image.width, self.image.height),
                                 cv.IPL_DEPTH_8U, 3)
         cv.Zero(retVal)
-        bmp = self.image.getBitmap()
-        mask = self.mMask.getBitmap()
+        bmp = self.image.get_bitmap()
+        mask = self.mMask.get_bitmap()
         tl = self.topLeftCorner()
         cv.SetImageROI(retVal, (tl[0], tl[1], self.width(), self.height()))
         cv.SetImageROI(bmp, (tl[0], tl[1], self.width(), self.height()))
@@ -1212,8 +1212,8 @@ class Blob(Feature):
         retVal = cv.CreateImage((self.image.width, self.image.height),
                                 cv.IPL_DEPTH_8U, 3)
         cv.Zero(retVal)
-        bmp = self.image.getBitmap()
-        mask = self.mHullMask.getBitmap()
+        bmp = self.image.get_bitmap()
+        mask = self.mHullMask.get_bitmap()
         tl = self.topLeftCorner()
         cv.SetImageROI(retVal, (tl[0], tl[1], self.width(), self.height()))
         cv.SetImageROI(bmp, (tl[0], tl[1], self.width(), self.height()))
@@ -1229,7 +1229,7 @@ class Blob(Feature):
         retVal = cv.CreateImage((self.image.width, self.image.height),
                                 cv.IPL_DEPTH_8U, 3)
         cv.Zero(retVal)
-        mask = self.mMask.getBitmap()
+        mask = self.mMask.get_bitmap()
         tl = self.topLeftCorner()
         cv.SetImageROI(retVal, (tl[0], tl[1], self.width(), self.height()))
         cv.Copy(mask, retVal)
@@ -1243,7 +1243,7 @@ class Blob(Feature):
         retVal = cv.CreateImage((self.image.width, self.image.height),
                                 cv.IPL_DEPTH_8U, 3)
         cv.Zero(retVal)
-        mask = self.mHullMask.getBitmap()
+        mask = self.mHullMask.get_bitmap()
         tl = self.topLeftCorner()
         cv.SetImageROI(retVal, (tl[0], tl[1], self.width(), self.height()))
         cv.Copy(mask, retVal)
@@ -1419,11 +1419,11 @@ class Blob(Feature):
         yourPts = yourPts.reassignImage(yourImg)
 
         myPts.draw()
-        myImg = myImg.applyLayers()
+        myImg = myImg.apply_layers()
         yourPts.draw()
-        yourImg = yourImg.applyLayers()
+        yourImg = yourImg.apply_layers()
 
-        result = myImg.sideBySide(yourImg, side=side)
+        result = myImg.side_by_side(yourImg, side=side)
         data = self.shapeContextMatch(otherBlob)
         mapvals = data[0]
         color = Color()
@@ -1433,19 +1433,19 @@ class Blob(Feature):
             rhs = otherBlob._completeContour[idx]
             if side == "left":
                 shift = (rhs[0] + yourImg.width, rhs[1])
-                result.drawLine(lhs, shift, color=color.getRandom(),
+                result.draw_line(lhs, shift, color=color.getRandom(),
                                 thickness=1)
             elif side == "bottom":
                 shift = (rhs[0], rhs[1] + myImg.height)
-                result.drawLine(lhs, shift, color=color.getRandom(),
+                result.draw_line(lhs, shift, color=color.getRandom(),
                                 thickness=1)
             elif side == "right":
                 shift = (rhs[0] + myImg.width, rhs[1])
-                result.drawLine(lhs, shift, color=color.getRandom(),
+                result.draw_line(lhs, shift, color=color.getRandom(),
                                 thickness=1)
             elif side == "top":
                 shift = (lhs[0], lhs[1] + myImg.height)
-                result.drawLine(lhs, shift, color=color.getRandom(),
+                result.draw_line(lhs, shift, color=color.getRandom(),
                                 thickness=1)
 
         return result
@@ -1490,7 +1490,7 @@ class Blob(Feature):
         **EXAMPLE**
 
         >>> img = Image('lenna')
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> blob = blobs[-1]
         >>> lines, farpoints = blob.getConvexityDefects()
         >>> lines.draw()

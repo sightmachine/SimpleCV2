@@ -106,9 +106,9 @@ class TemporalColorTracker:
         >>>>     roi = ROI(img.width * 0.45, img.height * 0.45,
                            img.width * 0.1, img.height * 0.1, img)
         >>>>     roi.draw(width=3)
-        >>>>     img.drawText(str(result), 20, 20, color=Color.RED,
+        >>>>     img.draw_text(str(result), 20, 20, color=Color.RED,
                               fontsize=32)
-        >>>>     img = img.applyLayers()
+        >>>>     img = img.apply_layers()
         >>>>     img.save(disp)
 
         """
@@ -147,7 +147,7 @@ class TemporalColorTracker:
             mc = self._extractor(img)
         else:
             temp = self._roi.reassign(img)
-            mc = temp.meanColor()
+            mc = temp.mean_color()
         self.data['r'].append(mc[0])
         self.data['g'].append(mc[1])
         self.data['b'].append(mc[2])
@@ -328,7 +328,7 @@ class TemporalColorTracker:
             mc = self._extractor(img)
         else:
             temp = self._roi.reassign(img)
-            mc = temp.meanColor()
+            mc = temp.mean_color()
         if self._bestKey == 'r':
             return mc[0]
         elif self._bestKey == 'g':
@@ -351,7 +351,7 @@ class TemporalColorTracker:
         if len(self._rtData) > self._window:
             self._rtData = self._rtData[1:]
             if self._isPeak:
-                lm = self._rtData.findPeaks()
+                lm = self._rtData.find_peaks()
                 for l in lm:
                     if l[0] == wndwCenter and l[1] > self._cutoff:
                         if self.doCorr:
@@ -364,7 +364,7 @@ class TemporalColorTracker:
                         else:
                             self.count += 1
             else:
-                lm = self._rtData.findValleys()
+                lm = self._rtData.find_valleys()
                 for l in lm:
                     if l[0] == wndwCenter and l[1] < self._cutoff:
                         if self.doCorr:
@@ -412,9 +412,9 @@ class TemporalColorTracker:
         >>>>     roi = ROI(img.width * 0.45, img.height * 0.45,
                            img.width * 0.1, img.height * 0.1, img)
         >>>>     roi.draw(width=3)
-        >>>>     img.drawText(str(result), 20, 20, color=Color.RED,
+        >>>>     img.draw_text(str(result), 20, 20, color=Color.RED,
                               fontsize=32)
-        >>>>     img = img.applyLayers()
+        >>>>     img = img.apply_layers()
         >>>>     img.save(disp)
 
         **TODO**

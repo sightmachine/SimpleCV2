@@ -60,7 +60,7 @@ class TurkingModule:
 
         **EXAMPLE**
         >>>> def GetBlobs(img):
-        >>>>   blobs = img.findBlobs()
+        >>>>   blobs = img.find_blobs()
         >>>>    return [b.mMask for b in blobs]
 
         >>>> def ScaleIng(img):
@@ -138,7 +138,7 @@ class TurkingModule:
             self.classMap[c] = ImageSet(self.directoryMap[c])
 
     def _saveIt(self, img, classType):
-        img.clearLayers()
+        img.clear_layers()
         path = self.out_path + classType + "/" + classType + str(
             self.countMap[classType]) + ".png"
         print "Saving: " + path
@@ -173,14 +173,14 @@ class TurkingModule:
             return None
 
     def _drawControls(self, img, font_size, color, spacing):
-        img.drawText("space - skip", 10, spacing, fontsize=font_size,
+        img.draw_text("space - skip", 10, spacing, fontsize=font_size,
                      color=color)
-        img.drawText("esc - exit", 10, 2 * spacing, fontsize=font_size,
+        img.draw_text("esc - exit", 10, 2 * spacing, fontsize=font_size,
                      color=color)
         y = 3 * spacing
         for k, cls in self.keyMap.items():
             str = k + " - " + cls
-            img.drawText(str, 10, y, fontsize=font_size, color=color)
+            img.draw_text(str, 10, y, fontsize=font_size, color=color)
             y = y + spacing
         return img
 
@@ -215,7 +215,7 @@ class TurkingModule:
         **EXAMPLE**
 
         >>>> def GetBlobs(img):
-        >>>>     blobs = img.findBlobs()
+        >>>>     blobs = img.find_blobs()
         >>>>     return [b.mMask for b in blobs]
 
         >>>> def ScaleIng(img):

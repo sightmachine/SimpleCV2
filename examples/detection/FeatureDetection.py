@@ -53,11 +53,11 @@ while( display.isNotDone() ):
             pass
 
     if mode == "trained":
-        keypoints = img.findKeypointMatch(template_img,quality,minDist,minMatch)
+        keypoints = img.find_keypoint_match(template_img,quality,minDist,minMatch)
         if keypoints:
             #keypoints.draw()
-            img = img.applyLayers()
-        img = img.drawKeypointMatches(template_img)   # draw the keypoint layers
+            img = img.apply_layers()
+        img = img.draw_keypoint_matches(template_img)   # draw the keypoint layers
 
         #Reset
         if display.mouseRight:
@@ -68,7 +68,7 @@ while( display.isNotDone() ):
             endY = None
             endX = None
 
-    img = img.applyLayers() # apply the layers before resize
+    img = img.apply_layers() # apply the layers before resize
     img = img.resize(640,480)
     img.save(display)
     time.sleep(0.05)

@@ -43,8 +43,8 @@ while not allDone :
                 rank_ptr = rank_ptr + 1
         print "Current Data" + str(RANKS[rank_ptr])+str(SUITS[suit_ptr])
 
-    img.drawLine((0,img.height/4),(img.width,img.height/4),color=Color.RED,thickness=3)
-    img.drawLine((0,3*img.height/4),(img.width,3*img.height/4),color=Color.RED,thickness=3)
-    img.drawLine((img.width/3,0),(img.width/3,img.height),color=Color.RED,thickness=3)
-    img.drawLine((2*img.width/3,0),(2*img.width/3,img.height   ),color=Color.RED,thickness=3)
+    img.draw_line((0,img.height/4),(img.width,img.height/4),color=Color.RED,thickness=3)
+    img.draw_line((0,3*img.height/4),(img.width,3*img.height/4),color=Color.RED,thickness=3)
+    img.draw_line((img.width/3,0),(img.width/3,img.height),color=Color.RED,thickness=3)
+    img.draw_line((2*img.width/3,0),(2*img.width/3,img.height   ),color=Color.RED,thickness=3)
     img.save(disp)

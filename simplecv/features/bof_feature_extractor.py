@@ -136,10 +136,10 @@ class BOFFeatureExtractor(object):
         (eg 128 = (8x16) 256=(16x16) )
         spacersz = the number of pixels between patches
         """
-        img = img.toHLS()
+        img = img.to_hls()
         lmat = cv.CreateImage((img.width, img.height), cv.IPL_DEPTH_8U, 1)
         patch = cv.CreateImage(patchsize, cv.IPL_DEPTH_8U, 1)
-        cv.Split(img.getBitmap(), None, lmat, None, None)
+        cv.Split(img.get_bitmap(), None, lmat, None, None)
         w = patchsize[0]
         h = patchsize[1]
         length = w * h
@@ -186,10 +186,10 @@ class BOFFeatureExtractor(object):
         #retVal = [] # may need to go to np.array
         if sz is None:
             sz = self.mPatchSize
-        img2 = img.toHLS()
+        img2 = img.to_hls()
         lmat = cv.CreateImage((img.width, img.height), cv.IPL_DEPTH_8U, 1)
         patch = cv.CreateImage(self.mPatchSize, cv.IPL_DEPTH_8U, 1)
-        cv.Split(img2.getBitmap(), None, lmat, None, None)
+        cv.Split(img2.get_bitmap(), None, lmat, None, None)
         wsteps = img2.width / sz[0]
         hsteps = img2.height / sz[1]
         w = sz[0]

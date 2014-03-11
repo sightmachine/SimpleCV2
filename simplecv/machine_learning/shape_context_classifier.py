@@ -54,7 +54,7 @@ class ShapeContextClassifier():
         #IMAGES MUST BE WHITE ON BLACK!
         fulllist = []
         raw_descriptors = []
-        blobs = img.findBlobs(minsize=50)
+        blobs = img.find_blobs(minsize=50)
         count = 0
         if blobs is not None:
             count = len(blobs)

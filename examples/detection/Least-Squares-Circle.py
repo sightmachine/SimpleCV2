@@ -12,7 +12,7 @@ from scipy import optimize
 
 img = Image("derp.png", sample=True)
 img = img.edges()
-npimg = img.getGrayNumpy()
+npimg = img.get_gray_numpy()
 x,y = np.where(npimg > 128)
 x_m = np.average(x)
 y_m = np.average(y)
@@ -33,6 +33,6 @@ residu_2 = sum((Ri_2 - R_2)**2)
 
 print xc_2,yc_2
 print R_2
-img.drawCircle((xc_2,yc_2),R_2,color=Color.RED,thickness=3)
+img.draw_circle((xc_2,yc_2),R_2,color=Color.RED,thickness=3)
 img.show()
 time.sleep(10)

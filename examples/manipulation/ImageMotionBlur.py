@@ -11,7 +11,7 @@ import time
 
 img = Image((500,500))
 layer = DrawingLayer((500, 500))
-layer.setFontSize(25)
+layer.set_font_size(25)
 
 
 layer.rectangle((0,0),(500,500),Color.WHITE,1,True)
@@ -31,31 +31,31 @@ layer.circle((375,300),25,Color.CYAN,1,True)
 
 
 #apply layer
-img.addDrawingLayer(layer)
-img = img.applyLayers()
+img.add_drawing_layer(layer)
+img = img.apply_layers()
 display = Display()
 img.save(display)
 power = 1
 angle = 0
-while not display.isDone():
+while not display.is_done():
     time.sleep(0.01)
     
     #detect up,down,left,right keypresses and modify power,angle
     if( pygame.key.get_pressed()[pygame.K_UP] != 0 ):
         power +=10 
-        blur = img.motionBlur(power,angle)
+        blur = img.motion_blur2(power,angle)
         blur.save(display)
     if( pygame.key.get_pressed()[pygame.K_DOWN] != 0 ):
         power = max(power-10,1)
-        blur = img.motionBlur(power,angle)
+        blur = img.motion_blur2(power,angle)
         blur.save(display)
     if( pygame.key.get_pressed()[pygame.K_LEFT] != 0 ):
         angle -= 5
-        blur = img.motionBlur(power,angle)
+        blur = img.motion_blur2(power,angle)
         blur.save(display)
     if( pygame.key.get_pressed()[pygame.K_RIGHT] != 0 ):
         angle += 5
-        blur = img.motionBlur(power,angle)
+        blur = img.motion_blur2(power,angle)
         blur.save(display)
     pass
 

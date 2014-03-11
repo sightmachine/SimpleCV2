@@ -11,7 +11,7 @@ def identifyGender():
     cam = Camera()
     img = cam.getImage()
     cascade = LAUNCH_PATH + "/data/Features/HaarCascades/face.xml"
-    feat = img.findHaarFeatures(cascade)
+    feat = img.find_haar_features(cascade)
     if feat:
         crop_image = feat.sortArea()[-1].crop()
         feat.sortArea()[-1].draw()
@@ -22,10 +22,10 @@ def identifyGender():
     label, confidence = f.predict(crop_image)
     print label
     if label == 0:
-        img.drawText("Female", fontsize=48)
+        img.draw_text("Female", fontsize=48)
 
     else:
-        img.drawText("Male", fontsize=48)
+        img.draw_text("Male", fontsize=48)
     img.show()
     time.sleep(4)
 

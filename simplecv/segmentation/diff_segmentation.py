@@ -50,12 +50,12 @@ class DiffSegmentation(SegmentationBase):
             return
         if self.mLastImg is None:
             if self.mGrayOnlyMode:
-                self.mLastImg = img.toGray()
-                self.mDiffImg = Image(self.mLastImg.getEmpty(1))
+                self.mLastImg = img.to_gray()
+                self.mDiffImg = Image(self.mLastImg.get_empty(1))
                 self.mCurrImg = None
             else:
                 self.mLastImg = img
-                self.mDiffImg = Image(self.mLastImg.getEmpty(3))
+                self.mDiffImg = Image(self.mLastImg.get_empty(3))
                 self.mCurrImg = None
         else:
             if self.mCurrImg is not None:  # catch the first step
@@ -63,13 +63,13 @@ class DiffSegmentation(SegmentationBase):
 
             if self.mGrayOnlyMode:
                 self.mColorImg = img
-                self.mCurrImg = img.toGray()
+                self.mCurrImg = img.to_gray()
             else:
                 self.mColorImg = img
                 self.mCurrImg = img
 
-            cv.AbsDiff(self.mCurrImg.getBitmap(), self.mLastImg.getBitmap(),
-                       self.mDiffImg.getBitmap())
+            cv.AbsDiff(self.mCurrImg.get_bitmap(), self.mLastImg.get_bitmap(),
+                       self.mDiffImg.get_bitmap())
 
         return
 

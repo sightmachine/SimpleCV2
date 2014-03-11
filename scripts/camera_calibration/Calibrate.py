@@ -18,8 +18,8 @@ distance specify "planemode".
 """
 
 def showText(img, text):
-    img.dl().setFontSize(25)
-    width, height = img.dl().textDimensions(text)
+    img.dl().set_font_size(25)
+    width, height = img.dl().text_dimensions(text)
     #img.dl().text(str(width) + 'x' + str(height), (100, 100))
     img.dl().text(text, ((img.width / 2) - (width / 2), 100 - height / 2), color = (0, 120, 0))
 
@@ -44,8 +44,8 @@ def saveCalibrationImage(i, imgset, dims):
     Save our image in the calibration set
     """
     if (len(imgset)):
-        lastcb = imgset[-1].findChessboard(dims, subpixel = False)
-        thiscb = i.findChessboard(dims, subpixel = False)
+        lastcb = imgset[-1].find_chessboard(dims, subpixel = False)
+        thiscb = i.find_chessboard(dims, subpixel = False)
 
         cbmid = len(lastcb.coordinates()) / 2
         if distance(lastcb.coordinates()[cbmid], thiscb.coordinates()[cbmid]) < 30:
@@ -295,8 +295,8 @@ def main(camindex = 0, capture_width = 800, capture_height = 600, chessboard_wid
 
     while not d.isDone():
         time.sleep(0.01)
-        i = cam.getImage().flipHorizontal()
-        cb = i.findChessboard(dims, subpixel = False)
+        i = cam.getImage().flip_horizontal()
+        cb = i.find_chessboard(dims, subpixel = False)
 
 
         if cb:

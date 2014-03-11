@@ -29,11 +29,11 @@ myfile = "barcode-list.csv"
 while display.isNotDone():
     display.checkEvents()#check for mouse clicks
     img = cam.getImage()
-    img.drawRectangle(img.width/4,img.height/4,img.width/2,img.height/2,color=Color.RED,width=3)
+    img.draw_rectangle(img.width/4,img.height/4,img.width/2,img.height/2,color=Color.RED,width=3)
     if display.mouseLeft: # click the mouse to read
-        img.drawText("reading barcode... wait",10,10)
+        img.draw_text("reading barcode... wait",10,10)
         img.save(display)
-        barcode = img.findBarcode()
+        barcode = img.find_barcode()
         if barcode: # if we have a barcode
             data = str(barcode.data)
             print data
@@ -41,9 +41,9 @@ while display.isNotDone():
                 mydict[data] = mydict[data] + 1
             else:
                 mydict[data] = 1
-    img.drawText("Click to scan.",10,10,color=Color.RED)
+    img.draw_text("Click to scan.",10,10,color=Color.RED)
     myItem = "Last item scanned: " + data
-    img.drawText(myItem,10,30)
+    img.draw_text(myItem,10,30)
     img.save(display) #display
 
 #write to a CSV file.

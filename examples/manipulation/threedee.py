@@ -5,11 +5,11 @@ import os
 from simplecv import *
 
 def threedee_me(left, right, offset):
-    (r,g,b)=left.splitChannels()
-    left_blue = left.mergeChannels(None,b,g);
+    (r,g,b)=left.split_channels()
+    left_blue = left.merge_channels(None,b,g);
     #left_blue.save("blue.png", sample=True)
-    (r,g,b) = right.splitChannels()
-    right_red = right.mergeChannels(r,None,None);
+    (r,g,b) = right.split_channels()
+    right_red = right.merge_channels(r,None,None);
     #right_red.save("red.png", sample=True)
     sz = (left.width+offset[0],left.height+offset[1])
     output = left_blue.embiggen(size=sz,pos=(0,0))

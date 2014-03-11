@@ -16,14 +16,14 @@ def getFaceSet(cam,myStr=""):
     disp = Display((640,480))
     while disp.isNotDone():
         img = cam.getImage()
-        fs = img.findHaarFeatures('face')
+        fs = img.find_haar_features('face')
         if( fs is not None ):
             fs = fs.sortArea()
             face = fs[-1].crop().resize(100,100)
             fs[-1].draw()
             iset.append(face)
             count = count + 1
-        img.drawText(myStr,20,20,color=Color.RED,fontsize=32)
+        img.draw_text(myStr,20,20,color=Color.RED,fontsize=32)
         img.save(disp)
     disp.quit()
     return iset
@@ -50,11 +50,11 @@ f.save(outfile)
 disp = Display((640,480))
 while disp.isNotDone():
     img = cam.getImage()
-    fs = img.findHaarFeatures('face')
+    fs = img.find_haar_features('face')
     if( fs is not None ):
         fs = fs.sortArea()
         face = fs[-1].crop().resize(100,100)
         fs[-1].draw()
         name, confidence = f.predict(face)
-        img.drawText(name,30,30,fontsize=64)
+        img.draw_text(name,30,30,fontsize=64)
     img.save(disp)

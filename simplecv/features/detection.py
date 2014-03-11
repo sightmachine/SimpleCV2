@@ -33,7 +33,7 @@ class Corner(Feature):
 
     **SEE ALSO**
 
-    :py:meth:`findCorners`
+    :py:meth:`find_corners`
     """
 
     def __init__(self, i, at_x, at_y):
@@ -61,7 +61,7 @@ class Corner(Feature):
         Nothing - this is an inplace operation that modifies the source images
         drawing layer.
         """
-        self.image.drawCircle((self.x, self.y), 4, color, width)
+        self.image.draw_circle((self.x, self.y), 4, color, width)
 
 
 ######################################################################
@@ -69,7 +69,7 @@ class Line(Feature):
     """
     **SUMMARY**
 
-    The Line class is returned by the findLines function, but can also be
+    The Line class is returned by the find_lines function, but can also be
     initialized with any two points.
 
     >>> l = Line(Image, (point1, point2))
@@ -124,7 +124,7 @@ class Line(Feature):
         Nothing - this is an inplace operation that modifies the source images
         drawing layer.
         """
-        self.image.drawLine(self.end_points[0], self.end_points[1], color,
+        self.image.draw_line(self.end_points[0], self.end_points[1], color,
                             width)
 
     def length(self):
@@ -141,7 +141,7 @@ class Line(Feature):
         **EXAMPLE**
 
         >>> img = Image("OWS.jpg")
-        >>> lines = img.findLines
+        >>> lines = img.find_lines
         >>> for l in lines:
         >>>    if l.length() > 100:
         >>>       print "OH MY! - WHAT A BIG LINE YOU HAVE!"
@@ -164,14 +164,14 @@ class Line(Feature):
         **EXAMPLE**
 
         >>> img = Image("../sampleimages/EdgeTest2.png")
-        >>> l = img.findLines()
+        >>> l = img.find_lines()
         >>> myLine = l[0].crop()
 
         """
         tl = self.topLeftCorner()
         return self.image.crop(tl[0], tl[1], self.width(), self.height())
 
-    def meanColor(self):
+    def mean_color(self):
         """
         **SUMMARY**
 
@@ -187,8 +187,8 @@ class Line(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> l = img.findLines()
-        >>> c = l[0].meanColor()
+        >>> l = img.find_lines()
+        >>> c = l[0].mean_color()
 
         """
         (pt1, pt2) = self.end_points
@@ -202,9 +202,9 @@ class Line(Feature):
 
         #if it's a straight one, we can just get mean color on the slice
         if d_x == 0.0:
-            return self.image[pt1[0]:pt1[0] + 1, miny:maxy].meanColor()
+            return self.image[pt1[0]:pt1[0] + 1, miny:maxy].mean_color()
         if d_y == 0.0:
-            return self.image[minx:maxx, pt1[1]:pt1[1] + 1].meanColor()
+            return self.image[minx:maxx, pt1[1]:pt1[1] + 1].mean_color()
 
         error = 0.0
         # this is how much our "error" will increase in every step
@@ -282,7 +282,7 @@ class Line(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> l = img.findLines()
+        >>> l = img.find_lines()
         >>> c = l[0].findIntersection[1]
 
 
@@ -323,7 +323,7 @@ class Line(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> l = img.findLines()
+        >>> l = img.find_lines()
         >>> c = l[0].isParallel(l[1])
 
         """
@@ -344,7 +344,7 @@ class Line(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> l = img.findLines()
+        >>> l = img.find_lines()
         >>> c = l[0].isPerpendicular(l[1])
 
         """
@@ -376,7 +376,7 @@ class Line(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> l = img.findLines()
+        >>> l = img.find_lines()
         >>> c = l[0].imgIntersections(img.binarize())
 
         """
@@ -416,7 +416,7 @@ class Line(Feature):
         **EXAMPLE**
 
         >>> img = Image("OWS.jpg")
-        >>> ls = img.findLines
+        >>> ls = img.find_lines
         >>> for l in ls:
         >>>    if l.angle() == 0:
         >>>       print "I AM HORIZONTAL."
@@ -611,7 +611,7 @@ class Barcode(Feature):
     """
     **SUMMARY**
 
-    The Barcode Feature wrappers the object returned by findBarcode(), a zbar
+    The Barcode Feature wrappers the object returned by find_barcode(), a zbar
     symbol
 
     * The x,y coordinate is the center of the code.
@@ -686,10 +686,10 @@ class Barcode(Feature):
 
 
         """
-        self.image.drawLine(self.points[0], self.points[1], color, width)
-        self.image.drawLine(self.points[1], self.points[2], color, width)
-        self.image.drawLine(self.points[2], self.points[3], color, width)
-        self.image.drawLine(self.points[3], self.points[0], color, width)
+        self.image.draw_line(self.points[0], self.points[1], color, width)
+        self.image.draw_line(self.points[1], self.points[2], color, width)
+        self.image.draw_line(self.points[2], self.points[3], color, width)
+        self.image.draw_line(self.points[3], self.points[0], color, width)
 
     def length(self):
         """
@@ -705,7 +705,7 @@ class Barcode(Feature):
         **EXAMPLE**
 
         >>> img = Image("mycode.jpg")
-        >>> bc = img.findBarcode()
+        >>> bc = img.find_barcode()
         >>> print bc[-1].length()
 
         """
@@ -729,7 +729,7 @@ class Barcode(Feature):
         **EXAMPLE**
 
         >>> img = Image("mycode.jpg")
-        >>> bc = img.findBarcode()
+        >>> bc = img.find_barcode()
         >>> print bc[-1].area()
 
 
@@ -814,10 +814,10 @@ class HaarFeature(Feature):
         drawing layer.
 
         """
-        self.image.drawLine(self.points[0], self.points[1], color, width)
-        self.image.drawLine(self.points[1], self.points[2], color, width)
-        self.image.drawLine(self.points[2], self.points[3], color, width)
-        self.image.drawLine(self.points[3], self.points[0], color, width)
+        self.image.draw_line(self.points[0], self.points[1], color, width)
+        self.image.draw_line(self.points[1], self.points[2], color, width)
+        self.image.draw_line(self.points[2], self.points[3], color, width)
+        self.image.draw_line(self.points[3], self.points[0], color, width)
 
     def __getstate__(self):
         dict = self.__dict__.copy()
@@ -825,7 +825,7 @@ class HaarFeature(Feature):
             del dict["classifier"]
         return dict
 
-    def meanColor(self):
+    def mean_color(self):
         """
         **SUMMARY**
 
@@ -840,13 +840,13 @@ class HaarFeature(Feature):
 
         >>> img = Image("lenna")
         >>> face = HaarCascade("face.xml")
-        >>> faces = img.findHaarFeatures(face)
-        >>> print faces[-1].meanColor()
+        >>> faces = img.find_haar_features(face)
+        >>> print faces[-1].mean_color()
 
         """
         crop = self.image[self.points[0][0]:self.points[1][0],
                           self.points[0][1]:self.points[2][1]]
-        return crop.meanColor()
+        return crop.mean_color()
 
     def area(self):
         """
@@ -862,7 +862,7 @@ class HaarFeature(Feature):
 
         >>> img = Image("lenna")
         >>> face = HaarCascade("face.xml")
-        >>> faces = img.findHaarFeatures(face)
+        >>> faces = img.find_haar_features(face)
         >>> print faces[-1].area()
 
         """
@@ -915,7 +915,7 @@ class Chessboard(Feature):
         drawing layer.
 
         """
-        cv.DrawChessboardCorners(self.image.getBitmap(), self.dimensions,
+        cv.DrawChessboardCorners(self.image.get_bitmap(), self.dimensions,
                                  self.spCorners, 1)
 
     def area(self):
@@ -1124,7 +1124,7 @@ class Circle(Feature):
         **EXAMPLE**
 
         >>> img = Image("logo")
-        >>> feat = img.findCircle()
+        >>> feat = img.find_circle()
         >>> feat[0].show()
 
         """
@@ -1150,7 +1150,7 @@ class Circle(Feature):
         **EXAMPLE**
 
         >>> img = Image("OWS.jpg")
-        >>> blobs = img.findCircle()
+        >>> blobs = img.find_circle()
         >>> blobs[-1].distanceFrom(blobs[-2].coordinates())
 
         """
@@ -1158,7 +1158,7 @@ class Circle(Feature):
             point = np.array(self.image.size()) / 2
         return spsd.euclidean(point, [self.x, self.y])
 
-    def meanColor(self):
+    def mean_color(self):
         """
 
         **SUMMARY**
@@ -1173,17 +1173,17 @@ class Circle(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> c = img.findCircle()
-        >>> c[-1].meanColor()
+        >>> c = img.find_circle()
+        >>> c[-1].mean_color()
 
         """
         #generate the mask
         if self.avgColor is None:
-            mask = self.image.getEmpty(1)
+            mask = self.image.get_empty(1)
             cv.Zero(mask)
             cv.Circle(mask, (self.x, self.y), self.r, color=(255, 255, 255),
                       thickness=-1)
-            temp = cv.Avg(self.image.getBitmap(), mask)
+            temp = cv.Avg(self.image.get_bitmap(), mask)
             self.avgColor = (temp[0], temp[1], temp[2])
         return self.avgColor
 
@@ -1202,7 +1202,7 @@ class Circle(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> feats = img.findBlobs()
+        >>> feats = img.find_blobs()
         >>> xs = feats.coordinates()
         >>> print xs
 
@@ -1274,15 +1274,15 @@ class Circle(Feature):
             return self.image.crop(self.x, self.y, self.width(), self.height(),
                                    centered=True)
         else:
-            mask = self.image.getEmpty(1)
-            result = self.image.getEmpty()
+            mask = self.image.get_empty(1)
+            result = self.image.get_empty()
             cv.Zero(mask)
             cv.Zero(result)
             # if you want to shave a bit of time we go do
             # the crop before the blit
             cv.Circle(mask, (self.x, self.y), self.r, color=(255, 255, 255),
                       thickness=-1)
-            cv.Copy(self.image.getBitmap(), result, mask)
+            cv.Copy(self.image.get_bitmap(), result, mask)
             retVal = Image(result)
             retVal = retVal.crop(self.x, self.y, self.width(), self.height(),
                                  centered=True)
@@ -1430,7 +1430,7 @@ class KeyPoint(Feature):
         the same as:
 
         >>> img = Image("logo")
-        >>> feat = img.findBlobs()
+        >>> feat = img.find_blobs()
         >>> if feat: feat.draw()
         >>> img.show()
 
@@ -1449,7 +1449,7 @@ class KeyPoint(Feature):
             point = np.array(self.image.size()) / 2
         return spsd.euclidean(point, [self.x, self.y])
 
-    def meanColor(self):
+    def mean_color(self):
         """
         **SUMMARY**
 
@@ -1463,17 +1463,17 @@ class KeyPoint(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> kp = img.findKeypoints()
-        >>> c = kp[0].meanColor()
+        >>> kp = img.find_keypoints()
+        >>> c = kp[0].mean_color()
 
         """
         #generate the mask
         if self._avgColor is None:
-            mask = self.image.getEmpty(1)
+            mask = self.image.get_empty(1)
             cv.Zero(mask)
             cv.Circle(mask, (int(self.x), int(self.y)), int(self._r),
                       color=(255, 255, 255), thickness=-1)
-            temp = cv.Avg(self.image.getBitmap(), mask)
+            temp = cv.Avg(self.image.get_bitmap(), mask)
             self._avgColor = (temp[0], temp[1], temp[2])
         return self._avgColor
 
@@ -1482,7 +1482,7 @@ class KeyPoint(Feature):
         Return the euclidean color distance of the color tuple at x,y from
         a given color (default black)
         """
-        return spsd.euclidean(np.array(color), np.array(self.meanColor()))
+        return spsd.euclidean(np.array(color), np.array(self.mean_color()))
 
     def perimeter(self):
         """
@@ -1548,15 +1548,15 @@ class KeyPoint(Feature):
             return self.image.crop(self.x, self.y, self.width(), self.height(),
                                    centered=True)
         else:
-            mask = self.image.getEmpty(1)
-            result = self.image.getEmpty()
+            mask = self.image.get_empty(1)
+            result = self.image.get_empty()
             cv.Zero(mask)
             cv.Zero(result)
             # if you want to shave a bit of time we go do
             # the crop before the blit
             cv.Circle(mask, (int(self.x), int(self.y)), int(self._r),
                       color=(255, 255, 255), thickness=-1)
-            cv.Copy(self.image.getBitmap(), result, mask)
+            cv.Copy(self.image.get_bitmap(), result, mask)
             retVal = Image(result)
             retVal = retVal.crop(self.x, self.y, self.width(), self.height(),
                                  centered=True)
@@ -1679,7 +1679,7 @@ class Motion(Feature):
         """
         return self.window
 
-    def meanColor(self):
+    def mean_color(self):
         """
         Return the color tuple from x,y
         **SUMMARY**
@@ -1695,14 +1695,14 @@ class Motion(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> kp = img.findKeypoints()
-        >>> c = kp.meanColor()
+        >>> kp = img.find_keypoints()
+        >>> c = kp.mean_color()
 
         """
         x = int(self.x - (self.window / 2))
         y = int(self.y - (self.window / 2))
         return self.image.crop(x, y, int(self.window),
-                               int(self.window)).meanColor()
+                               int(self.window)).mean_color()
 
     def crop(self):
         """
@@ -1791,7 +1791,7 @@ class KeypointMatch(Feature):
         self.image.dl().line(self._minRect[2], self._minRect[3], color, width)
         self.image.dl().line(self._minRect[3], self._minRect[0], color, width)
 
-    def drawRect(self, color=Color.GREEN, width=1):
+    def draw_rect(self, color=Color.GREEN, width=1):
         """
         This method draws the axes alligned square box of the template
         match. This box holds the minimum bounding rectangle that describes
@@ -1814,7 +1814,7 @@ class KeypointMatch(Feature):
                               self.height())  # crop the minbouding rect
         return raw
 
-    def meanColor(self):
+    def mean_color(self):
         """
         return the average color within the circle
         **SUMMARY**
@@ -1830,8 +1830,8 @@ class KeypointMatch(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> kp = img.findKeypoints()
-        >>> c = kp.meanColor()
+        >>> kp = img.find_keypoints()
+        >>> c = kp.mean_color()
 
         """
         if self._avgColor is None:
@@ -1841,8 +1841,8 @@ class KeypointMatch(Feature):
             mask = Image((self.width(), self.height()))
             mask.dl().polygon(self._minRect, color=Color.WHITE,
                               filled=pickle.TRUE)
-            mask = mask.applyLayers()
-            retVal = cv.Avg(raw.getBitmap(), mask._getGrayscaleBitmap())
+            mask = mask.apply_layers()
+            retVal = cv.Avg(raw.get_bitmap(), mask._get_grayscale_bitmap())
             self._avgColor = retVal
         else:
             retVal = self._avgColor
@@ -1855,7 +1855,7 @@ class KeypointMatch(Feature):
         """
         return self._minRect
 
-    def getHomography(self):
+    def get_homography(self):
         """
         Returns the _homography matrix used to calulate the minimum bounding
         rectangle.
@@ -1956,7 +1956,7 @@ class ROI(Feature):
         **EXAMPLE**
 
         >>> img = Image('lenna')
-        >>> x,y = np.where(img.threshold(230).getGrayNumpy() > 128 )
+        >>> x,y = np.where(img.threshold(230).get_gray_numpy() > 128 )
         >>> roi = ROI(zip(x,y),img)
         >>> roi = ROI(x,y,img)
 
@@ -2271,7 +2271,7 @@ class ROI(Feature):
         **EXAMPLE**
 
         >>> img = Image('lenna')
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> roi = ROI(blobs[0])
         >>> x = roi.crop()..... /find some x values in the crop region
         >>> xt = roi.CoordTransformX(x)
@@ -2317,7 +2317,7 @@ class ROI(Feature):
         **EXAMPLE**
 
         >>> img = Image('lenna')
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> roi = ROI(blobs[0])
         >>> y = roi.crop()..... /find some y values in the crop region
         >>> yt = roi.CoordTransformY(y)
@@ -2363,7 +2363,7 @@ class ROI(Feature):
         **EXAMPLE**
 
         >>> img = Image('lenna')
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> roi = ROI(blobs[0])
         >>> pts = roi.crop()..... /find some x,y values in the crop region
         >>> pts = roi.CoordTransformPts(pts)
@@ -2555,7 +2555,7 @@ class ROI(Feature):
 
         **EXAMPLE**
 
-        >>>  blobs = img.findBlobs()
+        >>>  blobs = img.find_blobs()
         >>>  roi = ROI(blob[0])
         >>>  print roi.toXYWH()
         >>>  roi.merge(blob[2])
@@ -2621,13 +2621,13 @@ class ROI(Feature):
         **EXAMPLE**
 
         >>> img = Image("RedDog2.jpg")
-        >>> blobs = img.findBlobs()
+        >>> blobs = img.find_blobs()
         >>> blobs[-1].draw()
         >>> img.show()
 
         """
         x, y, w, h = self.toXYWH()
-        self.image.drawRectangle(x, y, w, h, width=width, color=color)
+        self.image.draw_rectangle(x, y, w, h, width=width, color=color)
 
     def show(self, color=Color.GREEN, width=2):
         """
@@ -2643,14 +2643,14 @@ class ROI(Feature):
         **EXAMPLE**
 
         >>> img = Image("logo")
-        >>> feat = img.findBlobs()
+        >>> feat = img.find_blobs()
         >>> feat[-1].show() #window pops up.
 
         """
         self.draw(color, width)
         self.image.show()
 
-    def meanColor(self):
+    def mean_color(self):
         """
         **SUMMARY**
 
@@ -2663,14 +2663,14 @@ class ROI(Feature):
         **EXAMPLE**
 
         >>> img = Image("OWS.jpg")
-        >>> blobs = img.findBlobs(128)
+        >>> blobs = img.find_blobs(128)
         >>> for b in blobs:
-        >>>    if (b.meanColor() == color.WHITE):
+        >>>    if (b.mean_color() == color.WHITE):
         >>>       print "Found a white thing"
 
         """
         x, y, w, h = self.toXYWH()
-        return self.image.crop(x, y, w, h).meanColor()
+        return self.image.crop(x, y, w, h).mean_color()
 
     def _rebase(self, roi):
         x, y, w, h = roi

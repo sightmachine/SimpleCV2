@@ -69,7 +69,7 @@ class MOGSegmentation(SegmentationBase):
 
         self.mColorImg = img
         self.mDiffImg = Image(
-            self.mBSMOG.apply(img.getNumpyCv2(), None, self.learningRate),
+            self.mBSMOG.apply(img.get_numpy_cv2(), None, self.learningRate),
             cv2image=True)
         self.mReady = True
 

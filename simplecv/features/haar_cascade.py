@@ -5,7 +5,7 @@ from simplecv.base import cv, logger, LAUNCH_PATH
 
 class HaarCascade():
     """
-    This class wraps HaarCascade files for the findHaarFeatures file.
+    This class wraps HaarCascade files for the find_haar_features file.
     To use the class provide it with the path to a Haar cascade XML file and
     optionally a name.
     """
@@ -35,7 +35,7 @@ class HaarCascade():
                 if not os.path.exists(self._fhandle):
                     logger.warning("Could not find Haar Cascade file " + fname)
                     logger.warning("Try running the function "
-                                   "img.listHaarFeatures() to see what is "
+                                   "img.list_haar_features() to see what is "
                                    "available")
                     return
 
@@ -62,7 +62,7 @@ class HaarCascade():
                 if (not os.path.exists(self._fhandle)):
                     logger.warning("Could not find Haar Cascade file " + fname)
                     logger.warning("Try running the function "
-                                   "img.listHaarFeatures() to see what is "
+                                   "img.list_haar_features() to see what is "
                                    "available")
                     return None
 

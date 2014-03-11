@@ -85,7 +85,7 @@ class app(gtk.Window):
         #Start SimpleCV Code
         img = cam.getImage().rotate90()
         edges = img.edges(self.edge_threshold)
-        numpy_img = edges.getNumpy()
+        numpy_img = edges.get_numpy()
         #End SimpleCV Code
         return numpy_img
 

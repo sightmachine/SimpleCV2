@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 cam = Camera(1)
 tct = TemporalColorTracker()
 img = cam.getImage()
+
+img = cam.get_image()
 roi = ROI(img.width*0.45,img.height*0.45,img.width*0.1,img.height*0.1,img)
 tct.train(cam,roi=roi,maxFrames=250,pkWndw=20)
 
@@ -30,7 +32,7 @@ while disp.isNotDone():
     
     roi = ROI(img.width*0.45,img.height*0.45,img.width*0.1,img.height*0.1,img)
     roi.draw(width=3)
-    img.drawText(str(result),20,20,color=Color.RED,fontsize=32)
-    img = img.applyLayers()
+    img.draw_text(str(result),20,20,color=Color.RED,fontsize=32)
+    img = img.apply_layers()
     img = img.blit(plotImg.resize(w=img.width,h=img.height),pos=(0,0),alpha=0.5)
     img.save(disp)

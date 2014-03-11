@@ -35,7 +35,7 @@ while disp.isNotDone():
     ax.set_zlabel('RED',color=(1,0,0))
     # Get the color histogram
     img = cam.getImage().scale(0.3)
-    rgb = img.getNumpyCv2()
+    rgb = img.get_numpy_cv2()
     hist = cv2.calcHist([rgb],[0,1,2],None,[bins,bins,bins],[0,256,0,256,0,256])
     hist = hist/np.max(hist)
     # render everything

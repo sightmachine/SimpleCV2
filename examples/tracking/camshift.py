@@ -1,7 +1,7 @@
 from simplecv import *
 # Example for CAMShift Tracker
 def foo(image):
-    return image.meanColor()
+    return image.mean_color()
 
 def camshift():
     cam = Camera()

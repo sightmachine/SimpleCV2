@@ -26,7 +26,7 @@ crop_height = 200
 # Loop forever
 while display.isNotDone():
     # Grab image from camera and flip it
-    img = cam.getImage().flipHorizontal()
+    img = cam.getImage().flip_horizontal()
     # Set the x and the y location to scale
     crop_x = display.mouseX * img.width / display_width 
     crop_y = display.mouseY * img.height / display_height
@@ -45,6 +45,6 @@ while display.isNotDone():
     # Get the edges of cropped region 
     xray_img = cropped_img.edges().smooth()
     # Draw the cropped image onto the current image
-    img.getDrawingLayer().blit(xray_img, (crop_x, crop_y))
+    img.get_drawing_layer().blit(xray_img, (crop_x, crop_y))
     # Display the image
     img.save(display)

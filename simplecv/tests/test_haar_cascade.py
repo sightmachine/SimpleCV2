@@ -13,7 +13,7 @@ testneighbor_out = "../data/sampleimages/04000_face.jpg"
 
 def test_haarcascade():
     img = Image(testimage)
-    faces = img.findHaarFeatures(FACECASCADE)
+    faces = img.find_haar_features(FACECASCADE)
 
     if faces:
         faces.draw()
@@ -24,7 +24,7 @@ def test_haarcascade():
 
 def test_minneighbors(img_in=testneighbor_in, img_out=testneighbor_out):
     img = Image(img_in)
-    faces = img.findHaarFeatures(FACECASCADE, min_neighbors=20)
+    faces = img.find_haar_features(FACECASCADE, min_neighbors=20)
     if faces:
         faces.draw()
         img.save(img_out)

@@ -19,6 +19,6 @@ while True:
     img_filter = diff.binarize(0)
 
     motion_img = img - img_filter
-    motion_img_open = motion_img.morphOpen()
+    motion_img_open = motion_img.morph_open()
     motion_img_open.show()
     depth = new_depth

@@ -60,7 +60,7 @@ class Webcam(QtGui.QMainWindow):
     def show_frame(self):
         ipl_image = self.webcam.getImage()
         ipl_image.dl().circle((150, 75), 50, Color.RED, filled = True)
-        data = ipl_image.getBitmap().tostring()
+        data = ipl_image.get_bitmap().tostring()
         image = QtGui.QImage(data, ipl_image.width, ipl_image.height, 3 * ipl_image.width, QtGui.QImage.Format_RGB888)
         pixmap = QtGui.QPixmap()
         pixmap.convertFromImage(image.rgbSwapped())

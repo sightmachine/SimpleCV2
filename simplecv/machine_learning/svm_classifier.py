@@ -495,10 +495,10 @@ class SVMClassifier:
     def _WriteText(self, disp, img, txt, color):
         if (disp is not None):
             txt = ' ' + txt + ' '
-            img = img.adaptiveScale(disp.resolution)
+            img = img.adaptive_scale(disp.resolution)
             layer = DrawingLayer((img.width, img.height))
             layer.setFontSize(60)
             layer.ezViewText(txt, (20, 20), fgcolor=color)
-            img.addDrawingLayer(layer)
-            img.applyLayers()
+            img.add_drawing_layer(layer)
+            img.apply_layers()
             img.save(disp)

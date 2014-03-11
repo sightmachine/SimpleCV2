@@ -92,7 +92,7 @@ class BlobMaker:
             maxsize = colorImg.width * colorImg.height
 
         retVal = []
-        test = binaryImg.meanColor()
+        test = binaryImg.mean_color()
         if test[0] == 0.00 and test[1] == 0.00 and test[2] == 0.00:
             return FeatureSet(retVal)
 
@@ -108,7 +108,7 @@ class BlobMaker:
         if test[0] <= ptest and test[1] <= ptest and test[2] <= ptest:
             return retVal
 
-        seq = cv.FindContours(binaryImg._getGrayscaleBitmap(),
+        seq = cv.FindContours(binaryImg._get_grayscale_bitmap(),
                               self.mMemStorage, cv.CV_RETR_TREE,
                               cv.CV_CHAIN_APPROX_SIMPLE)
         if not list(seq):
@@ -225,7 +225,7 @@ class BlobMaker:
         #hullMask = self._getHullMask(chull,bb)
 
         # KAS -- FLAG FOR REPLACE 6/6/2012
-        # retVal.mHullImg = self._getBlobAsImage(chull,bb,color.getBitmap(),
+        # retVal.mHullImg = self._getBlobAsImage(chull,bb,color.get_bitmap(),
         # hullMask)
 
         # KAS -- FLAG FOR REPLACE 6/6/2012
@@ -261,14 +261,14 @@ class BlobMaker:
         mask = self._getMask(seq, bb)
         #retVal.mMask = Image(mask)
 
-        retVal.mAvgColor = self._getAvg(color.getBitmap(), bb, mask)
+        retVal.mAvgColor = self._getAvg(color.get_bitmap(), bb, mask)
         retVal.mAvgColor = retVal.mAvgColor[0:3]
-        #retVal.mAvgColor = self._getAvg(color.getBitmap(),retVal.mBoundingBox,
+        #retVal.mAvgColor = self._getAvg(color.get_bitmap(),retVal.mBoundingBox,
         # mask)
         #retVal.mAvgColor = retVal.mAvgColor[0:3]
 
         # KAS -- FLAG FOR REPLACE 6/6/2012
-        #retVal.mImg = self._getBlobAsImage(seq,bb,color.getBitmap(),mask)
+        #retVal.mImg = self._getBlobAsImage(seq,bb,color.get_bitmap(),mask)
 
         retVal.mHoleContour = self._getHoles(seq)
         retVal.mAspectRatio = retVal.mMinRectangle[1][0] / \

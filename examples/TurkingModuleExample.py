@@ -6,7 +6,7 @@ from simplecv.machine_learning import TurkingModule
 
 # return images of all the big blobs in our source images
 def preprocess(img):
-    blobs = img.findBlobs(minsize=200)
+    blobs = img.find_blobs(minsize=200)
     blobs = blobs.sortArea()
     return [b.mImg for b in blobs]
 

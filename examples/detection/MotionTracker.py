@@ -25,7 +25,7 @@ lastImg.show()
 while True:
     newImg = cam.getImage()
     trackImg = newImg - lastImg # diff the images
-    blobs =  trackImg.findBlobs() #use adapative blob detection
+    blobs =  trackImg.find_blobs() #use adapative blob detection
     now = int(time.time())
 
     #If blobs are found then motion has occured
@@ -39,7 +39,7 @@ while True:
 
     #Draw the message on the screen
     if(draw_message):
-        newImg.drawText(message_text, 5,5)
+        newImg.draw_text(message_text, 5,5)
         print message_text
 
 

@@ -17,7 +17,7 @@ example = 1
 
 
 while display.isNotDone():
-    image = cam.getImage().flipHorizontal() # get image (or frame) from camera
+    image = cam.getImage().flip_horizontal() # get image (or frame) from camera
 
     # This just automatically cycles through threshold levels
     if(threshold >= 20):
@@ -39,16 +39,16 @@ while display.isNotDone():
         text = "Dilate Morphology Example: img.dilate(" + str(threshold) + ")"
 
     elif(example == 3):
-        image = image.morphOpen()
-        text = "Open Morphology Example: img.morphOpen()"
+        image = image.morph_open()
+        text = "Open Morphology Example: img.morph_open()"
 
     elif(example == 4):
-        image = image.morphClose()
-        text = "Close Morphology Example: img.morphClose()"
+        image = image.morph_close()
+        text = "Close Morphology Example: img.morph_close()"
 
     elif(example == 5):
-        image = image.morphGradient()
-        text = "Gradient Morphology Example: img.morphGradient()"
+        image = image.morph_gradient()
+        text = "Gradient Morphology Example: img.morph_gradient()"
 
-    image.drawText(text, 10, 10, color=Color.RED, fontsize=30)
+    image.draw_text(text, 10, 10, color=Color.RED, fontsize=30)
     image.show()

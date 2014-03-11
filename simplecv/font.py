@@ -5,18 +5,18 @@
 from PIL import ImageFont as pilImageFont
 
 
-class Font:
+class Font(object):
     """
     The Font class allows you to create a font object to be
     used in drawing or writing to images.
     There are some defaults available, to see them, just type
-    Font.printFonts()
+    Font.print_fonts()
     """
 
-    _fontpath = "simplecv/data/fonts/"
+    _font_path = "simplecv/data/fonts/"
     _extension = ".ttf"
-    _fontface = "ubuntu"
-    _fontsize = 16
+    _font_face = "ubuntu"
+    _font_size = 16
     _font = None
 
     # These fonts were downloaded from Google at:
@@ -37,74 +37,80 @@ class Font:
         "wire_one"
     ]
 
-    def __init__(self, fontface="ubuntu", fontsize=16):
+    def __init__(self, font_face="ubuntu", font_size=16):
         """
         This creates a new font object, it uses ubuntu as the default font
         To give it a custom font you can just pass the absolute path
         to the truetype font file.
         """
-        self.setSize(fontsize)
-        self.setFont(fontface)
 
-    def getFont(self):
+        self.set_size(font_size)
+        self.set_font(font_face)
+
+    def get_font(self):
         """
         Get the font from the object to be used in drawing
 
         Returns: PIL Image Font
         """
+
         return self._font
 
-    def setFont(self, new_font='ubuntu'):
+    def set_font(self, new_font='ubuntu'):
         """
         Set the name of the font listed in the font family
         if the font isn't listed in the font family then pass it the absolute
         path of the truetype font file.
-        Example: Font.setFont("/home/simplecv/my_font.ttf")
+        Example: Font.set_font("/home/simplecv/my_font.ttf")
         """
+
         if isinstance(new_font, basestring):
             print "Please pass a string"
             return None
 
         if new_font in self._fonts:
-            self._fontface = new_font
-            font_to_use = self._fontpath + self._fontface + "/" + \
-                self._fontface + self._extension
+            self._font_face = new_font
+            font_to_use = self._font_path + self._font_face + "/" + \
+                self._font_face + self._extension
         else:
-            self._fontface = new_font
+            self._font_face = new_font
             font_to_use = new_font
 
-        self._font = pilImageFont.truetype(font_to_use, self._fontsize)
+        self._font = pilImageFont.truetype(font_to_use, self._font_size)
 
-    def setSize(self, size):
+    def set_size(self, size):
         """
         Set the font point size. i.e. 16pt
         """
+
+        #FIXME: delete print...
         print type(size)
         if isinstance(size, int):
-            self._fontsize = size
+            self._font_size = size
         else:
             print "please provide an integer"
 
-    def getSize(self):
+    def get_size(self):
         """
         Gets the size of the current font
 
         Returns: Integer
         """
 
-        return self._fontsize
+        return self._font_size
 
-    def getFonts(self):
+    def get_fonts(self):
         """
         This returns the list of fonts built into simplecv
         """
 
         return self._fonts
 
-    def printFonts(self):
+    def print_fonts(self):
         """
         This prints a list of fonts built into simplecv
         """
 
-        for f in self._fonts:
-            print f
+        # FIXME: change print -> some logging?
+        for font in self._fonts:
+            print font

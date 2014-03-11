@@ -42,7 +42,7 @@ for d in datapoints:
 #    img = img.crop(img.width/3,0,2*img.width/3,img.height)
     #    img = img.equalize()
     img = img.edges()
-    l = img.findLines(threshold=10)
+    l = img.find_lines(threshold=10)
     if( l is not None ):
         v = 70
         h = 30
@@ -56,7 +56,7 @@ for d in datapoints:
 #         derp = get_parallel_sets(l)
 #         color = Color()
 #         for d in derp:
-# #            img.clearLayers()
+# #            img.clear_layers()
 #             l.draw(color=Color.RED,width=3)
 #         #     l.draw()
 #             c = color.getRandom()

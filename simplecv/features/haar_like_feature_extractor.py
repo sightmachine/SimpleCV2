@@ -80,13 +80,13 @@ class HaarLikeFeatureExtractor(FeatureExtractorBase):
         This extractor takes in an image, creates the integral image, applies
         the Haar cascades, and returns the result as a feature vector.
         """
-        regular = img.integralImage()
+        regular = img.integral_image()
         result = []
 
         for i in range(len(self.featureset)):
             result.append(self.featureset[i].apply(regular))
         if self.do45:
-            slant = img.integralImage(tilted=True)
+            slant = img.integral_image(tilted=True)
             for i in range(len(self.featureset)):
                 result.append(self.featureset[i].apply(regular))
         return result

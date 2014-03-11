@@ -22,26 +22,26 @@ while not d.isDone():
     imgscene = img.copy()
 
     depth = cam.getDepth()
-    mindepth = np.min(depth.getNumpy())
+    mindepth = np.min(depth.get_numpy())
 
     if mindepth < 180:
-        depthbin = depth.binarize(np.min(depth.getNumpy()) + np.std(depth.getNumpy()) / 4).erode(3)
+        depthbin = depth.binarize(np.min(depth.get_numpy()) + np.std(depth.get_numpy()) / 4).erode(3)
         #take the front 1/4 stdev of the depth map
 
         img = img.crop(0,25, 605, 455).scale(640,480)
         #img.dl().blit(img.crop(100, 25, 515, 455), (125,0))
         #this is a bit of a hack to compensate for the offset between cam and depth sensor
-        #img = img.applyLayers()
+        #img = img.apply_layers()
         img = img - depthbin.invert()
         #img.save(d)
-        meanred, meangrn, meanblue = img.meanColor()
+        meanred, meangrn, meanblue = img.mean_color()
 
         if meanred > meanblue and meanred > meangrn:
-            depthbin, junk, junk = depthbin.splitChannels(grayscale = False)
+            depthbin, junk, junk = depthbin.split_channels(grayscale = False)
         if meanblue > meanred and meanblue > meangrn:
-            junk, junk, depthbin = depthbin.splitChannels(grayscale = False)
+            junk, junk, depthbin = depthbin.split_channels(grayscale = False)
         if meangrn > meanred and meangrn > meanblue:
-            junk, depthbin, junk = depthbin.splitChannels(grayscale = False)
+            junk, depthbin, junk = depthbin.split_channels(grayscale = False)
 
         laststroke = time.time()
         compositeframe = compositeframe + depthbin
@@ -50,9 +50,9 @@ while not d.isDone():
     else:
         if (time.time() - laststroke > offtime):
         #if we're not painting for a certain amount of time, reset
-            compositeframe = Image(cam.getImage().getEmpty())
+            compositeframe = Image(cam.getImage().get_empty())
 
-    frame = ((imgscene - compositeframe.binarize(10).invert()) + compositeframe).flipHorizontal()
+    frame = ((imgscene - compositeframe.binarize(10).invert()) + compositeframe).flip_horizontal()
     #subtract our composite frame from our camera image, then add it back in in red. False = Show red channel as red, [0] = first (red) channel
     frame.save(d) #show in browser
     if d.mouseLeft:

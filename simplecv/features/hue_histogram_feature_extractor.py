@@ -24,9 +24,9 @@ class HueHistogramFeatureExtractor(FeatureExtractorBase):
         This feature extractor takes in a color image and returns a normalized
         color histogram of the pixel counts of each hue.
         """
-        img = img.toHLS()
-        h = img.getEmpty(1)
-        cv.Split(img.getBitmap(), h, None, None, None)
+        img = img.to_hls()
+        h = img.get_empty(1)
+        cv.Split(img.get_bitmap(), h, None, None, None)
         npa = np.array(h[:, :])
         npa = npa.reshape(1, npa.shape[0] * npa.shape[1])
         hist = np.histogram(npa, self.nbins, normed=True, range=(0, 255))

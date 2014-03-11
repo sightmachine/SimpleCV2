@@ -16,12 +16,12 @@ count = 0
 while display.isNotDone():
     img = cam.getImage()
     img = img.scale(.5) #use a smaller image
-    faces = img.findHaarFeatures(face_cascade) #find faces
+    faces = img.find_haar_features(face_cascade) #find faces
     if( faces is not None ): # if we have a face
         faces = faces.sortArea() #get the biggest one
         face = faces[-1]
         myFace = face.crop() # get the face image
-        noses = myFace.findHaarFeatures(nose_cascade) #find the nose
+        noses = myFace.find_haar_features(nose_cascade) #find the nose
         if( noses is not None ):# if we have a nose
             noses = noses.sortArea()
             nose = noses[0] # get the biggest

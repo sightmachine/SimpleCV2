@@ -34,7 +34,7 @@ def draw_glasses(image, (dx, dy, right_eye), glasses):
     except:
         pass
 
-    return image.flipHorizontal()
+    return image.flip_horizontal()
 
 def main():
 
@@ -45,8 +45,8 @@ def main():
 
     while True:
 
-        image = c.getImage().scale(0.5).flipHorizontal()
-        eyes = image.findHaarFeatures("eye")
+        image = c.getImage().scale(0.5).flip_horizontal()
+        eyes = image.find_haar_features("eye")
 
         if check_eyes(eyes):
             new_position = process_eyes(image, eyes)
@@ -57,7 +57,7 @@ def main():
         if found:
             image = draw_glasses(image, position, glasses)
         else:
-            image = image.flipHorizontal()
+            image = image.flip_horizontal()
 
         image.show()
 

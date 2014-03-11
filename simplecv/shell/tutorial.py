@@ -36,7 +36,7 @@ def attempt(variable_name, desired_class):
 
     if isinstance(variable, desired_class):
         if desired_class == Image:
-            if variable.isEmpty():
+            if variable.is_empty():
                 print lb
                 print "Although you can create empty Images on SimpleCV, "
                 print "let's not play with that now!"
@@ -382,7 +382,7 @@ def tutorial_features():
     print "Try it yourself:"
     print lb
 
-    cmd = "corners = img.findCorners()"
+    cmd = "corners = img.find_corners()"
     desired_tuple = ('corners', FeatureSet)
     command_loop(cmd, desired_tuple)
 
@@ -393,7 +393,7 @@ def tutorial_features():
     print lb
 
     print "Tip: If your are unsure what parameters to pass, you can always use"
-    print "the built in help support by typing help(Image.findCorners). Keep "
+    print "the built in help support by typing help(Image.find_corners). Keep "
     print "in mind that this help works for all of the functions available in"
     print "simplecv"
     print lb
@@ -401,7 +401,7 @@ def tutorial_features():
     print "We can also do that with blobs. Try it:"
     print lb
 
-    cmd = "blobs = img.findBlobs()"
+    cmd = "blobs = img.find_blobs()"
     desired_tuple = ('blobs', FeatureSet)
     command_loop(cmd, desired_tuple)
 
@@ -436,7 +436,7 @@ def tutorial_features():
     print lb
 
     while True:
-        print "img.findBlobs().show()"
+        print "img.find_blobs().show()"
         print lb
         if prompt_and_run().endswith('.show()'):
             break

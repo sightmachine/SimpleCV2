@@ -16,7 +16,7 @@ edgeMap = image.edges()
 
 display = Display((image.width,image.height))
 
-edgeMap.drawText("Left Click to choose points, Right click to find Edge Points", 10,10,color=Color.BLACK,fontsize=20)
+edgeMap.draw_text("Left Click to choose points, Right click to find Edge Points", 10,10,color=Color.BLACK,fontsize=20)
 
 
 points = []
@@ -36,7 +36,7 @@ while not display.isDone():
 
     if(right != None ):
         
-        featureSet = edgeMap.edgeSnap(points)
+        featureSet = edgeMap.edge_snap(points)
         featureSet.image = image
         if(featureSet):
             featureSet.draw(width = 4,color = Color.RED)

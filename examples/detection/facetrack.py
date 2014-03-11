@@ -20,9 +20,9 @@ haarcascade = HaarCascade("face")
 # Loop forever
 while display.isNotDone():
     # Get image, flip it so it looks mirrored, scale to speed things up
-    img = cam.getImage().flipHorizontal().scale(0.5)
+    img = cam.getImage().flip_horizontal().scale(0.5)
     # Load in trained face file
-    faces = img.findHaarFeatures(haarcascade)
+    faces = img.find_haar_features(haarcascade)
     # Pixelize the detected face
     if faces:
         bb = faces[-1].boundingBox()

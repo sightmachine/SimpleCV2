@@ -50,12 +50,12 @@ for test in testset:
     # test image, actual match, truth match
     test2 = scc.imgMap[best].resize(h=400)
     matchImg = test.sideBySide(test2)
-    matchImg = matchImg.sideBySide(true_match)
+    matchImg = matchImg.side_by_side(true_match)
     matchImg = matchImg.resize(w=1200)
     label = "Matched " + words2[-1] + " with " +  words[-1]
-    matchImg.drawText(label,10,10,color=Color.RED,fontsize=30)
+    matchImg.draw_text(label,10,10,color=Color.RED,fontsize=30)
     label = "MatchVal: " + str(np.around(value,4))
-    matchImg.drawText(label,10,45,color=Color.RED,fontsize=30)
+    matchImg.draw_text(label,10,45,color=Color.RED,fontsize=30)
     matchImg.show()
     fname = "match"+str(i)+".png"
     i = i + 1

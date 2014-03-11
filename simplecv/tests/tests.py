@@ -1,3 +1,4 @@
+
 # /usr/bin/python
 # To run this test you need python nose tools installed
 # Run test just use:
@@ -87,12 +88,12 @@ standard_path = "../data/test/standard/"
 def imgDiffs(test_imgs,name_stem,tolerance,path):
     count = len(test_imgs)
     for idx in range(0,count):
-        lhs = test_imgs[idx].applyLayers() # this catches drawing methods
+        lhs = test_imgs[idx].apply_layers() # this catches drawing methods
         fname = standard_path+name_stem+str(idx)+".jpg"
         rhs = Image(fname)
         if( lhs.width == rhs.width and lhs.height == rhs.height ):
             diff = (lhs-rhs)
-            val = np.average(diff.getNumpy())
+            val = np.average(diff.get_numpy())
             if( val > tolerance ):
                 print val
                 return True
@@ -147,8 +148,8 @@ def test_image_numpy_constructor():
     img = Image(testimage)
     grayimg = img.grayscale()
 
-    chan3_array = np.array(img.getMatrix())
-    chan1_array = np.array(img.getGrayscaleMatrix())
+    chan3_array = np.array(img.get_matrix())
+    chan1_array = np.array(img.get_grayscale_matrix())
 
     img2 = Image(chan3_array)
     grayimg2 = Image(chan1_array)
@@ -190,7 +191,6 @@ def test_image_copy():
 
     pass
 
-
 def test_image_getitem():
     img = Image(testimage)
     colors = img[1,1]
@@ -205,11 +205,10 @@ def test_image_getslice():
     if(section == None):
         assert False
 
-
 def test_image_setitem():
     img = Image(testimage)
     img[1,1] = (0, 0, 0)
-    newimg = Image(img.getBitmap())
+    newimg = Image(img.get_bitmap())
     colors = newimg[1,1]
     if (colors[0] == 0 and colors[1] == 0 and colors[2] == 0):
         pass
@@ -220,11 +219,10 @@ def test_image_setitem():
     name_stem = "test_image_setitem"
     perform_diff(result,name_stem)
 
-
 def test_image_setslice():
     img = Image(testimage)
     img[1:10,1:10] = (0,0,0) #make a black box
-    newimg = Image(img.getBitmap())
+    newimg = Image(img.get_bitmap())
     section = newimg[1:10,1:10]
     for i in range(5):
         colors = section[i,0]
@@ -235,17 +233,15 @@ def test_image_setslice():
     name_stem = "test_image_setslice"
     perform_diff(result,name_stem)
 
-
 def test_detection_findCorners():
     img = Image(testimage2)
-    corners = img.findCorners(25)
+    corners = img.find_corners(25)
     corners.draw()
     if (len(corners) == 0):
         assert False
     result = [img]
     name_stem = "test_detection_findCorners"
     perform_diff(result,name_stem)
-
 
 def test_color_meancolor():
     a = np.arange(0, 256)
@@ -257,31 +253,31 @@ def test_color_meancolor():
     imgarr = np.dstack((a, b, c))
     img = Image(imgarr)
 
-    b, g, r = img.meanColor('BGR')
+    b, g, r = img.mean_color('BGR')
     if not (127 < r < 128 and 127 < g < 128 and 63 < b < 64):
         assert False
 
-    r, g, b = img.meanColor('RGB')
+    r, g, b = img.mean_color('RGB')
     if not (127 < r < 128 and 127 < g < 128 and 63 < b < 64):
         assert False
 
-    h, s, v = img.meanColor('HSV')
+    h, s, v = img.mean_color('HSV')
     if not (83 < h < 84 and 191 < s < 192 and 191 < v < 192):
         assert False
 
-    x, y, z = img.meanColor('XYZ')
+    x, y, z = img.mean_color('XYZ')
     if not (109 < x < 110 and 122 < y < 123 and 77 < z < 79):
         assert False
 
-    gray = img.meanColor('Gray')
+    gray = img.mean_color('Gray')
     if not (120 < gray < 121):
         assert False
 
-    y, cr, cb = img.meanColor('YCrCb')
+    y, cr, cb = img.mean_color('YCrCb')
     if not (120 < y < 121 and 133 < cr < 134 and 96 < cb < 97):
         assert False
 
-    h, l, s = img.meanColor('HLS')
+    h, l, s = img.mean_color('HLS')
     if not (84 < h < 85 and 117 < l < 118 and 160 < s < 161):
         assert False
     pass
@@ -304,15 +300,15 @@ def test_image_smooth():
 
 def test_image_gammaCorrect():
     img = Image(topImg)
-    img2 = img.gammaCorrect(1)
-    img3 = img.gammaCorrect(0.5)
-    img4 = img.gammaCorrect(2)
+    img2 = img.gamma_correct(1)
+    img3 = img.gamma_correct(0.5)
+    img4 = img.gamma_correct(2)
     result = []
     result.append(img3)
     result.append(img4)
     name_stem = "test_image_gammaCorrect"
     perform_diff(result, name_stem)
-    if ((img3.meanColor() >= img2.meanColor()) and (img4.meanColor() <= img2.meanColor())):
+    if ((img3.mean_color() >= img2.mean_color()) and (img4.mean_color() <= img2.mean_color())):
         pass
     else:
         assert False
@@ -361,7 +357,6 @@ def test_image_invert():
     else:
         assert False
 
-
 def test_image_size():
     img = Image(testimage2)
     (width, height) = img.size()
@@ -372,16 +367,16 @@ def test_image_size():
 
 def test_image_drawing():
     img = Image(testimageclr)
-    img.drawCircle((img.width/2, img.height/2), 10,thickness=3)
-    img.drawCircle((img.width/2, img.height/2), 15,thickness=5,color=Color.RED)
-    img.drawCircle((img.width/2, img.height/2), 20)
-    img.drawLine((5, 5), (5, 8))
-    img.drawLine((5, 5), (10, 10),thickness=3)
-    img.drawLine((0, 0), (img.width, img.height),thickness=3,color=Color.BLUE)
-    img.drawRectangle(20,20,10,5)
-    img.drawRectangle(22,22,10,5,alpha=128)
-    img.drawRectangle(24,24,10,15,width=-1,alpha=128)
-    img.drawRectangle(28,28,10,15,width=3,alpha=128)
+    img.draw_circle((img.width/2, img.height/2), 10,thickness=3)
+    img.draw_circle((img.width/2, img.height/2), 15,thickness=5,color=Color.RED)
+    img.draw_circle((img.width/2, img.height/2), 20)
+    img.draw_line((5, 5), (5, 8))
+    img.draw_line((5, 5), (10, 10),thickness=3)
+    img.draw_line((0, 0), (img.width, img.height),thickness=3,color=Color.BLUE)
+    img.draw_rectangle(20,20,10,5)
+    img.draw_rectangle(22,22,10,5,alpha=128)
+    img.draw_rectangle(24,24,10,15,width=-1,alpha=128)
+    img.draw_rectangle(28,28,10,15,width=3,alpha=128)
     result = [img]
     name_stem = "test_image_drawing"
     perform_diff(result,name_stem)
@@ -389,18 +384,17 @@ def test_image_drawing():
 def test_image_draw():
     img = Image("lenna")
     newimg = Image("simplecv")
-    lines = img.findLines()
+    lines = img.find_lines()
     newimg.draw(lines)
     lines.draw()
     result = [newimg, img]
     name_stem = "test_image_draw"
     perform_diff(result, name_stem, 5)
 
-
 def test_image_splitchannels():
     img = Image(testimageclr)
-    (r, g, b) = img.splitChannels(True)
-    (red, green, blue) = img.splitChannels()
+    (r, g, b) = img.split_channels(True)
+    (red, green, blue) = img.split_channels()
     result = [r,g,b,red,green,blue]
     name_stem = "test_image_splitchannels"
     perform_diff(result,name_stem)
@@ -418,7 +412,7 @@ def test_image_histogram():
 
 def test_detection_lines():
     img = Image(testimage2)
-    lines = img.findLines()
+    lines = img.find_lines()
     lines.draw()
     result = [img]
     name_stem = "test_detection_lines"
@@ -429,7 +423,7 @@ def test_detection_lines():
 
 def test_detection_lines_standard():
     img = Image(testimage2)
-    lines = img.findLines(useStandard=True)
+    lines = img.find_lines(useStandard=True)
     lines.draw()
     result = [img]
     name_stem = "test_detection_lines_standard"
@@ -451,8 +445,8 @@ def test_detection_feature_measures():
     for f in fs:
         a = f.area()
         l = f.length()
-        c = f.meanColor()
-        d = f.colorDistance()
+        c = f.mean_color()
+        d = f.color_distance()
         th = f.angle()
         pts = f.coordinates()
         dist = f.distanceFrom() #distance from center of image
@@ -466,13 +460,13 @@ def test_detection_feature_measures():
 
 def test_detection_blobs_appx():
     img = Image("lenna")
-    blobs = img.findBlobs()
+    blobs = img.find_blobs()
     blobs[-1].draw(color=Color.RED)
     blobs[-1].drawAppx(color=Color.BLUE)
     result = [img]
 
     img2 = Image("lenna")
-    blobs = img2.findBlobs(appx_level=11)
+    blobs = img2.find_blobs(appx_level=11)
     blobs[-1].draw(color=Color.RED)
     blobs[-1].drawAppx(color=Color.BLUE)
     result.append(img2)
@@ -484,7 +478,7 @@ def test_detection_blobs_appx():
 
 def test_detection_blobs():
     img = Image(testbarcode)
-    blobs = img.findBlobs()
+    blobs = img.find_blobs()
     blobs.draw(color=Color.RED)
     result = [img]
     #TODO - WE NEED BETTER COVERAGE HERE
@@ -497,7 +491,7 @@ def test_detection_blobs():
 def test_detection_blobs_lazy():
 
     img = Image("lenna")
-    b = img.findBlobs()
+    b = img.find_blobs()
     result = []
 
     s = pickle.dumps(b[-1]) # use two otherwise it w
@@ -517,10 +511,9 @@ def test_detection_blobs_lazy():
     name_stem = "test_detection_blobs_lazy"
     perform_diff(result,name_stem,6.00)
 
-
 def test_detection_blobs_adaptive():
     img = Image(testimage)
-    blobs = img.findBlobs(-1, threshblocksize=99)
+    blobs = img.find_blobs(-1, threshblocksize=99)
     blobs.draw(color=Color.RED)
     result = [img]
     name_stem = "test_detection_blobs_adaptive"
@@ -532,12 +525,12 @@ def test_detection_blobs_adaptive():
 def test_detection_blobs_smallimages():
     # Check if segfault occurs or not
     img = Image("../data/sampleimages/blobsegfaultimage.png")
-    blobs = img.findBlobs()
+    blobs = img.find_blobs()
     # if no segfault, pass
 
 def test_detection_blobs_convexity_defects():
     img = Image('lenna')
-    blobs = img.findBlobs()
+    blobs = img.find_blobs()
     b = blobs[-1]
     feat = b.getConvexityDefects()
     points = b.getConvexityDefects(returnPoints=True)
@@ -555,10 +548,10 @@ def test_detection_barcode():
     img2 = Image(testbarcode)
 
     if( SHOW_WARNING_TESTS ):
-        nocode = img1.findBarcode()
+        nocode = img1.find_barcode()
         if nocode: #we should find no barcode in our test image
             assert False
-        code = img2.findBarcode()
+        code = img2.find_barcode()
         code.draw()
         if code.points:
             pass
@@ -571,7 +564,7 @@ def test_detection_barcode():
         pass
 
 def test_detection_x():
-    tmpX = Image(testimage).findLines().x()[0]
+    tmpX = Image(testimage).find_lines().x()[0]
 
     if (tmpX > 0 and Image(testimage).size()[0]):
         pass
@@ -579,7 +572,7 @@ def test_detection_x():
         assert False
 
 def test_detection_y():
-    tmpY = Image(testimage).findLines().y()[0]
+    tmpY = Image(testimage).find_lines().y()[0]
 
     if (tmpY > 0 and Image(testimage).size()[0]):
         pass
@@ -598,7 +591,7 @@ def test_detection_area():
         assert False
 
 def test_detection_angle():
-    angle_val = Image(testimage).findLines().angle()[0]
+    angle_val = Image(testimage).find_lines().angle()[0]
 
 def test_image():
     img = Image(testimage)
@@ -609,28 +602,28 @@ def test_image():
 
 def test_color_colordistance():
     img = Image(blackimage)
-    (r,g,b) = img.splitChannels()
-    avg = img.meanColor()
+    (r,g,b) = img.split_channels()
+    avg = img.mean_color()
 
     c1 = Corner(img, 1, 1)
     c2 = Corner(img, 1, 2)
-    if (c1.colorDistance(c2.meanColor()) != 0):
+    if (c1.color_distance(c2.mean_color()) != 0):
         assert False
 
-    if (c1.colorDistance((0,0,0)) != 0):
+    if (c1.color_distance((0,0,0)) != 0):
         assert False
 
-    if (c1.colorDistance((0,0,255)) != 255):
+    if (c1.color_distance((0,0,255)) != 255):
         assert False
 
-    if (c1.colorDistance((255,255,255)) != sqrt(255**2 * 3)):
+    if (c1.color_distance((255,255,255)) != sqrt(255**2 * 3)):
         assert False
 
     pass
 
 def test_detection_length():
     img = Image(testimage)
-    val = img.findLines().length()
+    val = img.find_lines().length()
 
     if (val == None):
         assert False
@@ -643,7 +636,7 @@ def test_detection_length():
 
 def test_detection_sortangle():
     img = Image(testimage)
-    val = img.findLines().sortAngle()
+    val = img.find_lines().sortAngle()
 
     if(val[0].x < val[1].x):
         pass
@@ -659,7 +652,7 @@ def test_detection_sortarea():
 
 def test_detection_sortLength():
     img = Image(testimage)
-    val = img.findLines().sortLength()
+    val = img.find_lines().sortLength()
     #FIXME: Length is being returned as euclidean type, believe we need a universal type, either Int or scvINT or something.
 
 #def test_distanceFrom():
@@ -676,14 +669,14 @@ def test_color_curve_HSL():
     y = np.array([[0,0],[64,128],[192,128],[255,255]])  #These are the weights
     curve = ColorCurve(y)
     img = Image(testimage)
-    img2 = img.applyHLSCurve(curve,curve,curve)
+    img2 = img.apply_hls_curve(curve,curve,curve)
     img3 = img-img2
 
     result = [img2,img3]
     name_stem = "test_color_curve_HLS"
     perform_diff(result,name_stem)
 
-    c = img3.meanColor()
+    c = img3.mean_color()
     if( c[0] > 2.0 or c[1] > 2.0 or c[2] > 2.0 ): #there may be a bit of roundoff error
         assert False
 
@@ -691,14 +684,14 @@ def test_color_curve_RGB():
     y = np.array([[0,0],[64,128],[192,128],[255,255]])  #These are the weights
     curve = ColorCurve(y)
     img = Image(testimage)
-    img2 = img.applyRGBCurve(curve,curve,curve)
+    img2 = img.apply_rgb_curve(curve,curve,curve)
     img3 = img-img2
 
     result = [img2,img3]
     name_stem = "test_color_curve_RGB"
     perform_diff(result,name_stem)
 
-    c = img3.meanColor()
+    c = img3.mean_color()
     if( c[0] > 1.0 or c[1] > 1.0 or c[2] > 1.0 ): #there may be a bit of roundoff error
         assert False
 
@@ -707,14 +700,14 @@ def test_color_curve_GRAY():
     curve = ColorCurve(y)
     img = Image(testimage)
     gray = img.grayscale()
-    img2 = img.applyIntensityCurve(curve)
+    img2 = img.apply_intensity_curve(curve)
 
     result = [img2]
     name_stem = "test_color_curve_GRAY"
     perform_diff(result,name_stem)
 
-    g=gray.meanColor()
-    i2=img2.meanColor()
+    g=gray.mean_color()
+    i2=img2.mean_color()
     if( g[0]-i2[0] > 1 ): #there may be a bit of roundoff error
         assert False
 
@@ -725,7 +718,7 @@ def test_image_dilate():
     result = [img2]
     name_stem = "test_image_dilate"
     perform_diff(result,name_stem)
-    c=img2.meanColor()
+    c=img2.mean_color()
 
     if( c[0] < 254 or c[1] < 254 or c[2] < 254 ):
         assert False;
@@ -738,7 +731,7 @@ def test_image_erode():
     name_stem = "test_image_erode"
     perform_diff(result,name_stem)
 
-    c=img2.meanColor()
+    c=img2.mean_color()
     print(c)
     if( c[0] > 0 or c[1] > 0 or c[2] > 0 ):
         assert False;
@@ -747,9 +740,9 @@ def test_image_morph_open():
     img = Image(barcode);
     erode= img.erode()
     dilate = erode.dilate()
-    result = img.morphOpen()
+    result = img.morph_open()
     test = result-dilate
-    c=test.meanColor()
+    c=test.mean_color()
     results = [result]
     name_stem = "test_image_morph_open"
     perform_diff(results,name_stem)
@@ -761,9 +754,9 @@ def test_image_morph_close():
     img = Image(barcode)
     dilate = img.dilate()
     erode = dilate.erode()
-    result = img.morphClose()
+    result = img.morph_close()
     test = result-erode
-    c=test.meanColor()
+    c=test.mean_color()
 
     results = [result]
     name_stem = "test_image_morph_close"
@@ -778,9 +771,9 @@ def test_image_morph_grad():
     dilate = img.dilate()
     erode = img.erode()
     dif = dilate-erode
-    result = img.morphGradient()
+    result = img.morph_gradient()
     test = result-dif
-    c=test.meanColor()
+    c=test.mean_color()
 
     results = [result]
     name_stem = "test_image_morph_grad"
@@ -793,8 +786,8 @@ def test_image_morph_grad():
 def test_image_rotate_fixed():
     img = Image(testimage2)
     img2=img.rotate(180, scale = 1)
-    img3=img.flipVertical()
-    img4=img3.flipHorizontal()
+    img3=img.flip_vertical()
+    img4=img3.flip_horizontal()
     img5 = img.rotate(70)
     img6 = img.rotate(70,scale=0.5)
 
@@ -803,11 +796,10 @@ def test_image_rotate_fixed():
     perform_diff(results,name_stem)
 
     test = img4-img2
-    c=test.meanColor()
+    c=test.mean_color()
     print(c)
     if( c[0] > 5 or c[1] > 5 or c[2] > 5 ):
         assert False
-
 
 def test_image_rotate_full():
     img = Image(testimage2)
@@ -817,8 +809,8 @@ def test_image_rotate_full():
     name_stem = "test_image_rotate_full"
     perform_diff(results,name_stem)
 
-    c1=img.meanColor()
-    c2=img2.meanColor()
+    c1=img.mean_color()
+    c2=img2.mean_color()
     if( abs(c1[0]-c2[0]) > 5 or abs(c1[1]-c2[1]) > 5 or abs(c1[2]-c2[2]) > 5 ):
         assert False
 
@@ -851,13 +843,13 @@ def test_image_affine():
     dst =  ((img.width/2,0),(img.width-1,img.height/2),(img.width/2,img.height-1))
     aWarp = cv.CreateMat(2,3,cv.CV_32FC1)
     cv.GetAffineTransform(src,dst,aWarp)
-    atrans = img.transformAffine(aWarp)
+    atrans = img.transform_affine(aWarp)
 
     aWarp2 = np.array(aWarp)
-    atrans2 = img.transformAffine(aWarp2)
+    atrans2 = img.transform_affine(aWarp2)
 
     test = atrans-atrans2
-    c=test.meanColor()
+    c=test.mean_color()
 
     results = [atrans,atrans2]
 
@@ -873,12 +865,12 @@ def test_image_perspective():
     dst = ((img.width*0.05,img.height*0.03),(img.width*0.9,img.height*0.1),(img.width*0.8,img.height*0.7),(img.width*0.2,img.height*0.9))
     pWarp = cv.CreateMat(3,3,cv.CV_32FC1)
     cv.GetPerspectiveTransform(src,dst,pWarp)
-    ptrans = img.transformPerspective(pWarp)
+    ptrans = img.transform_perspective(pWarp)
     pWarp2 = np.array(pWarp)
-    ptrans2 = img.transformPerspective(pWarp2)
+    ptrans2 = img.transform_perspective(pWarp2)
     test = ptrans-ptrans2
-    np_test = test.getNumpy()
-    mc=test.meanColor()
+    np_test = test.get_numpy()
+    mc=test.mean_color()
     results = [ptrans,ptrans2]
     name_stem = "test_image_perspective"
     # Threshold kept high, otherwise test will fail
@@ -890,41 +882,40 @@ def test_image_perspective():
 
 def test_image_horz_scanline():
     img = Image(logo)
-    sl = img.getHorzScanline(10)
+    sl = img.get_horz_scanline(10)
     if( sl.shape[0]!=img.width or sl.shape[1]!=3 ):
         assert False
 
 def test_image_vert_scanline():
     img = Image(logo)
-    sl = img.getVertScanline(10)
+    sl = img.get_vert_scanline(10)
     if( sl.shape[0]!=img.height or sl.shape[1]!=3 ):
         assert False
 
 def test_image_horz_scanline_gray():
     img = Image(logo)
-    sl = img.getHorzScanlineGray(10)
+    sl = img.get_horz_scanline_gray(10)
     if( sl.shape[0]!=img.width or sl.shape[1]!=1 ):
         assert False
 
 def test_image_vert_scanline_gray():
     img = Image(logo)
-    sl = img.getVertScanlineGray(10)
+    sl = img.get_vert_scanline_gray(10)
     if( sl.shape[0]!=img.height or sl.shape[1]!=1 ):
         assert False
 
 def test_image_get_pixel():
     img = Image(logo)
-    px = img.getPixel(0,0)
+    px = img.get_pixel(0,0)
     print(px)
     if(px[0] != 0 or px[1] != 0 or px[2] != 0 ):
         assert False
 
 def test_image_get_gray_pixel():
     img = Image(logo)
-    px = img.getGrayPixel(0,0)
+    px = img.get_gray_pixel(0,0)
     if(px != 0):
         assert False
-
 
 def test_camera_calibration():
     fakeCamera = FrameSource()
@@ -938,19 +929,19 @@ def test_camera_calibration():
 
     fakeCamera.calibrate(imgs)
     #we're just going to check that the function doesn't puke
-    mat = fakeCamera.getCameraMatrix()
+    mat = fakeCamera.get_camera_matrix()
     if( type(mat) != cv.cvmat ):
         assert False
     #we're also going to test load in save in the same pass
     matname = "TestCalibration"
-    if( False == fakeCamera.saveCalibration(matname)):
+    if( False == fakeCamera.save_calibration(matname)):
         assert False
-    if( False == fakeCamera.loadCalibration(matname)):
+    if( False == fakeCamera.load_calibration(matname)):
         assert False
 
 def test_camera_undistort():
     fakeCamera = FrameSource()
-    fakeCamera.loadCalibration("../data/test/StereoVision/Default")
+    fakeCamera.load_calibration("../data/test/StereoVision/Default")
     img = Image("../data/sampleimages/CalibImage0.png")
     img2 = fakeCamera.undistort(img)
 
@@ -1020,7 +1011,7 @@ def test_image_crop():
     perform_diff(results,name_stem)
 
     diff = crop-crop2;
-    c=diff.meanColor()
+    c=diff.mean_color()
     if( c[0] > 0 or c[1] > 0 or c[2] > 0 ):
         assert False
 
@@ -1030,14 +1021,14 @@ def test_image_region_select():
     y1 = 0
     x2 = img.width
     y2 = img.height
-    crop = img.regionSelect(x1,y1,x2,y2)
+    crop = img.region_select(x1,y1,x2,y2)
 
     results = [crop]
     name_stem = "test_image_region_select"
     perform_diff(results,name_stem)
 
     diff = crop-img;
-    c=diff.meanColor()
+    c=diff.mean_color()
     if( c[0] > 0 or c[1] > 0 or c[2] > 0 ):
         assert False
 
@@ -1055,7 +1046,6 @@ def test_image_negative():
     results = [imgB]
     name_stem = "test_image_negative"
     perform_diff(results,name_stem)
-
 
 def test_image_divide():
     imgA = Image(logo)
@@ -1078,7 +1068,6 @@ def test_image_and():
     name_stem = "test_image_and"
     perform_diff(results,name_stem)
 
-
 def test_image_or():
     imgA = Image(barcode)
     imgB = imgA.invert()
@@ -1089,14 +1078,12 @@ def test_image_or():
     name_stem = "test_image_or"
     perform_diff(results,name_stem)
 
-
 def test_image_edgemap():
     imgA = Image(logo)
-    imgB = imgA._getEdgeMap()
+    imgB = imgA._get_edge_map()
     #results = [imgB]
     #name_stem = "test_image_edgemap"
     #perform_diff(results,name_stem)
-
 
 def test_color_colormap_build():
     cm = ColorModel()
@@ -1113,7 +1100,7 @@ def test_color_colormap_build():
     cm.add([(0,0,0),(255,255,255)])
     cm.add([(255,0,0),(0,255,0)])
     img = cm.threshold(Image(testimage))
-    c=img.meanColor()
+    c=img.mean_color()
 
     #if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
     #  assert False
@@ -1136,14 +1123,13 @@ def test_color_colormap_build():
     name_stem = "test_color_colormap_build"
     perform_diff(results,name_stem)
 
-    #c=img.meanColor()
+    #c=img.mean_color()
     #if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
     #  assert False
 
-
 def test_feature_height():
     imgA = Image(logo)
-    lines = imgA.findLines(1)
+    lines = imgA.find_lines(1)
     heights = lines.height()
 
     if(len(heights) <= 0 ):
@@ -1153,7 +1139,7 @@ def test_feature_height():
 
 def test_feature_width():
     imgA = Image(logo)
-    lines = imgA.findLines(1)
+    lines = imgA.find_lines(1)
     widths = lines.width()
 
     if(len(widths) <= 0):
@@ -1164,7 +1150,7 @@ def test_feature_width():
 def test_feature_crop():
     imgA = Image(logo)
 
-    lines = imgA.findLines()
+    lines = imgA.find_lines()
 
     croppedImages = lines.crop()
 
@@ -1173,98 +1159,93 @@ def test_feature_crop():
     else:
         pass
 
-
 def test_color_conversion_func_BGR():
     #we'll just go through the space to make sure nothing blows up
     img = Image(testimage)
     results = []
-    results.append(img.toBGR())
-    results.append(img.toRGB())
-    results.append(img.toHLS())
-    results.append(img.toHSV())
-    results.append(img.toXYZ())
+    results.append(img.to_bgr())
+    results.append(img.to_rgb())
+    results.append(img.to_hls())
+    results.append(img.to_hsv())
+    results.append(img.to_xyz())
 
-    bgr = img.toBGR()
+    bgr = img.to_bgr()
 
-    results.append(bgr.toBGR())
-    results.append(bgr.toRGB())
-    results.append(bgr.toHLS())
-    results.append(bgr.toHSV())
-    results.append(bgr.toXYZ())
+    results.append(bgr.to_bgr())
+    results.append(bgr.to_rgb())
+    results.append(bgr.to_hls())
+    results.append(bgr.to_hsv())
+    results.append(bgr.to_xyz())
 
     name_stem = "test_color_conversion_func_BGR"
     perform_diff(results,name_stem,tolerance=4.0)
 
-
 def test_color_conversion_func_RGB():
     img = Image(testimage)
-    if( not img.isBGR() ):
+    if( not img.is_bgr() ):
         assert False
-    rgb = img.toRGB()
+    rgb = img.to_rgb()
 
-    foo = rgb.toBGR()
-    if( not foo.isBGR() ):
-        assert False
-
-    foo = rgb.toRGB()
-    if( not foo.isRGB() ):
+    foo = rgb.to_bgr()
+    if( not foo.is_bgr() ):
         assert False
 
-    foo = rgb.toHLS()
-    if( not foo.isHLS() ):
+    foo = rgb.to_rgb()
+    if( not foo.is_rgb() ):
         assert False
 
-    foo = rgb.toHSV()
-    if( not foo.isHSV() ):
+    foo = rgb.to_hls()
+    if( not foo.is_hls() ):
         assert False
 
-    foo = rgb.toXYZ()
-    if( not foo.isXYZ() ):
+    foo = rgb.to_hsv()
+    if( not foo.is_hsv() ):
+        assert False
+
+    foo = rgb.to_xyz()
+    if( not foo.is_xyz() ):
         assert False
 
 def test_color_conversion_func_HSV():
     img = Image(testimage)
-    hsv = img.toHSV()
+    hsv = img.to_hsv()
     results = [hsv]
-    results.append(hsv.toBGR())
-    results.append(hsv.toRGB())
-    results.append(hsv.toHLS())
-    results.append(hsv.toHSV())
-    results.append(hsv.toXYZ())
+    results.append(hsv.to_bgr())
+    results.append(hsv.to_rgb())
+    results.append(hsv.to_hls())
+    results.append(hsv.to_hsv())
+    results.append(hsv.to_xyz())
     name_stem = "test_color_conversion_func_HSV"
     perform_diff(results,name_stem,tolerance=4.0 )
-
 
 def test_color_conversion_func_HLS():
     img = Image(testimage)
 
-    hls = img.toHLS()
+    hls = img.to_hls()
     results = [hls]
 
-    results.append(hls.toBGR())
-    results.append(hls.toRGB())
-    results.append(hls.toHLS())
-    results.append(hls.toHSV())
-    results.append(hls.toXYZ())
+    results.append(hls.to_bgr())
+    results.append(hls.to_rgb())
+    results.append(hls.to_hls())
+    results.append(hls.to_hsv())
+    results.append(hls.to_xyz())
 
     name_stem = "test_color_conversion_func_HLS"
     perform_diff(results,name_stem,tolerance=4.0)
 
-
 def test_color_conversion_func_XYZ():
     img = Image(testimage)
 
-    xyz = img.toXYZ()
+    xyz = img.to_xyz()
     results = [xyz]
-    results.append(xyz.toBGR())
-    results.append(xyz.toRGB())
-    results.append(xyz.toHLS())
-    results.append(xyz.toHSV())
-    results.append(xyz.toXYZ())
+    results.append(xyz.to_bgr())
+    results.append(xyz.to_rgb())
+    results.append(xyz.to_hls())
+    results.append(xyz.to_hsv())
+    results.append(xyz.to_xyz())
 
     name_stem = "test_color_conversion_func_XYZ"
     perform_diff(results,name_stem,tolerance=8.0)
-
 
 def test_blob_maker():
     img = Image("../data/sampleimages/blockhead.png")
@@ -1345,7 +1326,7 @@ def test_blob_render():
         b.drawHull(color=Color.ORANGE,width=2,layer=dl)
         b.drawMaskToLayer(reimg)
 
-    img.addDrawingLayer(dl)
+    img.add_drawing_layer(dl)
     results = [img]
     name_stem = "test_blob_render"
     perform_diff(results,name_stem,tolerance=5.0)
@@ -1398,19 +1379,18 @@ def test_image_convolve():
     name_stem = "test_image_convolve"
     perform_diff(results,name_stem)
 
-    c=img.meanColor()
-    d=img2.meanColor()
+    c=img.mean_color()
+    d=img2.mean_color()
     e0 = abs(c[0]-d[0])
     e1 = abs(c[1]-d[1])
     e2 = abs(c[2]-d[2])
     if( e0 > 1 or e1 > 1 or e2 > 1 ):
         assert False
 
-
 def test_detection_ocr():
     img = Image(ocrimage)
 
-    foundtext = img.readText()
+    foundtext = img.read_text()
     print foundtext
     if(len(foundtext) <= 1):
         assert False
@@ -1421,7 +1401,7 @@ def test_template_match():
     source = Image("../data/sampleimages/templatetest.png")
     template = Image("../data/sampleimages/template.png")
     t = 2
-    fs = source.findTemplate(template,threshold=t)
+    fs = source.find_template(template,threshold=t)
     fs.draw()
     results = [source]
     name_stem = "test_template_match"
@@ -1433,15 +1413,15 @@ def test_template_match_once():
     source = Image("../data/sampleimages/templatetest.png")
     template = Image("../data/sampleimages/template.png")
     t = 2
-    fs = source.findTemplateOnce(template,threshold=t)
+    fs = source.find_template_once(template,threshold=t)
     if( len(fs) ==  0 ):
         assert False
 
-    fs = source.findTemplateOnce(template,threshold=t,grayscale=False)
+    fs = source.find_template_once(template,threshold=t,grayscale=False)
     if( len(fs) ==  0 ):
         assert False
 
-    fs = source.findTemplateOnce(template,method='CCORR_NORM')
+    fs = source.find_template_once(template,method='CCORR_NORM')
     if( len(fs) ==  0 ):
         assert False
 
@@ -1451,7 +1431,7 @@ def test_template_match_RGB():
     source = Image("../data/sampleimages/templatetest.png")
     template = Image("../data/sampleimages/template.png")
     t = 2
-    fs = source.findTemplate(template,threshold=t, grayscale=False)
+    fs = source.find_template(template,threshold=t, grayscale=False)
     fs.draw()
     results = [source]
     name_stem = "test_template_match"
@@ -1459,14 +1439,12 @@ def test_template_match_RGB():
 
     pass
 
-
 def test_image_intergralimage():
     img = Image(logo)
-    ii = img.integralImage()
+    ii = img.integral_image()
 
     if len(ii) == 0:
         assert False
-
 
 def test_segmentation_diff():
     segmentor = DiffSegmentation()
@@ -1532,9 +1510,9 @@ def test_embiggen():
 def test_createBinaryMask():
     img2 = Image(logo)
     results = []
-    results.append(img2.createBinaryMask(color1=(0,100,100),color2=(255,200,200)))
-    results.append(img2.createBinaryMask(color1=(0,0,0),color2=(128,128,128)))
-    results.append(img2.createBinaryMask(color1=(0,0,128),color2=(255,255,255)))
+    results.append(img2.create_binary_mask(color1=(0,100,100),color2=(255,200,200)))
+    results.append(img2.create_binary_mask(color1=(0,0,0),color2=(128,128,128)))
+    results.append(img2.create_binary_mask(color1=(0,0,128),color2=(255,255,255)))
 
     name_stem = "test_createBinaryMask"
     perform_diff(results,name_stem)
@@ -1543,10 +1521,10 @@ def test_createBinaryMask():
 
 def test_applyBinaryMask():
     img = Image(logo)
-    mask = img.createBinaryMask(color1=(0,128,128),color2=(255,255,255))
+    mask = img.create_binary_mask(color1=(0,128,128),color2=(255,255,255))
     results = []
-    results.append(img.applyBinaryMask(mask))
-    results.append(img.applyBinaryMask(mask,bg_color=Color.RED))
+    results.append(img.apply_binary_mask(mask))
+    results.append(img.apply_binary_mask(mask,bg_color=Color.RED))
 
     name_stem = "test_applyBinaryMask"
     perform_diff(results,name_stem,tolerance=3.0)
@@ -1558,7 +1536,7 @@ def test_applyPixelFunc():
     def myFunc((r,g,b)):
         return( (b,g,r) )
 
-    img = img.applyPixelFunction(myFunc)
+    img = img.apply_pixel_function(myFunc)
     name_stem = "test_applyPixelFunc"
     results = [img]
     perform_diff(results,name_stem)
@@ -1572,25 +1550,25 @@ def test_applySideBySide():
     #BL = big image little image  -> this is important to test all the possible cases.
     results = []
 
-    results.append(img3.sideBySide(img,side='right',scale=False))
-    results.append(img3.sideBySide(img,side='left',scale=False))
-    results.append(img3.sideBySide(img,side='top',scale=False))
-    results.append(img3.sideBySide(img,side='bottom',scale=False))
+    results.append(img3.side_by_side(img,side='right',scale=False))
+    results.append(img3.side_by_side(img,side='left',scale=False))
+    results.append(img3.side_by_side(img,side='top',scale=False))
+    results.append(img3.side_by_side(img,side='bottom',scale=False))
 
-    results.append(img.sideBySide(img3,side='right',scale=False))
-    results.append(img.sideBySide(img3,side='left',scale=False))
-    results.append(img.sideBySide(img3,side='top',scale=False))
-    results.append(img.sideBySide(img3,side='bottom',scale=False))
+    results.append(img.side_by_side(img3,side='right',scale=False))
+    results.append(img.side_by_side(img3,side='left',scale=False))
+    results.append(img.side_by_side(img3,side='top',scale=False))
+    results.append(img.side_by_side(img3,side='bottom',scale=False))
 
-    results.append(img3.sideBySide(img,side='right',scale=True))
-    results.append(img3.sideBySide(img,side='left',scale=True))
-    results.append(img3.sideBySide(img,side='top',scale=True))
-    results.append(img3.sideBySide(img,side='bottom',scale=True))
+    results.append(img3.side_by_side(img,side='right',scale=True))
+    results.append(img3.side_by_side(img,side='left',scale=True))
+    results.append(img3.side_by_side(img,side='top',scale=True))
+    results.append(img3.side_by_side(img,side='bottom',scale=True))
 
-    results.append(img.sideBySide(img3,side='right',scale=True))
-    results.append(img.sideBySide(img3,side='left',scale=True))
-    results.append(img.sideBySide(img3,side='top',scale=True))
-    results.append(img.sideBySide(img3,side='bottom',scale=True))
+    results.append(img.side_by_side(img3,side='right',scale=True))
+    results.append(img.side_by_side(img3,side='left',scale=True))
+    results.append(img.side_by_side(img3,side='top',scale=True))
+    results.append(img.side_by_side(img3,side='bottom',scale=True))
 
     name_stem = "test_applySideBySide"
     perform_diff(results,name_stem)
@@ -1621,18 +1599,16 @@ def test_resize():
     name_stem = "test_resize"
     perform_diff(results,name_stem)
 
-
 def test_createAlphaMask():
     alphaMask = Image(alphaSrcImg)
-    mask = alphaMask.createAlphaMask(hue=60)
-    mask2 = alphaMask.createAlphaMask(hue_lb=59,hue_ub=61)
+    mask = alphaMask.create_alpha_mask(hue=60)
+    mask2 = alphaMask.create_alpha_mask(hue_lb=59,hue_ub=61)
     top = Image(topImg)
     bottom = Image(bottomImg)
     bottom = bottom.blit(top,alphaMask=mask2)
     results = [mask,mask2,bottom]
     name_stem = "test_createAlphaMask"
     perform_diff(results,name_stem)
-
 
 def test_blit_regular():
     top = Image(topImg)
@@ -1665,7 +1641,6 @@ def test_blit_mask():
 
     pass
 
-
 def test_blit_alpha():
     top = Image(topImg)
     bottom = Image(bottomImg)
@@ -1680,7 +1655,6 @@ def test_blit_alpha():
     perform_diff(results,name_stem)
 
     pass
-
 
 def test_blit_alpha_mask():
     top = Image(topImg)
@@ -1699,7 +1673,6 @@ def test_blit_alpha_mask():
 
     pass
 
-
 def test_imageset():
     imgs = ImageSet()
 
@@ -1711,23 +1684,22 @@ def test_imageset():
 def test_hsv_conversion():
     px = Image((1,1))
     px[0,0] = Color.GREEN
-    if (Color.hsv(Color.GREEN) == px.toHSV()[0,0]):
+    if (Color.hsv(Color.GREEN) == px.to_hsv()[0,0]):
         pass
     else:
         assert False
 
-
 def test_whiteBalance():
     img = Image("../data/sampleimages/BadWB2.jpg")
-    output = img.whiteBalance()
-    output2 = img.whiteBalance(method="GrayWorld")
+    output = img.white_balance()
+    output2 = img.white_balance(method="GrayWorld")
     results = [output,output2]
     name_stem = "test_whiteBalance"
     perform_diff(results,name_stem)
 
 def test_hough_circles():
     img = Image(circles)
-    circs = img.findCircle(thresh=100)
+    circs = img.find_circle(thresh=100)
     circs.draw()
     if( circs[0] < 1 ):
         assert False
@@ -1738,8 +1710,8 @@ def test_hough_circles():
     circs[0].height()
     circs[0].radius()
     circs[0].diameter()
-    circs[0].colorDistance()
-    circs[0].meanColor()
+    circs[0].color_distance()
+    circs[0].mean_color()
     circs[0].distanceFrom(point=(0,0))
     circs[0].draw()
     img2 = circs[0].crop()
@@ -1757,13 +1729,13 @@ def test_hough_circles():
 
 def test_drawRectangle():
     img = Image(testimage2)
-    img.drawRectangle(0,0,100,100,color=Color.BLUE,width=0,alpha=0)
-    img.drawRectangle(1,1,100,100,color=Color.BLUE,width=2,alpha=128)
-    img.drawRectangle(1,1,100,100,color=Color.BLUE,width=1,alpha=128)
-    img.drawRectangle(2,2,100,100,color=Color.BLUE,width=1,alpha=255)
-    img.drawRectangle(3,3,100,100,color=Color.BLUE)
-    img.drawRectangle(4,4,100,100,color=Color.BLUE,width=12)
-    img.drawRectangle(5,5,100,100,color=Color.BLUE,width=-1)
+    img.draw_rectangle(0,0,100,100,color=Color.BLUE,width=0,alpha=0)
+    img.draw_rectangle(1,1,100,100,color=Color.BLUE,width=2,alpha=128)
+    img.draw_rectangle(1,1,100,100,color=Color.BLUE,width=1,alpha=128)
+    img.draw_rectangle(2,2,100,100,color=Color.BLUE,width=1,alpha=255)
+    img.draw_rectangle(3,3,100,100,color=Color.BLUE)
+    img.draw_rectangle(4,4,100,100,color=Color.BLUE,width=12)
+    img.draw_rectangle(5,5,100,100,color=Color.BLUE,width=-1)
 
     results = [img]
     name_stem = "test_drawRectangle"
@@ -1771,10 +1743,9 @@ def test_drawRectangle():
 
     pass
 
-
 def test_BlobMinRect():
     img = Image(testimageclr)
-    blobs = img.findBlobs()
+    blobs = img.find_blobs()
     for b in blobs:
         b.drawMinRect(color=Color.BLUE,width=3,alpha=123)
     results = [img]
@@ -1784,23 +1755,22 @@ def test_BlobMinRect():
 
 def test_BlobRect():
     img = Image(testimageclr)
-    blobs = img.findBlobs()
+    blobs = img.find_blobs()
     for b in blobs:
-        b.drawRect(color=Color.BLUE,width=3,alpha=123)
+        b.draw_rect(color=Color.BLUE,width=3,alpha=123)
 
     results = [img]
     name_stem = "test_BlobRect"
     perform_diff(results,name_stem)
     pass
 
-
 def test_BlobPickle():
     img = Image(testimageclr)
-    blobs = img.findBlobs()
+    blobs = img.find_blobs()
     for b in blobs:
         p = pickle.dumps(b)
         ub = pickle.loads(p)
-        if (ub.mMask - b.mMask).meanColor() != Color.BLACK:
+        if (ub.mMask - b.mMask).mean_color() != Color.BLACK:
             assert False
 
     pass
@@ -1808,12 +1778,12 @@ def test_BlobPickle():
 def test_blob_isa_methods():
     img1 = Image(circles)
     img2 = Image("../data/sampleimages/blockhead.png")
-    blobs = img1.findBlobs().sortArea()
-    t1 = blobs[-1].isCircle()
-    f1 = blobs[-1].isRectangle()
-    blobs = img2.findBlobs().sortArea()
-    f2 = blobs[-1].isCircle()
-    t2 = blobs[-1].isRectangle()
+    blobs = img1.find_blobs().sortArea()
+    t1 = blobs[-1].is_circle()
+    f1 = blobs[-1].is_rectangle()
+    blobs = img2.find_blobs().sortArea()
+    f2 = blobs[-1].is_circle()
+    t2 = blobs[-1].is_rectangle()
     if( t1 and t2 and not f1 and not f2):
         pass
     else:
@@ -1835,7 +1805,7 @@ def test_findKeypoints():
     for flavor in flavors:
         try:
             print "trying to find " + flavor + " keypoints."
-            kp = img.findKeypoints(flavor=flavor)
+            kp = img.find_keypoints(flavor=flavor)
         except:
             continue
         if( kp is not None ):
@@ -1850,7 +1820,7 @@ def test_findKeypoints():
                 k.coordinates()
                 k.draw()
                 k.distanceFrom()
-                k.meanColor()
+                k.mean_color()
                 k.area()
                 k.perimeter()
                 k.width()
@@ -1870,11 +1840,11 @@ def test_movement_feature():
     current1 = Image("../data/sampleimages/flow_simple1.png")
     prev = Image("../data/sampleimages/flow_simple2.png")
 
-    fs = current1.findMotion(prev, window=7)
+    fs = current1.find_motion(prev, window=7)
     if( len(fs) > 0 ):
         fs.draw(color=Color.RED)
         img = fs[0].crop()
-        color = fs[1].meanColor()
+        color = fs[1].mean_color()
         wndw = fs[1].windowSz()
         for f in fs:
             f.vector()
@@ -1884,11 +1854,11 @@ def test_movement_feature():
 
 
     current2 = Image("../data/sampleimages/flow_simple1.png")
-    fs = current2.findMotion(prev, window=7,method='HS')
+    fs = current2.find_motion(prev, window=7,method='HS')
     if( len(fs) > 0 ):
         fs.draw(color=Color.RED)
         img = fs[0].crop()
-        color = fs[1].meanColor()
+        color = fs[1].mean_color()
         wndw = fs[1].windowSz()
         for f in fs:
             f.vector()
@@ -1897,11 +1867,11 @@ def test_movement_feature():
         assert False
 
     current3 = Image("../data/sampleimages/flow_simple1.png")
-    fs = current3.findMotion(prev, window=7,method='LK',aggregate=False)
+    fs = current3.find_motion(prev, window=7,method='LK',aggregate=False)
     if( len(fs) > 0 ):
         fs.draw(color=Color.RED)
         img = fs[0].crop()
-        color = fs[1].meanColor()
+        color = fs[1].mean_color()
         wndw = fs[1].windowSz()
         for f in fs:
             f.vector()
@@ -1927,11 +1897,11 @@ def test_keypoint_extraction():
     img3 = Image("../data/sampleimages/KeypointTemplate2.png")
     img4 = Image("../data/sampleimages/KeypointTemplate2.png")
 
-    kp1 = img1.findKeypoints()
-    kp2 = img2.findKeypoints(highQuality=True)
-    kp3 = img3.findKeypoints(flavor="STAR")
+    kp1 = img1.find_keypoints()
+    kp2 = img2.find_keypoints(highQuality=True)
+    kp3 = img3.find_keypoints(flavor="STAR")
     if not cv2.__version__.startswith("$Rev:"):
-        kp4 = img4.findKeypoints(flavor="BRISK")
+        kp4 = img4.find_keypoints(flavor="BRISK")
         kp4.draw()
         if len(kp4) == 0:
             assert False
@@ -1942,7 +1912,7 @@ def test_keypoint_extraction():
 
 
     #TODO: Fix FAST binding
-    #~ kp4 = img.findKeypoints(flavor="FAST",min_quality=10)
+    #~ kp4 = img.find_keypoints(flavor="FAST",min_quality=10)
     if( len(kp1)==190 and
         len(kp2)==190 and
         len(kp3)==37
@@ -1954,7 +1924,6 @@ def test_keypoint_extraction():
     results = [img1,img2,img3]
     name_stem = "test_keypoint_extraction"
     perform_diff(results,name_stem,tolerance=4.0)
-
 
 def test_keypoint_match():
     try:
@@ -1969,19 +1938,19 @@ def test_keypoint_match():
     match3 = Image("../data/sampleimages/kptest2.png")
     match2 = Image("../data/sampleimages/aerospace.jpg")# should be none
 
-    fs0 = match0.findKeypointMatch(template)#test zero
-    fs1 = match1.findKeypointMatch(template,quality=300.00,minDist=0.5,minMatch=0.2)
-    fs3 = match3.findKeypointMatch(template,quality=300.00,minDist=0.5,minMatch=0.2)
+    fs0 = match0.find_keypoint_match(template)#test zero
+    fs1 = match1.find_keypoint_match(template,quality=300.00,minDist=0.5,minMatch=0.2)
+    fs3 = match3.find_keypoint_match(template,quality=300.00,minDist=0.5,minMatch=0.2)
     print "This should fail"
-    fs2 = match2.findKeypointMatch(template,quality=500.00,minDist=0.2,minMatch=0.1)
+    fs2 = match2.find_keypoint_match(template,quality=500.00,minDist=0.2,minMatch=0.1)
     if( fs0 is not None and fs1 is not None and fs2 is None and  fs3 is not None):
         fs0.draw()
         fs1.draw()
         fs3.draw()
         f = fs0[0]
-        f.drawRect()
+        f.draw_rect()
         f.draw()
-        f.getHomography()
+        f.get_homography()
         f.getMinRect()
         f.x
         f.y
@@ -1993,7 +1962,6 @@ def test_keypoint_match():
     name_stem = "test_find_keypoint_match"
     perform_diff(results,name_stem)
 
-
 def test_draw_keypoint_matches():
     try:
         import cv2
@@ -2002,7 +1970,7 @@ def test_draw_keypoint_matches():
         return
     template = Image("../data/sampleimages/KeypointTemplate2.png")
     match0 = Image("../data/sampleimages/kptest0.png")
-    result = match0.drawKeypointMatches(template,thresh=500.00,minDist=0.15,width=1)
+    result = match0.draw_keypoint_matches(template,thresh=500.00,minDist=0.15,width=1)
 
     results = [result]
     name_stem = "test_draw_keypoint_matches"
@@ -2011,17 +1979,16 @@ def test_draw_keypoint_matches():
 
     pass
 
-
 def test_basic_palette():
     img = Image(testimageclr)
     img = img.scale(0.1)  # scale down the image to reduce test time
-    img._generatePalette(10,False)
+    img._generate_palette(10,False)
     if( img._mPalette is not None and
         img._mPaletteMembers is not None and
         img._mPalettePercentages is not None and
         img._mPaletteBins == 10
         ):
-        img._generatePalette(20,True)
+        img._generate_palette(20,True)
         if( img._mPalette is not None and
             img._mPaletteMembers is not None and
             img._mPalettePercentages is not None and
@@ -2049,10 +2016,10 @@ def test_repalette():
     img = img.scale(0.1)  # scale down the image to reduce test time
     img2 = Image(bottomImg)
     img2 = img2.scale(0.1)  # scale down the image to reduce test time
-    p = img.getPalette()
-    img3 = img2.rePalette(p)
-    p = img.getPalette(hue=True)
-    img4 = img2.rePalette(p,hue=True)
+    p = img.get_palette()
+    img3 = img2.re_palette(p)
+    p = img.get_palette(hue=True)
+    img4 = img2.re_palette(p,hue=True)
 
     #results = [img3,img4]
     #name_stem = "test_repalette"
@@ -2063,43 +2030,41 @@ def test_repalette():
 def test_drawPalette():
     img = Image(testimageclr)
     img = img.scale(0.1)  # scale down the image to reduce test time
-    img1 = img.drawPaletteColors()
-    img2 = img.drawPaletteColors(horizontal=False)
-    img3 = img.drawPaletteColors(size=(69,420) )
-    img4 = img.drawPaletteColors(size=(69,420),horizontal=False)
-    img5 = img.drawPaletteColors(hue=True)
-    img6 = img.drawPaletteColors(horizontal=False,hue=True)
-    img7 = img.drawPaletteColors(size=(69,420),hue=True )
-    img8 = img.drawPaletteColors(size=(69,420),horizontal=False,hue=True)
+    img1 = img.draw_palette_colors()
+    img2 = img.draw_palette_colors(horizontal=False)
+    img3 = img.draw_palette_colors(size=(69,420) )
+    img4 = img.draw_palette_colors(size=(69,420),horizontal=False)
+    img5 = img.draw_palette_colors(hue=True)
+    img6 = img.draw_palette_colors(horizontal=False,hue=True)
+    img7 = img.draw_palette_colors(size=(69,420),hue=True )
+    img8 = img.draw_palette_colors(size=(69,420),horizontal=False,hue=True)
 
 def test_palette_binarize():
     img = Image(testimageclr)
     img = img.scale(0.1)  # scale down the image to reduce test time
-    p = img.getPalette()
-    img2 = img.binarizeFromPalette(p[0:5])
-    p = img.getPalette(hue=True)
-    img2 = img.binarizeFromPalette(p[0:5])
+    p = img.get_palette()
+    img2 = img.binarize_from_palette(p[0:5])
+    p = img.get_palette(hue=True)
+    img2 = img.binarize_from_palette(p[0:5])
 
     pass
 
 def test_palette_blobs():
     img = Image(testimageclr)
     img = img.scale(0.1)  # scale down the image to reduce test time
-    p = img.getPalette()
-    b1 = img.findBlobsFromPalette(p[0:5])
+    p = img.get_palette()
+    b1 = img.find_blobs_from_palette(p[0:5])
     b1.draw()
 
 
-    p = img.getPalette(hue=True)
-    b2 = img.findBlobsFromPalette(p[0:5])
+    p = img.get_palette(hue=True)
+    b2 = img.find_blobs_from_palette(p[0:5])
     b2.draw()
 
     if( len(b1) > 0 and len(b2) > 0 ):
         pass
     else:
         assert False
-
-
 
 def test_skeletonize():
     img = Image(logo)
@@ -2111,7 +2076,6 @@ def test_skeletonize():
     perform_diff(results,name_stem)
 
     pass
-
 
 def test_threshold():
     img = Image(logo)
@@ -2125,9 +2089,9 @@ def test_smartThreshold():
     mask.dl().circle((100,100),80,color=Color.MAYBE_BACKGROUND,filled=True)
     mask.dl().circle((100,100),60,color=Color.MAYBE_FOREGROUND,filled=True)
     mask.dl().circle((100,100),40,color=Color.FOREGROUND,filled=True)
-    mask = mask.applyLayers()
-    new_mask1 = img.smartThreshold(mask=mask)
-    new_mask2 = img.smartThreshold(rect=(30,30,150,185))
+    mask = mask.apply_layers()
+    new_mask1 = img.smart_threshold(mask=mask)
+    new_mask2 = img.smart_threshold(rect=(30,30,150,185))
 
 
     results = [new_mask1,new_mask2]
@@ -2142,8 +2106,8 @@ def test_smartFindBlobs():
     mask.dl().circle((100,100),80,color=Color.MAYBE_BACKGROUND,filled=True)
     mask.dl().circle((100,100),60,color=Color.MAYBE_FOREGROUND,filled=True)
     mask.dl().circle((100,100),40,color=Color.FOREGROUND,filled=True)
-    mask = mask.applyLayers()
-    blobs = img.smartFindBlobs(mask=mask)
+    mask = mask.apply_layers()
+    blobs = img.smart_find_blobs(mask=mask)
     blobs.draw()
     results = [img]
 
@@ -2152,7 +2116,7 @@ def test_smartFindBlobs():
 
     for t in range(2,3):
         img = Image("../data/sampleimages/RatTop.png")
-        blobs2 = img.smartFindBlobs(rect=(30,30,150,185),thresh_level=t)
+        blobs2 = img.smart_find_blobs(rect=(30,30,150,185),thresh_level=t)
         if(blobs2 is not None):
             blobs2.draw()
             results.append(img)
@@ -2161,7 +2125,6 @@ def test_smartFindBlobs():
     perform_diff(results,name_stem)
 
     pass
-
 
 def test_image_webp_load():
     #only run if webm suppport exist on system
@@ -2175,7 +2138,7 @@ def test_image_webp_load():
     else:
         img = Image(webp)
 
-        if len(img.toString()) <= 1:
+        if len(img.to_string()) <= 1:
             assert False
 
         else:
@@ -2203,12 +2166,12 @@ def test_detection_spatial_relationships():
     template = img.crop(200,200,50,50)
     motion = img.embiggen((img.width+10,img.height+10),pos=(10,10))
     motion = motion.crop(0,0,img.width,img.height)
-    blobFS = img.findBlobs()
-    lineFS = img.findLines()
-    cornFS = img.findCorners()
-    moveFS = img.findMotion(motion)
+    blobFS = img.find_blobs()
+    lineFS = img.find_lines()
+    cornFS = img.find_corners()
+    moveFS = img.find_motion(motion)
     moveFS = FeatureSet(moveFS[42:52]) # l337 s5p33d h4ck - okay not really
-    tempFS = img.findTemplate(template,threshold=1)
+    tempFS = img.find_template(template,threshold=1)
     aCirc = (img.width/2,img.height/2,np.min([img.width/2,img.height/2]))
     aRect = (50,50,200,200)
     aPoint = (img.width/2,img.height/2)
@@ -2256,8 +2219,8 @@ def test_detection_spatial_relationships():
 def test_getEXIFData():
     img = Image("../data/sampleimages/cat.jpg")
     img2 = Image(testimage)
-    d1 = img.getEXIFData()
-    d2 = img2.getEXIFData()
+    d1 = img.get_exif_data()
+    d2 = img2.get_exif_data()
     if( len(d1) > 0 and len(d2) == 0 ):
         pass
     else:
@@ -2265,8 +2228,8 @@ def test_getEXIFData():
 
 def test_get_raw_dft():
     img = Image("../data/sampleimages/RedDog2.jpg")
-    raw3 = img.rawDFTImage()
-    raw1 = img.rawDFTImage(grayscale=True)
+    raw3 = img.raw_dft_image()
+    raw1 = img.raw_dft_image(grayscale=True)
     if( len(raw3) != 3 or
         len(raw1) != 1 or
         raw1[0].width != img.width or
@@ -2283,8 +2246,8 @@ def test_get_raw_dft():
 
 def test_getDFTLogMagnitude():
     img = Image("../data/sampleimages/RedDog2.jpg")
-    lm3 = img.getDFTLogMagnitude()
-    lm1 = img.getDFTLogMagnitude(grayscale=True)
+    lm3 = img.get_dft_log_magnitude()
+    lm1 = img.get_dft_log_magnitude(grayscale=True)
 
     results = [lm3,lm1]
     name_stem = "test_getDFTLogMagnitude"
@@ -2292,12 +2255,11 @@ def test_getDFTLogMagnitude():
 
     pass
 
-
 def test_applyDFTFilter():
     img = Image("../data/sampleimages/RedDog2.jpg")
     flt = Image("../data/sampleimages/RedDogFlt.png")
-    f1 = img.applyDFTFilter(flt)
-    f2 = img.applyDFTFilter(flt,grayscale=True)
+    f1 = img.apply_dft_filter(flt)
+    f2 = img.apply_dft_filter(flt,grayscale=True)
     results = [f1,f2]
     name_stem = "test_applyDFTFilter"
     perform_diff(results,name_stem)
@@ -2305,12 +2267,12 @@ def test_applyDFTFilter():
 
 def test_highPassFilter():
     img = Image("../data/sampleimages/RedDog2.jpg")
-    a = img.highPassFilter(0.5)
-    b = img.highPassFilter(0.5,grayscale=True)
-    c = img.highPassFilter(0.5,yCutoff=0.4)
-    d = img.highPassFilter(0.5,yCutoff=0.4,grayscale=True)
-    e = img.highPassFilter([0.5,0.4,0.3])
-    f = img.highPassFilter([0.5,0.4,0.3],yCutoff=[0.5,0.4,0.3])
+    a = img.high_pass_filter(0.5)
+    b = img.high_pass_filter(0.5,grayscale=True)
+    c = img.high_pass_filter(0.5,yCutoff=0.4)
+    d = img.high_pass_filter(0.5,yCutoff=0.4,grayscale=True)
+    e = img.high_pass_filter([0.5,0.4,0.3])
+    f = img.high_pass_filter([0.5,0.4,0.3],yCutoff=[0.5,0.4,0.3])
 
     results = [a,b,c,d,e,f]
     name_stem = "test_HighPassFilter"
@@ -2319,12 +2281,12 @@ def test_highPassFilter():
 
 def test_lowPassFilter():
     img = Image("../data/sampleimages/RedDog2.jpg")
-    a = img.lowPassFilter(0.5)
-    b = img.lowPassFilter(0.5,grayscale=True)
-    c = img.lowPassFilter(0.5,yCutoff=0.4)
-    d = img.lowPassFilter(0.5,yCutoff=0.4,grayscale=True)
-    e = img.lowPassFilter([0.5,0.4,0.3])
-    f = img.lowPassFilter([0.5,0.4,0.3],yCutoff=[0.5,0.4,0.3])
+    a = img.low_pass_filter(0.5)
+    b = img.low_pass_filter(0.5,grayscale=True)
+    c = img.low_pass_filter(0.5,yCutoff=0.4)
+    d = img.low_pass_filter(0.5,yCutoff=0.4,grayscale=True)
+    e = img.low_pass_filter([0.5,0.4,0.3])
+    f = img.low_pass_filter([0.5,0.4,0.3],yCutoff=[0.5,0.4,0.3])
 
     results = [a,b,c,d,e,f]
     name_stem = "test_LowPassFilter"
@@ -2334,10 +2296,10 @@ def test_lowPassFilter():
 
 def test_DFT_gaussian():
     img = Image("../data/sampleimages/RedDog2.jpg")
-    flt = DFT.createGaussianFilter(dia=300, size=(300, 300), highpass=False)
+    flt = DFT.create_gaussian_filter(dia=300, size=(300, 300), highpass=False)
     fltimg = img.filter(flt)
     fltimggray = img.filter(flt, grayscale=True)
-    flt = DFT.createGaussianFilter(dia=300, size=(300, 300), highpass=True)
+    flt = DFT.create_gaussian_filter(dia=300, size=(300, 300), highpass=True)
     fltimg1 = img.filter(flt)
     fltimggray1 = img.filter(flt, grayscale=True)
     results = [fltimg, fltimggray, fltimg1, fltimggray1]
@@ -2347,10 +2309,10 @@ def test_DFT_gaussian():
 
 def test_DFT_butterworth():
     img = Image("../data/sampleimages/RedDog2.jpg")
-    flt = DFT.createButterworthFilter(dia=300, size=(300, 300), order=3, highpass=False)
+    flt = DFT.create_butterworth_filter(dia=300, size=(300, 300), order=3, highpass=False)
     fltimg = img.filter(flt)
     fltimggray = img.filter(flt, grayscale=True)
-    flt = DFT.createButterworthFilter(dia=100, size=(300, 300), order=3, highpass=True)
+    flt = DFT.create_butterworth_filter(dia=100, size=(300, 300), order=3, highpass=True)
     fltimg1 = img.filter(flt)
     fltimggray1 = img.filter(flt, grayscale=True)
     results = [fltimg, fltimggray, fltimg1, fltimggray1]
@@ -2360,7 +2322,7 @@ def test_DFT_butterworth():
 
 def test_DFT_lowpass():
     img = Image("../data/sampleimages/RedDog2.jpg")
-    flt = DFT.createLowpassFilter(xCutoff=150, size=(600, 600))
+    flt = DFT.create_lowpass_filter(x_cutoff=150, size=(600, 600))
     fltimg = img.filter(flt)
     fltimggray = img.filter(flt, grayscale=True)
     results = [fltimg, fltimggray]
@@ -2370,7 +2332,7 @@ def test_DFT_lowpass():
 
 def test_DFT_highpass():
     img = Image("../data/sampleimages/RedDog2.jpg")
-    flt = DFT.createLowpassFilter(xCutoff=10, size=(600, 600))
+    flt = DFT.create_lowpass_filter(x_cutoff=10, size=(600, 600))
     fltimg = img.filter(flt)
     fltimggray = img.filter(flt, grayscale=True)
     results = [fltimg, fltimggray]
@@ -2380,10 +2342,10 @@ def test_DFT_highpass():
 
 def test_DFT_notch():
     img = Image("../data/sampleimages/RedDog2.jpg")
-    flt = DFT.createNotchFilter(dia1=500, size=(512, 512), type="lowpass")
+    flt = DFT.create_notch_filter(dia1=500, size=(512, 512), ftype="lowpass")
     fltimg = img.filter(flt)
     fltimggray = img.filter(flt, grayscale=True)
-    flt = DFT.createNotchFilter(dia1=300, size=(512, 512), type="highpass")
+    flt = DFT.create_notch_filter(dia1=300, size=(512, 512), ftype="highpass")
     fltimg1 = img.filter(flt)
     fltimggray1 = img.filter(flt, grayscale=True)
     results = [fltimg, fltimggray, fltimg1, fltimggray1]
@@ -2393,8 +2355,8 @@ def test_DFT_notch():
 def test_findHaarFeatures():
     img = Image("../data/sampleimages/orson_welles.jpg")
     face = HaarCascade("face.xml") #old HaarCascade
-    f = img.findHaarFeatures(face)
-    f2 = img.findHaarFeatures("face_cv2.xml") #new cv2 HaarCascade
+    f = img.find_haar_features(face)
+    f2 = img.find_haar_features("face_cv2.xml") #new cv2 HaarCascade
     if( len(f) > 0 and len(f2) > 0 ):
         f.draw()
         f2.draw()
@@ -2413,19 +2375,18 @@ def test_findHaarFeatures():
     name_stem = "test_findHaarFeatures"
     perform_diff(results,name_stem)
 
-
 def test_biblical_flood_fill():
     img = Image(testimage2)
-    b = img.findBlobs()
-    img.floodFill(b.coordinates(),tolerance=3,color=Color.RED)
-    img.floodFill(b.coordinates(),tolerance=(3,3,3),color=Color.BLUE)
-    img.floodFill(b.coordinates(),tolerance=(3,3,3),color=Color.GREEN,fixed_range=False)
-    img.floodFill((30,30),lower=3,upper=5,color=Color.ORANGE)
-    img.floodFill((30,30),lower=3,upper=(5,5,5),color=Color.ORANGE)
-    img.floodFill((30,30),lower=(3,3,3),upper=5,color=Color.ORANGE)
-    img.floodFill((30,30),lower=(3,3,3),upper=(5,5,5))
-    img.floodFill((30,30),lower=(3,3,3),upper=(5,5,5),color=np.array([255,0,0]))
-    img.floodFill((30,30),lower=(3,3,3),upper=(5,5,5),color=[255,0,0])
+    b = img.find_blobs()
+    img.flood_fill(b.coordinates(),tolerance=3,color=Color.RED)
+    img.flood_fill(b.coordinates(),tolerance=(3,3,3),color=Color.BLUE)
+    img.flood_fill(b.coordinates(),tolerance=(3,3,3),color=Color.GREEN,fixed_range=False)
+    img.flood_fill((30,30),lower=3,upper=5,color=Color.ORANGE)
+    img.flood_fill((30,30),lower=3,upper=(5,5,5),color=Color.ORANGE)
+    img.flood_fill((30,30),lower=(3,3,3),upper=5,color=Color.ORANGE)
+    img.flood_fill((30,30),lower=(3,3,3),upper=(5,5,5))
+    img.flood_fill((30,30),lower=(3,3,3),upper=(5,5,5),color=np.array([255,0,0]))
+    img.flood_fill((30,30),lower=(3,3,3),upper=(5,5,5),color=[255,0,0])
 
     results = [img]
     name_stem = "test_biblical_flood_fill"
@@ -2435,11 +2396,11 @@ def test_biblical_flood_fill():
 
 def test_flood_fill_to_mask():
     img = Image(testimage2)
-    b = img.findBlobs()
+    b = img.find_blobs()
     imask = img.edges()
-    omask = img.floodFillToMask(b.coordinates(),tolerance=10)
-    omask2 = img.floodFillToMask(b.coordinates(),tolerance=(3,3,3),mask=imask)
-    omask3 = img.floodFillToMask(b.coordinates(),tolerance=(3,3,3),mask=imask,fixed_range=False)
+    omask = img.flood_fill_to_mask(b.coordinates(),tolerance=10)
+    omask2 = img.flood_fill_to_mask(b.coordinates(),tolerance=(3,3,3),mask=imask)
+    omask3 = img.flood_fill_to_mask(b.coordinates(),tolerance=(3,3,3),mask=imask,fixed_range=False)
 
     results = [omask,omask2,omask3]
     name_stem = "test_flood_fill_to_mask"
@@ -2450,8 +2411,8 @@ def test_flood_fill_to_mask():
 def test_findBlobsFromMask():
     img = Image(testimage2)
     mask = img.binarize().invert()
-    b1 = img.findBlobsFromMask(mask)
-    b2 = img.findBlobs()
+    b1 = img.find_blobs_from_mask(mask)
+    b2 = img.find_blobs()
     b1.draw()
     b2.draw()
 
@@ -2465,24 +2426,21 @@ def test_findBlobsFromMask():
     else:
         assert False
 
-
-
 def test_bandPassFilter():
     img = Image("../data/sampleimages/RedDog2.jpg")
-    a = img.bandPassFilter(0.1,0.3)
-    b = img.bandPassFilter(0.1,0.3,grayscale=True)
-    c = img.bandPassFilter(0.1,0.3,yCutoffLow=0.1,yCutoffHigh=0.3)
-    d = img.bandPassFilter(0.1,0.3,yCutoffLow=0.1,yCutoffHigh=0.3,grayscale=True)
-    e = img.bandPassFilter([0.1,0.2,0.3],[0.5,0.5,0.5])
-    f = img.bandPassFilter([0.1,0.2,0.3],[0.5,0.5,0.5],yCutoffLow=[0.1,0.2,0.3],yCutoffHigh=[0.6,0.6,0.6])
+    a = img.band_pass_filter(0.1,0.3)
+    b = img.band_pass_filter(0.1,0.3,grayscale=True)
+    c = img.band_pass_filter(0.1,0.3,yCutoffLow=0.1,yCutoffHigh=0.3)
+    d = img.band_pass_filter(0.1,0.3,yCutoffLow=0.1,yCutoffHigh=0.3,grayscale=True)
+    e = img.band_pass_filter([0.1,0.2,0.3],[0.5,0.5,0.5])
+    f = img.band_pass_filter([0.1,0.2,0.3],[0.5,0.5,0.5],yCutoffLow=[0.1,0.2,0.3],yCutoffHigh=[0.6,0.6,0.6])
     results = [a,b,c,d,e,f]
     name_stem = "test_bandPassFilter"
     perform_diff(results,name_stem)
 
-
 def test_image_slice():
     img = Image("../data/sampleimages/blockhead.png")
-    I = img.findLines()
+    I = img.find_lines()
     I2 = I[0:10]
     if type(I2) == list:
         assert False
@@ -2492,7 +2450,7 @@ def test_image_slice():
 def test_blob_spatial_relationships():
     img = Image("../data/sampleimages/spatial_relationships.png")
     #please see the image
-    blobs = img.findBlobs(threshval=1)
+    blobs = img.find_blobs(threshval=1)
     blobs = blobs.sortArea()
     print(len(blobs))
 
@@ -2565,11 +2523,11 @@ def test_blob_spatial_relationships():
 def test_get_aspectratio():
     img = Image("../data/sampleimages/EdgeTest1.png")
     img2 = Image("../data/sampleimages/EdgeTest2.png")
-    b = img.findBlobs()
-    l = img2.findLines()
-    c = img2.findCircle(thresh=200)
-    c2 = img2.findCorners()
-    kp = img2.findKeypoints()
+    b = img.find_blobs()
+    l = img2.find_lines()
+    c = img2.find_circle(thresh=200)
+    c2 = img2.find_corners()
+    kp = img2.find_keypoints()
     bb = b.aspectRatios()
     ll = l.aspectRatios()
     cc = c.aspectRatios()
@@ -2587,7 +2545,7 @@ def test_get_aspectratio():
 
 def test_line_crop():
     img = Image("../data/sampleimages/EdgeTest2.png")
-    l = img.findLines().sortArea()
+    l = img.find_lines().sortArea()
     l = l[-5:-1]
     results = []
     for ls in l:
@@ -2599,13 +2557,13 @@ def test_line_crop():
 def test_get_corners():
     img = Image("../data/sampleimages/EdgeTest1.png")
     img2 = Image("../data/sampleimages/EdgeTest2.png")
-    b = img.findBlobs()
+    b = img.find_blobs()
     tl = b.topLeftCorners()
     tr = b.topRightCorners()
     bl = b.bottomLeftCorners()
     br = b.bottomRightCorners()
 
-    l = img2.findLines()
+    l = img2.find_lines()
     tl2 = l.topLeftCorners()
     tr2 = l.topRightCorners()
     bl2 = l.bottomLeftCorners()
@@ -2659,11 +2617,11 @@ def test_on_edge():
     imgD = Image(img2)
     imgE = Image(img2)
 
-    blobs = imgA.findBlobs()
-    circs = imgB.findCircle(thresh=200)
-    corners = imgC.findCorners()
-    kp = imgD.findKeypoints()
-    lines = imgE.findLines()
+    blobs = imgA.find_blobs()
+    circs = imgB.find_circle(thresh=200)
+    corners = imgC.find_corners()
+    kp = imgD.find_keypoints()
+    lines = imgE.find_lines()
 
     rim =  blobs.onImageEdge()
     inside = blobs.notOnImageEdge()
@@ -2698,21 +2656,21 @@ def test_feature_angles():
     img = Image("../data/sampleimages/rotation2.png")
     img2 = Image("../data/sampleimages/rotation.jpg")
     img3 = Image("../data/sampleimages/rotation.jpg")
-    b = img.findBlobs()
-    l = img2.findLines()
-    k = img3.findKeypoints()
+    b = img.find_blobs()
+    l = img2.find_lines()
+    k = img3.find_keypoints()
 
     for bs in b:
         tl = bs.topLeftCorner()
-        img.drawText(str(bs.angle()),tl[0],tl[1],color=Color.RED)
+        img.draw_text(str(bs.angle()),tl[0],tl[1],color=Color.RED)
 
     for ls in l:
         tl = ls.topLeftCorner()
-        img2.drawText(str(ls.angle()),tl[0],tl[1],color=Color.GREEN)
+        img2.draw_text(str(ls.angle()),tl[0],tl[1],color=Color.GREEN)
 
     for ks in k:
         tl = ks.topLeftCorner()
-        img3.drawText(str(ks.angle()),tl[0],tl[1],color=Color.BLUE)
+        img3.draw_text(str(ks.angle()),tl[0],tl[1],color=Color.BLUE)
 
     results = [img,img2,img3]
     name_stem = "test_feature_angles"
@@ -2720,13 +2678,13 @@ def test_feature_angles():
 
 def test_feature_angles_rotate():
     img = Image("../data/sampleimages/rotation2.png")
-    b = img.findBlobs()
+    b = img.find_blobs()
     results = []
 
     for bs in b:
         temp = bs.crop()
         derp = temp.rotate(bs.angle(),fixed=False)
-        derp.drawText(str(bs.angle()),10,10,color=Color.RED)
+        derp.draw_text(str(bs.angle()),10,10,color=Color.RED)
         results.append(derp)
         bs.rectifyMajorAxis()
         results.append(bs.blobImage())
@@ -2734,10 +2692,9 @@ def test_feature_angles_rotate():
     name_stem = "test_feature_angles_rotate"
     perform_diff(results,name_stem,tolerance=7.0)
 
-
 def test_nparray2cvmat():
     img = Image('logo')
-    gray = img.getGrayNumpy()
+    gray = img.get_gray_numpy()
     gf32 = np.array(gray,dtype='float32')
     gf64 = np.array(gray,dtype='float64')
 
@@ -2757,7 +2714,7 @@ def test_minrect_blobs():
         ang = float(i*18.00)
         print ang
         t = img.rotate(ang)
-        b = t.findBlobs(threshval=128)
+        b = t.find_blobs(threshval=128)
         b[-1].drawMinRect(color=Color.RED,width=5)
         results.append(t)
 
@@ -2789,10 +2746,10 @@ def test_pixelize():
 
 def test_hueFromRGB():
     img = Image("lenna")
-    img_hsv = img.toHSV()
+    img_hsv = img.to_hsv()
     h,s,r = img_hsv[100,300]
     err = 2
-    hue = Color.getHueFromRGB(img[100,300])
+    hue = Color.get_hue_from_rgb(img[100,300])
     if hue > h - err and hue < h + err:
         pass
     else:
@@ -2800,141 +2757,139 @@ def test_hueFromRGB():
 
 def test_hueFromBGR():
     img = Image("lenna")
-    img_hsv = img.toHSV()
+    img_hsv = img.to_hsv()
     h,s,r = img_hsv[150,400]
     err = 2
     color_tuple = tuple(reversed(img[150,400]))
-    hue = Color.getHueFromBGR(color_tuple)
+    hue = Color.get_hue_from_bgr(color_tuple)
     if hue > h - err and hue < h + err:
         pass
     else:
         assert False
 
-def test_hueToRGB():
-    r,g,b = Color.hueToRGB(0)
+def test_hue_to_rgb():
+    r,g,b = Color.hue_to_rgb(0)
     if (r,g,b)== (255,0,0):
         pass
     else:
         assert False
-    r,g,b = Color.hueToRGB(15)
+    r,g,b = Color.hue_to_rgb(15)
     if (r,g,b) == (255,128,0):
         pass
     else:
         assert False
-    r,g,b = Color.hueToRGB(30)
+    r,g,b = Color.hue_to_rgb(30)
     if (r,g,b) == (255,255,0):
         pass
     else:
         assert False
-    r,g,b = Color.hueToRGB(45)
+    r,g,b = Color.hue_to_rgb(45)
     if (r,g,b) == (128,255,0):
         pass
     else:
         assert False
-    r,g,b = Color.hueToRGB(60)
+    r,g,b = Color.hue_to_rgb(60)
     if (r,g,b) == (0,255,0):
         pass
     else:
         assert False
-    r,g,b = Color.hueToRGB(75)
+    r,g,b = Color.hue_to_rgb(75)
     if (r,g,b) == (0,255,128):
         pass
     else:
         assert False
-    r,g,b = Color.hueToRGB(90)
+    r,g,b = Color.hue_to_rgb(90)
     if (r,g,b) == (0,255,255):
         pass
     else:
         assert False
-    r,g,b = Color.hueToRGB(105)
+    r,g,b = Color.hue_to_rgb(105)
     if (r,g,b) == (0,128,255):
         pass
     else:
         assert False
-    r,g,b = Color.hueToRGB(120)
+    r,g,b = Color.hue_to_rgb(120)
     if (r,g,b) == (0,0,255):
         pass
     else:
         assert False
-    r,g,b = Color.hueToRGB(135)
+    r,g,b = Color.hue_to_rgb(135)
     if (r,g,b) == (128,0,255):
         pass
     else:
         assert False
-    r,g,b = Color.hueToRGB(150)
+    r,g,b = Color.hue_to_rgb(150)
     if (r,g,b) == (255,0,255):
         pass
     else:
         assert False
-    r,g,b = Color.hueToRGB(165)
+    r,g,b = Color.hue_to_rgb(165)
     if (r,g,b) == (255,0,128):
         pass
     else:
         assert False
 
-def test_hueToBGR():
-    b,g,r = Color.hueToBGR(0)
+def test_hue_to_bgr():
+    b,g,r = Color.hue_to_bgr(0)
     if (r,g,b)== (255,0,0):
         pass
     else:
         assert False
-    b,g,r= Color.hueToBGR(15)
+    b,g,r= Color.hue_to_bgr(15)
     if (r,g,b) == (255,128,0):
         pass
     else:
         assert False
-    b,g,r= Color.hueToBGR(30)
+    b,g,r= Color.hue_to_bgr(30)
     if (r,g,b) == (255,255,0):
         pass
     else:
         assert False
-    b,g,r= Color.hueToBGR(45)
+    b,g,r= Color.hue_to_bgr(45)
     if (r,g,b) == (128,255,0):
         pass
     else:
         assert False
-    b,g,r= Color.hueToBGR(60)
+    b,g,r= Color.hue_to_bgr(60)
     if (r,g,b) == (0,255,0):
         pass
     else:
         assert False
-    b,g,r= Color.hueToBGR(75)
+    b,g,r= Color.hue_to_bgr(75)
     if (r,g,b) == (0,255,128):
         pass
     else:
         assert False
-    b,g,r= Color.hueToBGR(90)
+    b,g,r= Color.hue_to_bgr(90)
     if (r,g,b) == (0,255,255):
         pass
     else:
         assert False
-    b,g,r= Color.hueToBGR(105)
+    b,g,r= Color.hue_to_bgr(105)
     if (r,g,b) == (0,128,255):
         pass
     else:
         assert False
-    b,g,r= Color.hueToBGR(120)
+    b,g,r= Color.hue_to_bgr(120)
     if (r,g,b) == (0,0,255):
         pass
     else:
         assert False
-    b,g,r= Color.hueToBGR(135)
+    b,g,r= Color.hue_to_bgr(135)
     if (r,g,b) == (128,0,255):
         pass
     else:
         assert False
-    b,g,r= Color.hueToBGR(150)
+    b,g,r= Color.hue_to_bgr(150)
     if (r,g,b) == (255,0,255):
         pass
     else:
         assert False
-    b,g,r= Color.hueToBGR(165)
+    b,g,r= Color.hue_to_bgr(165)
     if (r,g,b) == (255,0,128):
         pass
     else:
         assert False
-
-
 
 def test_point_intersection():
     img = Image("simplecv")
@@ -2942,30 +2897,30 @@ def test_point_intersection():
     for x in range(25,225,25):
         a = (x,25)
         b = (125,125)
-        pts = img.edgeIntersections(a,b,width=1)
-        e.drawLine(a,b,color=Color.RED)
-        e.drawCircle(pts[0],10,color=Color.GREEN)
+        pts = img.edge_intersections(a,b,width=1)
+        e.draw_line(a,b,color=Color.RED)
+        e.draw_circle(pts[0],10,color=Color.GREEN)
 
     for x in range(25,225,25):
         a = (25,x)
         b = (125,125)
-        pts = img.edgeIntersections(a,b,width=1)
-        e.drawLine(a,b,color=Color.RED)
-        e.drawCircle(pts[0],10,color=Color.GREEN)
+        pts = img.edge_intersections(a,b,width=1)
+        e.draw_line(a,b,color=Color.RED)
+        e.draw_circle(pts[0],10,color=Color.GREEN)
 
     for x in range(25,225,25):
         a = (x,225)
         b = (125,125)
-        pts = img.edgeIntersections(a,b,width=1)
-        e.drawLine(a,b,color=Color.RED)
-        e.drawCircle(pts[0],10,color=Color.GREEN)
+        pts = img.edge_intersections(a,b,width=1)
+        e.draw_line(a,b,color=Color.RED)
+        e.draw_circle(pts[0],10,color=Color.GREEN)
 
     for x in range(25,225,25):
         a = (225,x)
         b = (125,125)
-        pts = img.edgeIntersections(a,b,width=1)
-        e.drawLine(a,b,color=Color.RED)
-        e.drawCircle(pts[0],10,color=Color.GREEN)
+        pts = img.edge_intersections(a,b,width=1)
+        e.draw_line(a,b,color=Color.RED)
+        e.draw_circle(pts[0],10,color=Color.GREEN)
 
     results = [e]
     name_stem = "test_point_intersection"
@@ -2974,7 +2929,7 @@ def test_point_intersection():
 def test_findSkintoneBlobs():
     img = Image('../data/sampleimages/04000.jpg')
 
-    blobs = img.findSkintoneBlobs()
+    blobs = img.find_skintone_blobs()
     for b in blobs:
         if(b.mArea > 0):
             pass
@@ -2982,7 +2937,6 @@ def test_findSkintoneBlobs():
             pass
         if(b.mAvgColor[0] > 5 and b.mAvgColor[1]>140 and b.mAvgColor[1]<180 and b.mAvgColor[2]>77 and b.mAvgColor[2]<135):
             pass
-
 
 def test_getSkintoneMask():
     imgSet = []
@@ -2994,7 +2948,7 @@ def test_getSkintoneMask():
     imgSet.append(Image('../data/sampleimages/040005.jpg'))
     imgSet.append(Image('../data/sampleimages/040006.jpg'))
     imgSet.append(Image('../data/sampleimages/040007.jpg'))
-    masks = [img.getSkintoneMask() for img in imgSet]
+    masks = [img.get_skintone_mask() for img in imgSet]
     VISUAL_TEST = True
     name_stem = 'test_skintone'
     perform_diff(masks,name_stem,tolerance=17)
@@ -3010,7 +2964,7 @@ def test_findKeypoints_all():
     for i in methods :
         print i
         try:
-            kp = img.findKeypoints(flavor = i)
+            kp = img.find_keypoints(flavor = i)
         except:
             continue
         if kp!=None :
@@ -3024,7 +2978,7 @@ def test_findKeypoints_all():
                 k.coordinates()
                 k.draw()
                 k.distanceFrom()
-                k.meanColor()
+                k.mean_color()
                 k.area()
                 k.perimeter()
                 k.width()
@@ -3036,7 +2990,6 @@ def test_findKeypoints_all():
         name_stem = "test_findKeypoints"
         #~ perform_diff(results,name_stem,tolerance=8)
     pass
-
 
 def test_upload_flickr():
     try:
@@ -3083,7 +3036,7 @@ def test_image_new_crop():
     perform_diff(results,name_stem)
 
     diff = crop-crop1;
-    c=diff.meanColor()
+    c=diff.mean_color()
     if( c[0] > 0 or c[1] > 0 or c[2] > 0 ):
         assert False
 
@@ -3098,8 +3051,6 @@ def test_image_temp_save():
             assert False
 
     assert True
-
-
 
 def test_image_set_average():
     iset = ImageSet()
@@ -3117,8 +3068,6 @@ def test_image_set_average():
     result = [avg]
     name_stem = "test_image_set_average"
     perform_diff(result,name_stem)
-
-
 
 def test_save_to_gif():
     imgs = ImageSet()
@@ -3140,7 +3089,6 @@ def test_save_to_gif():
 
     assert saved == len(imgs)
 
-
 def sliceinImageSet():
     imgset = ImageSet("../data/sampleimages/")
     imgset = imgset[8::-2]
@@ -3148,7 +3096,6 @@ def sliceinImageSet():
         assert True
     else :
         assert False
-
 
 def test_upload_dropbox():
     try:
@@ -3174,40 +3121,40 @@ def test_builtin_rotations():
     img = Image('lenna')
     r1 = img - img.rotate180().rotate180()
     r2 = img - img.rotate90().rotate90().rotate90().rotate90()
-    r3 = img - img.rotateLeft().rotateLeft().rotateLeft().rotateLeft()
-    r4 = img - img.rotateRight().rotateRight().rotateRight().rotateRight()
+    r3 = img - img.rotate_left().rotate_left().rotate_left().rotate_left()
+    r4 = img - img.rotate_right().rotate_right().rotate_right().rotate_right()
     r5 = img - img.rotate270().rotate270().rotate270().rotate270()
-    if( r1.meanColor() == Color.BLACK and
-        r2.meanColor() == Color.BLACK and
-        r3.meanColor() == Color.BLACK and
-        r4.meanColor() == Color.BLACK and
-        r5.meanColor() == Color.BLACK ):
+    if( r1.mean_color() == Color.BLACK and
+        r2.mean_color() == Color.BLACK and
+        r3.mean_color() == Color.BLACK and
+        r4.mean_color() == Color.BLACK and
+        r5.mean_color() == Color.BLACK ):
         pass
     else:
         assert False
 
 def test_histograms():
     img = Image('lenna')
-    img.verticalHistogram()
-    img.horizontalHistogram()
+    img.vertical_histogram()
+    img.horizontal_histogram()
 
-    img.verticalHistogram(bins=3)
-    img.horizontalHistogram(bins=3)
+    img.vertical_histogram(bins=3)
+    img.horizontal_histogram(bins=3)
 
-    img.verticalHistogram(threshold=10)
-    img.horizontalHistogram(threshold=255)
+    img.vertical_histogram(threshold=10)
+    img.horizontal_histogram(threshold=255)
 
-    img.verticalHistogram(normalize=True)
-    img.horizontalHistogram(normalize=True)
+    img.vertical_histogram(normalize=True)
+    img.horizontal_histogram(normalize=True)
 
-    img.verticalHistogram(forPlot=True,normalize=True)
-    img.horizontalHistogram(forPlot=True,normalize=True)
+    img.vertical_histogram(forPlot=True,normalize=True)
+    img.horizontal_histogram(forPlot=True,normalize=True)
 
     pass
 
 def test_blob_full_masks():
     img = Image('lenna')
-    b = img.findBlobs()
+    b = img.find_blobs()
     m1 = b[-1].getFullMaskedImage()
     m2 = b[-1].getFullHullMaskedImage()
     m3 = b[-1].getFullMask()
@@ -3224,10 +3171,9 @@ def test_blob_full_masks():
     else:
         assert False
 
-
 def test_blob_edge_images():
     img = Image('lenna')
-    b = img.findBlobs()
+    b = img.find_blobs()
     m1 = b[-1].getEdgeImage()
     m2 = b[-1].getHullEdgeImage()
     m3 = b[-1].getFullEdgeImage()
@@ -3241,18 +3187,18 @@ def test_LineScan():
         ls2 = ls.smooth(degree=4).normalize().scale(value_range=[-1,1]).derivative().resample(100).convolve([.25,0.25,0.25,0.25])
         ls2.minima()
         ls2.maxima()
-        ls2.localMinima()
-        ls2.localMaxima()
+        ls2.local_minima()
+        ls2.local_maxima()
         fft,f = ls2.fft()
         ls3 = ls2.ifft(fft)
-        ls4 = ls3.fitToModel(aLine)
-        ls4.getModelParameters(aLine)
+        ls4 = ls3.fit_to_model(aLine)
+        ls4.get_model_parameters(aLine)
     img = Image("lenna")
-    ls = img.getLineScan(x=128,channel=1)
+    ls = img.get_line_scan(x=128,channel=1)
     lsstuff(ls)
-    ls = img.getLineScan(y=128)
+    ls = img.get_line_scan(y=128)
     lsstuff(ls)
-    ls = img.getLineScan(pt1 = (0,0), pt2=(128,128),channel=2)
+    ls = img.get_line_scan(pt1 = (0,0), pt2=(128,128),channel=2)
     lsstuff(ls)
     pass
 
@@ -3275,17 +3221,17 @@ def test_grid():
 def test_removeGrid():
     img = Image("lenna")
     gridImage = img.grid()
-    dlayer = gridImage.removeGrid()
+    dlayer = gridImage.remove_grid()
     if dlayer is None:
         assert False
-    dlayer1 = gridImage.removeGrid()
+    dlayer1 = gridImage.remove_grid()
     if dlayer1 is not None:
         assert False
     pass
 
 def test_cluster():
     img = Image("lenna")
-    blobs = img.findBlobs()
+    blobs = img.find_blobs()
     clusters1 = blobs.cluster(method="kmeans",k=5,properties=["color"])
     clusters2 = blobs.cluster(method="hierarchical")
     if clusters1 and clusters2:
@@ -3340,7 +3286,7 @@ def test_line_extendToEdges():
 def test_findGridLines():
     img = Image("simplecv")
     img = img.grid((10,10),(0,255,255))
-    lines = img.findGridLines()
+    lines = img.find_grid_lines()
     lines.draw()
     result = [img]
     name_stem = "test_image_gridLines"
@@ -3351,32 +3297,32 @@ def test_findGridLines():
 
 def test_logicalAND():
     img = Image("lenna")
-    img1 = img.logicalAND(img.invert())
-    if not img1.getNumpy().all():
+    img1 = img.logical_and(img.invert())
+    if not img1.get_numpy().all():
         pass
     else:
         assert False
 
 def test_logicalOR():
     img = Image("lenna")
-    img1 = img.logicalOR(img.invert())
-    if img1.getNumpy().all():
+    img1 = img.logical_or(img.invert())
+    if img1.get_numpy().all():
         pass
     else:
         assert False
 
 def test_logicalNAND():
     img = Image("lenna")
-    img1 = img.logicalNAND(img.invert())
-    if img1.getNumpy().all():
+    img1 = img.logical_nand(img.invert())
+    if img1.get_numpy().all():
         pass
     else:
         assert False
 
 def test_logicalXOR():
     img = Image("lenna")
-    img1 = img.logicalXOR(img.invert())
-    if img1.getNumpy().all():
+    img1 = img.logical_xor(img.invert())
+    if img1.get_numpy().all():
         pass
     else:
         assert False
@@ -3391,7 +3337,7 @@ def test_matchSIFTKeyPoints():
         pass
         return
     img = Image("lenna")
-    skp, tkp =  img.matchSIFTKeyPoints(img)
+    skp, tkp =  img.match_sift_key_points(img)
     if len(skp) == len(tkp):
         for i in range(len(skp)):
             if (skp[i].x == tkp[i].x and skp[i].y == tkp[i].y):
@@ -3403,8 +3349,8 @@ def test_matchSIFTKeyPoints():
 
 def test_findFeatures():
     img = Image('../data/sampleimages/mtest.png')
-    h_features = img.findFeatures("harris", threshold=500)
-    s_features = img.findFeatures("szeliski", threshold=500)
+    h_features = img.find_features("harris", threshold=500)
+    s_features = img.find_features("szeliski", threshold=500)
     if h_features and s_features:
         pass
     else:
@@ -3412,7 +3358,7 @@ def test_findFeatures():
 
 def test_ColorMap():
     img = Image('../data/sampleimages/mtest.png')
-    blobs = img.findBlobs()
+    blobs = img.find_blobs()
     cm = ColorMap((Color.RED,Color.YELLOW,Color.BLUE),min(blobs.area()),max(blobs.area()))
     for b in blobs:
         b.draw(cm[b.area()])
@@ -3420,14 +3366,13 @@ def test_ColorMap():
     name_stem = "test_color_map"
     perform_diff(result,name_stem,1.0)
 
-
 def test_Steganograpy():
     img = Image(logo)
     msg = 'How do I SimpleCV?'
-    img.stegaEncode(msg)
+    img.stega_encode(msg)
     img.save(logo)
     img2 = Image(logo)
-    msg2 = img2.stegaDecode()
+    msg2 = img2.stega_decode()
     pass
 
 def test_watershed():
@@ -3436,32 +3381,32 @@ def test_watershed():
     img2 = img.watershed(dilate=3,erode=2)
     img3 = img.watershed(mask=img.threshold(128),erode=1,dilate=1)
     myMask = Image((img.width,img.height))
-    myMask = myMask.floodFill((0,0),color=Color.WATERSHED_BG)
+    myMask = myMask.flood_fill((0,0),color=Color.WATERSHED_BG)
     mask = img.threshold(128)
     myMask = (myMask-mask.dilate(2)+mask.erode(2))
     img4 = img.watershed(mask=myMask,useMyMask=True)
-    blobs = img.findBlobsFromWatershed(dilate=3,erode=2)
-    blobs = img.findBlobsFromWatershed()
-    blobs = img.findBlobsFromWatershed(mask=img.threshold(128),erode=1,dilate=1)
-    blobs = img.findBlobsFromWatershed(mask=img.threshold(128),erode=1,dilate=1,invert=True)
-    blobs = img.findBlobsFromWatershed(mask=myMask,useMyMask=True)
+    blobs = img.find_blobs_from_watershed(dilate=3,erode=2)
+    blobs = img.find_blobs_from_watershed()
+    blobs = img.find_blobs_from_watershed(mask=img.threshold(128),erode=1,dilate=1)
+    blobs = img.find_blobs_from_watershed(mask=img.threshold(128),erode=1,dilate=1,invert=True)
+    blobs = img.find_blobs_from_watershed(mask=myMask,useMyMask=True)
     result = [img1,img2,img3,img4]
     name_stem = "test_watershed"
     perform_diff(result,name_stem,3.0)
 
 def test_minmax():
     img = Image('../data/sampleimages/wshed.jpg')
-    min = img.minValue()
-    min,pts = img.minValue(locations=True)
-    max = img.maxValue()
-    max,pts = img.maxValue(locations=True)
+    min = img.min_value()
+    min,pts = img.min_value(locations=True)
+    max = img.max_value()
+    max,pts = img.max_value(locations=True)
     pass
 
 def testROIFeature():
     img = Image(testimageclr)
     mask = img.threshold(248).dilate(5)
-    blobs = img.findBlobsFromMask(mask,minsize=1)
-    x,y = np.where(mask.getGrayNumpy()>0)
+    blobs = img.find_blobs_from_mask(mask,minsize=1)
+    x,y = np.where(mask.get_gray_numpy()>0)
     xmin = np.min(x)
     xmax = np.max(x)
     ymin = np.min(y)
@@ -3511,7 +3456,7 @@ def testROIFeature():
     roiList[0].crop()
     newROI=ROI(zip(x,y),image=mask)
     test = newROI.crop()
-    xroi,yroi = np.where(test.getGrayNumpy()>128)
+    xroi,yroi = np.where(test.get_gray_numpy()>128)
     roiPts = zip(xroi,yroi)
     realPts = newROI.CoordTransformPts(roiPts)
     unitROI = newROI.CoordTransformPts(roiPts,output="ROI_UNIT")
@@ -3540,7 +3485,7 @@ def testROIFeature():
 
 def test_findKeypointClusters():
     img = Image('simplecv')
-    kpc = img.findKeypointClusters()
+    kpc = img.find_keypoint_clusters()
     if len(kpc) <= 0:
       assert False
     else:
@@ -3548,16 +3493,16 @@ def test_findKeypointClusters():
 
 def test_replaceLineScan():
     img = Image("lenna")
-    ls = img.getLineScan(x=100)
+    ls = img.get_line_scan(x=100)
     ls[50] = 0
-    newimg = img.replaceLineScan(ls)
+    newimg = img.replace_line_scan(ls)
     if newimg[100, 50][0] == 0:
         pass
     else:
         assert False
-    ls = img.getLineScan(x=100,channel=1)
+    ls = img.get_line_scan(x=100,channel=1)
     ls[50] = 0
-    newImg = img.replaceLineScan(ls)
+    newImg = img.replace_line_scan(ls)
     if newImg[100,50][1] == 0:
         pass
     else:
@@ -3565,8 +3510,8 @@ def test_replaceLineScan():
 
 def test_runningAverage():
     img = Image('lenna')
-    ls = img.getLineScan(y=120)
-    ra=ls.runningAverage(5)
+    ls = img.get_line_scan(y=120)
+    ra=ls.running_average(5)
     if ra[50] == sum(ls[48:53])/5:
         pass
     else:
@@ -3581,7 +3526,7 @@ def lineScan_perform_diff(oLineScan, pLineScan, func, **kwargs):
 
 def test_linescan_smooth():
     img = Image("lenna")
-    l1 = img.getLineScan(x=60)
+    l1 = img.get_line_scan(x=60)
     l2 = l1.smooth(degree=7)
     if lineScan_perform_diff(l1, l2, LineScan.smooth, degree=7):
         pass
@@ -3590,7 +3535,7 @@ def test_linescan_smooth():
 
 def test_linescan_normalize():
     img = Image("lenna")
-    l1 = img.getLineScan(x=90)
+    l1 = img.get_line_scan(x=90)
     l2 = l1.normalize()
     if lineScan_perform_diff(l1, l2, LineScan.normalize):
         pass
@@ -3599,7 +3544,7 @@ def test_linescan_normalize():
 
 def test_linescan_scale():
     img = Image("lenna")
-    l1 = img.getLineScan(y=90)
+    l1 = img.get_line_scan(y=90)
     l2 = l1.scale()
     if lineScan_perform_diff(l1, l2, LineScan.scale):
         pass
@@ -3608,7 +3553,7 @@ def test_linescan_scale():
 
 def test_linescan_derivative():
     img = Image("lenna")
-    l1 = img.getLineScan(y=140)
+    l1 = img.get_line_scan(y=140)
     l2 = l1.derivative()
     if lineScan_perform_diff(l1, l2, LineScan.derivative):
         pass
@@ -3617,7 +3562,7 @@ def test_linescan_derivative():
 
 def test_linescan_resample():
     img = Image("lenna")
-    l1 = img.getLineScan(pt1=(300, 300), pt2=(450, 500))
+    l1 = img.get_line_scan(pt1=(300, 300), pt2=(450, 500))
     l2 = l1.resample(n=50)
     if lineScan_perform_diff(l1, l2, LineScan.resample, n=50):
         pass
@@ -3628,9 +3573,9 @@ def test_linescan_fitToModel():
     def aLine(x, m, b):
         return x*m+b
     img = Image("lenna")
-    l1 = img.getLineScan(y=200)
-    l2 = l1.fitToModel(aLine)
-    if lineScan_perform_diff(l1, l2, LineScan.fitToModel, f=aLine):
+    l1 = img.get_line_scan(y=200)
+    l2 = l1.fit_to_model(aLine)
+    if lineScan_perform_diff(l1, l2, LineScan.fit_to_model, f=aLine):
         pass
     else:
         assert False
@@ -3638,7 +3583,7 @@ def test_linescan_fitToModel():
 def test_linescan_convolve():
     kernel = [0, 2, 0, 4, 0, 2, 0]
     img = Image("lenna")
-    l1 = img.getLineScan(x=400)
+    l1 = img.get_line_scan(x=400)
     l2 = l1.convolve(kernel)
     if lineScan_perform_diff(l1, l2, LineScan.convolve, kernel=kernel):
         pass
@@ -3647,7 +3592,7 @@ def test_linescan_convolve():
 
 def test_linescan_threshold():
     img = Image("lenna")
-    l1 = img.getLineScan(x=350)
+    l1 = img.get_line_scan(x=350)
     l2 = l1.threshold(threshold=200, invert=True)
     if lineScan_perform_diff(l1, l2, LineScan.threshold, threshold=200, invert=True):
         pass
@@ -3656,7 +3601,7 @@ def test_linescan_threshold():
 
 def test_linescan_invert():
     img = Image("lenna")
-    l1 = img.getLineScan(y=200)
+    l1 = img.get_line_scan(y=200)
     l2 = l1.invert(max=40)
     if lineScan_perform_diff(l1, l2, LineScan.invert, max=40):
         pass
@@ -3665,7 +3610,7 @@ def test_linescan_invert():
 
 def test_linescan_median():
     img = Image("lenna")
-    l1 = img.getLineScan(x=120)
+    l1 = img.get_line_scan(x=120)
     l2 = l1.median(sz=9)
     if lineScan_perform_diff(l1, l2, LineScan.median, sz=9):
         pass
@@ -3674,16 +3619,16 @@ def test_linescan_median():
 
 def test_linescan_medianFilter():
     img = Image("lenna")
-    l1 = img.getLineScan(y=250)
-    l2 = l1.medianFilter(kernel_size=7)
-    if lineScan_perform_diff(l1, l2, LineScan.medianFilter, kernel_size=7):
+    l1 = img.get_line_scan(y=250)
+    l2 = l1.median_filter(kernel_size=7)
+    if lineScan_perform_diff(l1, l2, LineScan.median_filter, kernel_size=7):
         pass
     else:
         assert False
 
 def test_linescan_detrend():
     img = Image("lenna")
-    l1 = img.getLineScan(y=90)
+    l1 = img.get_line_scan(y=90)
     l2 = l1.detrend()
     if lineScan_perform_diff(l1, l2, LineScan.detrend):
         pass
@@ -3702,7 +3647,7 @@ def test_getFREAKDescriptor():
             img = Image("lenna")
             flavors = ["SIFT", "SURF", "BRISK", "ORB", "STAR", "MSER", "FAST", "Dense"]
             for flavor in flavors:
-                f, d = img.getFREAKDescriptor(flavor)
+                f, d = img.get_freak_descriptor(flavor)
                 if len(f) == 0:
                     assert False
                 if d.shape[0] != len(f) and d.shape[1] != 64:
@@ -3713,7 +3658,7 @@ def test_getFREAKDescriptor():
 
 def test_grayPeaks():
     i = Image('lenna')
-    peaks = i.grayPeaks()
+    peaks = i.gray_peaks()
     if peaks == None:
         assert False
     else:
@@ -3721,8 +3666,8 @@ def test_grayPeaks():
 
 def test_findPeaks():
     img = Image('lenna')
-    ls = img.getLineScan(x=150)
-    peaks = ls.findPeaks()
+    ls = img.get_line_scan(x=150)
+    peaks = ls.find_peaks()
     if peaks == None:
         assert False
     else:
@@ -3730,7 +3675,7 @@ def test_findPeaks():
 
 def test_LineScan_sub():
     img = Image('lenna')
-    ls = img.getLineScan(x=200)
+    ls = img.get_line_scan(x=200)
     ls1 = ls - ls
     if ls1[23] == 0:
         pass
@@ -3739,7 +3684,7 @@ def test_LineScan_sub():
 
 def test_LineScan_add():
     img = Image('lenna')
-    ls = img.getLineScan(x=20)
+    ls = img.get_line_scan(x=20)
     l = ls + ls
     a = int(ls[20]) + int(ls[20])
     if a == l[20]:
@@ -3749,7 +3694,7 @@ def test_LineScan_add():
 
 def test_LineScan_mul():
     img = Image('lenna')
-    ls = img.getLineScan(x=20)
+    ls = img.get_line_scan(x=20)
     l = ls * ls
     a = int(ls[20]) * int(ls[20])
     if a == l[20]:
@@ -3759,7 +3704,7 @@ def test_LineScan_mul():
 
 def test_LineScan_div():
     img = Image('lenna')
-    ls = img.getLineScan(x=20)
+    ls = img.get_line_scan(x=20)
     l = ls / ls
     a = int(ls[20]) / int(ls[20])
     if a == l[20]:
@@ -3772,29 +3717,30 @@ def test_tvDenoising():
     try:
         from skimage.filter import denoise_tv_chambolle
         img = Image('lenna')
-        img1 = img.tvDenoising(gray=False,weight=20)
-        img2 = img.tvDenoising(weight=50,max_iter=250)
-        img3 = img.toGray()
-        img3 = img3.tvDenoising(gray=True,weight=20)
-        img4 = img.tvDenoising(resize=0.5)
+        img1 = img.tv_denoising(gray=False,weight=20)
+        img2 = img.tv_denoising(weight=50,max_iter=250)
+        img3 = img.to_gray()
+        img3 = img3.tv_denoising(gray=True,weight=20)
+        img4 = img.tv_denoising(resize=0.5)
         result = [img1,img2,img3,img4]
         name_stem = "test_tvDenoising"
         perform_diff(result,name_stem,3)
     except ImportError:
         pass
 
+# FIXME: the following tests should be merged
 def test_motionBlur():
     i = Image('lenna')
     d = ('n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw')
-    i0 = i.motionBlur(intensity = 20, direction = d[0])
-    i1 = i.motionBlur(intensity = 20, direction = d[1])
-    i2 = i.motionBlur(intensity = 20, direction = d[2])
-    i3 = i.motionBlur(intensity = 20, direction = d[3])
-    i4 = i.motionBlur(intensity = 10, direction = d[4])
-    i5 = i.motionBlur(intensity = 10, direction = d[5])
-    i6 = i.motionBlur(intensity = 10, direction = d[6])
-    i7 = i.motionBlur(intensity = 10, direction = d[7])
-    a = i.motionBlur(intensity = 0)
+    i0 = i.motion_blur(intensity = 20, direction = d[0])
+    i1 = i.motion_blur(intensity = 20, direction = d[1])
+    i2 = i.motion_blur(intensity = 20, direction = d[2])
+    i3 = i.motion_blur(intensity = 20, direction = d[3])
+    i4 = i.motion_blur(intensity = 10, direction = d[4])
+    i5 = i.motion_blur(intensity = 10, direction = d[5])
+    i6 = i.motion_blur(intensity = 10, direction = d[6])
+    i7 = i.motion_blur(intensity = 10, direction = d[7])
+    a = i.motion_blur(intensity = 0)
     c = 0
     img = (i0, i1, i2, i3, i4, i5, i6, i7)
     for im in img:
@@ -3802,6 +3748,25 @@ def test_motionBlur():
             c += 1
 
     if c == 8 and a is i:
+        pass
+    else:
+        assert False
+
+def test_motionBlur2():
+    image = Image('lenna')
+    d = (-70, -45, -30, -10, 100, 150, 235, 420)
+    p = ( 10,20,30,40,50,60,70,80)
+    img = []
+
+    a = image.motion_blur2(0)
+    for i in range(8):
+        img += [image.motion_blur2(p[i],d[i])]
+    c = 0
+    for im in img:
+        if im is not i:
+            c += 1
+
+    if c == 8 and a is image:
         pass
     else:
         assert False
@@ -3864,9 +3829,9 @@ def test_faceRecognize():
 
 def test_channelMixer():
     i = Image('lenna')
-    r = i.channelMixer()
-    g = i.channelMixer(channel='g', weight = (100,20,30))
-    b = i.channelMixer(channel='b', weight = (30,200,10))
+    r = i.channel_mixer()
+    g = i.channel_mixer(channel='g', weight = (100,20,30))
+    b = i.channel_mixer(channel='b', weight = (30,200,10))
     if i != r and i != g and i != b:
         pass
     else:
@@ -3888,44 +3853,25 @@ def test_edgeSnap():
     list3 = [(158,357),(339,82)]
 
     for list_ in list1,list2,list3:
-        edgeLines = img.edgeSnap(list_)
+        edgeLines = img.edge_snap(list_)
         edgeLines.draw(color = Color.YELLOW,width = 4)
 
     name_stem = "test_edgeSnap"
     result = [img]
     perform_diff(result,name_stem,0.7)
 
-def test_motionBlur():
-    image = Image('lenna')
-    d = (-70, -45, -30, -10, 100, 150, 235, 420)
-    p = ( 10,20,30,40,50,60,70,80)
-    img = []
-
-    a = image.motionBlur(0)
-    for i in range(8):
-        img += [image.motionBlur(p[i],d[i])]
-    c = 0
-    for im in img:
-        if im is not i:
-            c += 1
-
-    if c == 8 and a is image:
-        pass
-    else:
-        assert False
-
 def test_grayscalmatrix():
     img = Image("lenna")
-    graymat = img.getGrayscaleMatrix()
+    graymat = img.get_grayscale_matrix()
     newimg = Image(graymat, colorSpace=ColorSpace.GRAY)
     from numpy import array_equal
-    if not array_equal(img.getGrayNumpy(), newimg.getGrayNumpy()):
+    if not array_equal(img.get_gray_numpy(), newimg.get_gray_numpy()):
         assert False
     pass
 
 def test_getLightness():
     img = Image('lenna')
-    i = img.getLightness()
+    i = img.get_lightness()
     if int(i[27,42][0]) == int((max(img[27,42])+min(img[27,42]))/2):
         pass
     else:
@@ -3933,7 +3879,7 @@ def test_getLightness():
 
 def test_getLuminosity():
     img = Image('lenna')
-    i = img.getLuminosity()
+    i = img.get_luminosity()
     a = np.array(img[27,42],dtype=np.int)
     if int(i[27,42][0]) == int(np.average(a,0,(0.21,0.71,0.07))):
         pass
@@ -3942,7 +3888,7 @@ def test_getLuminosity():
 
 def test_getAverage():
     img = Image('lenna')
-    i = img.getAverage()
+    i = img.get_average()
     if int(i[0,0][0]) == int((img[0,0][0]+img[0,0][1]+img[0,0][2])/3):
         pass
     else:
@@ -3952,9 +3898,9 @@ def test_smartRotate():
     import time
     img = Image('kptest2.png',sample = True)
 
-    st1 = img.smartRotate(auto = False,fixed = False).resize(500,500)
+    st1 = img.smart_rotate(auto = False,fixed = False).resize(500,500)
     st2 = img.rotate(27,fixed = False).resize(500,500)
-    diff = np.average((st1-st2).getNumpy())
+    diff = np.average((st1-st2).get_numpy())
     if (diff > 1.7):
         print diff
         assert False
@@ -3972,10 +3918,10 @@ def test_normalize():
 
 def test_getNormalizedHueHistogram():
     img = Image('lenna')
-    a = img.getNormalizedHueHistogram((0,0,100,100))
-    b = img.getNormalizedHueHistogram()
-    blobs = img.findBlobs()
-    c = img.getNormalizedHueHistogram(blobs[-1])
+    a = img.get_normalized_hue_histogram((0,0,100,100))
+    b = img.get_normalized_hue_histogram()
+    blobs = img.find_blobs()
+    c = img.get_normalized_hue_histogram(blobs[-1])
     if( a.shape == (180,256) and b.shape == (180,256)
         and c.shape == (180,256) ):
         pass
@@ -3985,10 +3931,10 @@ def test_getNormalizedHueHistogram():
 def test_backProjecHueHistogram():
     img = Image('lenna')
     img2 = Image('lyle')
-    a = img2.getNormalizedHueHistogram()
-    imgA = img.backProjectHueHistogram(a)
-    imgB = img.backProjectHueHistogram((10,10,50,50),smooth=False,fullColor=True)
-    imgC = img.backProjectHueHistogram(img2,threshold=1)
+    a = img2.get_normalized_hue_histogram()
+    imgA = img.back_project_hue_histogram(a)
+    imgB = img.back_project_hue_histogram((10,10,50,50),smooth=False,fullColor=True)
+    imgC = img.back_project_hue_histogram(img2,threshold=1)
     result = [imgA,imgB,imgC]
     name_stem = "test_image_histBackProj"
     perform_diff(result,name_stem,5)
@@ -3996,17 +3942,17 @@ def test_backProjecHueHistogram():
 def test_findBlobsFromHueHistogram():
     img = Image('lenna')
     img2 = Image('lyle')
-    a = img2.getNormalizedHueHistogram()
-    A = img.findBlobsFromHueHistogram(a)
-    B = img.findBlobsFromHueHistogram((10,10,50,50),smooth=False)
-    C = img.findBlobsFromHueHistogram(img2,threshold=1)
+    a = img2.get_normalized_hue_histogram()
+    A = img.find_blobs_from_hue_histogram(a)
+    B = img.find_blobs_from_hue_histogram((10,10,50,50),smooth=False)
+    C = img.find_blobs_from_hue_histogram(img2,threshold=1)
     pass
 
 def test_drawingLayerToSVG():
     img = Image('lenna')
     dl = img.dl()
     dl.line((0, 0), (100, 100))
-    svg = dl.getSVG()
+    svg = dl.get_svg()
     if svg == '<svg baseProfile="full" height="512" version="1.1" width="512" xmlns="http://www.w3.org/2000/svg" xmlns:ev="http://www.w3.org/2001/xml-events" xmlns:xlink="http://www.w3.org/1999/xlink"><defs /><line x1="0" x2="100" y1="0" y2="100" /></svg>':
         pass
     else:

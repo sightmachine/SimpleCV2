@@ -50,7 +50,7 @@ while True:
         t2 *= multiplier
 
     print "t1 " + str(t1) + ", t2 " + str(t2) + ", b13 " + str(b13)
-    img = cam.getImage().flipHorizontal()
+    img = cam.getImage().flip_horizontal()
     edged_img = img.edges(int(t1), int(t2)).invert().smooth()
     edged_img.show()
     time.sleep(0.1)
