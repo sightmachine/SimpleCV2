@@ -1161,9 +1161,9 @@ class FeatureSet(list):
         for i in self:
             feature_vector = []
             if 'color' in properties:
-                feature_vector.extend(i.mAvgColor)
+                feature_vector.extend(i.avg_color)
             if 'shape' in properties:
-                feature_vector.extend(i.mHu)
+                feature_vector.extend(i.hu)
             if 'position' in properties:
                 feature_vector.extend(i.get_extents())
             if not feature_vector:
