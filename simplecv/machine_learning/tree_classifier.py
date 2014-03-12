@@ -55,17 +55,8 @@ class TreeClassifier:
     bagging (bootstrap aggregating)
     http://en.wikipedia.org/wiki/Bootstrap_aggregating
     """
-    mClassNames = []
-    mDataSetRaw = []
-    mDataSetOrange = []
-    mClassifier = None
-    mLearner = None
-    mTree = None
-    mFeatureExtractors = None
-    mOrangeDomain = None
-    mFlavorParams = None
 
-    mTreeTypeDict = {
+    TREE_TYPE_DICT = {
         "Tree": 0,  # A vanilla classification tree
         "Bagged": 1,  # Bootstrap aggregating aka bagging - make new
                       # data sets and test on them
@@ -73,19 +64,22 @@ class TreeClassifier:
         "Boosted": 3  # Highly optimized trees.
     }
 
-    mforestFlavorDict = {
+    FOREST_FLAVOR_DICT = {
         "NTrees": 100,       # number of trees in our forest
         "NAttributes": None  # number of attributes per split
                              # sqrt(features) is default
     }
-    mBoostedFlavorDict = {
+
+    BOOSTED_FLAVOR_DICT = {
         "NClassifiers": 10,  # number of learners
     }
-    mBaggedFlavorDict = {
+
+    BAGGED_FLAVOR_DICT = {
         "NClassifiers": 10,  # numbers of classifiers / tree splits
     }
 
-    def __init__(self, featureExtractors=[], flavor='Tree', flavorDict=None):
+    def __init__(self, feature_extractors=None, flavor='Tree',
+                 flavor_dict=None):
         """
         dist = distance algorithm
         k = number of nearest neighbors
@@ -95,27 +89,30 @@ class TreeClassifier:
                            "learning library installed to use this")
             return
 
-        self.mClassNames = []
-        self.mDataSetRaw = []
-        self.mDataSetOrange = []
-        self.mClassifier = None
-        self.mLearner = None
-        self.mTree = None
-        self.mFeatureExtractors = None
-        self.mOrangeDomain = None
-        self.mFlavorParams = None
-        self.mFlavor = self.mTreeTypeDict[flavor]
-        if (flavorDict is None):
-            if (self.mFlavor == self.mTreeTypeDict["Bagged"]):
-                self.mFlavorParams = self.mBaggedFlavorDict
-            elif (self.mFlavor == self.mTreeTypeDict["Forest"]):
+        if not feature_extractors:
+            feature_extractors = []
+
+        self.class_names = []
+        self.data_set_raw = []
+        self.data_set_orange = []
+        self.classifier = None
+        self.learner = None
+        self.tree = None
+        self.feature_extractors = None
+        self.orange_domain = None
+        self.flavor_params = None
+        self.flavor = self.TREE_TYPE_DICT[flavor]
+        if flavor_dict is None:
+            if self.flavor == self.TREE_TYPE_DICT["Bagged"]:
+                self.flavor_params = self.BAGGED_FLAVOR_DICT
+            elif self.flavor == self.TREE_TYPE_DICT["Forest"]:
                 # mmmm tastes like pinecones and squirrels
-                self.mFlavorParams = self.mforestFlavorDict
-            elif (self.mFlavor == self.mTreeTypeDict["Boosted"]):
-                self.mFlavorParams = self.mBoostedFlavorDict
+                self.flavor_params = self.FOREST_FLAVOR_DICT
+            elif self.flavor == self.TREE_TYPE_DICT["Boosted"]:
+                self.flavor_params = self.BOOSTED_FLAVOR_DICT
         else:
-            self.mFlavorParams = flavorDict
-        self.mFeatureExtractors = featureExtractors
+            self.flavor_params = flavor_dict
+        self.feature_extractors = feature_extractors
 
     def load(cls, fname):
         """
@@ -135,47 +132,47 @@ class TreeClassifier:
 
     def __getstate__(self):
         mydict = self.__dict__.copy()
-        self.mDataSetOrange = None
-        del mydict['mDataSetOrange']
-        self.mOrangeDomain = None
-        del mydict['mOrangeDomain']
-        self.mLearner = None
-        del mydict['mLearner']
-        self.mTree = None
-        del mydict['mTree']
+        self.data_set_orange = None
+        del mydict['data_set_orange']
+        self.orange_domain = None
+        del mydict['orange_domain']
+        self.learner = None
+        del mydict['learner']
+        self.tree = None
+        del mydict['tree']
         return mydict
 
     def __setstate__(self, mydict):
         self.__dict__ = mydict
-        colNames = []
-        for extractor in self.mFeatureExtractors:
-            colNames.extend(extractor.get_field_names())
-        self.mOrangeDomain = orange.Domain(
-            map(orange.FloatVariable, colNames),
-            orange.EnumVariable("type", values=self.mClassNames))
-        self.mDataSetOrange = orange.ExampleTable(self.mOrangeDomain,
-                                                  self.mDataSetRaw)
-        if (self.mFlavor == 0):
-            self.mLearner = orange.TreeLearner()
-            self.mClassifier = self.mLearner(self.mDataSetOrange)
-        elif (self.mFlavor == 1):  # bagged
-            self.mTree = orange.TreeLearner()
-            self.mLearner = orngEnsemble.BaggedLearner(self.mTree,
-                                                       t=self.mFlavorParams[
-                                                           "NClassifiers"])
-            self.mClassifier = self.mLearner(self.mDataSetOrange)
-        elif (self.mFlavor == 2):  # forest
-            self.mTree = orange.TreeLearner()
-            self.mLearner = orngEnsemble.RandomForestLearner(
-                trees=self.mFlavorParams["NTrees"],
-                attributes=self.mFlavorParams["NAttributes"])
-            self.mClassifier = self.mLearner(self.mDataSetOrange)
-        elif (self.mFlavor == 3):  # boosted
-            self.mTree = orange.TreeLearner()
-            self.mLearner = orngEnsemble.BoostedLearner(self.mTree,
-                                                        t=self.mFlavorParams[
-                                                            "NClassifiers"])
-            self.mClassifier = self.mLearner(self.mDataSetOrange)
+        col_names = []
+        for extractor in self.feature_extractors:
+            col_names.extend(extractor.get_field_names())
+        self.orange_domain = orange.Domain(
+            map(orange.FloatVariable, col_names),
+            orange.EnumVariable("type", values=self.class_names))
+        self.data_set_orange = orange.ExampleTable(self.orange_domain,
+                                                   self.data_set_raw)
+        if self.flavor == 0:
+            self.learner = orange.TreeLearner()
+            self.classifier = self.learner(self.data_set_orange)
+        elif self.flavor == 1:  # bagged
+            self.tree = orange.TreeLearner()
+            self.learner = orngEnsemble.BaggedLearner(self.tree,
+                                                      t=self.flavor_params[
+                                                      "NClassifiers"])
+            self.classifier = self.learner(self.data_set_orange)
+        elif self.flavor == 2:  # forest
+            self.tree = orange.TreeLearner()
+            self.learner = orngEnsemble.RandomForestLearner(
+                trees=self.flavor_params["NTrees"],
+                attributes=self.flavor_params["NAttributes"])
+            self.classifier = self.learner(self.data_set_orange)
+        elif self.flavor == 3:  # boosted
+            self.tree = orange.TreeLearner()
+            self.learner = orngEnsemble.BoostedLearner(self.tree,
+                                                       t=self.flavor_params[
+                                                       "NClassifiers"])
+            self.classifier = self.learner(self.data_set_orange)
 
     def classify(self, image):
         """
@@ -186,17 +183,17 @@ class TreeClassifier:
         data.
 
         """
-        featureVector = []
-        for extractor in self.mFeatureExtractors:  # get the features
+        feature_vector = []
+        for extractor in self.feature_extractors:  # get the features
             feats = extractor.extract(image)
             if feats is not None:
-                featureVector.extend(feats)
-        featureVector.extend([self.mClassNames[0]])
-        test = orange.ExampleTable(self.mOrangeDomain, [featureVector])
-        c = self.mClassifier(test[0])  # classify
+                feature_vector.extend(feats)
+        feature_vector.extend([self.class_names[0]])
+        test = orange.ExampleTable(self.orange_domain, [feature_vector])
+        c = self.classifier(test[0])  # classify
         return str(c)  # return to class name
 
-    def setFeatureExtractors(self, extractors):
+    def set_feature_extractors(self, extractors):
         """
         Add a list of feature extractors to the classifier. These feature
         extractors
@@ -204,73 +201,73 @@ class TreeClassifier:
         already trained then this method will require that you retrain the
         data.
         """
-        self.mFeatureExtractors = extractors
+        self.feature_extractors = extractors
         return None
 
-    def _trainPath(self, path, className, subset, disp, verbose):
+    def _train_path(self, path, class_name, subset, disp, verbose):
         count = 0
         files = []
         for ext in IMAGE_FORMATS:
             files.extend(glob.glob(os.path.join(path, ext)))
-        if (subset > 0):
+        if subset > 0:
             nfiles = min(subset, len(files))
         else:
             nfiles = len(files)
-        badFeat = False
+        bad_feat = False
         for i in range(nfiles):
             infile = files[i]
             if verbose:
                 print "Opening file: " + infile
             img = Image(infile)
-            featureVector = []
-            for extractor in self.mFeatureExtractors:
+            feature_vector = []
+            for extractor in self.feature_extractors:
                 feats = extractor.extract(img)
                 if feats is not None:
-                    featureVector.extend(feats)
+                    feature_vector.extend(feats)
                 else:
-                    badFeat = True
+                    bad_feat = True
 
-            if (badFeat):
-                badFeat = False
+            if bad_feat:
+                bad_feat = False
                 continue
 
-            featureVector.extend([className])
-            self.mDataSetRaw.append(featureVector)
-            text = 'Training: ' + className
-            self._WriteText(disp, img, text, Color.WHITE)
+            feature_vector.extend([class_name])
+            self.data_set_raw.append(feature_vector)
+            text = 'Training: ' + class_name
+            self._write_text(disp, img, text, Color.WHITE)
             count = count + 1
             del img
         return count
 
-    def _trainImageSet(self, imageset, className, subset, disp, verbose):
+    def _train_image_set(self, imageset, class_name, subset, disp, verbose):
         count = 0
-        badFeat = False
-        if (subset > 0):
+        bad_feat = False
+        if subset > 0:
             imageset = imageset[0:subset]
         for img in imageset:
             if verbose:
                 print "Opening file: " + img.filename
-            featureVector = []
-            for extractor in self.mFeatureExtractors:
+            feature_vector = []
+            for extractor in self.feature_extractors:
                 feats = extractor.extract(img)
                 if feats is not None:
-                    featureVector.extend(feats)
+                    feature_vector.extend(feats)
                 else:
-                    badFeat = True
+                    bad_feat = True
 
-            if (badFeat):
-                badFeat = False
+            if bad_feat:
+                bad_feat = False
                 continue
 
-            featureVector.extend([className])
-            self.mDataSetRaw.append(featureVector)
-            text = 'Training: ' + className
-            self._WriteText(disp, img, text, Color.WHITE)
+            feature_vector.extend([class_name])
+            self.data_set_raw.append(feature_vector)
+            text = 'Training: ' + class_name
+            self._write_text(disp, img, text, Color.WHITE)
             count = count + 1
             del img
         return count
 
-    def train(self, images, classNames, disp=None, subset=-1, savedata=None,
+    def train(self, images, class_names, disp=None, subset=-1, savedata=None,
               verbose=True):
         """
         Train the classifier.
@@ -293,64 +290,65 @@ class TreeClassifier:
         verbose - print confusion matrix and file names
         returns [%Correct %Incorrect Confusion_Matrix]
         """
-        #if( (self.mFlavor == 1 or self.mFlavor == 3) and len(classNames) > 2):
+        #if( (self.flavor == 1 or self.flavor == 3) and len(class_names) > 2):
         #   logger.warning("Boosting / Bagging only works for binary
         #  classification tasks!!!")
 
         count = 0
-        self.mClassNames = classNames
+        self.class_names = class_names
         # for each class, get all of the data in the path and train
-        for i in range(len(classNames)):
+        for i in range(len(class_names)):
             if isinstance(images[i], str):
-                count = count + self._trainPath(images[i], classNames[i],
-                                                subset, disp, verbose)
+                count = count + self._train_path(images[i], class_names[i],
+                                                 subset, disp, verbose)
             else:
-                count = count + self._trainImageSet(images[i], classNames[i],
-                                                    subset, disp, verbose)
+                count = count + self._train_image_set(images[i],
+                                                      class_names[i],
+                                                      subset, disp, verbose)
 
-        colNames = []
-        for extractor in self.mFeatureExtractors:
-            colNames.extend(extractor.get_field_names())
+        col_names = []
+        for extractor in self.feature_extractors:
+            col_names.extend(extractor.get_field_names())
 
         if count <= 0:
             logger.warning("No features extracted - bailing")
             return None
 
-        self.mOrangeDomain = orange.Domain(
-            map(orange.FloatVariable, colNames),
-            orange.EnumVariable("type", values=self.mClassNames))
-        self.mDataSetOrange = orange.ExampleTable(self.mOrangeDomain,
-                                                  self.mDataSetRaw)
+        self.orange_domain = orange.Domain(
+            map(orange.FloatVariable, col_names),
+            orange.EnumVariable("type", values=self.class_names))
+        self.data_set_orange = orange.ExampleTable(self.orange_domain,
+                                                   self.data_set_raw)
         if savedata is not None:
-            orange.saveTabDelimited(savedata, self.mDataSetOrange)
+            orange.saveTabDelimited(savedata, self.data_set_orange)
 
-        if self.mFlavor == 0:
-            self.mLearner = orange.TreeLearner()
-            self.mClassifier = self.mLearner(self.mDataSetOrange)
-        elif self.mFlavor == 1:  # bagged
-            self.mTree = orange.TreeLearner()
-            self.mLearner = orngEnsemble.BaggedLearner(self.mTree,
-                                                       t=self.mFlavorParams[
-                                                           "NClassifiers"])
-            self.mClassifier = self.mLearner(self.mDataSetOrange)
-        elif self.mFlavor == 2:  # forest
-            self.mTree = orange.TreeLearner()
-            self.mLearner = orngEnsemble.RandomForestLearner(
-                trees=self.mFlavorParams["NTrees"],
-                attributes=self.mFlavorParams["NAttributes"])
-            self.mClassifier = self.mLearner(self.mDataSetOrange)
-        elif self.mFlavor == 3:  # boosted
-            self.mTree = orange.TreeLearner()
-            self.mLearner = orngEnsemble.BoostedLearner(self.mTree,
-                                                        t=self.mFlavorParams[
-                                                            "NClassifiers"])
-            self.mClassifier = self.mLearner(self.mDataSetOrange)
+        if self.flavor == 0:
+            self.learner = orange.TreeLearner()
+            self.classifier = self.learner(self.data_set_orange)
+        elif self.flavor == 1:  # bagged
+            self.tree = orange.TreeLearner()
+            self.learner = orngEnsemble.BaggedLearner(self.tree,
+                                                      t=self.flavor_params[
+                                                      "NClassifiers"])
+            self.classifier = self.learner(self.data_set_orange)
+        elif self.flavor == 2:  # forest
+            self.tree = orange.TreeLearner()
+            self.learner = orngEnsemble.RandomForestLearner(
+                trees=self.flavor_params["NTrees"],
+                attributes=self.flavor_params["NAttributes"])
+            self.classifier = self.learner(self.data_set_orange)
+        elif self.flavor == 3:  # boosted
+            self.tree = orange.TreeLearner()
+            self.learner = orngEnsemble.BoostedLearner(self.tree,
+                                                       t=self.flavor_params[
+                                                       "NClassifiers"])
+            self.classifier = self.learner(self.data_set_orange)
 
         correct = 0
         incorrect = 0
         for i in range(count):
-            c = self.mClassifier(self.mDataSetOrange[i])
-            test = self.mDataSetOrange[i].getclass()
+            c = self.classifier(self.data_set_orange[i])
+            test = self.data_set_orange[i].getclass()
             if verbose:
                 print "original", test, "classified as", c
             if test == c:
@@ -362,27 +360,27 @@ class TreeClassifier:
         bad = 100 * (float(incorrect) / float(count))
 
         confusion = 0
-        if len(self.mClassNames) > 2:
-            crossValidator = orngTest.learnAndTestOnLearnData(
-                [self.mLearner], self.mDataSetOrange)
-            confusion = orngStat.confusionMatrices(crossValidator)[0]
+        if len(self.class_names) > 2:
+            cross_validator = orngTest.learnAndTestOnLearnData(
+                [self.learner], self.data_set_orange)
+            confusion = orngStat.confusionMatrices(cross_validator)[0]
 
         if verbose:
             print("Correct: " + str(good))
             print("Incorrect: " + str(bad))
             if confusion != 0:
-                classes = self.mDataSetOrange.domain.classVar.values
+                classes = self.data_set_orange.domain.classVar.values
                 print "\t" + "\t".join(classes)
                 for className, classConfusions in zip(classes, confusion):
                     print ("%s" + ("\t%i" * len(classes))) % (
                         (className, ) + tuple(classConfusions))
 
-        if self.mFlavor == 0:
-            self._PrintTree(self.mClassifier)
+        if self.flavor == 0:
+            self._print_tree(self.classifier)
 
         return [good, bad, confusion]
 
-    def test(self, images, classNames, disp=None, subset=-1, savedata=None,
+    def test(self, images, class_names, disp=None, subset=-1, savedata=None,
              verbose=True):
         """
         Test the classifier.
@@ -407,41 +405,42 @@ class TreeClassifier:
         """
         count = 0
         correct = 0
-        self.mClassNames = classNames
-        colNames = []
-        for extractor in self.mFeatureExtractors:
-            colNames.extend(extractor.get_field_names())
-            if (self.mOrangeDomain is None):
-                self.mOrangeDomain = orange.Domain(
-                    map(orange.FloatVariable, colNames),
-                    orange.EnumVariable("type", values=self.mClassNames))
+        self.class_names = class_names
+        col_names = []
+        for extractor in self.feature_extractors:
+            col_names.extend(extractor.get_field_names())
+            if self.orange_domain is None:
+                self.orange_domain = orange.Domain(
+                    map(orange.FloatVariable, col_names),
+                    orange.EnumVariable("type", values=self.class_names))
 
         dataset = []
-        for i in range(len(classNames)):
+        for i in range(len(class_names)):
             if isinstance(images[i], str):
-                [dataset, cnt, crct] = self._testPath(images[i], classNames[i],
-                                                      dataset, subset, disp,
-                                                      verbose)
+                [dataset, cnt, crct] = self._test_path(images[i],
+                                                       class_names[i],
+                                                       dataset, subset, disp,
+                                                       verbose)
                 count = count + cnt
                 correct = correct + crct
             else:
-                [dataset, cnt, crct] = self._testImageSet(images[i],
-                                                          classNames[i],
-                                                          dataset, subset,
-                                                          disp, verbose)
+                [dataset, cnt, crct] = self._test_image_set(images[i],
+                                                            class_names[i],
+                                                            dataset, subset,
+                                                            disp, verbose)
                 count = count + cnt
                 correct = correct + crct
 
-        testData = orange.ExampleTable(self.mOrangeDomain, dataset)
+        test_data = orange.ExampleTable(self.orange_domain, dataset)
 
         if savedata is not None:
-            orange.saveTabDelimited(savedata, testData)
+            orange.saveTabDelimited(savedata, test_data)
 
         confusion = 0
-        if len(self.mClassNames) > 2:
-            crossValidator = orngTest.learnAndTestOnTestData(
-                [self.mLearner], self.mDataSetOrange, testData)
-            confusion = orngStat.confusionMatrices(crossValidator)[0]
+        if len(self.class_names) > 2:
+            cross_validator = orngTest.learnAndTestOnTestData(
+                [self.learner], self.data_set_orange, test_data)
+            confusion = orngStat.confusionMatrices(cross_validator)[0]
 
         good = 100 * (float(correct) / float(count))
         bad = 100 * (float(count - correct) / float(count))
@@ -449,21 +448,21 @@ class TreeClassifier:
             print("Correct: " + str(good))
             print("Incorrect: " + str(bad))
             if confusion != 0:
-                classes = self.mDataSetOrange.domain.classVar.values
+                classes = self.data_set_orange.domain.classVar.values
                 print "\t" + "\t".join(classes)
                 for className, classConfusions in zip(classes, confusion):
                     print ("%s" + ("\t%i" * len(classes))) % (
                         (className, ) + tuple(classConfusions))
         return [good, bad, confusion]
 
-    def _testPath(self, path, className, dataset, subset, disp, verbose):
+    def _test_path(self, path, class_name, dataset, subset, disp, verbose):
         count = 0
         correct = 0
-        badFeat = False
+        bad_feat = False
         files = []
         for ext in IMAGE_FORMATS:
             files.extend(glob.glob(os.path.join(path, ext)))
-        if (subset > 0):
+        if subset > 0:
             nfiles = min(subset, len(files))
         else:
             nfiles = len(files)
@@ -472,107 +471,107 @@ class TreeClassifier:
             if verbose:
                 print "Opening file: " + infile
             img = Image(infile)
-            featureVector = []
-            for extractor in self.mFeatureExtractors:
+            feature_vector = []
+            for extractor in self.feature_extractors:
                 feats = extractor.extract(img)
                 if feats is not None:
-                    featureVector.extend(feats)
+                    feature_vector.extend(feats)
                 else:
-                    badFeat = True
-            if badFeat:
+                    bad_feat = True
+            if bad_feat:
                 del img
-                badFeat = False
+                bad_feat = False
                 continue
-            featureVector.extend([className])
-            dataset.append(featureVector)
-            test = orange.ExampleTable(self.mOrangeDomain, [featureVector])
-            c = self.mClassifier(test[0])
-            testClass = test[0].getclass()
-            if (testClass == c):
+            feature_vector.extend([class_name])
+            dataset.append(feature_vector)
+            test = orange.ExampleTable(self.orange_domain, [feature_vector])
+            c = self.classifier(test[0])
+            test_class = test[0].getclass()
+            if test_class == c:
                 text = "Classified as " + str(c)
-                self._WriteText(disp, img, text, Color.GREEN)
+                self._write_text(disp, img, text, Color.GREEN)
                 correct = correct + 1
             else:
                 text = "Mislassified as " + str(c)
-                self._WriteText(disp, img, text, Color.RED)
+                self._write_text(disp, img, text, Color.RED)
             count = count + 1
             del img
 
-        return ([dataset, count, correct])
+        return [dataset, count, correct]
 
-    def _testImageSet(self, imageset, className, dataset, subset, disp,
-                      verbose):
+    def _test_image_set(self, imageset, class_name, dataset, subset, disp,
+                        verbose):
         count = 0
         correct = 0
-        badFeat = False
-        if (subset > 0):
+        bad_feat = False
+        if subset > 0:
             imageset = imageset[0:subset]
         for img in imageset:
             if verbose:
                 print "Opening file: " + img.filename
-            featureVector = []
-            for extractor in self.mFeatureExtractors:
+            feature_vector = []
+            for extractor in self.feature_extractors:
                 feats = extractor.extract(img)
                 if feats is not None:
-                    featureVector.extend(feats)
+                    feature_vector.extend(feats)
                 else:
-                    badFeat = True
-            if badFeat:
+                    bad_feat = True
+            if bad_feat:
                 del img
-                badFeat = False
+                bad_feat = False
                 continue
-            featureVector.extend([className])
-            dataset.append(featureVector)
-            test = orange.ExampleTable(self.mOrangeDomain, [featureVector])
-            c = self.mClassifier(test[0])
-            testClass = test[0].getclass()
-            if (testClass == c):
+            feature_vector.extend([class_name])
+            dataset.append(feature_vector)
+            test = orange.ExampleTable(self.orange_domain, [feature_vector])
+            c = self.classifier(test[0])
+            test_class = test[0].getclass()
+            if test_class == c:
                 text = "Classified as " + str(c)
-                self._WriteText(disp, img, text, Color.GREEN)
+                self._write_text(disp, img, text, Color.GREEN)
                 correct = correct + 1
             else:
                 text = "Mislassified as " + str(c)
-                self._WriteText(disp, img, text, Color.RED)
+                self._write_text(disp, img, text, Color.RED)
             count = count + 1
             del img
 
-        return ([dataset, count, correct])
+        return [dataset, count, correct]
 
-    def _WriteText(self, disp, img, txt, color):
-        if (disp is not None):
+    def _write_text(self, disp, img, txt, color):
+        if disp is not None:
             txt = ' ' + txt + ' '
             img = img.adaptive_scale(disp.resolution)
             layer = DrawingLayer((img.width, img.height))
-            layer.setFontSize(60)
-            layer.ezViewText(txt, (20, 20), fgcolor=color)
+            layer.set_font_size(60)
+            layer.ez_view_text(txt, (20, 20), fgcolor=color)
             img.add_drawing_layer(layer)
             img.apply_layers()
             img.save(disp)
 
-    def _PrintTree(self, x):
+    def _print_tree(self, x):
         #adapted from the orange documentation
         if type(x) == orange.TreeClassifier:
-            self._PrintTree0(x.tree, 0)
+            self._print_tree0(x.tree, 0)
         elif type(x) == orange.TreeNode:
-            self._PrintTree0(x, 0)
+            self._print_tree0(x, 0)
         else:
             raise TypeError("invalid parameter")
 
-    def _PrintTree0(self, node, level):
+    def _print_tree0(self, node, level):
         #adapted from the orange documentation
         if not node:
             print " " * level + "<null node>"
             return
 
         if node.branchSelector:
-            nodeDesc = node.branchSelector.classVar.name
-            nodeCont = node.distribution
-            print "\n" + "   " * level + "%s (%s)" % (nodeDesc, nodeCont),
+            node_desc = node.branchSelector.classVar.name
+            node_cont = node.distribution
+            print "\n" + "   " * level + "%s (%s)" % (node_desc, node_cont),
             for i in range(len(node.branches)):
                 print "\n" + "   " * level + ": %s" % node.branchDescriptions[
                     i],
-                self._PrintTree0(node.branches[i], level + 1)
+                self._print_tree0(node.branches[i], level + 1)
         else:
-            nodeCont = node.distribution
-            majorClass = node.nodeClassifier.defaultValue
-            print "--> %s (%s) " % (majorClass, nodeCont)
+            node_cont = node.distribution
+            major_class = node.nodeClassifier.defaultValue
+            print "--> %s (%s) " % (major_class, node_cont)
