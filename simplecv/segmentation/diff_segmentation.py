@@ -15,32 +15,26 @@ class DiffSegmentation(SegmentationBase):
 
     The general usage is
 
+    >>> from simplecv.segmentation.diff_segmentation import DiffSegmentation
+    >>> from simplecv.camera import Camera
     >>> segmentor = DiffSegmentation()
     >>> cam = Camera()
-    >>> while(1):
-    >>>    segmentor.add_image(cam.getImage())
-    >>>    if(segmentor.is_ready()):
+    >>> while True:
+    >>>    segmentor.add_image(cam.get_image())
+    >>>    if segmentor.is_ready():
     >>>        img = segmentor.get_segmented_image()
 
     """
-    mError = False
-    mLastImg = None
-    mCurrImg = None
-    mDiffImg = None
-    mColorImg = None
-    mGrayOnlyMode = True
-    mThreshold = 10
-    mBlobMaker = None
 
-    def __init__(self, grayOnly=False, threshold=(10, 10, 10)):
-        self.mGrayOnlyMode = grayOnly
-        self.mThreshold = threshold
-        self.mError = False
-        self.mCurrImg = None
-        self.mLastImg = None
-        self.mDiffImg = None
-        self.mColorImg = None
-        self.mBlobMaker = BlobMaker()
+    def __init__(self, grayonly=False, threshold=(10, 10, 10)):
+        self.grayonly_mode = grayonly
+        self.threshold = threshold
+        self.error = False
+        self.curr_img = None
+        self.last_img = None
+        self.diff_img = None
+        self.color_img = None
+        self.blobmaker = BlobMaker()
 
     def add_image(self, img):
         """
@@ -48,36 +42,34 @@ class DiffSegmentation(SegmentationBase):
         """
         if img is None:
             return
-        if self.mLastImg is None:
-            if self.mGrayOnlyMode:
-                self.mLastImg = img.to_gray()
-                self.mDiffImg = Image(self.mLastImg.get_empty(1))
-                self.mCurrImg = None
+        if self.last_img is None:
+            if self.grayonly_mode:
+                self.last_img = img.to_gray()
+                self.diff_img = Image(self.last_img.get_empty(1))
+                self.curr_img = None
             else:
-                self.mLastImg = img
-                self.mDiffImg = Image(self.mLastImg.get_empty(3))
-                self.mCurrImg = None
+                self.last_img = img
+                self.diff_img = Image(self.last_img.get_empty(3))
+                self.curr_img = None
         else:
-            if self.mCurrImg is not None:  # catch the first step
-                self.mLastImg = self.mCurrImg
+            if self.curr_img is not None:  # catch the first step
+                self.last_img = self.curr_img
 
-            if self.mGrayOnlyMode:
-                self.mColorImg = img
-                self.mCurrImg = img.to_gray()
+            if self.grayonly_mode:
+                self.color_img = img
+                self.curr_img = img.to_gray()
             else:
-                self.mColorImg = img
-                self.mCurrImg = img
+                self.color_img = img
+                self.curr_img = img
 
-            cv.AbsDiff(self.mCurrImg.get_bitmap(), self.mLastImg.get_bitmap(),
-                       self.mDiffImg.get_bitmap())
-
-        return
+            cv.AbsDiff(self.curr_img.get_bitmap(), self.last_img.get_bitmap(),
+                       self.diff_img.get_bitmap())
 
     def is_ready(self):
         """
         Returns true if the camera has a segmented image ready.
         """
-        if self.mDiffImg is None:
+        if self.diff_img is None:
             return False
         else:
             return True
@@ -88,58 +80,56 @@ class DiffSegmentation(SegmentationBase):
         Eventually we'll consruct a syntax of errors so this becomes
         more expressive
         """
-        return self.mError  # need to make a generic error checker
+        return self.error  # need to make a generic error checker
 
     def reset_error(self):
         """
         Clear the previous error.
         """
-        self.mError = False
-        return
+        self.error = False
 
     def reset(self):
         """
         Perform a reset of the segmentation systems underlying data.
         """
-        self.mCurrImg = None
-        self.mLastImg = None
-        self.mDiffImg = None
+        self.curr_img = None
+        self.last_img = None
+        self.diff_img = None
 
     def get_raw_image(self):
         """
         Return the segmented image with white representing the foreground
         and black the background.
         """
-        return self.mDiffImg
+        return self.diff_img
 
     def get_segmented_image(self, white_fg=True):
         """
         Return the segmented image with white representing the foreground
         and black the background.
         """
-        retVal = None
         if white_fg:
-            retVal = self.mDiffImg.binarize(thresh=self.mThreshold)
+            ret_val = self.diff_img.binarize(thresh=self.threshold)
         else:
-            retVal = self.mDiffImg.binarize(thresh=self.mThreshold).invert()
-        return retVal
+            ret_val = self.diff_img.binarize(thresh=self.threshold).invert()
+        return ret_val
 
     def get_segmented_blobs(self):
         """
         return the segmented blobs from the fg/bg image
         """
-        retVal = []
-        if self.mColorImg is not None and self.mDiffImg is not None:
-            retVal = self.mBlobMaker.extractFromBinary(
-                self.mDiffImg.binarize(thresh=self.mThreshold), self.mColorImg)
-        return retVal
+        ret_val = []
+        if self.color_img is not None and self.diff_img is not None:
+            ret_val = self.blobmaker.extractFromBinary(
+                self.diff_img.binarize(thresh=self.threshold), self.color_img)
+        return ret_val
 
     def __getstate__(self):
         mydict = self.__dict__.copy()
-        self.mBlobMaker = None
+        self.blobmaker = None
         del mydict['blobmaker']
         return mydict
 
     def __setstate__(self, mydict):
         self.__dict__ = mydict
-        self.mBlobMaker = BlobMaker()
+        self.blobmaker = BlobMaker()
