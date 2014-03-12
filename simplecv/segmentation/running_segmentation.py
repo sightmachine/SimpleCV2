@@ -1,4 +1,5 @@
-from simplecv.base import cv
+from cv2 import cv
+
 from simplecv.features.blobmaker import BlobMaker
 from simplecv.image_class import Image
 from simplecv.segmentation.segmentation_base import SegmentationBase
@@ -12,16 +13,6 @@ class RunningSegmentation(SegmentationBase):
     accumulator = ((1-alpha)input_image)+((alpha)accumulator)
     """
 
-    mError = False
-    mAlpha = 0.1
-    mThresh = 10
-    mModelImg = None
-    mDiffImg = None
-    mCurrImg = None
-    mBlobMaker = None
-    mGrayOnly = True
-    mReady = False
-
     def __init__(self, alpha=0.7, thresh=(20, 20, 20)):
         """
         Create an running background difference.
@@ -30,14 +21,14 @@ class RunningSegmentation(SegmentationBase):
 
         threshold - the foreground background difference threshold.
         """
-        self.mError = False
-        self.mReady = False
-        self.mAlpha = alpha
-        self.mThresh = thresh
-        self.mModelImg = None
-        self.mDiffImg = None
-        self.mColorImg = None
-        self.mBlobMaker = BlobMaker()
+        self.error = False
+        self.ready = False
+        self.alpha = alpha
+        self.thresh = thresh
+        self.model_img = None
+        self.diff_img = None
+        self.color_img = None
+        self.blobmaker = BlobMaker()
 
     def add_image(self, img):
         """
@@ -46,26 +37,26 @@ class RunningSegmentation(SegmentationBase):
         if img is None:
             return
 
-        self.mColorImg = img
-        if self.mModelImg is None:
-            self.mModelImg = Image(
+        self.color_img = img
+        if self.model_img is None:
+            self.model_img = Image(
                 cv.CreateImage((img.width, img.height), cv.IPL_DEPTH_32F, 3))
-            self.mDiffImg = Image(
+            self.diff_img = Image(
                 cv.CreateImage((img.width, img.height), cv.IPL_DEPTH_32F, 3))
         else:
             # do the difference
-            cv.AbsDiff(self.mModelImg.get_bitmap(), img.get_fp_matrix(),
-                       self.mDiffImg.get_bitmap())
+            cv.AbsDiff(self.model_img.get_bitmap(), img.get_fp_matrix(),
+                       self.diff_img.get_bitmap())
             #update the model
-            cv.RunningAvg(img.get_fp_matrix(), self.mModelImg.get_bitmap(),
-                          self.mAlpha)
-            self.mReady = True
+            cv.RunningAvg(img.get_fp_matrix(), self.model_img.get_bitmap(),
+                          self.alpha)
+            self.ready = True
 
     def is_ready(self):
         """
         Returns true if the camera has a segmented image ready.
         """
-        return self.mReady
+        return self.ready
 
     def is_error(self):
         """
@@ -73,72 +64,71 @@ class RunningSegmentation(SegmentationBase):
         Eventually we'll consruct a syntax of errors so this becomes
         more expressive
         """
-        return self.mError  # need to make a generic error checker
+        return self.error  # need to make a generic error checker
 
     def reset_error(self):
         """
         Clear the previous error.
         """
-        self.mError = False
+        self.error = False
 
     def reset(self):
         """
         Perform a reset of the segmentation systems underlying data.
         """
-        self.mModelImg = None
-        self.mDiffImg = None
+        self.model_img = None
+        self.diff_img = None
 
     def get_raw_image(self):
         """
         Return the segmented image with white representing the foreground
         and black the background.
         """
-        return self._floatToInt(self.mDiffImg)
+        return self._float_to_int(self.diff_img)
 
     def get_segmented_image(self, white_fg=True):
         """
         Return the segmented image with white representing the foreground
         and black the background.
         """
-        retVal = None
-        img = self._floatToInt(self.mDiffImg)
+        img = self._float_to_int(self.diff_img)
         if white_fg:
-            retVal = img.binarize(thresh=self.mThresh)
+            ret_val = img.binarize(thresh=self.thresh)
         else:
-            retVal = img.binarize(thresh=self.mThresh).invert()
-        return retVal
+            ret_val = img.binarize(thresh=self.thresh).invert()
+        return ret_val
 
     def get_segmented_blobs(self):
         """
         return the segmented blobs from the fg/bg image
         """
-        retVal = []
-        if self.mColorImg is not None and self.mDiffImg is not None:
-            eightBit = self._floatToInt(self.mDiffImg)
-            retVal = self.mBlobMaker.extractFromBinary(
-                eightBit.binarize(thresh=self.mThresh), self.mColorImg)
+        ret_val = []
+        if self.color_img is not None and self.diff_img is not None:
+            eight_bit = self._float_to_int(self.diff_img)
+            ret_val = self.blobmaker.extractFromBinary(
+                eight_bit.binarize(thresh=self.thresh), self.color_img)
+        return ret_val
 
-        return retVal
-
-    def _floatToInt(self, input):
+    @staticmethod
+    def _float_to_int(img):
         """
         convert a 32bit floating point cv array to an int array
         """
-        temp = cv.CreateImage((input.width, input.height), cv.IPL_DEPTH_8U, 3)
-        cv.Convert(input.get_bitmap(), temp)
+        temp = cv.CreateImage((img.width, img.height), cv.IPL_DEPTH_8U, 3)
+        cv.Convert(img.get_bitmap(), temp)
 
         return Image(temp)
 
     def __getstate__(self):
         mydict = self.__dict__.copy()
-        self.mBlobMaker = None
-        self.mModelImg = None
-        self.mDiffImg = None
+        self.blobmaker = None
+        self.model_img = None
+        self.diff_img = None
         del mydict['blobmaker']
-        del mydict['mModelImg']
-        del mydict['mDiffImg']
+        del mydict['model_img']
+        del mydict['diff_img']
         return mydict
 
     def __setstate__(self, mydict):
         self.__dict__ = mydict
-        self.mBlobMaker = BlobMaker()
+        self.blobmaker = BlobMaker()
