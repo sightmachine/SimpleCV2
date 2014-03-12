@@ -35,7 +35,7 @@ print "TURKING DONE!"
 for c in classes:
     print "="*30
     print "Showing " + c
-    iset = turker.getClass(c)
+    iset = turker.get_class(c)
     iset.show(0.1)
 
 # save the results
