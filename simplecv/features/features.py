@@ -677,7 +677,7 @@ class FeatureSet(list):
         """
         fset = FeatureSet()
         for feat in self:
-            if feat.isContainedWithin(region):
+            if feat.is_contained_within(region):
                 fset.append(feat)
         return fset
 
@@ -721,7 +721,7 @@ class FeatureSet(list):
         """
         fset = FeatureSet()
         for feat in self:
-            if feat.isNotContainedWithin(region):
+            if feat.is_not_contained_within(region):
                 fset.append(feat)
         return fset
 
@@ -968,7 +968,7 @@ class FeatureSet(list):
         """
         fset = FeatureSet()
         for feat in self:
-            if feat.onImageEdge(tolerance):
+            if feat.on_image_edge(tolerance):
                 fset.append(feat)
         return fset
 
@@ -1000,7 +1000,7 @@ class FeatureSet(list):
         """
         fset = FeatureSet()
         for feat in self:
-            if feat.notOnImageEdge(tolerance):
+            if feat.not_on_image_edge(tolerance):
                 fset.append(feat)
         return fset
 
@@ -1021,7 +1021,7 @@ class FeatureSet(list):
         >>> tl = img.top_left_corners()
         >>> print tl[0]
         """
-        return np.array([f.topLeftCorner() for f in self])
+        return np.array([f.top_left_corner() for f in self])
 
     def bottom_left_corners(self):
         """
@@ -1042,7 +1042,7 @@ class FeatureSet(list):
         >>> print bl[0]
 
         """
-        return np.array([f.bottomLeftCorner() for f in self])
+        return np.array([f.bottom_left_corner() for f in self])
 
     def top_right_corners(self):
         """
@@ -1063,7 +1063,7 @@ class FeatureSet(list):
         >>> print tr[0]
 
         """
-        return np.array([f.topRightCorner() for f in self])
+        return np.array([f.top_right_corner() for f in self])
 
     def bottom_right_corners(self):
         """
@@ -1084,7 +1084,7 @@ class FeatureSet(list):
         >>> print br[0]
 
         """
-        return np.array([f.bottomRightCorner() for f in self])
+        return np.array([f.bottom_right_corner() for f in self])
 
     def aspect_ratios(self):
         """
@@ -1101,10 +1101,10 @@ class FeatureSet(list):
 
         >>> img = Image("OWS.jpg")
         >>> blobs = img.find_blobs(128)
-        >>> print blobs.aspect_ratio()
+        >>> print blobs.aspect_ratios()
 
         """
-        return np.array([f.aspectRatio() for f in self])
+        return np.array([f.get_aspect_ratio() for f in self])
 
     def cluster(self, method="kmeans", properties=None, k=3):
         """

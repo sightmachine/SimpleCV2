@@ -483,11 +483,11 @@ def test_detection_feature_measures():
         pts = f.coordinates()
         dist = f.distance_from()  # distance from center of image
 
-    fs2 = fs.sortAngle()
-    fs3 = fs.sortLength()
-    fs4 = fs.sortColorDistance()
-    fs5 = fs.sortArea()
-    fs1 = fs.sortDistance()
+    fs2 = fs.sort_angle()
+    fs3 = fs.sort_length()
+    fs4 = fs.sort_color_distance()
+    fs5 = fs.sort_area()
+    fs1 = fs.sort_distance()
     pass
 
 
@@ -1364,8 +1364,8 @@ def test_blob_holes():
     perform_diff(results, name_stem, tolerance=3.0)
 
     for b in blobs:
-        if b.mHoleContour is not None:
-            count = count + len(b.mHoleContour)
+        if b.hole_contour is not None:
+            count += len(b.hole_contour)
     if count != 7:
         assert False
 
@@ -1381,7 +1381,7 @@ def test_blob_hull():
     perform_diff(results, name_stem, tolerance=3.0)
 
     for b in blobs:
-        if len(b.mConvexHull) < 3:
+        if len(b.convex_hull) < 3:
             assert False
 
 
@@ -1391,13 +1391,13 @@ def test_blob_data():
     blobber = BlobMaker()
     blobs = blobber.extract(img)
     for b in blobs:
-        if b.mArea > 0:
+        if b.area > 0:
             pass
         if b.get_perimeter() > 0:
             pass
-        if sum(b.mAvgColor) > 0:
+        if sum(b.avg_color) > 0:
             pass
-        if sum(b.mBoundingBox) > 0:
+        if sum(b.bounding_box) > 0:
             pass
         if b.m00 is not 0 \
                 and b.m01 is not 0 \
@@ -1408,7 +1408,7 @@ def test_blob_data():
                 and b.m21 is not 0 \
                 and b.m12 is not 0:
             pass
-        if sum(b.mHu) > 0:
+        if sum(b.hu) > 0:
             pass
 
 
@@ -1452,7 +1452,7 @@ def test_blob_methods():
         b.min_rect_x()
         b.min_rect_y()
         b.get_contour()
-        b.aspect_ratio()
+        b.get_aspect_ratio()
         b.blob_image()
         b.blob_mask()
         b.get_hull_img()
@@ -3085,15 +3085,15 @@ def test_findSkintoneBlobs():
 
     blobs = img.find_skintone_blobs()
     for b in blobs:
-        if b.mArea > 0:
+        if b.area > 0:
             pass
         if b.get_perimeter() > 0:
             pass
-        if b.mAvgColor[0] > 5 \
-                and b.mAvgColor[1] > 140 \
-                and b.mAvgColor[1] < 180 \
-                and b.mAvgColor[2] > 77 \
-                and b.mAvgColor[2] < 135:
+        if b.avg_color[0] > 5 \
+                and b.avg_color[1] > 140 \
+                and b.avg_color[1] < 180 \
+                and b.avg_color[2] > 77 \
+                and b.avg_color[2] < 135:
             pass
 
 

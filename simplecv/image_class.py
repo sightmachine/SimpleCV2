@@ -6927,7 +6927,7 @@ class Image:
 
     def _render_image(self, layer):
         imgSurf = self.get_pg_surface(self).copy()
-        imgSurf.blit(layer._mSurface, (0, 0))
+        imgSurf.blit(layer.surface, (0, 0))
         return Image(imgSurf)
 
     def merged_layers(self):

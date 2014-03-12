@@ -844,8 +844,8 @@ def test_blob_holes():
     perform_diff(results, name_stem, tolerance=3.0)
 
     for b in blobs:
-        if b.mHoleContour is not None:
-            count = count + len(b.mHoleContour)
+        if b.hole_contour is not None:
+            count += len(b.hole_contour)
     if count != 7:
         assert False
 
@@ -861,7 +861,7 @@ def test_blob_hull():
     perform_diff(results, name_stem, tolerance=3.0)
 
     for b in blobs:
-        if len(b.mConvexHull) < 3:
+        if len(b.convex_hull) < 3:
             assert False
 
 
@@ -1120,7 +1120,7 @@ def test_hough_circles():
     if circs[0] < 1:
         assert False
     circs[0].coordinates()
-    circs[0].width()
+    circs[0].get_width()
     circs[0].get_area()
     circs[0].get_perimeter()
     circs[0].get_height()

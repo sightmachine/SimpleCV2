@@ -41,7 +41,7 @@ class BlobMaker(object):
             maxsize = img.width * img.height
         gray = colormodel.threshold(img)
         blobs = self.extractFromBinary(gray, img, minsize, maxsize)
-        ret_value = sorted(blobs, key=lambda x: x.mArea, reverse=True)
+        ret_value = sorted(blobs, key=lambda x: x.area, reverse=True)
         return FeatureSet(ret_value)
 
     def extract(self, img, threshval=127, minsize=10, maxsize=0,
@@ -65,7 +65,7 @@ class BlobMaker(object):
         blobs = self.extractFromBinary(
             img.binarize(threshval, 255, threshblocksize,
                          threshconstant).invert(), img, minsize, maxsize)
-        ret_value = sorted(blobs, key=lambda x: x.mArea, reverse=True)
+        ret_value = sorted(blobs, key=lambda x: x.area, reverse=True)
         return FeatureSet(ret_value)
 
     def extractFromBinary(self, binaryImg, colorImg, minsize=5, maxsize=-1,
@@ -181,25 +181,25 @@ class BlobMaker(object):
 
         ret_value = Blob()
         ret_value.image = color
-        ret_value.mArea = area
+        ret_value.area = area
 
-        ret_value.mMinRectangle = cv.MinAreaRect2(seq)
+        ret_value.min_rectangle = cv.MinAreaRect2(seq)
         bbr = cv.BoundingRect(seq)
         ret_value.x = bbr[0] + (bbr[2] / 2)
         ret_value.y = bbr[1] + (bbr[3] / 2)
-        ret_value.mPerimeter = cv.ArcLength(seq)
+        ret_value.perimeter = cv.ArcLength(seq)
         if seq is not None:  # KAS
-            ret_value.mContour = list(seq)
+            ret_value.contour = list(seq)
             try:
                 import cv2
 
-                if ret_value.mContour is not None:
-                    ret_value.mContourAppx = []
+                if ret_value.contour is not None:
+                    ret_value.contour_appx = []
                     appx = cv2.approxPolyDP(
-                        np.array([ret_value.mContour], 'float32'), appx_level,
+                        np.array([ret_value.contour], 'float32'), appx_level,
                         True)
                     for p in appx:
-                        ret_value.mContourAppx.append(
+                        ret_value.contour_appx.append(
                             (int(p[0][0]), int(p[0][1])))
             except:
                 pass
@@ -218,9 +218,9 @@ class BlobMaker(object):
         hh = bbr[3]
         ret_value.points = [(xx, yy), (xx + ww, yy), (xx + ww, yy + hh),
                             (xx, yy + hh)]
-        ret_value._updateExtents()
+        ret_value._update_extents()
         chull = cv.ConvexHull2(seq, cv.CreateMemStorage(), return_points=1)
-        ret_value.mConvexHull = list(chull)
+        ret_value.convex_hull = list(chull)
         # KAS -- FLAG FOR REPLACE 6/6/2012
         #get_hull_mask = self._getHullMask(chull,bb)
 
@@ -255,14 +255,14 @@ class BlobMaker(object):
             ret_value.m21 = cv.GetSpatialMoment(moments, 2, 1)
             ret_value.m12 = cv.GetSpatialMoment(moments, 1, 2)
 
-        ret_value.mHu = cv.GetHuMoments(moments)
+        ret_value.hu = cv.GetHuMoments(moments)
 
         # KAS -- FLAG FOR REPLACE 6/6/2012
         mask = self._getMask(seq, bbr)
         #ret_value.mask = Image(mask)
 
-        ret_value.mAvgColor = self._getAvg(color.get_bitmap(), bbr, mask)
-        ret_value.mAvgColor = ret_value.mAvgColor[0:3]
+        ret_value.avg_color = self._getAvg(color.get_bitmap(), bbr, mask)
+        ret_value.avg_color = ret_value.avg_color[0:3]
         #ret_value.avg_color = self._getAvg(color.get_bitmap(),
         #                                   ret_value.bounding_box, mask)
         #ret_value.avg_color = ret_value.avg_color[0:3]
@@ -270,9 +270,9 @@ class BlobMaker(object):
         # KAS -- FLAG FOR REPLACE 6/6/2012
         #ret_value.img = self._getBlobAsImage(seq,bb,color.get_bitmap(),mask)
 
-        ret_value.mHoleContour = self._getHoles(seq)
-        ret_value.mAspectRatio = ret_value.mMinRectangle[1][0] / \
-            ret_value.mMinRectangle[1][1]
+        ret_value.hole_contour = self._getHoles(seq)
+        ret_value.aspect_ratio = ret_value.min_rectangle[1][0] / \
+            ret_value.min_rectangle[1][1]
 
         return ret_value
 

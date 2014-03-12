@@ -1067,22 +1067,22 @@ class Circle(Feature):
     r = 0.00
     image = ""  # parent image
     points = []
-    avgColor = None
+    avg_color = None
 
     def __init__(self, i, at_x, at_y, r):
         self.r = r
-        self.avgColor = None
+        self.avg_color = None
         points = [(at_x - r, at_y - r), (at_x + r, at_y - r),
                   (at_x + r, at_y + r), (at_x - r, at_y + r)]
         super(Circle, self).__init__(i, at_x, at_y, points)
         segments = 18
         rng = range(1, segments + 1)
-        self.mContour = []
+        self.contour = []
         for theta in rng:
             rp = 2.0 * pi * float(theta) / float(segments)
             x = (r * sin(rp)) + at_x
             y = (r * cos(rp)) + at_y
-            self.mContour.append((x, y))
+            self.contour.append((x, y))
 
     def draw(self, color=Color.GREEN, width=1):
         """
@@ -1178,14 +1178,14 @@ class Circle(Feature):
 
         """
         #generate the mask
-        if self.avgColor is None:
+        if self.avg_color is None:
             mask = self.image.get_empty(1)
             cv.Zero(mask)
             cv.Circle(mask, (self.x, self.y), self.r, color=(255, 255, 255),
                       thickness=-1)
             temp = cv.Avg(self.image.get_bitmap(), mask)
-            self.avgColor = (temp[0], temp[1], temp[2])
-        return self.avgColor
+            self.avg_color = (temp[0], temp[1], temp[2])
+        return self.avg_color
 
     def get_area(self):
         """
