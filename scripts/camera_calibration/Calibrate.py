@@ -68,7 +68,7 @@ def testrect(img, cb, calibration_set, dims, rect):
     return False
 
 def relativeSize(cb, i):
-    return cb.area() / float(i.width * i.height)
+    return cb.get_area() / float(i.width * i.height)
 
 def relPercent(cb, i):
     return str(int(relativeSize(cb,i) * 100)) + "%"
@@ -225,8 +225,8 @@ def findPlane(cb, i, calibration_set, dims):
         drawrect(i, (10,10), (i.width - 10, i.height - 10))
         return
 
-    cbwidth = cb.width()
-    cbheight = cb.height()
+    cbwidth = cb.get_width()
+    cbheight = cb.get_height()
     lcs = len(calibration_set)
 
     tolerance = 1.2 #20% tolerance

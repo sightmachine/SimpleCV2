@@ -30,7 +30,7 @@ def draw_glasses(image, (dx, dy, right_eye), glasses):
         new_glasses = new_glasses.rotate(rotation, fixed = False)
         mask = mask.rotate(rotation, fixed=False)
 
-        image = image.blit(new_glasses, right_eye.topLeftCorner(),alphaMask=mask)
+        image = image.blit(new_glasses, right_eye.top_left_corner(),alphaMask=mask)
     except:
         pass
 

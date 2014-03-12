@@ -13,8 +13,8 @@ def identifyGender():
     cascade = LAUNCH_PATH + "/data/Features/HaarCascades/face.xml"
     feat = img.find_haar_features(cascade)
     if feat:
-        crop_image = feat.sortArea()[-1].crop()
-        feat.sortArea()[-1].draw()
+        crop_image = feat.sort_area()[-1].crop()
+        feat.sort_area()[-1].draw()
 
     f.load(LAUNCH_PATH + "/data/Features/FaceRecognizer/GenderData.xml")
     w, h = f.image_size

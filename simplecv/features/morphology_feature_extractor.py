@@ -55,7 +55,7 @@ class MorphologyFeatureExtractor(FeatureExtractorBase):
 
         fs = self.blobmaker.extractFromBinary(bw_img, img)
         if fs is not None and len(fs) > 0:
-            fs = fs.sortArea()
+            fs = fs.sort_area()
             result = []
             result.append(fs[0].mArea / fs[0].mPerimeter)
             result.append(fs[0].mAspectRatio)

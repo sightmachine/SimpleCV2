@@ -14,15 +14,15 @@ blobs2 = img2.find_blobs()
 
 confuse = []
 
-# fs = blobs[0].getShapeContext()
+# fs = blobs[0].get_shape_context()
 # fs.draw()
 # img.show()
 # time.sleep(20)
 i = 0
 for b in blobs:
     for d in blobs2:
-        metric =  b.getMatchMetric(d)
-        result = b.showCorrespondence(d,'bottom')
+        metric =  b.get_match_metric(d)
+        result = b.show_correspondence(d,'bottom')
         title = "Match Quality: " + str(metric)
         result.draw_text(title,20,20,color=Color.RED,fontsize=42)
         result.show()

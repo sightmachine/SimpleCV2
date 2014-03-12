@@ -53,7 +53,7 @@ class Corner(Feature):
 
         * *color* - An RGB color triplet.
         * *width* - if width is less than zero we draw the feature filled in,
-         otherwise we draw the contour using the specified width.
+         otherwise we draw the get_contour using the specified width.
 
 
         **RETURNS**
@@ -168,8 +168,8 @@ class Line(Feature):
         >>> myLine = l[0].crop()
 
         """
-        tl = self.topLeftCorner()
-        return self.image.crop(tl[0], tl[1], self.width(), self.height())
+        tl = self.top_left_corner()
+        return self.image.crop(tl[0], tl[1], self.get_width(), self.get_height())
 
     def mean_color(self):
         """
@@ -194,7 +194,7 @@ class Line(Feature):
         (pt1, pt2) = self.end_points
         #we're going to walk the line, and take the mean color from all the px
         #points -- there's probably a much more optimal way to do this
-        (maxx, minx, maxy, miny) = self.extents()
+        (maxx, minx, maxy, miny) = self.get_extents()
 
         d_x = maxx - minx
         d_y = maxy - miny
@@ -676,7 +676,7 @@ class Barcode(Feature):
 
         * *color* - An RGB color triplet.
         * *width* - if width is less than zero we draw the feature filled in,
-         otherwise we draw the contour using the specified width.
+         otherwise we draw the get_contour using the specified width.
 
 
         **RETURNS**
@@ -714,7 +714,7 @@ class Barcode(Feature):
         #note that the code is a quadrilateral
         return max(sqform[0][1], sqform[1][2], sqform[2][3], sqform[3][0])
 
-    def area(self):
+    def get_area(self):
         """
         **SUMMARY**
 
@@ -730,7 +730,7 @@ class Barcode(Feature):
 
         >>> img = Image("mycode.jpg")
         >>> bc = img.find_barcode()
-        >>> print bc[-1].area()
+        >>> print bc[-1].get_area()
 
 
         """
@@ -748,7 +748,7 @@ class Barcode(Feature):
         p = sqform[0][2]
         q = sqform[1][3]
 
-        #perimeter / 2
+        #get_perimeter / 2
         s = (a + b + c + d) / 2.0
 
         #i found the formula to do this on wikihow.  Yes, I am that lame.
@@ -805,7 +805,7 @@ class HaarFeature(Feature):
 
         * *color* - An RGB color triplet.
         * *width* - if width is less than zero we draw the feature filled in,
-         otherwise we draw the contour using the specified width.
+         otherwise we draw the get_contour using the specified width.
 
 
         **RETURNS**
@@ -848,7 +848,7 @@ class HaarFeature(Feature):
                           self.points[0][1]:self.points[2][1]]
         return crop.mean_color()
 
-    def area(self):
+    def get_area(self):
         """
         **SUMMARY**
 
@@ -863,10 +863,10 @@ class HaarFeature(Feature):
         >>> img = Image("lenna")
         >>> face = HaarCascade("face.xml")
         >>> faces = img.find_haar_features(face)
-        >>> print faces[-1].area()
+        >>> print faces[-1].get_area()
 
         """
-        return self.width() * self.height()
+        return self.get_width() * self.get_height()
 
 
 ######################################################################
@@ -918,7 +918,7 @@ class Chessboard(Feature):
         cv.DrawChessboardCorners(self.image.get_bitmap(), self.dimensions,
                                  self.spCorners, 1)
 
-    def area(self):
+    def get_area(self):
         """
         **SUMMARY**
 
@@ -934,7 +934,7 @@ class Chessboard(Feature):
 
         >>> img = Image("corners.jpg")
         >>> feats = img.findChessboardCorners()
-        >>> print feats[-1].area()
+        >>> print feats[-1].get_area()
 
         """
         #note, copying this from barcode means we probably need a subclass of
@@ -984,7 +984,7 @@ class TemplateMatch(Feature):
         """
         Returns true if this feature overlaps another template feature.
         """
-        (maxx, minx, maxy, miny) = self.extents()
+        (maxx, minx, maxy, miny) = self.get_extents()
         overlap = False
         for p in other.points:
             if p[0] <= maxx and p[0] >= minx and p[1] <= maxy and p[1] >= miny:
@@ -998,8 +998,8 @@ class TemplateMatch(Feature):
         Given another template feature, make this feature the size of the two
         features combined.
         """
-        (maxx, minx, maxy, miny) = self.extents()
-        (maxx0, minx0, maxy0, miny0) = other.extents()
+        (maxx, minx, maxy, miny) = self.get_extents()
+        (maxx0, minx0, maxy0, miny0) = other.get_extents()
 
         maxx = max(maxx, maxx0)
         minx = min(minx, minx0)
@@ -1008,14 +1008,14 @@ class TemplateMatch(Feature):
         self.x = minx
         self.y = miny
         self.points = [(minx, miny), (minx, maxy), (maxx, maxy), (maxx, miny)]
-        self._updateExtents()
+        self._update_extents()
 
     def rescale(self, w, h):
         """
         This method keeps the feature's center the same but sets a new width
         and height
         """
-        (maxx, minx, maxy, miny) = self.extents()
+        (maxx, minx, maxy, miny) = self.get_extents()
         xc = minx + ((maxx - minx) / 2)
         yc = miny + ((maxy - miny) / 2)
         x = xc - (w / 2)
@@ -1026,10 +1026,10 @@ class TemplateMatch(Feature):
                        (x + w, y),
                        (x + w, y + h),
                        (x, y + h)]
-        self._updateExtents()
+        self._update_extents()
 
     def crop(self):
-        (maxx, minx, maxy, miny) = self.extents()
+        (maxx, minx, maxy, miny) = self.get_extents()
         return self.image.crop(minx, miny, maxx - minx, maxy - miny)
 
     def draw(self, color=Color.GREEN, width=1):
@@ -1042,7 +1042,7 @@ class TemplateMatch(Feature):
 
         * *color* - An RGB color triplet.
         * *width* - if width is less than zero we draw the feature filled in,
-         otherwise we draw the contour using the specified width.
+         otherwise we draw the get_contour using the specified width.
 
         **RETURNS**
 
@@ -1050,7 +1050,7 @@ class TemplateMatch(Feature):
         drawing layer.
         """
         self.image.dl().rectangle((self.x, self.y),
-                                  (self.width(), self.height()), color=color,
+                                  (self.get_width(), self.get_height()), color=color,
                                   width=width)
 
 
@@ -1094,7 +1094,7 @@ class Circle(Feature):
 
         * *color* - An RGB color triplet.
         * *width* - if width is less than zero we draw the feature filled in,
-         otherwise we draw the contour using the specified width.
+         otherwise we draw the get_contour using the specified width.
 
         **RETURNS**
 
@@ -1131,7 +1131,7 @@ class Circle(Feature):
         self.draw(color)
         self.image.show()
 
-    def distanceFrom(self, point=(-1, -1)):
+    def distance_from(self, point=(-1, -1)):
         """
         **SUMMARY**
 
@@ -1151,7 +1151,7 @@ class Circle(Feature):
 
         >>> img = Image("OWS.jpg")
         >>> blobs = img.find_circle()
-        >>> blobs[-1].distanceFrom(blobs[-2].coordinates())
+        >>> blobs[-1].distance_from(blobs[-2].coordinates())
 
         """
         if point[0] == -1 or point[1] == -1:
@@ -1187,7 +1187,7 @@ class Circle(Feature):
             self.avgColor = (temp[0], temp[1], temp[2])
         return self.avgColor
 
-    def area(self):
+    def get_area(self):
         """
         Area covered by the feature -- for a pixel, 1
 
@@ -1210,15 +1210,15 @@ class Circle(Feature):
         """
         return self.r * self.r * pi
 
-    def perimeter(self):
+    def get_perimeter(self):
         """
         **SUMMARY**
 
-        Returns the perimeter of the circle feature in pixels.
+        Returns the get_perimeter of the circle feature in pixels.
         """
         return 2 * pi * self.r
 
-    def width(self):
+    def get_width(self):
         """
         **SUMMARY**
 
@@ -1227,7 +1227,7 @@ class Circle(Feature):
         """
         return self.r * 2
 
-    def height(self):
+    def get_height(self):
         """
         **SUMMARY**
 
@@ -1271,7 +1271,7 @@ class Circle(Feature):
 
         """
         if noMask:
-            return self.image.crop(self.x, self.y, self.width(), self.height(),
+            return self.image.crop(self.x, self.y, self.get_width(), self.get_height(),
                                    centered=True)
         else:
             mask = self.image.get_empty(1)
@@ -1284,7 +1284,7 @@ class Circle(Feature):
                       thickness=-1)
             cv.Copy(self.image.get_bitmap(), result, mask)
             retVal = Image(result)
-            retVal = retVal.crop(self.x, self.y, self.width(), self.height(),
+            retVal = retVal.crop(self.x, self.y, self.get_width(), self.get_height(),
                                  centered=True)
             return retVal
 
@@ -1406,7 +1406,7 @@ class KeyPoint(Feature):
 
         * *color* - An RGB color triplet.
         * *width* - if width is less than zero we draw the feature filled in,
-         otherwise we draw the contour using the specified width.
+         otherwise we draw the get_contour using the specified width.
 
 
         **RETURNS**
@@ -1438,7 +1438,7 @@ class KeyPoint(Feature):
         self.draw(color)
         self.image.show()
 
-    def distanceFrom(self, point=(-1, -1)):
+    def distance_from(self, point=(-1, -1)):
         """
         **SUMMARY**
 
@@ -1484,15 +1484,15 @@ class KeyPoint(Feature):
         """
         return spsd.euclidean(np.array(color), np.array(self.mean_color()))
 
-    def perimeter(self):
+    def get_perimeter(self):
         """
         **SUMMARY**
 
-        Returns the perimeter of the circle feature in pixels.
+        Returns the get_perimeter of the circle feature in pixels.
         """
         return 2 * pi * self._r
 
-    def width(self):
+    def get_width(self):
         """
         **SUMMARY**
 
@@ -1501,7 +1501,7 @@ class KeyPoint(Feature):
         """
         return self._r * 2
 
-    def height(self):
+    def get_height(self):
         """
         **SUMMARY**
 
@@ -1545,7 +1545,7 @@ class KeyPoint(Feature):
 
         """
         if noMask:
-            return self.image.crop(self.x, self.y, self.width(), self.height(),
+            return self.image.crop(self.x, self.y, self.get_width(), self.get_height(),
                                    centered=True)
         else:
             mask = self.image.get_empty(1)
@@ -1558,7 +1558,7 @@ class KeyPoint(Feature):
                       color=(255, 255, 255), thickness=-1)
             cv.Copy(self.image.get_bitmap(), result, mask)
             retVal = Image(result)
-            retVal = retVal.crop(self.x, self.y, self.width(), self.height(),
+            retVal = retVal.crop(self.x, self.y, self.get_width(), self.get_height(),
                                  centered=True)
             return retVal
 
@@ -1610,7 +1610,7 @@ class Motion(Feature):
 
         * *color* - An RGB color triplet.
         * *width* - if width is less than zero we draw the feature filled in,
-         otherwise we draw the contour using the specified width.
+         otherwise we draw the get_contour using the specified width.
         * *normalize* - normalize the vector size to the size of the block
          (i.e. the biggest optical flow vector is scaled to the size of the
           block, all other vectors are scaled relative to the longest vector).
@@ -1757,7 +1757,7 @@ class KeypointMatch(Feature):
         #self.x = at_x
         #self.y = at_y
         points = [(xmin, ymin), (xmin, ymax), (xmax, ymax), (xmax, ymin)]
-        #self._updateExtents()
+        #self._update_extents()
         #self.image = image
         #points =
         super(KeypointMatch, self).__init__(image, at_x, at_y, points)
@@ -1776,7 +1776,7 @@ class KeypointMatch(Feature):
 
         * *color* - An RGB color triplet.
         * *width* - if width is less than zero we draw the feature filled in,
-         otherwise we draw the contour using the specified width.
+         otherwise we draw the get_contour using the specified width.
 
 
         **RETURNS**
@@ -1809,9 +1809,9 @@ class KeypointMatch(Feature):
         the axes aligned box masked to just include the image data of the
         minimum bounding rectangle.
         """
-        tl = self.topLeftCorner()
-        raw = self.image.crop(tl[0], tl[1], self.width(),
-                              self.height())  # crop the minbouding rect
+        tl = self.top_left_corner()
+        raw = self.image.crop(tl[0], tl[1], self.get_width(),
+                              self.get_height())  # crop the minbouding rect
         return raw
 
     def mean_color(self):
@@ -1835,10 +1835,10 @@ class KeypointMatch(Feature):
 
         """
         if self._avgColor is None:
-            TL = self.topLeftCorner()
-            raw = self.image.crop(TL[0], TL[0], self.width(),
-                                  self.height())  # crop the minbouding rect
-            mask = Image((self.width(), self.height()))
+            TL = self.top_left_corner()
+            raw = self.image.crop(TL[0], TL[0], self.get_width(),
+                                  self.get_height())  # crop the minbouding rect
+            mask = Image((self.get_width(), self.get_height()))
             mask.dl().polygon(self._minRect, color=Color.WHITE,
                               filled=pickle.TRUE)
             mask = mask.apply_layers()
@@ -1900,7 +1900,7 @@ class ShapeContextDescriptor(Feature):
 
         * *color* - An RGB color triplet.
         * *width* - if width is less than zero we draw the feature filled in,
-         otherwise we draw the contour using the specified width.
+         otherwise we draw the get_contour using the specified width.
 
 
         **RETURNS**
@@ -2688,7 +2688,7 @@ class ROI(Feature):
         self.h = h
         self.points = [(x, y), (x + w, y), (x, y + h), (x + w, y + h)]
         #WE MAY WANT TO DO A SANITY CHECK HERE
-        self._updateExtents()
+        self._update_extents()
 
     def _standardize(self, x, y=None, w=None, h=None):
         if isinstance(x, np.ndarray):
@@ -2713,10 +2713,10 @@ class ROI(Feature):
         elif isinstance(x, FeatureSet) and len(x) > 0:
             #double check that everything in the list is a feature
             features = [feat for feat in x if isinstance(feat, Feature)]
-            xmax = np.max([feat.maxX() for feat in features])
-            xmin = np.min([feat.minX() for feat in features])
-            ymax = np.max([feat.maxY() for feat in features])
-            ymin = np.min([feat.minY() for feat in features])
+            xmax = np.max([feat.get_max_x() for feat in features])
+            xmin = np.min([feat.get_min_x() for feat in features])
+            ymax = np.max([feat.get_max_y() for feat in features])
+            ymin = np.min([feat.get_min_y() for feat in features])
             x = xmin
             y = ymin
             w = xmax - xmin
@@ -2726,8 +2726,8 @@ class ROI(Feature):
             theFeature = x
             x = theFeature.points[0][0]
             y = theFeature.points[0][1]
-            w = theFeature.width()
-            h = theFeature.height()
+            w = theFeature.get_width()
+            h = theFeature.get_height()
 
         # [x,y,w,h] (x,y,w,h)
         elif isinstance(x, (tuple, list)) and len(x) == 4 \

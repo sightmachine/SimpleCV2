@@ -11,9 +11,9 @@ blobs2 = img2.find_blobs()
 for j in range(0,len(blobs)):
     data = blobs[j].ShapeContextMatch(blobs2[j])
     mapvals = data[0]
-    fs1 = blobs[j].getShapeContext()
+    fs1 = blobs[j].get_shape_context()
     fs1.draw()
-    fs2 = blobs2[j].getShapeContext()
+    fs2 = blobs2[j].get_shape_context()
     fs2.draw()
 
 img2 = img2.apply_layers()

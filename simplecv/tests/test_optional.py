@@ -130,7 +130,7 @@ def test_image_webp_save():
     #only run if webm suppport exist on system
     try:
         import webm
-    except:
+    except ImportError:
         if SHOW_WARNING_TESTS:
             logger.warning("Couldn't run the webp test as optional "
                            "webm library required")
@@ -148,18 +148,20 @@ def test_image_webp_save():
 def test_screenshot():
     try:
         import pyscreenshot
-    except:
+    except ImportError:
         if SHOW_WARNING_TESTS:
             logger.warning("Couldn't run the pyscreenshot test. "
                            "Install pyscreenshot library")
         pass
-    sc = ScreenCamera()
-    res = sc.get_resolution()
-    img = sc.get_image()
-    crop = (res[0]/4, res[1]/4, res[0]/2, res[1]/2)
-    sc.set_roi(crop)
-    cropImg = sc.get_image()
-    if img and cropImg:
-        assert True
+
     else:
-        assert False
+        sc = ScreenCamera()
+        res = sc.get_resolution()
+        img = sc.get_image()
+        crop = (res[0]/4, res[1]/4, res[0]/2, res[1]/2)
+        sc.set_roi(crop)
+        cropImg = sc.get_image()
+        if img and cropImg:
+            assert True
+        else:
+            assert False

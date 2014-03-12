@@ -23,22 +23,22 @@ class BOFFeatureExtractor(object):
     padding = the pixel padding of each patch in the resulting image.
 
     """
-    mPatchSize = (11, 11)
-    mNumCodes = 128
-    mPadding = 0
-    mLayout = (8, 16)
-    mCodebookImg = None
-    mCodebook = None
+    patch_size = (11, 11)
+    num_codes = 128
+    padding = 0
+    layout = (8, 16)
+    codebook_img = None
+    codebook = None
 
     def __init__(self, patchsz=(11, 11), numcodes=128, imglayout=(8, 16),
                  padding=0):
 
-        self.mPadding = padding
-        self.mLayout = imglayout
-        self.mPatchSize = patchsz
-        self.mNumCodes = numcodes
+        self.padding = padding
+        self.layout = imglayout
+        self.patch_size = patchsz
+        self.num_codes = numcodes
 
-    def generate(self, imgdirs, numcodes=128, sz=(11, 11), imgs_per_dir=50,
+    def generate(self, imgdirs, numcodes=128, size=(11, 11), imgs_per_dir=50,
                  img_layout=(8, 16), padding=0, verbose=True):
         """
         This method builds the bag of features codebook from a list of
@@ -69,14 +69,13 @@ class BOFFeatureExtractor(object):
             warnings.warn("Numcodes must match the size of image layout.")
             return None
 
-        self.mPadding = padding
-        self.mLayout = img_layout
-        self.mNumCodes = numcodes
-        self.mPatchSize = sz
-        rawFeatures = np.zeros(
-            sz[0] * sz[1])  # fakeout numpy so we can use vstack
+        self.padding = padding
+        self.layout = img_layout
+        self.num_codes = numcodes
+        self.patch_size = size
+        raw_features = np.zeros(
+            size[0] * size[1])  # fakeout numpy so we can use vstack
         for path in imgdirs:
-            fcount = 0
             files = []
             for ext in IMAGE_FORMATS:
                 files.extend(glob.glob(os.path.join(path, ext)))
@@ -84,50 +83,55 @@ class BOFFeatureExtractor(object):
             for i in range(nimgs):
                 infile = files[i]
                 if verbose:
-                    print(path + " " + str(i) + " of " + str(imgs_per_dir))
+                    print path + " " + str(i) + " of " + str(imgs_per_dir)
                     print "Opening file: " + infile
                 img = Image(infile)
-                newFeat = self._getPatches(img, sz)
+                new_feat = self._get_patches(img, size)
                 if verbose:
-                    print "     Got " + str(len(newFeat)) + " features."
-                rawFeatures = np.vstack((rawFeatures, newFeat))
+                    print "     Got " + str(len(new_feat)) + " features."
+                raw_features = np.vstack((raw_features, new_feat))
                 del img
         # pop the fake value we put on the top
-        rawFeatures = rawFeatures[1:, :]
+        raw_features = raw_features[1:, :]
         if verbose:
             print "=================================="
-            print "Got " + str(len(rawFeatures)) + " features "
+            print "Got " + str(len(raw_features)) + " features "
             print "Doing K-Means .... this will take a long time"
-        self.mCodebook = self._makeCodebook(rawFeatures, self.mNumCodes)
-        self.mCodebookImg = self._codebook2Img(self.mCodebook, self.mPatchSize,
-                                               self.mNumCodes, self.mLayout,
-                                               self.mPadding)
-        self.mCodebookImg.save('codebook.png')
+        self.codebook = self._make_codebook(raw_features, self.num_codes)
+        self.codebook_img = self._codebook_to_img(self.codebook, 
+                                                  self.patch_size,
+                                                  self.num_codes,
+                                                  self.layout,
+                                                  self.padding)
+        self.codebook_img.save('codebook.png')
 
-    def extractPatches(self, img, sz=(11, 11)):
+    def extract_patches(self, img, size=(11, 11)):
         """
         Get patches from a single images. This is an external access method.
         The user will need to maintain the list of features. See the generate
-        method as a guide to doing this by hand. Sz is the image patch size.
+        method as a guide to doing this by hand. Size is the image patch size.
         """
-        return self._getPatches(img, sz)
+        return self._get_patches(img, size)
 
-    def makeCodebook(self, featureStack, ncodes=128):
+    def make_codebook(self, feature_stack, ncodes=128):
         """
         This method will return the centroids of the k-means analysis of a
         large number of images. Ncodes is the number of centroids to find.
         """
-        return self._makeCodebook(featureStack, ncodes)
+        return self._make_codebook(feature_stack, ncodes)
 
-    def _makeCodebook(self, data, ncodes=128):
+    @staticmethod
+    def _make_codebook(data, ncodes=128):
         """
         Do the k-means ... this is slow as as shit
         """
-        [centroids, membership] = cluster.kmeans2(data, ncodes, minit='points')
-        return (centroids)
+        [centroids, _] = cluster.kmeans2(data, ncodes, minit='points')
+        return centroids
 
-    def _img2Codebook(self, img, patchsize, count, patch_arrangement,
-                      spacersz):
+    # FIXME: unused count arg. delete?
+    @staticmethod
+    def _img_to_codebook(img, patchsize, count, patch_arrangement,
+                         spacersz):
         """
         img = the image
         patchsize = the patch size (ususally 11x11)
@@ -140,36 +144,38 @@ class BOFFeatureExtractor(object):
         lmat = cv.CreateImage((img.width, img.height), cv.IPL_DEPTH_8U, 1)
         patch = cv.CreateImage(patchsize, cv.IPL_DEPTH_8U, 1)
         cv.Split(img.get_bitmap(), None, lmat, None, None)
-        w = patchsize[0]
-        h = patchsize[1]
-        length = w * h
-        retVal = np.zeros(length)
+        width = patchsize[0]
+        height = patchsize[1]
+        length = width * height
+        ret_value = np.zeros(length)
         for widx in range(patch_arrangement[0]):
             for hidx in range(patch_arrangement[1]):
                 x = (widx * patchsize[0]) + ((widx + 1) * spacersz)
                 y = (hidx * patchsize[1]) + ((hidx + 1) * spacersz)
-                cv.SetImageROI(lmat, (x, y, w, h))
+                cv.SetImageROI(lmat, (x, y, width, height))
                 cv.Copy(lmat, patch)
                 cv.ResetImageROI(lmat)
-                retVal = np.vstack(
-                    (retVal, np.array(patch[:, :]).reshape(length)))
-        retVal = retVal[1:, :]
-        return retVal
+                ret_value = np.vstack(
+                    (ret_value, np.array(patch[:, :]).reshape(length)))
+        ret_value = ret_value[1:, :]
+        return ret_value
 
-    def _codebook2Img(self, cb, patchsize, count, patch_arrangement, spacersz):
+    # FIXME: unused count arg. delete?
+    @staticmethod
+    def _codebook_to_img(cbook, patchsize, count, patch_arrangement, spacersz):
         """
-        cb = the codebook
+        cbook = the codebook
         patchsize = the patch size (ususally 11x11)
         count = total codes
         patch_arrangement = how are the patches grided in the image
         (eg 128 = (8x16) 256=(16x16) )
         spacersz = the number of pixels between patches
         """
-        w = (patchsize[0] * patch_arrangement[0]) + (
+        width = (patchsize[0] * patch_arrangement[0]) + (
             (patch_arrangement[0] + 1) * spacersz)
-        h = (patchsize[1] * patch_arrangement[1]) + (
+        height = (patchsize[1] * patch_arrangement[1]) + (
             (patch_arrangement[1] + 1) * spacersz)
-        bm = cv.CreateImage((w, h), cv.IPL_DEPTH_8U, 1)
+        bm = cv.CreateImage((width, height), cv.IPL_DEPTH_8U, 1)
         cv.Zero(bm)
         img = Image(bm)
         count = 0
@@ -177,94 +183,96 @@ class BOFFeatureExtractor(object):
             for hidx in range(patch_arrangement[1]):
                 x = (widx * patchsize[0]) + ((widx + 1) * spacersz)
                 y = (hidx * patchsize[1]) + ((hidx + 1) * spacersz)
-                temp = Image(cb[count, :].reshape(patchsize[0], patchsize[1]))
+                temp = Image(cbook[count, :].reshape(patchsize[0],
+                                                     patchsize[1]))
                 img.blit(temp, pos=(x, y))
-                count = count + 1
+                count += 1
         return img
 
-    def _getPatches(self, img, sz=None):
-        #retVal = [] # may need to go to np.array
-        if sz is None:
-            sz = self.mPatchSize
+    def _get_patches(self, img, size=None):
+        #ret_value = [] # may need to go to np.array
+        if size is None:
+            size = self.patch_size
         img2 = img.to_hls()
         lmat = cv.CreateImage((img.width, img.height), cv.IPL_DEPTH_8U, 1)
-        patch = cv.CreateImage(self.mPatchSize, cv.IPL_DEPTH_8U, 1)
+        patch = cv.CreateImage(self.patch_size, cv.IPL_DEPTH_8U, 1)
         cv.Split(img2.get_bitmap(), None, lmat, None, None)
-        wsteps = img2.width / sz[0]
-        hsteps = img2.height / sz[1]
-        w = sz[0]
-        h = sz[1]
-        length = w * h
-        retVal = np.zeros(length)
+        wsteps = img2.width / size[0]
+        hsteps = img2.height / size[1]
+        width = size[0]
+        height = size[1]
+        length = width * height
+        ret_value = np.zeros(length)
         for widx in range(wsteps):
             for hidx in range(hsteps):
-                x = (widx * sz[0])
-                y = (hidx * sz[1])
-                cv.SetImageROI(lmat, (x, y, w, h))
+                x = (widx * size[0])
+                y = (hidx * size[1])
+                cv.SetImageROI(lmat, (x, y, width, height))
                 cv.EqualizeHist(lmat, patch)
                 #cv.Copy(lmat,patch)
                 cv.ResetImageROI(lmat)
 
-                retVal = np.vstack(
-                    (retVal, np.array(patch[:, :]).reshape(length)))
-                #retVal.append()
-        retVal = retVal[1:, :]  # pop the fake value we put on top of the stack
-        return retVal
+                ret_value = np.vstack(
+                    (ret_value, np.array(patch[:, :]).reshape(length)))
+                #ret_value.append()
+        # pop the fake value we put on top of the stack
+        ret_value = ret_value[1:, :]
+        return ret_value
 
     def load(self, datafile):
         """
         Load a codebook from file using the datafile. The datafile
         should point to a local image for the source patch image.
         """
-        with open(datafile, 'r') as f:
-            lines = f.readlines()
-            self.mNumCodes = int(lines[1])
-            self.mPatchSize = int(lines[2]), int(lines[3])
-            self.mPadding = int(lines[4])
-            self.mLayout = int(lines[5]), int(lines[6])
+        with open(datafile, 'r') as dfile:
+            lines = dfile.readlines()
+            self.num_codes = int(lines[1])
+            self.patch_size = int(lines[2]), int(lines[3])
+            self.padding = int(lines[4])
+            self.layout = int(lines[5]), int(lines[6])
             data_dir = os.path.dirname(datafile)
-            self.mCodebookImg = Image(os.path.join(data_dir, lines[7].strip()))
-            self.mCodebook = self._img2Codebook(self.mCodebookImg,
-                                                self.mPatchSize,
-                                                self.mNumCodes,
-                                                self.mLayout,
-                                                self.mPadding)
+            self.codebook_img = Image(os.path.join(data_dir, lines[7].strip()))
+            self.codebook = self._img_to_codebook(self.codebook_img,
+                                                  self.patch_size,
+                                                  self.num_codes,
+                                                  self.layout,
+                                                  self.padding)
 
     def save(self, imgfname, datafname):
         """
         Save the bag of features codebook and data set to a local file.
         """
-        myFile = open(datafname, 'w')
-        myFile.write("BOF Codebook Data\n")
-        myFile.write(str(self.mNumCodes) + "\n")
-        myFile.write(str(self.mPatchSize[0]) + "\n")
-        myFile.write(str(self.mPatchSize[1]) + "\n")
-        myFile.write(str(self.mPadding) + "\n")
-        myFile.write(str(self.mLayout[0]) + "\n")
-        myFile.write(str(self.mLayout[1]) + "\n")
-        myFile.write(imgfname + "\n")
-        myFile.close()
-        if (self.mCodebookImg is None):
-            self._codebook2Img(self.mCodebook, self.mPatchSize, self.mNumCodes,
-                               self.mLayout, self.mPadding)
-        self.mCodebookImg.save(imgfname)
+        my_file = open(datafname, 'w')
+        my_file.write("BOF Codebook Data\n")
+        my_file.write(str(self.num_codes) + "\n")
+        my_file.write(str(self.patch_size[0]) + "\n")
+        my_file.write(str(self.patch_size[1]) + "\n")
+        my_file.write(str(self.padding) + "\n")
+        my_file.write(str(self.layout[0]) + "\n")
+        my_file.write(str(self.layout[1]) + "\n")
+        my_file.write(imgfname + "\n")
+        my_file.close()
+        if self.codebook_img is None:
+            self._codebook_to_img(self.codebook, self.patch_size,
+                                  self.num_codes, self.layout, self.padding)
+        self.codebook_img.save(imgfname)
         return
 
     def __getstate__(self):
-        if (self.mCodebookImg is None):
-            self._codebook2Img(self.mCodebook, self.mPatchSize, self.mNumCodes,
-                               self.mLayout, self.mPadding)
+        if self.codebook_img is None:
+            self._codebook_to_img(self.codebook, self.patch_size,
+                                  self.num_codes, self.layout, self.padding)
         mydict = self.__dict__.copy()
-        del mydict['mCodebook']
+        del mydict['codebook']
         return mydict
 
     def __setstate__(self, mydict):
         self.__dict__ = mydict
-        self.mCodebook = self._img2Codebook(self.mCodebookImg,
-                                            self.mPatchSize,
-                                            self.mNumCodes,
-                                            self.mLayout,
-                                            self.mPadding)
+        self.codebook = self._img_to_codebook(self.codebook_img,
+                                              self.patch_size,
+                                              self.num_codes,
+                                              self.layout,
+                                              self.padding)
 
     def extract(self, img):
         """
@@ -272,12 +280,11 @@ class BOFFeatureExtractor(object):
         using the provided codebook. The result are the bin counts for each
         codebook code.
         """
-        data = self._getPatches(img)
-        p = spsd.cdist(data, self.mCodebook)
-        codes = np.argmin(p, axis=1)
-        [retVal, foo] = np.histogram(codes, self.mNumCodes, normed=True,
-                                     range=(0, self.mNumCodes - 1))
-        return retVal
+        data = self._get_patches(img)
+        codes = np.argmin(spsd.cdist(data, self.codebook), axis=1)
+        [ret_value, _] = np.histogram(codes, self.num_codes, normed=True,
+                                      range=(0, self.num_codes - 1))
+        return ret_value
 
     def reconstruct(self, img):
         """
@@ -285,43 +292,40 @@ class BOFFeatureExtractor(object):
         The method takes in an image, extracts each codebook code, and replaces
         the image at the position with the code.
         """
-        retVal = cv.CreateImage((img.width, img.height), cv.IPL_DEPTH_8U, 1)
-        data = self._getPatches(img)
-        p = spsd.cdist(data, self.mCodebook)
-        foo = p.shape[0]
+        ret_value = cv.CreateImage((img.width, img.height), cv.IPL_DEPTH_8U, 1)
+        data = self._get_patches(img)
+        p = spsd.cdist(data, self.codebook)
         codes = np.argmin(p, axis=1)
         count = 0
-        wsteps = img.width / self.mPatchSize[0]
-        hsteps = img.height / self.mPatchSize[1]
-        w = self.mPatchSize[0]
-        h = self.mPatchSize[1]
-        length = w * h
-        retVal = Image(retVal)
+        wsteps = img.width / self.patch_size[0]
+        hsteps = img.height / self.patch_size[1]
+
+        ret_value = Image(ret_value)
         for widx in range(wsteps):
             for hidx in range(hsteps):
-                x = (widx * self.mPatchSize[0])
-                y = (hidx * self.mPatchSize[1])
+                x = (widx * self.patch_size[0])
+                y = (hidx * self.patch_size[1])
                 p = codes[count]
-                temp = Image(self.mCodebook[p, :].reshape(self.mPatchSize[0],
-                                                          self.mPatchSize[1]))
-                retVal = retVal.blit(temp, pos=(x, y))
-                count = count + 1
-        return retVal
+                temp = Image(self.codebook[p, :].reshape(self.patch_size[0],
+                                                         self.patch_size[1]))
+                ret_value = ret_value.blit(temp, pos=(x, y))
+                count += 1
+        return ret_value
 
-    def getFieldNames(self):
+    def get_field_names(self):
         """
         This method gives the names of each field in the feature vector in the
         order in which they are returned. For example, 'xpos' or 'width'
         """
-        retVal = []
-        for widx in range(self.mLayout[0]):
-            for hidx in range(self.mLayout[1]):
+        ret_value = []
+        for widx in range(self.layout[0]):
+            for hidx in range(self.layout[1]):
                 temp = "CB_R" + str(widx) + "_C" + str(hidx)
-                retVal.append(temp)
-        return retVal
+                ret_value.append(temp)
+        return ret_value
 
-    def getNumFields(self):
+    def get_num_fields(self):
         """
         This method returns the total number of fields in the feature vector.
         """
-        return self.mNumCodes
+        return self.num_codes

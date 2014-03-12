@@ -42,17 +42,17 @@ class Blob(Feature):
 
     """
     seq = ''  # the cvseq object that defines this blob
-    mContour = []  # the blob's outer perimeter as a set of (x,y) tuples
-    mConvexHull = []  # the convex hull contour as a set of (x,y) tuples
-    mMinRectangle = []  # the smallest box rotated to fit the blob
-    # mMinRectangle[0] = centroid (x,y)
-    # mMinRectangle[1] = (w,h)
-    # mMinRectangle[2] = angle
+    contour = []  # the blob's outer get_perimeter as a set of (x,y) tuples
+    convex_hull = []  # the convex hull get_contour as a set of (x,y) tuples
+    min_rectangle = []  # the smallest box rotated to fit the blob
+    # min_rectangle[0] = centroid (x,y)
+    # min_rectangle[1] = (w,h)
+    # min_rectangle[2] = angle
 
-    #mBoundingBox = [] #get W/H and X/Y from this
-    mHu = []  # The seven Hu Moments
-    mPerimeter = 0  # the length of the perimeter in pixels
-    mArea = 0  # the area in pixels
+    #bounding_box = [] #get W/H and X/Y from this
+    hu = []  # The seven Hu Moments
+    perimeter = 0  # the length of the get_perimeter in pixels
+    area = 0  # the area in pixels
     m00 = 0
     m01 = 0
     m10 = 0
@@ -61,30 +61,30 @@ class Blob(Feature):
     m02 = 0
     m21 = 0
     m12 = 0
-    mContourAppx = None
-    mLabel = ""  # A user label
-    mLabelColor = []  # what color to draw the label
-    mAvgColor = []  # The average color of the blob's area.
-    #mImg =  '' #Image()# the segmented image of the blob
-    #mHullImg = '' # Image() the image from the hull.
-    #mMask = '' #Image()# A mask of the blob area
+    contour_appx = None
+    label = ""  # A user label
+    label_color = []  # what color to draw the label
+    avg_color = []  # The average color of the blob's area.
+    #img =  '' #Image()# the segmented image of the blob
+    #hull_img = '' # Image() the image from the hull.
+    #mask = '' #Image()# A mask of the blob area
     # A mask of the hull area ... we may want to use this for the image mask.
     #xmHullMask = '' #Image()
-    mHoleContour = []  # list of hole contours
+    hole_contour = []  # list of hole contours
     #mVertEdgeHist = [] #vertical edge histogram
     #mHortEdgeHist = [] #horizontal edge histgram
-    pickle_skip_properties = {'mImg', 'mHullImg', 'mMask', 'mHullMask'}
+    pickle_skip_properties = {'img', 'hull_img', 'mask', 'hull_mask'}
 
     def __init__(self):
         self._scdescriptors = None
         self._completeContour = None
-        self.mContour = []
-        self.mConvexHull = []
-        self.mMinRectangle = [-1, -1, -1, -1, -1]  # angle from this
-        self.mContourAppx = []
-        self.mHu = [-1, -1, -1, -1, -1, -1, -1]
-        self.mPerimeter = 0
-        self.mArea = 0
+        self.contour = []
+        self.convex_hull = []
+        self.min_rectangle = [-1, -1, -1, -1, -1]  # angle from this
+        self.contour_appx = []
+        self.hu = [-1, -1, -1, -1, -1, -1, -1]
+        self.perimeter = 0
+        self.area = 0
         self.m00 = 0
         self.m01 = 0
         self.m10 = 0
@@ -93,11 +93,11 @@ class Blob(Feature):
         self.m02 = 0
         self.m21 = 0
         self.m12 = 0
-        self.mLabel = "UNASSIGNED"
-        self.mLabelColor = []
-        self.mAvgColor = [-1, -1, -1]
+        self.label = "UNASSIGNED"
+        self.label_color = []
+        self.avg_color = [-1, -1, -1]
         self.image = None
-        self.mHoleContour = []
+        self.hole_contour = []
         self.points = []
 
     def __getstate__(self):
@@ -122,14 +122,14 @@ class Blob(Feature):
         for key in iplkeys:
             realkey = key[:-len("__string")]
             self.__dict__[realkey] = cv.CreateImageHeader(
-                (self.width(), self.height()), cv.IPL_DEPTH_8U, 1)
+                (self.get_width(), self.get_height()), cv.IPL_DEPTH_8U, 1)
             cv.SetData(self.__dict__[realkey], mydict[key])
 
-    def perimeter(self):
+    def get_perimeter(self):
         """
         **SUMMARY**
 
-        This function returns the perimeter as an integer number of pixel
+        This function returns the get_perimeter as an integer number of pixel
         lengths.
 
         **RETURNS**
@@ -140,11 +140,11 @@ class Blob(Feature):
 
         >>> img = Image("lenna")
         >>> blobs = img.find_blobs()
-        >>> print blobs[-1].perimeter()
+        >>> print blobs[-1].get_get_perimeter()
 
         """
 
-        return self.mPerimeter
+        return self.perimeter
 
     def hull(self):
         """
@@ -163,13 +163,13 @@ class Blob(Feature):
         >>> print blobs[-1].hull()
 
         """
-        return self.mConvexHull
+        return self.convex_hull
 
-    def contour(self):
+    def get_contour(self):
         """
         **SUMMARY**
 
-        This function returns the contour points as a list of x,y tuples.
+        This function returns the get_contour points as a list of x,y tuples.
 
         **RETURNS**
 
@@ -179,11 +179,11 @@ class Blob(Feature):
 
         >>> img = Image("lenna")
         >>> blobs = img.find_blobs()
-        >>> print blobs[-1].contour()
+        >>> print blobs[-1].get_get_contour()
 
         """
 
-        return self.mContour
+        return self.contour
 
     def mean_color(self):
         """
@@ -203,24 +203,24 @@ class Blob(Feature):
         >>> print blobs[-1].mean_color()
 
         """
-        #print self.mBoundingBox
+        #print self.bounding_box
         hack = (
-            self.mBoundingBox[0], self.mBoundingBox[1], self.mBoundingBox[2],
-            self.mBoundingBox[3])
+            self.bounding_box[0], self.bounding_box[1], self.bounding_box[2],
+            self.bounding_box[3])
         cv.SetImageROI(self.image.get_bitmap(), hack)
         # may need the offset paramete
         avg = cv.Avg(self.image.get_bitmap(),
-                     self.mMask._get_grayscale_bitmap())
+                     self.mask._get_grayscale_bitmap())
         cv.ResetImageROI(self.image.get_bitmap())
 
         return tuple(reversed(avg[0:3]))
 
-    def area(self):
+    def get_area(self):
         """
         **SUMMARY**
 
         This method returns the area of the blob in terms of the number of
-        pixels inside the contour.
+        pixels inside the get_contour.
 
         **RETURNS**
 
@@ -230,26 +230,26 @@ class Blob(Feature):
 
         >>> img = Image("lenna")
         >>> blobs = img.find_blobs()
-        >>> print blobs[-1].area()
-        >>> print blobs[0].area()
+        >>> print blobs[-1].get_area()
+        >>> print blobs[0].get_area()
 
         """
-        return self.mArea
+        return self.area
 
-    def minRect(self):
+    def min_rect(self):
         """
         Returns the corners for the smallest rotated rectangle to enclose the
         blob. The points are returned as a list of (x,y) tuples.
         """
-        #if( self.mMinRectangle[1][0] < self.mMinRectangle[1][1]):
-        ang = self.mMinRectangle[2]
+        #if( self.min_rectangle[1][0] < self.min_rectangle[1][1]):
+        ang = self.min_rectangle[2]
         #else:
-        #    ang =  90 + self.mMinRectangle[2]
+        #    ang =  90 + self.min_rectangle[2]
         ang = 2 * pi * (float(ang) / 360.00)
-        tx = self.minRectX()
-        ty = self.minRectY()
-        w = self.minRectWidth() / 2.0
-        h = self.minRectHeight() / 2.0
+        tx = self.min_rect_x()
+        ty = self.min_rect_y()
+        w = self.min_rect_width() / 2.0
+        h = self.min_rect_height() / 2.0
         derp = np.matrix(
             [[cos(ang), -1 * sin(ang), tx], [sin(ang), cos(ang), ty],
              [0, 0, 1]])
@@ -303,15 +303,15 @@ class Blob(Feature):
             layer = self.image.dl()
 
         if width < 1:
-            layer.rectangle(self.topLeftCorner(),
-                            (self.width(), self.height()), color, width,
+            layer.rectangle(self.top_left_corner(),
+                            (self.get_width(), self.get_height()), color, width,
                             filled=True, alpha=alpha)
         else:
-            layer.rectangle(self.topLeftCorner(),
-                            (self.width(), self.height()), color, width,
+            layer.rectangle(self.top_left_corner(),
+                            (self.get_width(), self.get_height()), color, width,
                             filled=False, alpha=alpha)
 
-    def drawMinRect(self, layer=None, color=Color.DEFAULT, width=1, alpha=128):
+    def draw_min_rect(self, layer=None, color=Color.DEFAULT, width=1, alpha=128):
         """
         **SUMMARY**
 
@@ -337,13 +337,13 @@ class Blob(Feature):
         >>> img = Image("lenna")
         >>> blobs = img.find_blobs()
         >>> for b in blobs:
-        >>>      b.drawMinRect(color=Color.RED, width=-1, alpha=128)
+        >>>      b.draw_min_rect(color=Color.RED, width=-1, alpha=128)
         >>> img.show()
 
         """
         if layer is None:
             layer = self.image.dl()
-        (tl, tr, bl, br) = self.minRect()
+        (tl, tr, bl, br) = self.min_rect()
         layer.line(tl, tr, color, width=width, alpha=alpha, antialias=False)
         layer.line(bl, br, color, width=width, alpha=alpha, antialias=False)
         layer.line(tl, bl, color, width=width, alpha=alpha, antialias=False)
@@ -369,19 +369,19 @@ class Blob(Feature):
 
         >>> img = Image("lenna")
         >>> blobs = img.find_blobs()
-        >>> blob[-1].angle()
+        >>> blobs[-1].angle()
 
         """
-        #return self.mMinRectangle[2]+90.00
-        ret_val = self.mMinRectangle[2] + 90.00
-        if self.mMinRectangle[1][0] >= self.mMinRectangle[1][1]:
+        #return self.min_rectangle[2]+90.00
+        ret_val = self.min_rectangle[2] + 90.00
+        if self.min_rectangle[1][0] >= self.min_rectangle[1][1]:
             ret_val += 90.00
 
         if ret_val > 90.00:
             ret_val -= 180.00
         return ret_val
 
-    def minRectX(self):
+    def min_rect_x(self):
         """
         **SUMMARY**
 
@@ -397,12 +397,12 @@ class Blob(Feature):
 
         >>> img = Image("lenna")
         >>> blobs = img.find_blobs()
-        >>> print blobs[-1].minRectX()
+        >>> print blobs[-1].min_rect_x()
 
         """
-        return self.mMinRectangle[0][0]
+        return self.min_rectangle[0][0]
 
-    def minRectY(self):
+    def min_rect_y(self):
         """
         **SUMMARY**
 
@@ -418,12 +418,12 @@ class Blob(Feature):
 
         >>> img = Image("lenna")
         >>> blobs = img.find_blobs()
-        >>> print blobs[-1].minRectY()
+        >>> print blobs[-1].min_rect_y()
 
         """
-        return self.mMinRectangle[0][1]
+        return self.min_rectangle[0][1]
 
-    def minRectWidth(self):
+    def min_rect_width(self):
         """
         **SUMMARY**
 
@@ -438,12 +438,12 @@ class Blob(Feature):
 
         >>> img = Image("lenna")
         >>> blobs = img.find_blobs()
-        >>> print blobs[-1].minRectWidth()
+        >>> print blobs[-1].min_rect_width()
 
         """
-        return self.mMinRectangle[1][0]
+        return self.min_rectangle[1][0]
 
-    def minRectHeight(self):
+    def min_rect_height(self):
         """
         **SUMMARY**
 
@@ -458,17 +458,17 @@ class Blob(Feature):
 
         >>> img = Image("lenna")
         >>> blobs = img.find_blobs()
-        >>> print blobs[-1].minRectHeight()
+        >>> print blobs[-1].min_rect_height()
 
 
         """
-        return self.mMinRectangle[1][1]
+        return self.min_rectangle[1][1]
 
-    def rectifyMajorAxis(self, axis=0):
+    def rectify_major_axis(self, axis=0):
         """
         **SUMMARY**
 
-        Rectify the blob image and the contour such that the major
+        Rectify the blob image and the get_contour such that the major
         axis is aligned to either horizontal=0 or vertical=1. This is to say,
         we take the blob, find the longest axis, and rotate the blob such that
         the axis is either vertical or horizontal.
@@ -487,13 +487,13 @@ class Blob(Feature):
 
         >>> img = Image("lenna")
         >>> blobs = img.find_blobs()
-        >>> blobs[-2].mImg.show()
+        >>> blobs[-2].img.show()
         >>> blobs[-2].rectifyToMajorAxis(1)
-        >>> blobs[-2].mImg.show()
+        >>> blobs[-2].img.show()
 
         """
         final_rotation = self.angle()
-        if self.minRectWidth() > self.minRectHeight():
+        if self.min_rect_width() > self.min_rect_height():
             final_rotation = final_rotation
 
         if axis > 0:
@@ -527,47 +527,47 @@ class Blob(Feature):
 
         >>> img = Image("lenna")
         >>> blobs = img.find_blobs()
-        >>> blobs[-2].mImg.show()
+        >>> blobs[-2].img.show()
         >>> blobs[-2].rotate(90)
-        >>> blobs[-2].mImg.show()
+        >>> blobs[-2].img.show()
 
         """
         #FIXME: This function should return a blob
         theta = 2 * np.pi * (angle / 360.0)
         mode = ""
         point = (self.x, self.y)
-        self.mImg = self.mImg.rotate(angle, mode, point)
-        self.mHullImg = self.mHullImg.rotate(angle, mode, point)
-        self.mMask = self.mMask.rotate(angle, mode, point)
-        self.mHullMask = self.mHullMask.rotate(angle, mode, point)
+        self.img = self.img.rotate(angle, mode, point)
+        self.hull_img = self.hull_img.rotate(angle, mode, point)
+        self.mask = self.mask.rotate(angle, mode, point)
+        self.hull_mask = self.hull_mask.rotate(angle, mode, point)
 
-        self.mContour = map(lambda x:
+        self.contour = map(lambda x:
                             (x[0] * np.cos(theta) - x[1] * np.sin(theta),
                              x[0] * np.sin(theta) + x[1] * np.cos(theta)),
-                            self.mContour)
-        self.mConvexHull = map(lambda x:
+                            self.contour)
+        self.convex_hull = map(lambda x:
                                (x[0] * np.cos(theta) - x[1] * np.sin(theta),
                                 x[0] * np.sin(theta) + x[1] * np.cos(theta)),
-                               self.mConvexHull)
+                               self.convex_hull)
 
-        if self.mHoleContour is not None:
-            for h in self.mHoleContour:
+        if self.hole_contour is not None:
+            for h in self.hole_contour:
                 h = map(lambda x:
                         (x[0] * np.cos(theta) - x[1] * np.sin(theta),
                          x[0] * np.sin(theta) + x[1] * np.cos(theta)),
                         h)
 
-    def drawAppx(self, color=Color.HOTPINK, width=-1, alpha=-1, layer=None):
-        if self.mContourAppx is None or len(self.mContourAppx) == 0:
+    def draw_appx(self, color=Color.HOTPINK, width=-1, alpha=-1, layer=None):
+        if self.contour_appx is None or len(self.contour_appx) == 0:
             return
 
         if not layer:
             layer = self.image.dl()
 
         if width < 1:
-            layer.polygon(self.mContourAppx, color, width, True, True, alpha)
+            layer.polygon(self.contour_appx, color, width, True, True, alpha)
         else:
-            layer.polygon(self.mContourAppx, color, width, False, True, alpha)
+            layer.polygon(self.contour_appx, color, width, False, True, alpha)
 
     def draw(self, color=Color.GREEN, width=-1, alpha=-1, layer=None):
         """
@@ -609,23 +609,23 @@ class Blob(Feature):
             #  copy the mask into 3 channels and
             #  multiply by the appropriate color
             maskred = cv.CreateImage(
-                                cv.GetSize(self.mMask._get_grayscale_bitmap()),
+                                cv.GetSize(self.mask._get_grayscale_bitmap()),
                                 cv.IPL_DEPTH_8U, 1)
             maskgrn = cv.CreateImage(
-                                cv.GetSize(self.mMask._get_grayscale_bitmap()),
+                                cv.GetSize(self.mask._get_grayscale_bitmap()),
                                 cv.IPL_DEPTH_8U, 1)
             maskblu = cv.CreateImage(
-                                cv.GetSize(self.mMask._get_grayscale_bitmap()),
+                                cv.GetSize(self.mask._get_grayscale_bitmap()),
                                 cv.IPL_DEPTH_8U, 1)
             maskbit = cv.CreateImage(
-                                cv.GetSize(self.mMask._get_grayscale_bitmap()),
+                                cv.GetSize(self.mask._get_grayscale_bitmap()),
                                 cv.IPL_DEPTH_8U, 3)
 
-            cv.ConvertScale(self.mMask._get_grayscale_bitmap(), maskred,
+            cv.ConvertScale(self.mask._get_grayscale_bitmap(), maskred,
                             color[0] / 255.0)
-            cv.ConvertScale(self.mMask._get_grayscale_bitmap(), maskgrn,
+            cv.ConvertScale(self.mask._get_grayscale_bitmap(), maskgrn,
                             color[1] / 255.0)
-            cv.ConvertScale(self.mMask._get_grayscale_bitmap(), maskblu,
+            cv.ConvertScale(self.mask._get_grayscale_bitmap(), maskblu,
                             color[2] / 255.0)
 
             cv.Merge(maskblu, maskgrn, maskred, None, maskbit)
@@ -634,16 +634,16 @@ class Blob(Feature):
             masksurface.set_colorkey(Color.BLACK)
             if alpha != -1:
                 masksurface.set_alpha(alpha)
-            layer._mSurface.blit(masksurface, self.topLeftCorner())  # KAT HERE
+            layer._mSurface.blit(masksurface, self.top_left_corner())  # KAT HERE
         else:
-            self.drawOutline(color, alpha, width, layer)
-            self.drawHoles(color, alpha, width, layer)
+            self.draw_outline(color, alpha, width, layer)
+            self.draw_holes(color, alpha, width, layer)
 
-    def drawOutline(self, color=Color.GREEN, alpha=255, width=1, layer=None):
+    def draw_outline(self, color=Color.GREEN, alpha=255, width=1, layer=None):
         """
         **SUMMARY**
 
-        Draw the blob contour the provided layer -- if no layer is provided,
+        Draw the blob get_contour the provided layer -- if no layer is provided,
         draw to the source image.
 
 
@@ -666,7 +666,7 @@ class Blob(Feature):
 
         >>> img = Image("lenna")
         >>> blobs = img.find_blobs()
-        >>> blobs[-2].drawOutline(color=Color.GREEN, width=3, alpha=128)
+        >>> blobs[-2].draw_outline(color=Color.GREEN, width=3, alpha=128)
         >>> img.show()
 
 
@@ -677,17 +677,17 @@ class Blob(Feature):
 
         if width < 0:
             #blit the blob in
-            layer.polygon(self.mContour, color, filled=True, alpha=alpha)
+            layer.polygon(self.contour, color, filled=True, alpha=alpha)
         else:
-            lastp = self.mContour[0]  # this may work better.... than the other
-            for nextp in self.mContour[1::]:
+            lastp = self.contour[0]  # this may work better.... than the other
+            for nextp in self.contour[1::]:
                 layer.line(lastp, nextp, color, width=width, alpha=alpha,
                            antialias=False)
                 lastp = nextp
-            layer.line(self.mContour[0], self.mContour[-1], color, width=width,
+            layer.line(self.contour[0], self.contour[-1], color, width=width,
                        alpha=alpha, antialias=False)
 
-    def drawHoles(self, color=Color.GREEN, alpha=-1, width=-1, layer=None):
+    def draw_holes(self, color=Color.GREEN, alpha=-1, width=-1, layer=None):
         """
         **SUMMARY**
 
@@ -712,21 +712,21 @@ class Blob(Feature):
 
         >>> img = Image("lenna")
         >>> blobs = img.find_blobs(128)
-        >>> blobs[-1].drawHoles(color=Color.GREEN, width=3, alpha=128)
+        >>> blobs[-1].draw_holes(color=Color.GREEN, width=3, alpha=128)
         >>> img.show()
 
         """
-        if self.mHoleContour is None:
+        if self.hole_contour is None:
             return
         if layer is None:
             layer = self.image.dl()
 
         if width < 0:
             #blit the blob in
-            for h in self.mHoleContour:
+            for h in self.hole_contour:
                 layer.polygon(h, color, filled=True, alpha=alpha)
         else:
-            for h in self.mHoleContour:
+            for h in self.hole_contour:
                 lastp = h[0]  # this may work better.... than the other
                 for nextp in h[1::]:
                     layer.line((int(lastp[0]), int(lastp[1])),
@@ -736,7 +736,7 @@ class Blob(Feature):
                 layer.line(h[0], h[-1], color, width=width, alpha=alpha,
                            antialias=False)
 
-    def drawHull(self, color=Color.GREEN, alpha=-1, width=-1, layer=None):
+    def draw_hull(self, color=Color.GREEN, alpha=-1, width=-1, layer=None):
         """
         **SUMMARY**
 
@@ -762,7 +762,7 @@ class Blob(Feature):
 
         >>> img = Image("lenna")
         >>> blobs = img.find_blobs(128)
-        >>> blobs[-1].drawHull(color=Color.GREEN, width=3, alpha=128)
+        >>> blobs[-1].draw_hull(color=Color.GREEN, width=3, alpha=128)
         >>> img.show()
 
         """
@@ -771,24 +771,24 @@ class Blob(Feature):
 
         if width < 0:
             #blit the blob in
-            layer.polygon(self.mConvexHull, color, filled=True, alpha=alpha)
+            layer.polygon(self.convex_hull, color, filled=True, alpha=alpha)
         else:
             # this may work better.... than the other
-            lastp = self.mConvexHull[0]
-            for nextp in self.mConvexHull[1::]:
+            lastp = self.convex_hull[0]
+            for nextp in self.convex_hull[1::]:
                 layer.line(lastp, nextp, color, width=width, alpha=alpha,
                            antialias=False)
                 lastp = nextp
-            layer.line(self.mConvexHull[0], self.mConvexHull[-1], color,
+            layer.line(self.convex_hull[0], self.convex_hull[-1], color,
                        width=width, alpha=alpha, antialias=False)
 
-    #draw the actual pixels inside the contour to the layer
-    def drawMaskToLayer(self, layer=None, offset=(0, 0)):
+    #draw the actual pixels inside the get_contour to the layer
+    def draw_mask_to_layer(self, layer=None, offset=(0, 0)):
         """
         **SUMMARY**
 
         Draw the actual pixels of the blob to another layer. This is handy if
-        you want to examine just the pixels inside the contour.
+        you want to examine just the pixels inside the get_contour.
 
         **PARAMETERS**
 
@@ -813,12 +813,12 @@ class Blob(Feature):
         if layer is not None:
             layer = self.image.dl()
 
-        mx = self.mBoundingBox[0] + offset[0]
-        my = self.mBoundingBox[1] + offset[1]
-        layer.blit(self.mImg, coordinates=(mx, my))
+        mx = self.bounding_box[0] + offset[0]
+        my = self.bounding_box[1] + offset[1]
+        layer.blit(self.img, coordinates=(mx, my))
         return None
 
-    def isSquare(self, tolerance=0.05, ratiotolerance=0.05):
+    def is_square(self, tolerance=0.05, ratiotolerance=0.05):
         """
         **SUMMARY**
 
@@ -840,11 +840,11 @@ class Blob(Feature):
 
         >>> img = Image("lenna")
         >>> blobs = img.find_blobs(128)
-        >>> if blobs[-1].isSquare():
+        >>> if blobs[-1].is_square():
         >>>     print "it is hip to be square."
 
         """
-        aspect_ratio = abs(1 - self.aspectRatio())
+        aspect_ratio = abs(1 - self.aspect_ratio())
         if self.is_rectangle(tolerance) and aspect_ratio < ratiotolerance:
             return True
         return False
@@ -874,11 +874,11 @@ class Blob(Feature):
         >>>     print "it is hip to be square."
 
         """
-        if self.rectangleDistance() < tolerance:
+        if self.rectangle_distance() < tolerance:
             return True
         return False
 
-    def rectangleDistance(self):
+    def rectangle_distance(self):
         """
         **SUMMARY**
 
@@ -891,9 +891,9 @@ class Blob(Feature):
         in its bounding box.
 
         """
-        _, whitecount = self.mHullMask.histogram(2)
+        _, whitecount = self.hull_mask.histogram(2)
         return abs(1.0 - float(whitecount) / (
-            self.minRectWidth() * self.minRectHeight()))
+            self.min_rect_width() * self.min_rect_height()))
 
     def is_circle(self, tolerance=0.05):
         """
@@ -913,11 +913,11 @@ class Blob(Feature):
         otherwise.
 
         """
-        if self.circleDistance() < tolerance:
+        if self.circle_distance() < tolerance:
             return True
         return False
 
-    def circleDistance(self):
+    def circle_distance(self):
         """
         **SUMMARY**
 
@@ -930,16 +930,16 @@ class Blob(Feature):
         idealized circle of our blob.
 
         """
-        width = self.mHullMask.width
-        height = self.mHullMask.height
+        width = self.hull_mask.width
+        height = self.hull_mask.height
 
         idealcircle = Image((width, height))
         radius = min(width, height) / 2
         idealcircle.dl().circle((width / 2, height / 2), radius, filled=True,
                                 color=Color.WHITE)
         idealcircle = idealcircle.apply_layers()
-        netdiff = (idealcircle - self.mHullMask) + (
-            self.mHullMask - idealcircle)
+        netdiff = (idealcircle - self.hull_mask) + (
+            self.hull_mask - idealcircle)
         _, numwhite = netdiff.histogram(2)
         return float(numwhite) / (radius * radius * np.pi)
 
@@ -968,89 +968,89 @@ class Blob(Feature):
         """
         **SUMMARY**
 
-        Return the radius, the avg distance of each contour point from the
+        Return the radius, the avg distance of each get_contour point from the
         centroid
         """
-        return float(np.mean(spsd.cdist(self.mContour, [self.centroid()])))
+        return float(np.mean(spsd.cdist(self.contour, [self.centroid()])))
 
-    def hullRadius(self):
+    def hull_radius(self):
         """
         **SUMMARY**
 
-        Return the radius of the convex hull contour from the centroid
+        Return the radius of the convex hull get_contour from the centroid
         """
-        return float(np.mean(spsd.cdist(self.mConvexHull, [self.centroid()])))
+        return float(np.mean(spsd.cdist(self.convex_hull, [self.centroid()])))
 
     @LazyProperty
-    def mImg(self):
+    def img(self):
         #  NOTE THAT THIS IS NOT PERFECT - ISLAND WITH A LAKE WITH AN ISLAND
         #  WITH A LAKE STUFF
-        ret_value = cv.CreateImage((self.width(), self.height()),
+        ret_value = cv.CreateImage((self.get_width(), self.get_height()),
                                    cv.IPL_DEPTH_8U, 3)
         cv.Zero(ret_value)
         bmp = self.image.get_bitmap()
-        mask = self.mMask.get_bitmap()
-        tl = self.topLeftCorner()
-        cv.SetImageROI(bmp, (tl[0], tl[1], self.width(), self.height()))
+        mask = self.mask.get_bitmap()
+        tl = self.top_left_corner()
+        cv.SetImageROI(bmp, (tl[0], tl[1], self.get_width(), self.get_height()))
         cv.Copy(bmp, ret_value, mask)
         cv.ResetImageROI(bmp)
         return Image(ret_value)
 
     @LazyProperty
-    def mMask(self):
+    def mask(self):
         # TODO: FIX THIS SO THAT THE INTERIOR CONTOURS GET SHIFTED AND DRAWN
 
         #Alas - OpenCV does not provide an offset in the fillpoly method for
         #the cv bindings (only cv2 -- which I am trying to avoid). Have to
         #manually do the offset for the ROI shift.
 
-        ret_value = cv.CreateImage((self.width(), self.height()),
+        ret_value = cv.CreateImage((self.get_width(), self.get_height()),
                                    cv.IPL_DEPTH_8U, 1)
         cv.Zero(ret_value)
-        l, t = self.topLeftCorner()
+        l, t = self.top_left_corner()
 
-        # construct the exterior contour - these are tuples
+        # construct the exterior get_contour - these are tuples
 
-        cv.FillPoly(ret_value, [[(p[0] - l, p[1] - t) for p in self.mContour]],
+        cv.FillPoly(ret_value, [[(p[0] - l, p[1] - t) for p in self.contour]],
                     (255, 255, 255), 8)
 
         #construct the hole contoursb
         holes = []
-        if self.mHoleContour is not None:
-            for h in self.mHoleContour:  # -- these are lists
+        if self.hole_contour is not None:
+            for h in self.hole_contour:  # -- these are lists
                 holes.append([(h2[0] - l, h2[1] - t) for h2 in h])
 
             cv.FillPoly(ret_value, holes, (0, 0, 0), 8)
         return Image(ret_value)
 
     @LazyProperty
-    def mHullImg(self):
-        ret_value = cv.CreateImage((self.width(), self.height()),
+    def hull_img(self):
+        ret_value = cv.CreateImage((self.get_width(), self.get_height()),
                                    cv.IPL_DEPTH_8U, 3)
         cv.Zero(ret_value)
         bmp = self.image.get_bitmap()
-        mask = self.mHullMask.get_bitmap()
-        tl = self.topLeftCorner()
-        cv.SetImageROI(bmp, (tl[0], tl[1], self.width(), self.height()))
+        mask = self.hull_mask.get_bitmap()
+        tl = self.top_left_corner()
+        cv.SetImageROI(bmp, (tl[0], tl[1], self.get_width(), self.get_height()))
         cv.Copy(bmp, ret_value, mask)
         cv.ResetImageROI(bmp)
         return Image(ret_value)
 
     @LazyProperty
-    def mHullMask(self):
-        ret_value = cv.CreateImage((self.width(), self.height()),
+    def hull_mask(self):
+        ret_value = cv.CreateImage((self.get_width(), self.get_height()),
                                    cv.IPL_DEPTH_8U, 3)
         cv.Zero(ret_value)
         #Alas - OpenCV does not provide an offset in the fillpoly method for
         #the cv bindings (only cv2 -- which I am trying to avoid). Have to
         #manually do the offset for the ROI shift.
-        l, t = self.topLeftCorner()
+        l, t = self.top_left_corner()
         cv.FillPoly(ret_value, 
-                    [[(p[0] - l, p[1] - t) for p in self.mConvexHull]],
+                    [[(p[0] - l, p[1] - t) for p in self.convex_hull]],
                     (255, 255, 255), 8)
         return Image(ret_value)
 
-    def hullImage(self):
+    def get_hull_img(self):
         """
         **SUMMARY**
 
@@ -1065,12 +1065,12 @@ class Blob(Feature):
 
         >>> img = Image("lenna")
         >>> blobs = img.find_blobs()
-        >>> blobs[-1].hullImage().show()
+        >>> blobs[-1].get_hull_img().show()
 
         """
-        return self.mHullImg
+        return self.hull_img
 
-    def hullMask(self):
+    def get_hull_mask(self):
         """
         **SUMMARY**
 
@@ -1090,12 +1090,12 @@ class Blob(Feature):
 
         >>> img = Image("lenna")
         >>> blobs = img.find_blobs()
-        >>> blobs[-1].hullMask().show()
+        >>> blobs[-1].get_hull_mask().show()
 
         """
-        return self.mHullMask
+        return self.hull_mask
 
-    def blobImage(self):
+    def blob_image(self):
         """
         **SUMMARY**
 
@@ -1112,13 +1112,13 @@ class Blob(Feature):
 
         >>> img = Image("lenna")
         >>> blobs = img.find_blobs()
-        >>> blobs[-1].blobImage().show()
+        >>> blobs[-1].blob_image().show()
 
 
         """
-        return self.mImg
+        return self.img
 
-    def blobMask(self):
+    def blob_mask(self):
         """
         **SUMMARY**
 
@@ -1134,12 +1134,12 @@ class Blob(Feature):
 
         >>> img = Image("lenna")
         >>> blobs = img.find_blobs()
-        >>> blobs[-1].blobMask().show()
+        >>> blobs[-1].blob_mask().show()
 
 
 
         """
-        return self.mMask
+        return self.mask
 
     def match(self, otherblob):
         """
@@ -1175,8 +1175,8 @@ class Blob(Feature):
         #return cv.MatchShapes(self.seq, otherblob.seq,
         #  cv.CV_CONTOURS_MATCH_I1)
 
-        my_signs = np.sign(self.mHu)
-        my_logs = np.log(np.abs(self.mHu))
+        my_signs = np.sign(self.hu)
+        my_logs = np.log(np.abs(self.hu))
         my_m = my_signs * my_logs
 
         other_signs = np.sign(otherblob.mHu)
@@ -1185,7 +1185,7 @@ class Blob(Feature):
 
         return np.sum(abs((1 / my_m - 1 / other_m)))
 
-    def getFullMaskedImage(self):
+    def get_full_masked_image(self):
         """
         Get the full size image with the masked to the blob
         """
@@ -1193,16 +1193,16 @@ class Blob(Feature):
                                    cv.IPL_DEPTH_8U, 3)
         cv.Zero(ret_value)
         bmp = self.image.get_bitmap()
-        mask = self.mMask.get_bitmap()
-        tlc = self.topLeftCorner()
-        cv.SetImageROI(ret_value, (tlc[0], tlc[1], self.width(), self.height()))
-        cv.SetImageROI(bmp, (tlc[0], tlc[1], self.width(), self.height()))
+        mask = self.mask.get_bitmap()
+        tlc = self.top_left_corner()
+        cv.SetImageROI(ret_value, (tlc[0], tlc[1], self.get_width(), self.get_height()))
+        cv.SetImageROI(bmp, (tlc[0], tlc[1], self.get_width(), self.get_height()))
         cv.Copy(bmp, ret_value, mask)
         cv.ResetImageROI(bmp)
         cv.ResetImageROI(ret_value)
         return Image(ret_value)
 
-    def getFullHullMaskedImage(self):
+    def get_full_hull_masked_image(self):
         """
         Get the full size image with the masked to the blob
         """
@@ -1210,84 +1210,84 @@ class Blob(Feature):
                                    cv.IPL_DEPTH_8U, 3)
         cv.Zero(ret_value)
         bmp = self.image.get_bitmap()
-        mask = self.mHullMask.get_bitmap()
-        tl = self.topLeftCorner()
-        cv.SetImageROI(ret_value, (tl[0], tl[1], self.width(), self.height()))
-        cv.SetImageROI(bmp, (tl[0], tl[1], self.width(), self.height()))
+        mask = self.hull_mask.get_bitmap()
+        tl = self.top_left_corner()
+        cv.SetImageROI(ret_value, (tl[0], tl[1], self.get_width(), self.get_height()))
+        cv.SetImageROI(bmp, (tl[0], tl[1], self.get_width(), self.get_height()))
         cv.Copy(bmp, ret_value, mask)
         cv.ResetImageROI(bmp)
         cv.ResetImageROI(ret_value)
         return Image(ret_value)
 
-    def getFullMask(self):
+    def get_full_mask(self):
         """
         Get the full sized image mask
         """
         ret_value = cv.CreateImage((self.image.width, self.image.height),
                                    cv.IPL_DEPTH_8U, 3)
         cv.Zero(ret_value)
-        mask = self.mMask.get_bitmap()
-        tl = self.topLeftCorner()
-        cv.SetImageROI(ret_value, (tl[0], tl[1], self.width(), self.height()))
+        mask = self.mask.get_bitmap()
+        tl = self.top_left_corner()
+        cv.SetImageROI(ret_value, (tl[0], tl[1], self.get_width(), self.get_height()))
         cv.Copy(mask, ret_value)
         cv.ResetImageROI(ret_value)
         return Image(ret_value)
 
-    def getFullHullMask(self):
+    def get_full_hull_mask(self):
         """
         Get the full sized image hull mask
         """
         ret_value = cv.CreateImage((self.image.width, self.image.height),
                                    cv.IPL_DEPTH_8U, 3)
         cv.Zero(ret_value)
-        mask = self.mHullMask.get_bitmap()
-        tl = self.topLeftCorner()
-        cv.SetImageROI(ret_value, (tl[0], tl[1], self.width(), self.height()))
+        mask = self.hull_mask.get_bitmap()
+        tl = self.top_left_corner()
+        cv.SetImageROI(ret_value, (tl[0], tl[1], self.get_width(), self.get_height()))
         cv.Copy(mask, ret_value)
         cv.ResetImageROI(ret_value)
         return Image(ret_value)
 
-    def getHullEdgeImage(self):
-        ret_value = cv.CreateImage((self.width(), self.height()),
+    def get_hull_edge_image(self):
+        ret_value = cv.CreateImage((self.get_width(), self.get_height()),
                                    cv.IPL_DEPTH_8U, 3)
         cv.Zero(ret_value)
-        tl = self.topLeftCorner()
-        translate = [(cs[0] - tl[0], cs[1] - tl[1]) for cs in self.mConvexHull]
+        tl = self.top_left_corner()
+        translate = [(cs[0] - tl[0], cs[1] - tl[1]) for cs in self.convex_hull]
         cv.PolyLine(ret_value, [translate], 1, (255, 255, 255))
         return Image(ret_value)
 
-    def getFullHullEdgeImage(self):
+    def get_full_hull_edge_image(self):
         ret_value = cv.CreateImage((self.image.width, self.image.height),
                                    cv.IPL_DEPTH_8U, 3)
         cv.Zero(ret_value)
-        cv.PolyLine(ret_value, [self.mConvexHull], 1, (255, 255, 255))
+        cv.PolyLine(ret_value, [self.convex_hull], 1, (255, 255, 255))
         return Image(ret_value)
 
-    def getEdgeImage(self):
+    def get_edge_image(self):
         """
-        Get the edge image for the outer contour (no inner holes)
+        Get the edge image for the outer get_contour (no inner holes)
         """
-        ret_value = cv.CreateImage((self.width(), self.height()),
+        ret_value = cv.CreateImage((self.get_width(), self.get_height()),
                                    cv.IPL_DEPTH_8U, 3)
         cv.Zero(ret_value)
-        tl = self.topLeftCorner()
-        translate = [(cs[0] - tl[0], cs[1] - tl[1]) for cs in self.mContour]
+        tl = self.top_left_corner()
+        translate = [(cs[0] - tl[0], cs[1] - tl[1]) for cs in self.contour]
         cv.PolyLine(ret_value, [translate], 1, (255, 255, 255))
         return Image(ret_value)
 
-    def getFullEdgeImage(self):
+    def get_full_edge_image(self):
         """
         Get the edge image within the full size image.
         """
         ret_value = cv.CreateImage((self.image.width, self.image.height),
                                    cv.IPL_DEPTH_8U, 3)
         cv.Zero(ret_value)
-        cv.PolyLine(ret_value, [self.mContour], 1, (255, 255, 255))
+        cv.PolyLine(ret_value, [self.contour], 1, (255, 255, 255))
         return Image(ret_value)
 
     def __repr__(self):
         return "SimpleCV.features.Blob.Blob object at (%d, %d) with area %d"\
-               % (self.x, self.y, self.area())
+               % (self.x, self.y, self.get_area())
 
     @staticmethod
     def _respace_points(contour, min_distance=1, max_distance=5):
@@ -1311,36 +1311,36 @@ class Blob(Feature):
                 new_pnt = (max_distance * punit) + p0
                 ret_value.append(              # push the new point onto
                     (new_pnt[0], new_pnt[1]))  # the return value
-                contour.append(pt)  # push the new point onto the contour too
+                contour.append(pt)  # push the new point onto the get_contour too
                 p0 = new_pnt
             elif dist > min_d:
                 p0 = np.array(pt)
                 ret_value.append(pt)
         return ret_value
 
-    def _filterSCPoints(self, min_distance=3, max_distance=8):
+    def _filter_sc_points(self, min_distance=3, max_distance=8):
         """
-        Go through ever point in the contour and make sure
+        Go through ever point in the get_contour and make sure
         that it is no less than min distance to the next point
         and no more than max_distance from the the next point.
         """
-        complete_contour = self._respace_points(self.mContour, min_distance,
+        complete_contour = self._respace_points(self.contour, min_distance,
                                                 max_distance)
-        if self.mHoleContour is not None:
-            for ctr in self.mHoleContour:
+        if self.hole_contour is not None:
+            for ctr in self.hole_contour:
                 complete_contour += self._respace_points(ctr, min_distance,
                                                          max_distance)
         return complete_contour
 
-    def getSCDescriptors(self):
+    def get_sc_descriptors(self):
         if self._scdescriptors is None:
-            complete_contour = self._filterSCPoints()
-            descriptors = self._generateSC(complete_contour)
+            complete_contour = self._filter_sc_points()
+            descriptors = self._generate_sc(complete_contour)
             self._scdescriptors = descriptors
             self._completeContour = complete_contour
         return self._scdescriptors, self._completeContour
 
-    def _generateSC(self, complete_contour, dsz=6, r_bound=[.1, 2.1]):
+    def _generate_sc(self, complete_contour, dsz=6, r_bound=[.1, 2.1]):
         """
         Create the shape context objects.
         dsz - The size of descriptor as a dszxdsz histogram
@@ -1350,7 +1350,7 @@ class Blob(Feature):
         data = []
         for pnt in complete_contour:  #
             temp = []
-            # take each other point in the contour, center it on pnt, and
+            # take each other point in the get_contour, center it on pnt, and
             # covert it to log polar
             for b in complete_contour:
                 r = np.sqrt((b[0] - pnt[0]) ** 2 + (b[1] - pnt[1]) ** 2)
@@ -1369,7 +1369,7 @@ class Blob(Feature):
         #UHG!!! need to repeat this for all of the interior contours too
         descriptors = []
         #dsz = 6
-        # for each point in the contour
+        # for each point in the get_contour
         for point in data:
             test = np.array(point)
             # generate a 2D histrogram, and flatten it out.
@@ -1383,14 +1383,14 @@ class Blob(Feature):
         self._scdescriptors = descriptors
         return descriptors
 
-    def getShapeContext(self):
+    def get_shape_context(self):
         """
         Return the shape context descriptors as a featureset. Corrently
         this is not used for recognition but we will perhaps use it soon.
         """
         # still need to subsample big contours
-        derp = self.getSCDescriptors()
-        descriptors, complete_contour = self.getSCDescriptors()
+        derp = self.get_sc_descriptors()
+        descriptors, complete_contour = self.get_sc_descriptors()
         fs = FeatureSet()
         for i in range(0, len(complete_contour)):
             fs.append(ShapeContextDescriptor(self.image, complete_contour[i],
@@ -1398,20 +1398,20 @@ class Blob(Feature):
 
         return fs
 
-    def showCorrespondence(self, other_blob, side="left"):
+    def show_correspondence(self, other_blob, side="left"):
         """
         This is total beta - use at your own risk.
         """
         # We're lazy right now, assume the blob images are the same size
         side = side.lower()
-        my_pts = self.getShapeContext()
-        your_pts = other_blob.getShapeContext()
+        my_pts = self.get_shape_context()
+        your_pts = other_blob.get_shape_context()
 
         my_img = self.image.copy()
         your_img = other_blob.image.copy()
 
-        my_pts = my_pts.reassignImage(my_img)
-        your_pts = your_pts.reassignImage(your_img)
+        my_pts = my_pts.reassign_image(my_img)
+        your_pts = your_pts.reassign_image(your_img)
 
         my_pts.draw()
         my_img = my_img.apply_layers()
@@ -1420,7 +1420,7 @@ class Blob(Feature):
 
         result = my_img.side_by_side(your_img, side=side)
         # FIXME: unknown method, may be match method should be used?
-        data = self.shapeContextMatch(other_blob)
+        data = self.shape_context_match(other_blob)
         mapvals = data[0]
         color = Color()
         for i in range(0, len(self._completeContour)):
@@ -1446,12 +1446,12 @@ class Blob(Feature):
 
         return result
 
-    def getMatchMetric(self, other_blob):
+    def get_match_metric(self, other_blob):
         """
         This match metric is now deprecated.
         """
         # FIXME: unknown method, may be match method should be used?
-        data = self.shapeContextMatch(other_blob)
+        data = self.shape_context_match(other_blob)
         distances = np.array(data[1])
         sd = np.std(distances)
         x = np.mean(distances)
@@ -1464,11 +1464,11 @@ class Blob(Feature):
         tmean = sps.tmean(distances, (min_dist, x + sd))
         return tmean
 
-    def getConvexityDefects(self, returnPoints=False):
+    def get_convexity_defects(self, return_points=False):
         """
         **SUMMARY**
 
-        Get Convexity Defects of the contour.
+        Get Convexity Defects of the get_contour.
 
         **PARAMETERS**
 
@@ -1489,12 +1489,12 @@ class Blob(Feature):
         >>> img = Image('lenna')
         >>> blobs = img.find_blobs()
         >>> blob = blobs[-1]
-        >>> lines, farpoints = blob.getConvexityDefects()
+        >>> lines, farpoints = blob.get_convexity_defects()
         >>> lines.draw()
         >>> farpoints.draw(color=Color.RED, width=-1)
         >>> img.show()
 
-        >>> points = blob.getConvexityDefects(returnPoints=True)
+        >>> points = blob.get_convexity_defects(return_points=True)
         >>> startpoints = zip(*points)[0]
         >>> endpoints = zip(*points)[0]
         >>> farpoints = zip(*points)[0]
@@ -1502,9 +1502,9 @@ class Blob(Feature):
         """
 
         def cvFallback():
-            chull = cv.ConvexHull2(self.mContour, cv.CreateMemStorage(),
+            chull = cv.ConvexHull2(self.contour, cv.CreateMemStorage(),
                                    return_points=False)
-            defects = cv.ConvexityDefects(self.mContour, chull,
+            defects = cv.ConvexityDefects(self.contour, chull,
                                           cv.CreateMemStorage())
             points = [(defect[0], defect[1], defect[2]) for defect in defects]
             return points
@@ -1513,22 +1513,22 @@ class Blob(Feature):
             import cv2
 
             if hasattr(cv2, "convexityDefects"):
-                hull = [self.mContour.index(x) for x in self.mConvexHull]
+                hull = [self.contour.index(x) for x in self.convex_hull]
                 hull = np.array(hull).reshape(len(hull), 1)
-                defects = cv2.convexityDefects(np.array(self.mContour), hull)
+                defects = cv2.convexityDefects(np.array(self.contour), hull)
                 if isinstance(defects, type(None)):
                     warnings.warn(
                         "Unable to find defects. Returning Empty FeatureSet.")
                     defects = []
-                points = [(self.mContour[defect[0][0]],
-                           self.mContour[defect[0][1]],
-                           self.mContour[defect[0][2]]) for defect in defects]
+                points = [(self.contour[defect[0][0]],
+                           self.contour[defect[0][1]],
+                           self.contour[defect[0][2]]) for defect in defects]
             else:
                 points = cvFallback()
         except ImportError:
             points = cvFallback()
 
-        if returnPoints:
+        if return_points:
             return FeatureSet(points)
         else:
             lines = FeatureSet(

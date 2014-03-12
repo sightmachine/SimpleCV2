@@ -30,9 +30,9 @@ while display.isNotDone():
     if faces:
         face = faces[-1]
         # Load the image to super impose and scale it correctly
-        troll = troll_face.scale(face.height(), face.width()) 
+        troll = troll_face.scale(face.get_height(), face.get_width()) 
         mymask = troll.invert()
         # Super impose the new face on the existing face
-        img = img.blit(troll, face.topLeftCorner(), alphaMask=mymask)
+        img = img.blit(troll, face.top_left_corner(), alphaMask=mymask)
     # Display the image
     img.save(display)

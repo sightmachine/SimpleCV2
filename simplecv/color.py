@@ -395,9 +395,9 @@ class ColorMap(object):
     >>> img = Image("lenna")
     >>> blobs = img.find_blobs()
     >>> cm = ColorMap(color = (Color.RED, Color.YELLOW, Color.BLUE),\
-                      min(blobs.area()), max(blobs.area()))
+                      min(blobs.get_area()), max(blobs.get_area()))
     >>>  for b in blobs:
-    >>>    b.draw(cm[b.area()])
+    >>>    b.draw(cm[b.get_area()])
 
     """
     color = ()

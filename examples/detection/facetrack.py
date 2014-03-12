@@ -25,7 +25,7 @@ while display.isNotDone():
     faces = img.find_haar_features(haarcascade)
     # Pixelize the detected face
     if faces:
-        bb = faces[-1].boundingBox()
+        bb = faces[-1].get_bounding_box()
         img = img.pixelize(10, region=(bb[0], bb[1], bb[2], bb[3]))
     # Display the image
     img.save(display)

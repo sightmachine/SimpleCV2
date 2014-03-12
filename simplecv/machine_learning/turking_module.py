@@ -45,7 +45,7 @@ class TurkingModule(object):
         **EXAMPLE**
         >>>> def GetBlobs(img):
         >>>>   blobs = img.find_blobs()
-        >>>>    return [b.mMask for b in blobs]
+        >>>>    return [b.mask for b in blobs]
 
         >>>> def ScaleIng(img):
         >>>>    return img.resize(100,100).invert()
@@ -194,7 +194,7 @@ class TurkingModule(object):
 
         >>>> def GetBlobs(img):
         >>>>     blobs = img.find_blobs()
-        >>>>     return [b.mMask for b in blobs]
+        >>>>     return [b.mask for b in blobs]
 
         >>>> def ScaleIng(img):
         >>>>     return img.resize(100,100).invert()

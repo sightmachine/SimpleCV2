@@ -34,9 +34,9 @@ for idx in range(len(packblobs)):
         i.drawText("Pills Expected: " + str(expected_pillcount), 10, 30, fontsize = 20)
     for p in pills:
         p.image = pack
-        p.drawHull( color = Color.RED, width = 5 )
+        p.draw_hull( color = Color.RED, width = 5 )
     i.dl().blit(pack.apply_layers(), packblobs[idx].points[0])
-    packblobs[idx].drawHull(color = Color.BLUE, width = 5)
+    packblobs[idx].draw_hull(color = Color.BLUE, width = 5)
 
 #Continue to show the image
 while True:

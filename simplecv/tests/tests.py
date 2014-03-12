@@ -475,13 +475,13 @@ def test_detection_feature_measures():
     fs.extend(result)
 
     for f in fs:
-        a = f.area()
+        a = f.get_area()
         l = f.length()
         c = f.mean_color()
         d = f.color_distance()
         th = f.angle()
         pts = f.coordinates()
-        dist = f.distanceFrom()  # distance from center of image
+        dist = f.distance_from()  # distance from center of image
 
     fs2 = fs.sortAngle()
     fs3 = fs.sortLength()
@@ -495,13 +495,13 @@ def test_detection_blobs_appx():
     img = Image("lenna")
     blobs = img.find_blobs()
     blobs[-1].draw(color=Color.RED)
-    blobs[-1].drawAppx(color=Color.BLUE)
+    blobs[-1].draw_appx(color=Color.BLUE)
     result = [img]
 
     img2 = Image("lenna")
     blobs = img2.find_blobs(appx_level=11)
     blobs[-1].draw(color=Color.RED)
-    blobs[-1].drawAppx(color=Color.BLUE)
+    blobs[-1].draw_appx(color=Color.BLUE)
     result.append(img2)
 
     name_stem = "test_detection_blobs_appx"
@@ -531,15 +531,15 @@ def test_detection_blobs_lazy():
     s = pickle.dumps(b[-1])  # use two otherwise it w
     b2 = pickle.loads(s)
 
-    result.append(b[-1].mImg)
-    result.append(b[-1].mMask)
-    result.append(b[-1].mHullImg)
-    result.append(b[-1].mHullMask)
+    result.append(b[-1].img)
+    result.append(b[-1].mask)
+    result.append(b[-1].hull_img)
+    result.append(b[-1].hull_mask)
 
-    result.append(b2.mImg)
-    result.append(b2.mMask)
-    result.append(b2.mHullImg)
-    result.append(b2.mHullMask)
+    result.append(b2.img)
+    result.append(b2.mask)
+    result.append(b2.hull_img)
+    result.append(b2.hull_mask)
 
     #TODO - WE NEED BETTER COVERAGE HERE
     name_stem = "test_detection_blobs_lazy"
@@ -569,8 +569,8 @@ def test_detection_blobs_convexity_defects():
     img = Image('lenna')
     blobs = img.find_blobs()
     b = blobs[-1]
-    feat = b.getConvexityDefects()
-    points = b.getConvexityDefects(returnPoints=True)
+    feat = b.get_convexity_defects()
+    points = b.get_convexity_defects(return_points=True)
     if len(feat) <= 0 or len(points) <= 0:
         assert False
     pass
@@ -622,7 +622,7 @@ def test_detection_area():
     img = Image(testimage2)
     bm = BlobMaker()
     result = bm.extract(img)
-    area_val = result[0].area()
+    area_val = result[0].get_area()
 
     if area_val > 0:
         pass
@@ -680,7 +680,7 @@ def test_detection_length():
 
 def test_detection_sortangle():
     img = Image(testimage)
-    val = img.find_lines().sortAngle()
+    val = img.find_lines().sort_angle()
 
     if val[0].x < val[1].x:
         pass
@@ -692,18 +692,18 @@ def test_detection_sortarea():
     img = Image(testimage)
     bm = BlobMaker()
     result = bm.extract(img)
-    val = result.sortArea()
+    val = result.sort_area()
     # FIXME: Find blobs may appear to be broken. Returning type none
 
 
 def test_detection_sortLength():
     img = Image(testimage)
-    val = img.find_lines().sortLength()
+    val = img.find_lines().sort_length()
     # FIXME: Length is being returned as euclidean type,
     # believe we need a universal type, either Int or scvINT or something.
 
 
-#def test_distanceFrom():
+#def test_distance_from():
 #def test_sortColorDistance():
 #def test_sortDistance():
 
@@ -1216,10 +1216,10 @@ def test_color_colormap_build():
     #  assert False
 
 
-def test_feature_height():
+def test_feature_get_height():
     imgA = Image(logo)
     lines = imgA.find_lines(1)
-    heights = lines.height()
+    heights = lines.get_height()
 
     if len(heights) <= 0:
         assert False
@@ -1227,10 +1227,10 @@ def test_feature_height():
         pass
 
 
-def test_feature_width():
+def test_feature_get_width():
     imgA = Image(logo)
     lines = imgA.find_lines(1)
-    widths = lines.width()
+    widths = lines.get_width()
 
     if len(widths) <= 0:
         assert False
@@ -1393,7 +1393,7 @@ def test_blob_data():
     for b in blobs:
         if b.mArea > 0:
             pass
-        if b.perimeter() > 0:
+        if b.get_perimeter() > 0:
             pass
         if sum(b.mAvgColor) > 0:
             pass
@@ -1420,12 +1420,12 @@ def test_blob_render():
     reimg = DrawingLayer((img.width, img.height))
     for b in blobs:
         b.draw(color=Color.RED, alpha=128)
-        b.drawHoles(width=2, color=Color.BLUE)
-        b.drawHull(color=Color.ORANGE, width=2)
+        b.draw_holes(width=2, color=Color.BLUE)
+        b.draw_hull(color=Color.ORANGE, width=2)
         b.draw(color=Color.RED, alpha=128, layer=dl)
-        b.drawHoles(width=2, color=Color.BLUE, layer=dl)
-        b.drawHull(color=Color.ORANGE, width=2, layer=dl)
-        b.drawMaskToLayer(reimg)
+        b.draw_holes(width=2, color=Color.BLUE, layer=dl)
+        b.draw_hull(color=Color.ORANGE, width=2, layer=dl)
+        b.draw_mask_to_layer(reimg)
 
     img.add_drawing_layer(dl)
     results = [img]
@@ -1440,28 +1440,28 @@ def test_blob_methods():
     BL = (img.width, img.height)
     first = blobs[0]
     for b in blobs:
-        b.width()
-        b.height()
-        b.area()
-        b.maxX()
-        b.minX()
-        b.maxY()
-        b.minY()
-        b.minRectWidth()
-        b.minRectHeight()
-        b.minRectX()
-        b.minRectY()
-        b.contour()
-        b.aspectRatio()
-        b.blobImage()
-        b.blobMask()
-        b.hullImage()
-        b.hullMask()
-        b.rectifyMajorAxis()
-        b.blobImage()
-        b.blobMask()
-        b.hullImage()
-        b.hullMask()
+        b.get_width()
+        b.get_height()
+        b.get_area()
+        b.get_max_x()
+        b.get_min_x()
+        b.get_max_y()
+        b.get_min_y()
+        b.min_rect_width()
+        b.min_rect_height()
+        b.min_rect_x()
+        b.min_rect_y()
+        b.get_contour()
+        b.aspect_ratio()
+        b.blob_image()
+        b.blob_mask()
+        b.get_hull_img()
+        b.hull_mask()
+        b.rectify_major_axis()
+        b.blob_image()
+        b.blob_mask()
+        b.get_hull_img()
+        b.hull_mask()
         b.angle()
         b.above(first)
         b.below(first)
@@ -1831,15 +1831,15 @@ def test_hough_circles():
     if circs[0] < 1:
         assert False
     circs[0].coordinates()
-    circs[0].width()
-    circs[0].area()
-    circs[0].perimeter()
-    circs[0].height()
+    circs[0].get_width()
+    circs[0].get_area()
+    circs[0].get_perimeter()
+    circs[0].get_height()
     circs[0].radius()
     circs[0].diameter()
     circs[0].color_distance()
     circs[0].mean_color()
-    circs[0].distanceFrom(point=(0, 0))
+    circs[0].distance_from(point=(0, 0))
     circs[0].draw()
     img2 = circs[0].crop()
     img3 = circs[0].crop(noMask=True)
@@ -1875,7 +1875,7 @@ def test_BlobMinRect():
     img = Image(testimageclr)
     blobs = img.find_blobs()
     for b in blobs:
-        b.drawMinRect(color=Color.BLUE, width=3, alpha=123)
+        b.draw_min_rect(color=Color.BLUE, width=3, alpha=123)
     results = [img]
     name_stem = "test_BlobMinRect"
     perform_diff(results, name_stem)
@@ -1900,7 +1900,7 @@ def test_BlobPickle():
     for b in blobs:
         p = pickle.dumps(b)
         ub = pickle.loads(p)
-        if (ub.mMask - b.mMask).mean_color() != Color.BLACK:
+        if (ub.mask - b.mask).mean_color() != Color.BLACK:
             assert False
 
     pass
@@ -1909,10 +1909,10 @@ def test_BlobPickle():
 def test_blob_isa_methods():
     img1 = Image(circles)
     img2 = Image("../data/sampleimages/blockhead.png")
-    blobs = img1.find_blobs().sortArea()
+    blobs = img1.find_blobs().sort_area()
     t1 = blobs[-1].is_circle()
     f1 = blobs[-1].is_rectangle()
-    blobs = img2.find_blobs().sortArea()
+    blobs = img2.find_blobs().sort_area()
     f2 = blobs[-1].is_circle()
     t2 = blobs[-1].is_rectangle()
     if t1 and t2 and not f1 and not f2:
@@ -1953,12 +1953,12 @@ def test_findKeypoints():
                 k.angle()
                 k.coordinates()
                 k.draw()
-                k.distanceFrom()
+                k.distance_from()
                 k.mean_color()
-                k.area()
-                k.perimeter()
-                k.width()
-                k.height()
+                k.get_area()
+                k.get_perimeter()
+                k.get_width()
+                k.get_height()
                 k.radius()
                 k.crop()
             kp.draw()
@@ -2511,13 +2511,13 @@ def test_findHaarFeatures():
     if len(f) > 0 and len(f2) > 0:
         f.draw()
         f2.draw()
-        f[0].width()
-        f[0].height()
+        f[0].get_width()
+        f[0].get_height()
         f[0].draw()
         f[0].x
         f[0].y
         f[0].length()
-        f[0].area()
+        f[0].get_area()
         pass
     else:
         assert False
@@ -2615,7 +2615,7 @@ def test_blob_spatial_relationships():
     img = Image("../data/sampleimages/spatial_relationships.png")
     # please see the image
     blobs = img.find_blobs(threshval=1)
-    blobs = blobs.sortArea()
+    blobs = blobs.sort_area()
     print(len(blobs))
 
     center = blobs[-1]
@@ -2667,11 +2667,11 @@ def test_get_aspectratio():
     c = img2.find_circle(thresh=200)
     c2 = img2.find_corners()
     kp = img2.find_keypoints()
-    bb = b.aspectRatios()
-    ll = l.aspectRatios()
-    cc = c.aspectRatios()
-    c22 = c2.aspectRatios()
-    kp2 = kp.aspectRatios()
+    bb = b.aspect_ratios()
+    ll = l.aspect_ratios()
+    cc = c.aspect_ratios()
+    c22 = c2.aspect_ratios()
+    kp2 = kp.aspect_ratios()
 
     if len(bb) > 0 and len(ll) > 0 \
             and len(cc) > 0 and len(c22) > 0\
@@ -2683,7 +2683,7 @@ def test_get_aspectratio():
 
 def test_line_crop():
     img = Image("../data/sampleimages/EdgeTest2.png")
-    l = img.find_lines().sortArea()
+    l = img.find_lines().sort_area()
     l = l[-5:-1]
     results = []
     for ls in l:
@@ -2697,16 +2697,16 @@ def test_get_corners():
     img = Image("../data/sampleimages/EdgeTest1.png")
     img2 = Image("../data/sampleimages/EdgeTest2.png")
     b = img.find_blobs()
-    tl = b.topLeftCorners()
-    tr = b.topRightCorners()
-    bl = b.bottomLeftCorners()
-    br = b.bottomRightCorners()
+    tl = b.top_left_corners()
+    tr = b.top_right_corners()
+    bl = b.bottom_left_corners()
+    br = b.bottom_right_corners()
 
     l = img2.find_lines()
-    tl2 = l.topLeftCorners()
-    tr2 = l.topRightCorners()
-    bl2 = l.bottomLeftCorners()
-    br2 = l.bottomRightCorners()
+    tl2 = l.top_left_corners()
+    tr2 = l.top_right_corners()
+    bl2 = l.bottom_left_corners()
+    br2 = l.bottom_right_corners()
 
     if tl is not None\
             and tr is not None \
@@ -2764,28 +2764,28 @@ def test_on_edge():
     kp = imgD.find_keypoints()
     lines = imgE.find_lines()
 
-    rim = blobs.onImageEdge()
-    inside = blobs.notOnImageEdge()
+    rim = blobs.on_image_edge()
+    inside = blobs.not_on_image_edge()
     rim.draw(color=Color.RED)
     inside.draw(color=Color.BLUE)
 
-    rim = circs.onImageEdge()
-    inside = circs.notOnImageEdge()
+    rim = circs.on_image_edge()
+    inside = circs.not_on_image_edge()
     rim.draw(color=Color.RED)
     inside.draw(color=Color.BLUE)
 
-    #rim =  corners.onImageEdge()
-    inside = corners.notOnImageEdge()
+    #rim =  corners.on_image_edge()
+    inside = corners.not_on_image_edge()
     #rim.draw(color=Color.RED)
     inside.draw(color=Color.BLUE)
 
-    #rim =  kp.onImageEdge()
-    inside = kp.notOnImageEdge()
+    #rim =  kp.on_image_edge()
+    inside = kp.not_on_image_edge()
     #rim.draw(color=Color.RED)
     inside.draw(color=Color.BLUE)
 
-    rim = lines.onImageEdge()
-    inside = lines.notOnImageEdge()
+    rim = lines.on_image_edge()
+    inside = lines.not_on_image_edge()
     rim.draw(color=Color.RED)
     inside.draw(color=Color.BLUE)
 
@@ -2803,15 +2803,15 @@ def test_feature_angles():
     k = img3.find_keypoints()
 
     for bs in b:
-        tl = bs.topLeftCorner()
+        tl = bs.top_left_corner()
         img.draw_text(str(bs.angle()), tl[0], tl[1], color=Color.RED)
 
     for ls in l:
-        tl = ls.topLeftCorner()
+        tl = ls.top_left_corner()
         img2.draw_text(str(ls.angle()), tl[0], tl[1], color=Color.GREEN)
 
     for ks in k:
-        tl = ks.topLeftCorner()
+        tl = ks.top_left_corner()
         img3.draw_text(str(ks.angle()), tl[0], tl[1], color=Color.BLUE)
 
     results = [img, img2, img3]
@@ -2829,8 +2829,8 @@ def test_feature_angles_rotate():
         derp = temp.rotate(bs.angle(), fixed=False)
         derp.draw_text(str(bs.angle()), 10, 10, color=Color.RED)
         results.append(derp)
-        bs.rectifyMajorAxis()
-        results.append(bs.blobImage())
+        bs.rectify_major_axis()
+        results.append(bs.blob_image())
 
     name_stem = "test_feature_angles_rotate"
     perform_diff(results, name_stem, tolerance=7.0)
@@ -2860,7 +2860,7 @@ def test_minrect_blobs():
         print ang
         t = img.rotate(ang)
         b = t.find_blobs(threshval=128)
-        b[-1].drawMinRect(color=Color.RED, width=5)
+        b[-1].draw_min_rect(color=Color.RED, width=5)
         results.append(t)
 
     name_stem = "test_minrect_blobs"
@@ -3087,7 +3087,7 @@ def test_findSkintoneBlobs():
     for b in blobs:
         if b.mArea > 0:
             pass
-        if b.perimeter() > 0:
+        if b.get_perimeter() > 0:
             pass
         if b.mAvgColor[0] > 5 \
                 and b.mAvgColor[1] > 140 \
@@ -3137,12 +3137,12 @@ def test_findKeypoints_all():
                 k.angle()
                 k.coordinates()
                 k.draw()
-                k.distanceFrom()
+                k.distance_from()
                 k.mean_color()
-                k.area()
-                k.perimeter()
-                k.width()
-                k.height()
+                k.get_area()
+                k.get_perimeter()
+                k.get_width()
+                k.get_height()
                 k.radius()
                 k.crop()
             kp.draw()
@@ -3325,10 +3325,10 @@ def test_histograms():
 def test_blob_full_masks():
     img = Image('lenna')
     b = img.find_blobs()
-    m1 = b[-1].getFullMaskedImage()
-    m2 = b[-1].getFullHullMaskedImage()
-    m3 = b[-1].getFullMask()
-    m4 = b[-1].getFullHullMask()
+    m1 = b[-1].get_full_masked_image()
+    m2 = b[-1].get_full_hull_masked_image()
+    m3 = b[-1].get_full_mask()
+    m4 = b[-1].get_full_hull_mask()
     assert m1.width == img.width
     assert m2.width == img.width
     assert m3.width == img.width
@@ -3343,10 +3343,10 @@ def test_blob_edge_images():
     # FIXME: Test should have assertion
     img = Image('lenna')
     b = img.find_blobs()
-    m1 = b[-1].getEdgeImage()
-    m2 = b[-1].getHullEdgeImage()
-    m3 = b[-1].getFullEdgeImage()
-    m4 = b[-1].getFullHullEdgeImage()
+    m1 = b[-1].get_edge_image()
+    m2 = b[-1].get_hull_edge_image()
+    m3 = b[-1].get_full_edge_image()
+    m4 = b[-1].get_full_hull_edge_image()
 
 
 def test_LineScan():
@@ -3551,10 +3551,10 @@ def test_findFeatures():
 def test_ColorMap():
     img = Image('../data/sampleimages/mtest.png')
     blobs = img.find_blobs()
-    cm = ColorMap((Color.RED, Color.YELLOW, Color.BLUE), min(blobs.area()),
-                  max(blobs.area()))
+    cm = ColorMap((Color.RED, Color.YELLOW, Color.BLUE), min(blobs.get_area()),
+                  max(blobs.get_area()))
     for b in blobs:
-        b.draw(cm[b.area()])
+        b.draw(cm[b.get_area()])
     result = [img]
     name_stem = "test_color_map"
     perform_diff(result, name_stem, 1.0)

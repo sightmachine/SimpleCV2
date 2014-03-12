@@ -23,7 +23,7 @@ for m in methods:
     dl = DrawingLayer((source.width,source.height))
     fs = source.find_template(template,threshold=t,method=m)
     for match in fs:
-        dl.rectangle((match.x,match.y),(match.width(),match.height()),color=Color.RED)
+        dl.rectangle((match.x,match.y),(match.get_width(),match.get_height()),color=Color.RED)
     result.add_drawing_layer(dl)
     result.apply_layers()
     result.show()

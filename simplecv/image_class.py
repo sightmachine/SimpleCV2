@@ -3724,7 +3724,7 @@ class Image:
         if not len(blobs):
             return None
 
-        return FeatureSet(blobs).sortArea()
+        return FeatureSet(blobs).sort_area()
 
     def find_skintone_blobs(self, minsize=10, maxsize=0, dilate_iter=1):
         """
@@ -3782,7 +3782,7 @@ class Image:
                                             maxsize=maxsize)
         if not len(blobs):
             return None
-        return FeatureSet(blobs).sortArea()
+        return FeatureSet(blobs).sort_area()
 
     def get_skintone_mask(self, dilate_iter=0):
         """
@@ -6197,8 +6197,8 @@ class Image:
             theFeature = x
             x = theFeature.points[0][0]
             y = theFeature.points[0][1]
-            w = theFeature.width()
-            h = theFeature.height()
+            w = theFeature.get_width()
+            h = theFeature.get_height()
 
         elif isinstance(x, (tuple, list)) and len(x) == 4 \
                 and isinstance(x[0], (int, long, float)) \
@@ -7017,7 +7017,7 @@ class Image:
         if indicies == -1 and len(self._mLayers) > 0:
             final = self.merged_layers()
             imgSurf = self.get_pg_surface().copy()
-            imgSurf.blit(final._mSurface, (0, 0))
+            imgSurf.blit(final.surface, (0, 0))
             return Image(imgSurf)
         else:
             final = DrawingLayer((self.width, self.height))
@@ -7026,7 +7026,7 @@ class Image:
             for idx in indicies:
                 retVal = self._mLayers[idx].render_to_other_layer(final)
             imgSurf = self.get_pg_surface().copy()
-            imgSurf.blit(final._mSurface, (0, 0))
+            imgSurf.blit(final.surface, (0, 0))
             indicies.reverse()
             return Image(imgSurf)
 
@@ -9129,7 +9129,7 @@ class Image:
         >>> img = Image("aerospace.jpg")
         >>> fs = img.find_keypoints(flavor="SURF", min_quality=500,
             ...                    highQuality=True)
-        >>> fs = fs.sortArea()
+        >>> fs = fs.sort_area()
         >>> fs[-1].draw()
         >>> img.draw()
 
@@ -10511,7 +10511,7 @@ class Image:
         if not len(blobs):
             return None
 
-        return FeatureSet(blobs).sortArea()
+        return FeatureSet(blobs).sort_area()
 
     def find_flood_fill_blobs(self, points, tolerance=None, lower=None,
                               upper=None,
@@ -11971,9 +11971,9 @@ class Image:
         if found:
             for feature_set in found:
                 for region in feature_set:
-                    rect = (region.topLeftCorner()[0],
-                            region.topLeftCorner()[1],
-                            region.width(), region.height())
+                    rect = (region.top_left_corner()[0],
+                            region.top_left_corner()[1],
+                            region.get_width(), region.get_height())
                     if transform is None:
                         img = img.pixelize(block_size=block_size, region=rect)
                     else:
@@ -12115,7 +12115,7 @@ class Image:
         * *params* - The alpha, beta, and gamma parameters for the active
           contours algorithm as a list [alpha, beta, gamma].
         * *doAppx* - post process the snake into a polynomial approximation.
-          Basically this flag will clean up the output of the contour
+          Basically this flag will clean up the output of the get_contour
           algorithm.
         * *appx_level* - how much to approximate the snake, higher numbers mean
           more approximation.
@@ -12557,7 +12557,7 @@ class Image:
         """
         **DESCRIPTION**
 
-        This method uses the snakes / active contour approach in an attempt to
+        This method uses the snakes / active get_contour approach in an attempt to
         fit a series of points to a line that may or may not be exactly linear.
 
         **PARAMETERS**
@@ -12574,7 +12574,7 @@ class Image:
 
         **RETURNS**
 
-        A list of fitted contour points. Each contour is a list of (x,y)
+        A list of fitted get_contour points. Each get_contour is a list of (x,y)
         tuples.
 
         **EXAMPLE**
@@ -13090,7 +13090,7 @@ class Image:
         self.width = mydict['size'][0]
         self.height = mydict['size'][1]
 
-    def area(self):
+    def get_area(self):
         '''
         Returns the area of the Image.
         '''

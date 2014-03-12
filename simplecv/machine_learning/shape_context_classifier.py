@@ -59,8 +59,8 @@ class ShapeContextClassifier():
         if blobs is not None:
             count = len(blobs)
             for b in blobs:
-                fulllist += b._filterSCPoints()
-                raw_descriptors = blobs[0]._generateSC(fulllist)
+                fulllist += b._filter_sc_points()
+                raw_descriptors = blobs[0]._generate_sc(fulllist)
         return fulllist, raw_descriptors, count
 
     def _getMatch(self, model_scd, test_scd):

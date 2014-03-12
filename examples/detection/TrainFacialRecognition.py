@@ -18,7 +18,7 @@ def getFaceSet(cam,myStr=""):
         img = cam.getImage()
         fs = img.find_haar_features('face')
         if( fs is not None ):
-            fs = fs.sortArea()
+            fs = fs.sort_area()
             face = fs[-1].crop().resize(100,100)
             fs[-1].draw()
             iset.append(face)
@@ -52,7 +52,7 @@ while disp.isNotDone():
     img = cam.getImage()
     fs = img.find_haar_features('face')
     if( fs is not None ):
-        fs = fs.sortArea()
+        fs = fs.sort_area()
         face = fs[-1].crop().resize(100,100)
         fs[-1].draw()
         name, confidence = f.predict(face)

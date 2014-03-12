@@ -47,7 +47,7 @@ class Track(Feature):
         self.sizeRatio = 1
         self.vel = (0, 0)
         self.rt_vel = (0, 0)
-        self.area = self.getArea()
+        self.area = self.get_area()
         self.time = time.time()
         self.cv2numpy = self.image.get_numpy_cv2()
         return self
@@ -69,7 +69,7 @@ class Track(Feature):
         """
         return self.bb_x + self.w / 2, self.bb_y + self.h / 2
 
-    def getArea(self):
+    def get_area(self):
         """
         **SUMMARY**
 
@@ -82,7 +82,7 @@ class Track(Feature):
         **EXAMPLE**
 
         >>> track = Track(img, bb)
-        >>> area = track.getArea()
+        >>> area = track.get_area()
         """
         return self.w * self.h
 

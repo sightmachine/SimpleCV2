@@ -30,14 +30,14 @@ tmp_data = [] #array to store data features
 tmp_target = [] #array to store targets
 
 for b in bolt_blobs: #Format Data for SVM
-    tmp_data.append([b.area(), b.height(), b.width()])
+    tmp_data.append([b.get_area(), b.get_height(), b.get_width()])
     tmp_target.append(0)
 
 print 'Loading Nuts for Training'
 nuts = ImageSet(data_path + '/data/supervised/nuts')
 nut_blobs = [n.invert().find_blobs()[0] for n in nuts]
 for n in nut_blobs:
-    tmp_data.append([n.area(), n.height(), n.width()])
+    tmp_data.append([n.get_area(), n.get_height(), n.get_width()])
     tmp_target.append(1)
 
 dataset = np.array(tmp_data)
@@ -52,7 +52,7 @@ print 'Running prediction on bolts now'
 untrained_bolts = ImageSet(data_path + '/data/unsupervised/bolts')
 unbolt_blobs = [b.find_blobs()[0] for b in untrained_bolts]
 for b in unbolt_blobs:
-    ary = [b.area(), b.height(), b.width()]
+    ary = [b.get_area(), b.get_height(), b.get_width()]
     name = target_names[clf.predict(ary)[0]]
     probability = clf2.predict_proba(ary)[0]
     img = b.image
@@ -64,7 +64,7 @@ print 'Running prediction on nuts now'
 untrained_nuts = ImageSet(data_path + '/data/unsupervised/nuts')
 unnut_blobs = [n.invert().find_blobs()[0] for n in untrained_nuts]
 for n in unnut_blobs:
-    ary = [n.area(), n.height(), n.width()]
+    ary = [n.get_area(), n.get_height(), n.get_width()]
     name = target_names[clf.predict(ary)[0]]
     probability = clf2.predict_proba(ary)[0]
     img = n.image

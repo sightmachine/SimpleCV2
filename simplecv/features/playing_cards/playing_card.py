@@ -24,7 +24,7 @@ class PlayingCard(Feature):
 
         * *color* - An RGB color triplet.
         * *width* - if width is less than zero we draw the feature filled in,
-         otherwise we draw the contour using the specified width.
+         otherwise we draw the get_contour using the specified width.
 
 
         **RETURNS**

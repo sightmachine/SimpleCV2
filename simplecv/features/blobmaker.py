@@ -11,7 +11,7 @@ from simplecv.image_class import Image
 
 class BlobMaker(object):
     """
-    Blob maker encapsulates all of the contour extraction process and data, so
+    Blob maker encapsulates all of the get_contour extraction process and data, so
     it can be used inside the image class, or extended and used outside the
     image class. The general idea is that the blob maker provides the utilites
     that one would use for blob extraction. Later implementations may include
@@ -85,8 +85,8 @@ class BlobMaker(object):
         #If you really are having problems set the value higher, but this means
         # you have over 10,000,000 blobs in your image.
         sys.setrecursionlimit(5000)
-        #h_next moves to the next external contour
-        #v_next() moves to the next internal contour
+        #h_next moves to the next external get_contour
+        #v_next() moves to the next internal get_contour
         if maxsize <= 0:
             maxsize = colorImg.width * colorImg.height
 
@@ -222,14 +222,14 @@ class BlobMaker(object):
         chull = cv.ConvexHull2(seq, cv.CreateMemStorage(), return_points=1)
         ret_value.mConvexHull = list(chull)
         # KAS -- FLAG FOR REPLACE 6/6/2012
-        #hullMask = self._getHullMask(chull,bb)
+        #get_hull_mask = self._getHullMask(chull,bb)
 
         # KAS -- FLAG FOR REPLACE 6/6/2012
-        # ret_value.mHullImg = self._getBlobAsImage(chull,bb,color.get_bitmap(),
-        # hullMask)
+        # ret_value.hull_img = self._getBlobAsImage(chull,bb,color.get_bitmap(),
+        # get_hull_mask)
 
         # KAS -- FLAG FOR REPLACE 6/6/2012
-        #ret_value.mHullMask = Image(hullMask)
+        #ret_value.hull_mask = Image(get_hull_mask)
 
         del chull
 
@@ -259,16 +259,16 @@ class BlobMaker(object):
 
         # KAS -- FLAG FOR REPLACE 6/6/2012
         mask = self._getMask(seq, bbr)
-        #ret_value.mMask = Image(mask)
+        #ret_value.mask = Image(mask)
 
         ret_value.mAvgColor = self._getAvg(color.get_bitmap(), bbr, mask)
         ret_value.mAvgColor = ret_value.mAvgColor[0:3]
-        #ret_value.mAvgColor = self._getAvg(color.get_bitmap(),
-        #                                   ret_value.mBoundingBox, mask)
-        #ret_value.mAvgColor = ret_value.mAvgColor[0:3]
+        #ret_value.avg_color = self._getAvg(color.get_bitmap(),
+        #                                   ret_value.bounding_box, mask)
+        #ret_value.avg_color = ret_value.avg_color[0:3]
 
         # KAS -- FLAG FOR REPLACE 6/6/2012
-        #ret_value.mImg = self._getBlobAsImage(seq,bb,color.get_bitmap(),mask)
+        #ret_value.img = self._getBlobAsImage(seq,bb,color.get_bitmap(),mask)
 
         ret_value.mHoleContour = self._getHoles(seq)
         ret_value.mAspectRatio = ret_value.mMinRectangle[1][0] / \
@@ -296,7 +296,7 @@ class BlobMaker(object):
     @staticmethod
     def _getMask(seq, bb):
         """
-        Return a binary image of a particular contour sequence.
+        Return a binary image of a particular get_contour sequence.
         """
         #bb = cv.BoundingRect(seq)
         mask = cv.CreateImage((bb[2], bb[3]), cv.IPL_DEPTH_8U, 1)
