@@ -2405,17 +2405,17 @@ class StereoCamera(object):
 
         **RETURNS**
 
-        A tuple of the form (CM1, CM2, D1, D2, R, T, E, F) on success
-        CM1 - Camera Matrix for left camera,
-        CM2 - Camera Matrix for right camera,
-        D1 - Vector of distortion coefficients for left camera,
-        D2 - Vector of distortion coefficients for right camera,
-        R - Rotation matrix between the left and the right
+        A tuple of the form (cm1, cm2, d1, d2, r, t, e, f) on success
+        cm1 - Camera Matrix for left camera,
+        cm2 - Camera Matrix for right camera,
+        d1 - Vector of distortion coefficients for left camera,
+        d2 - Vector of distortion coefficients for right camera,
+        r - Rotation matrix between the left and the right
             camera coordinate systems,
-        T - Translation vector between the left and the right
+        t - Translation vector between the left and the right
             coordinate systems of the cameras,
-        E - Essential matrix,
-        F - Fundamental matrix
+        e - Essential matrix,
+        f - Fundamental matrix
 
         **EXAMPLE**
 
@@ -2458,21 +2458,21 @@ class StereoCamera(object):
         num_points = cv.CreateMat(1, nboards, cv.CV_32S)
 
         # the intrinsic camera matrices
-        CM1 = cv.CreateMat(3, 3, cv.CV_64F)
-        CM2 = cv.CreateMat(3, 3, cv.CV_64F)
+        cm1 = cv.CreateMat(3, 3, cv.CV_64F)
+        cm2 = cv.CreateMat(3, 3, cv.CV_64F)
 
         # the distortion coefficients of both cameras
-        D1 = cv.CreateMat(1, 5, cv.CV_64F)
-        D2 = cv.CreateMat(1, 5, cv.CV_64F)
+        d1 = cv.CreateMat(1, 5, cv.CV_64F)
+        d2 = cv.CreateMat(1, 5, cv.CV_64F)
 
         # matrices governing the rotation and translation from camera 1
         # to camera 2
-        R = cv.CreateMat(3, 3, cv.CV_64F)
-        T = cv.CreateMat(3, 1, cv.CV_64F)
+        r = cv.CreateMat(3, 3, cv.CV_64F)
+        t = cv.CreateMat(3, 1, cv.CV_64F)
 
         # the essential and fundamental matrices
-        E = cv.CreateMat(3, 3, cv.CV_64F)
-        F = cv.CreateMat(3, 3, cv.CV_64F)
+        e = cv.CreateMat(3, 3, cv.CV_64F)
+        f = cv.CreateMat(3, 3, cv.CV_64F)
 
         while True:
             frame_left = cv.QueryFrame(capture_left)
@@ -2516,22 +2516,22 @@ class StereoCamera(object):
                     for i in range(nboards):
                         cv.Set1D(num_points, i, cbrd_mlt)
 
-                    cv.SetIdentity(CM1)
-                    cv.SetIdentity(CM2)
-                    cv.Zero(D1)
-                    cv.Zero(D2)
+                    cv.SetIdentity(cm1)
+                    cv.SetIdentity(cm2)
+                    cv.Zero(d1)
+                    cv.Zero(d2)
 
                     print "Running stereo calibration..."
                     del cam_left
                     del cam_right
                     cv.StereoCalibrate(
                         object_points, image_points1, image_points2,
-                        num_points, CM1, D1, CM2, D2, win_size, R, T, E, F,
+                        num_points, cm1, d1, cm2, d2, win_size, r, t, e, f,
                         flags=cv.CV_CALIB_SAME_FOCAL_LENGTH
                         | cv.CV_CALIB_ZERO_TANGENT_DIST)
 
                     print "Done."
-                    return CM1, CM2, D1, D2, R, T, E, F
+                    return cm1, cm2, d1, d2, r, t, e, f
 
             cv.ShowImage(left, frame_left)
             cv.ShowImage(right, frame_right)
@@ -2588,15 +2588,15 @@ class StereoCamera(object):
                      fname + "D2.txt", fname + "R.txt", fname + "T.txt",
                      fname + "E.txt", fname + "F.txt")
         try:
-            (CM1, CM2, D1, D2, R, T, E, F) = calibration
-            cv.Save("{0}/{1}".format(cdir, filenames[0]), CM1)
-            cv.Save("{0}/{1}".format(cdir, filenames[1]), CM2)
-            cv.Save("{0}/{1}".format(cdir, filenames[2]), D1)
-            cv.Save("{0}/{1}".format(cdir, filenames[3]), D2)
-            cv.Save("{0}/{1}".format(cdir, filenames[4]), R)
-            cv.Save("{0}/{1}".format(cdir, filenames[5]), T)
-            cv.Save("{0}/{1}".format(cdir, filenames[6]), E)
-            cv.Save("{0}/{1}".format(cdir, filenames[7]), F)
+            (cm1, cm2, d1, d2, r, t, e, f) = calibration
+            cv.Save("{0}/{1}".format(cdir, filenames[0]), cm1)
+            cv.Save("{0}/{1}".format(cdir, filenames[1]), cm2)
+            cv.Save("{0}/{1}".format(cdir, filenames[2]), d1)
+            cv.Save("{0}/{1}".format(cdir, filenames[3]), d2)
+            cv.Save("{0}/{1}".format(cdir, filenames[4]), r)
+            cv.Save("{0}/{1}".format(cdir, filenames[5]), t)
+            cv.Save("{0}/{1}".format(cdir, filenames[6]), e)
+            cv.Save("{0}/{1}".format(cdir, filenames[7]), f)
             print "Calibration parameters written \
                    to directory '{0}'.".format(cdir)
             return True
@@ -2644,16 +2644,16 @@ class StereoCamera(object):
                      fname + "D2.txt", fname + "R.txt", fname + "T.txt",
                      fname + "E.txt", fname + "F.txt")
         try:
-            CM1 = cv.Load("{0}/{1}".format(dir, filenames[0]))
-            CM2 = cv.Load("{0}/{1}".format(dir, filenames[1]))
-            D1 = cv.Load("{0}/{1}".format(dir, filenames[2]))
-            D2 = cv.Load("{0}/{1}".format(dir, filenames[3]))
-            R = cv.Load("{0}/{1}".format(dir, filenames[4]))
-            T = cv.Load("{0}/{1}".format(dir, filenames[5]))
-            E = cv.Load("{0}/{1}".format(dir, filenames[6]))
-            F = cv.Load("{0}/{1}".format(dir, filenames[7]))
+            cm1 = cv.Load("{0}/{1}".format(dir, filenames[0]))
+            cm2 = cv.Load("{0}/{1}".format(dir, filenames[1]))
+            d1 = cv.Load("{0}/{1}".format(dir, filenames[2]))
+            d2 = cv.Load("{0}/{1}".format(dir, filenames[3]))
+            r = cv.Load("{0}/{1}".format(dir, filenames[4]))
+            t = cv.Load("{0}/{1}".format(dir, filenames[5]))
+            e = cv.Load("{0}/{1}".format(dir, filenames[6]))
+            f = cv.Load("{0}/{1}".format(dir, filenames[7]))
             print "Calibration files loaded from dir '{0}'.".format(dir)
-            return CM1, CM2, D1, D2, R, T, E, F
+            return cm1, cm2, d1, d2, r, t, e, f
 
         except Exception:
             return False
@@ -2698,24 +2698,24 @@ class StereoCamera(object):
         >>> rectification = StereoCam.stereo_rectify(calibration)
 
         """
-        (CM1, CM2, D1, D2, R, T, E, F) = calibration
-        R1 = cv.CreateMat(3, 3, cv.CV_64F)
-        R2 = cv.CreateMat(3, 3, cv.CV_64F)
-        P1 = cv.CreateMat(3, 4, cv.CV_64F)
-        P2 = cv.CreateMat(3, 4, cv.CV_64F)
-        Q = cv.CreateMat(4, 4, cv.CV_64F)
+        (cm1, cm2, d1, d2, r, t, e, f) = calibration
+        r1 = cv.CreateMat(3, 3, cv.CV_64F)
+        r2 = cv.CreateMat(3, 3, cv.CV_64F)
+        p1 = cv.CreateMat(3, 4, cv.CV_64F)
+        p2 = cv.CreateMat(3, 4, cv.CV_64F)
+        q = cv.CreateMat(4, 4, cv.CV_64F)
 
         print "Running stereo rectification..."
 
-        (leftroi, rightroi) = cv.StereoRectify(CM1, CM2, D1, D2, win_size, R,
-                                               T, R1, R2, P1, P2, Q)
+        (leftroi, rightroi) = cv.StereoRectify(cm1, cm2, d1, d2, win_size, r,
+                                               t, r1, r2, p1, p2, q)
         roi = []
         roi.append(max(leftroi[0], rightroi[0]))
         roi.append(max(leftroi[1], rightroi[1]))
         roi.append(min(leftroi[2], rightroi[2]))
         roi.append(min(leftroi[3], rightroi[3]))
         print "Done."
-        return R1, R2, P1, P2, Q, roi
+        return r1, r2, p1, p2, q, roi
 
     def get_images_undistort(self, img_left, img_right, calibration,
                              rectification, win_size=(352, 288)):
@@ -2747,8 +2747,8 @@ class StereoCamera(object):
         """
         img_left = img_left.get_matrix()
         img_right = img_right.get_matrix()
-        (CM1, CM2, D1, D2, R, T, E, F) = calibration
-        (R1, R2, P1, P2, Q, roi) = rectification
+        (cm1, cm2, d1, d2, r, t, e, f) = calibration
+        (r1, r2, p1, p2, q, roi) = rectification
 
         dst1 = cv.CloneMat(img_left)
         dst2 = cv.CloneMat(img_right)
@@ -2758,8 +2758,8 @@ class StereoCamera(object):
         map2y = cv.CreateMat(win_size[1], win_size[0], cv.CV_32FC1)
 
         #print "Rectifying images..."
-        cv.InitUndistortRectifyMap(CM1, D1, R1, P1, map1x, map1y)
-        cv.InitUndistortRectifyMap(CM2, D2, R2, P2, map2x, map2y)
+        cv.InitUndistortRectifyMap(cm1, d1, r1, p1, map1x, map1y)
+        cv.InitUndistortRectifyMap(cm2, d2, r2, p2, map2x, map2y)
 
         cv.Remap(img_left, dst1, map1x, map1y)
         cv.Remap(img_right, dst2, map2x, map2y)
@@ -3154,10 +3154,10 @@ class AVTCamera(FrameSource):
 
     class AVTFrame(ct.Structure):
         _fields_ = [
-            ("ImageBuffer", ct.POINTER(ct.c_char)),
-            ("ImageBufferSize", ct.c_ulong),
-            ("AncillaryBuffer", ct.c_int),
-            ("AncillaryBufferSize", ct.c_int),
+            ("image_buffer", ct.POINTER(ct.c_char)),
+            ("image_buffer_size", ct.c_ulong),
+            ("ancillary_buffer", ct.c_int),
+            ("ancillary_buffer_size", ct.c_int),
             ("Context", ct.c_int * 4),
             ("_reserved1", ct.c_ulong * 8),
 
@@ -3178,10 +3178,10 @@ class AVTCamera(FrameSource):
         ]
 
         def __init__(self, buffersize):
-            self.ImageBuffer = ct.create_string_buffer(buffersize)
-            self.ImageBufferSize = ct.c_ulong(buffersize)
-            self.AncillaryBuffer = 0
-            self.AncillaryBufferSize = 0
+            self.image_buffer = ct.create_string_buffer(buffersize)
+            self.image_buffer_size = ct.c_ulong(buffersize)
+            self.ancillary_buffer = 0
+            self.ancillary_buffer_size = 0
             self.img = None
             #self.hasImage = False
             self.frame = None
@@ -3464,7 +3464,7 @@ class AVTCamera(FrameSource):
             frame = self._get_frame()
             img = Image(pil.fromstring(
                 self.imgformat, (self.width, self.height),
-                frame.ImageBuffer[:int(frame.ImageBufferSize)]))
+                frame.image_buffer[:int(frame.image_buffer_size)]))
             self.run_command("AcquisitionStop")
 
         return img
