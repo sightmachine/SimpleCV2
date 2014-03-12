@@ -2,7 +2,7 @@ import numpy as np
 
 
 # FIXME: No docs
-class ConfusionMatrix():
+class ConfusionMatrix(object):
 
     def __init__(self, classlist):
         self.classlist = classlist

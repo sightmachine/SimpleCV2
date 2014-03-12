@@ -9,7 +9,7 @@ from simplecv.image_class import ImageSet
 from simplecv.linescan import LineScan
 
 
-class TemporalColorTracker:
+class TemporalColorTracker(object):
     """
     **SUMMARY**
 

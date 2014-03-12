@@ -85,7 +85,7 @@ for i in range(10):
 classifierSVMP.save('PolySVM.pkl')
 print('Reloading from file')
 testSVM = SVMClassifier.load('PolySVM.pkl')
-#testSVM.setFeatureExtractors(extractors)
+#testSVM.set_feature_extractors(extractors)
 files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
     img = Image(files[i])
@@ -124,7 +124,7 @@ for i in range(10):
 classifierSVMRBF.save('RBFSVM.pkl')
 print('Reloading from file')
 testSVMRBF = SVMClassifier.load('RBFSVM.pkl')
-#testSVMRBF.setFeatureExtractors(extractors)
+#testSVMRBF.set_feature_extractors(extractors)
 files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
     img = Image(files[i])
@@ -150,7 +150,7 @@ for i in range(10):
 classifierBayes.save('Bayes.pkl')
 print('Reloading from file')
 testBayes = NaiveBayesClassifier.load('Bayes.pkl')
-testBayes.setFeatureExtractors(extractors)
+testBayes.set_feature_extractors(extractors)
 files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
     img = Image(files[i])
@@ -179,7 +179,7 @@ for i in range(10):
 classifierForest.save('forest.pkl')
 print('Reloading from file')
 testForest = TreeClassifier.load('forest.pkl')
-testForest.setFeatureExtractors(extractors)
+testForest.set_feature_extractors(extractors)
 files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
     img = Image(files[i])
@@ -205,7 +205,7 @@ for i in range(10):
 classifierBagTree.save('bagtree.pkl')
 print('Reloading from file')
 testBagTree = TreeClassifier.load('bagtree.pkl')
-testBagTree.setFeatureExtractors(extractors)
+testBagTree.set_feature_extractors(extractors)
 files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
     img = Image(files[i])
@@ -232,7 +232,7 @@ for i in range(10):
 print('Reloading from file')
 classifierTree.save('tree.pkl')
 testTree = TreeClassifier.load('tree.pkl')
-testTree.setFeatureExtractors(extractors)
+testTree.set_feature_extractors(extractors)
 for i in range(10):
     img = Image(files[i])
     cname = testTree.classify(img)
@@ -258,7 +258,7 @@ classifierBTree.save('btree.pkl')
 print('Reloading from file')
 
 testBoostTree = TreeClassifier.load('btree.pkl')
-testBoostTree.setFeatureExtractors(extractors)
+testBoostTree.set_feature_extractors(extractors)
 files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
     img = Image(files[i])
@@ -287,7 +287,7 @@ for i in range(10):
 classifierKNN.save('knn.pkl')
 print('Reloading from file')
 testKNN = KNNClassifier.load('knn.pkl')
-testKNN.setFeatureExtractors(extractors)
+testKNN.set_feature_extractors(extractors)
 files = glob.glob( os.path.join(path[0], '*.jpg'))
 for i in range(10):
     img = Image(files[i])
