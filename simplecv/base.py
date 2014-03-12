@@ -1,56 +1,14 @@
-#!/usr/bin/python
-
-# SimpleCV system includes
-import os
-import sys
-import warnings
-import time
-import socket
-import re
-import urllib2
-import types
-import SocketServer
-import threading
-import tempfile
-import zipfile
-import pickle
-import glob  # for directory scanning
-import abc  # abstract base class
-import colorsys
+from pickle import IntType, LongType, FloatType
 import logging
-import pygame as pg
-import scipy.ndimage as ndimage
-import scipy.stats.stats as sss  # for auto white balance
-import scipy.cluster.vq as scv
-import scipy.linalg as nla  # for linear algebra / least squares
-import math  # math... who does that
-import copy  # for deep copy
-import numpy as np
-import scipy.spatial.distance as spsd
-import scipy.cluster.vq as cluster  # for kmeans
-import pygame as pg
+import os
 import platform
-import copy
-import types
-import time
-import itertools  # for track
+import sys
+import tempfile
+import urllib2
+import zipfile
 
-from numpy import linspace
-from scipy.interpolate import UnivariateSpline
-from warnings import warn
-from copy import copy
-from math import *
-from pkg_resources import load_entry_point
-from SimpleHTTPServer import SimpleHTTPRequestHandler
-from types import IntType, LongType, FloatType, InstanceType
-from cStringIO import StringIO
-from numpy import int32
-from numpy import uint8
-from exif import *
-from pygame import gfxdraw
-from pickle import *
+import numpy as np
 
-# SimpleCV library includes
 try:
     import cv2.cv as cv
 except ImportError:
@@ -61,10 +19,10 @@ except ImportError:
                           "simplecv")
 
 
-#optional libraries
+# optional libraries
 PIL_ENABLED = True
 try:
-    from PIL import Image as pil
+    from PIL import Image as PilImage
     from PIL import ImageFont as pilImageFont
     from PIL import ImageDraw as pilImageDraw
     from PIL import GifImagePlugin
@@ -73,35 +31,35 @@ try:
     getdata = GifImagePlugin.getdata
 except ImportError:
     try:
-        import Image as pil
+        import Image as PilImage
         from GifImagePlugin import getheader, getdata
     except ImportError:
         PIL_ENABLED = False
 
-FREENECT_ENABLED = True
-try:
-    import freenect
-except ImportError:
-    FREENECT_ENABLED = False
+# FREENECT_ENABLED = True
+# try:
+#     import freenect
+# except ImportError:
+#     FREENECT_ENABLED = False
 
-ZXING_ENABLED = True
-try:
-    import zxing
-except ImportError:
-    ZXING_ENABLED = False
+# ZXING_ENABLED = True
+# try:
+#     import zxing
+# except ImportError:
+#     ZXING_ENABLED = False
+#
+# OCR_ENABLED = True
+# try:
+#     import tesseract
+# except ImportError:
+#     OCR_ENABLED = False
 
-OCR_ENABLED = True
-try:
-    import tesseract
-except ImportError:
-    OCR_ENABLED = False
-
-PYSCREENSHOT_ENABLED = True
-try:
-    import pyscreenshot
-except ImportError:
-    PYSCREENSHOT_ENABLED = False
-
+# PYSCREENSHOT_ENABLED = True
+# try:
+#     import pyscreenshot
+# except ImportError:
+#     PYSCREENSHOT_ENABLED = False
+#
 ORANGE_ENABLED = True
 try:
     try:
@@ -180,19 +138,19 @@ def test():
     print 'unit test'
 
 
-def download_and_extract(URL):
+def download_and_extract(url):
     """
-    This function takes in a URL for a zip file, extracts it and returns
+    This function takes in a url for a zip file, extracts it and returns
     the temporary path it was extracted to
     """
-    if URL is None:
-        logger.warning("Please provide URL")
+    if url is None:
+        logger.warning("Please provide url")
         return None
 
     tmpdir = tempfile.mkdtemp()
-    filename = os.path.basename(URL)
+    filename = os.path.basename(url)
     path = tmpdir + "/" + filename
-    zdata = urllib2.urlopen(URL)
+    zdata = urllib2.urlopen(url)
 
     print "Saving file to disk please wait...."
     with open(path, "wb") as local_file:
@@ -216,40 +174,40 @@ def int_to_bin(i):
     return chr(i1) + chr(i2)
 
 
-def npArray2cvMat(inputMat, dataType=cv.CV_32FC1):
+def nparray_to_cvmat(input_mat, data_type=cv.CV_32FC1):
     """
     This function is a utility for converting numpy arrays to
     the cv.cvMat format.
 
     Returns: cvMatrix
     """
-    if isinstance(inputMat, np.ndarray):
-        sz = len(inputMat.shape)
+    if isinstance(input_mat, np.ndarray):
+        sz = len(input_mat.shape)
         temp_mat = None
-        if dataType == cv.CV_32FC1 or dataType == cv.CV_32FC2 \
-                or dataType == cv.CV_32FC3 or dataType == cv.CV_32FC4:
-            temp_mat = np.array(inputMat, dtype='float32')
-        elif dataType == cv.CV_8UC1 or dataType == cv.CV_8UC2 \
-                or dataType == cv.CV_8UC3 or dataType == cv.CV_8UC3:
-            temp_mat = np.array(inputMat, dtype='uint8')
+        if data_type == cv.CV_32FC1 or data_type == cv.CV_32FC2 \
+                or data_type == cv.CV_32FC3 or data_type == cv.CV_32FC4:
+            temp_mat = np.array(input_mat, dtype='float32')
+        elif data_type == cv.CV_8UC1 or data_type == cv.CV_8UC2 \
+                or data_type == cv.CV_8UC3 or data_type == cv.CV_8UC3:
+            temp_mat = np.array(input_mat, dtype='uint8')
         else:
             logger.warning("MatrixConversionUtil: the input matrix type is "
                            "not supported")
             return None
         if sz == 1:  # this needs to be changed so we can do row/col vectors
-            retVal = cv.CreateMat(inputMat.shape[0], 1, dataType)
-            cv.SetData(retVal, temp_mat.tostring(),
+            ret_val = cv.CreateMat(input_mat.shape[0], 1, data_type)
+            cv.SetData(ret_val, temp_mat.tostring(),
                        temp_mat.dtype.itemsize * temp_mat.shape[0])
         elif sz == 2:
-            retVal = cv.CreateMat(temp_mat.shape[0], temp_mat.shape[1],
-                                  dataType)
-            cv.SetData(retVal, temp_mat.tostring(),
+            ret_val = cv.CreateMat(temp_mat.shape[0], temp_mat.shape[1],
+                                   data_type)
+            cv.SetData(ret_val, temp_mat.tostring(),
                        temp_mat.dtype.itemsize * temp_mat.shape[1])
         elif sz > 2:
             logger.warning("MatrixConversionUtil: the input matrix type is "
                            "not supported")
             return None
-        return retVal
+        return ret_val
     else:
         logger.warning("MatrixConversionUtil: the input matrix type is "
                        "not supported")
@@ -272,20 +230,20 @@ except ImportError:
 
 #This is used with sys.excepthook to log all uncaught exceptions.
 #By default, error messages ARE print to stderr.
-def exception_handler(excType, excValue, traceback):
-    logger.error("", exc_info=(excType, excValue, traceback))
+def exception_handler(exc_type, exc_value, traceback):
+    logger.error("", exc_info=(exc_type, exc_value, traceback))
 
-    #print "Hey!",excValue
-    #excValue has the most important info about the error.
+    #print "Hey!",exc_value
+    #exc_value has the most important info about the error.
     #It'd be possible to display only that and hide all the (unfriendly) rest.
 
 
 sys.excepthook = exception_handler
 
 
-def ipython_exception_handler(shell, excType, excValue, traceback,
+def ipython_exception_handler(shell, exc_type, exc_value, traceback,
                               tb_offset=0):
-    logger.error("", exc_info=(excType, excValue, traceback))
+    logger.error("", exc_info=(exc_type, exc_value, traceback))
 
 
 #The two following functions are used internally.
@@ -358,10 +316,10 @@ def set_logging(log_level, myfilename=None):
     level = read_logging_level(log_level)
 
     if level and myfilename:
-        fileHandler = logging.FileHandler(filename=myfilename)
-        fileHandler.setLevel(level)
-        fileHandler.setFormatter(formatter)
-        logger.addHandler(fileHandler)
+        file_handler = logging.FileHandler(filename=myfilename)
+        file_handler.setLevel(level)
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
         logger.removeHandler(consoleHandler)  # Console logging is disabled.
         print "Now logging to", myfilename, "with level", log_level
     elif level:
@@ -407,7 +365,7 @@ def system():
         except ImportError:
             print "Open CV2 version : " + "2.1"
         if PIL_ENABLED:
-            print "PIL version : ", pil.VERSION
+            print "PIL version : ", PilImage.VERSION
         else:
             print "PIL module not installed"
         if ORANGE_ENABLED:

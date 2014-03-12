@@ -14,9 +14,8 @@ import urllib2
 import warnings
 
 from numpy import int32
+from cv2 import cv
 from numpy import uint8
-from PIL import Image as pil
-from PIL.GifImagePlugin import getheader, getdata
 import cv2
 import numpy as np
 import scipy.cluster.vq as scv
@@ -25,8 +24,8 @@ import scipy.ndimage as ndimage
 import scipy.spatial.distance as spsd
 import scipy.stats.stats as sss  # for auto white balance
 
-from simplecv.base import (init_options_handler, cv, logger, PIL_ENABLED,
-                           npArray2cvMat, is_number, is_tuple, int_to_bin,
+from simplecv.base import (init_options_handler, logger, nparray_to_cvmat,
+                           is_number, is_tuple, int_to_bin,
                            IMAGE_FORMATS, LAUNCH_PATH, MAX_DIMENSION)
 from simplecv.color import Color, ColorCurve
 from simplecv.display import Display
@@ -44,6 +43,19 @@ from simplecv.tracking.track_set import TrackSet
 
 if not init_options_handler.headless:
     import pygame as pg
+
+PIL_ENABLED = True
+try:
+    from PIL import Image as PilImage
+    from PIL import ImageFont as pilImageFont
+    from PIL import ImageDraw as pilImageDraw
+    from PIL.GifImagePlugin import getheader, getdata
+except ImportError:
+    try:
+        import Image as PilImage
+        from GifImagePlugin import getheader, getdata
+    except ImportError:
+        PIL_ENABLED = False
 
 OCR_ENABLED = True
 try:
@@ -414,7 +426,7 @@ class ImageSet(list):
         converted = []
 
         for img in self:
-            if not isinstance(img, pil.Image):
+            if not isinstance(img, PilImage.Image):
                 pil_img = img.get_pil()
             else:
                 pil_img = img
@@ -572,7 +584,7 @@ class ImageSet(list):
         elif not os.path.isfile(filename):
             return
 
-        pil_img = pil.open(filename)
+        pil_img = PilImage.open(filename)
         pil_img.seek(0)
 
         pil_images = []
@@ -1020,14 +1032,14 @@ class Image:
             #return None
 
             im = StringIO(img_file.read())
-            source = pil.open(im).convert("RGB")
+            source = PilImage.open(im).convert("RGB")
 
         #Check if loaded from base64 URI
         if isinstance(source, basestring) \
                 and (source.lower().startswith("data:image/png;base64,")):
             img = source[22:].decode("base64")
             im = StringIO(img)
-            source = pil.open(im).convert("RGB")
+            source = PilImage.open(im).convert("RGB")
 
         #This section loads custom built-in images
         if isinstance(source, basestring):
@@ -1138,7 +1150,7 @@ class Image:
                 try:
                     if source.__class__.__name__ == 'StringIO':
                         source.seek(0)  # set the stringIO to the begining
-                    self._pil = pil.open(source)
+                    self._pil = PilImage.open(source)
                     self._bitmap = cv.CreateImageHeader(self._pil.size,
                                                         cv.IPL_DEPTH_8U, 3)
                 except:
@@ -1153,7 +1165,7 @@ class Image:
 
                     WEBP_IMAGE_DATA = bytearray(file(source, "rb").read())
                     result = webmDecode.DecodeRGB(WEBP_IMAGE_DATA)
-                    webpImage = pil.frombuffer(
+                    webpImage = PilImage.frombuffer(
                         "RGB", (result.width, result.height),
                         str(result.bitmap),
                         "raw", "RGB", 0, 1
@@ -1171,7 +1183,7 @@ class Image:
                     self._bitmap = cv.LoadImage(self.filename,
                                                 iscolor=cv.CV_LOAD_IMAGE_COLOR)
                 except:
-                    self._pil = pil.open(self.filename).convert("RGB")
+                    self._pil = PilImage.open(self.filename).convert("RGB")
                     self._bitmap = cv.CreateImageHeader(self._pil.size,
                                                         cv.IPL_DEPTH_8U, 3)
                     cv.SetData(self._bitmap, self._pil.tostring())
@@ -2007,7 +2019,7 @@ class Image:
         if not self._pil:
             rgbbitmap = self.get_empty()
             cv.CvtColor(self.get_bitmap(), rgbbitmap, cv.CV_BGR2RGB)
-            self._pil = pil.fromstring("RGB", self.size(),
+            self._pil = PilImage.fromstring("RGB", self.size(),
                                        rgbbitmap.tostring())
         return self._pil
 
@@ -5737,7 +5749,7 @@ class Image:
         """
         retVal = self.get_empty()
         if type(rotMatrix) == np.ndarray:
-            rotMatrix = npArray2cvMat(rotMatrix)
+            rotMatrix = nparray_to_cvmat(rotMatrix)
         cv.WarpAffine(self.get_bitmap(), retVal, rotMatrix)
         return Image(retVal, colorSpace=self._colorSpace)
 
@@ -5840,7 +5852,7 @@ class Image:
         except:
             retVal = self.get_empty()
             if isinstance(rotMatrix, np.ndarray):
-                rotMatrix = npArray2cvMat(rotMatrix)
+                rotMatrix = nparray_to_cvmat(rotMatrix)
             cv.WarpPerspective(self.get_bitmap(), retVal, rotMatrix)
             return Image(retVal, colorSpace=self._colorSpace)
 
@@ -14226,7 +14238,7 @@ class Image:
             logger.warning("stepic library required")
             return None
         warnings.simplefilter("ignore")
-        pilImg = pil.frombuffer("RGB", self.size(), self.to_string())
+        pilImg = PilImage.frombuffer("RGB", self.size(), self.to_string())
         stepic.encode_inplace(pilImg, message)
         retVal = Image(pilImg)
         return retVal.flip_vertical()
@@ -14269,7 +14281,7 @@ class Image:
             logger.warning("stepic library required")
             return None
         warnings.simplefilter("ignore")
-        pilImg = pil.frombuffer("RGB", self.size(), self.to_string())
+        pilImg = PilImage.frombuffer("RGB", self.size(), self.to_string())
         result = stepic.decode(pilImg)
         return result
 

@@ -1,10 +1,11 @@
 # SimpleCV Stream Library
 #
 # This library is used for drawing and text rendering
-
-import pygame as pg
-import svgwrite
 from numpy import ones, uint8
+import pygame as pg
+from pygame import gfxdraw
+import svgwrite
+
 from simplecv.color import Color
 
 #DOCS

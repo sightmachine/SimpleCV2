@@ -4,9 +4,9 @@
 
 import pickle
 
+from cv2 import cv
 import numpy as np
 
-from simplecv.base import cv
 from simplecv.camera import FrameSource
 from simplecv.color import Color, ColorCurve
 from simplecv.color_model import ColorModel

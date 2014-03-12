@@ -1,10 +1,10 @@
 # SimpleCV DFT Library
 #
 # This library is used to crate DFT filters
+import warnings
 
 from numpy import arange, clip, dstack, exp, meshgrid, ogrid, ones, sqrt, zeros
 
-from simplecv.base import warnings
 from simplecv.image_class import Image
 
 

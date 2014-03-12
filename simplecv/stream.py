@@ -7,7 +7,8 @@ import SocketServer
 import threading
 import time
 
-from simplecv.base import cv
+from cv2 import cv
+
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 
 

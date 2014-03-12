@@ -19,7 +19,7 @@ import tempfile
 import numpy as np
 from nose.tools import with_setup, nottest
 
-from simplecv.base import cv, logger, npArray2cvMat
+from simplecv.base import cv, logger, nparray_to_cvmat
 from simplecv.color import Color, ColorCurve, ColorMap
 from simplecv.color_model import ColorModel
 from simplecv.camera import FrameSource
@@ -2842,13 +2842,13 @@ def test_nparray2cvmat():
     gf32 = np.array(gray, dtype='float32')
     gf64 = np.array(gray, dtype='float64')
 
-    a = npArray2cvMat(gray)
-    b = npArray2cvMat(gf32)
-    c = npArray2cvMat(gf64)
+    a = nparray_to_cvmat(gray)
+    b = nparray_to_cvmat(gf32)
+    c = nparray_to_cvmat(gf64)
 
-    a = npArray2cvMat(gray, cv.CV_8UC1)
-    b = npArray2cvMat(gf32, cv.CV_8UC1)
-    c = npArray2cvMat(gf64, cv.CV_8UC1)
+    a = nparray_to_cvmat(gray, cv.CV_8UC1)
+    b = nparray_to_cvmat(gf32, cv.CV_8UC1)
+    c = nparray_to_cvmat(gf64, cv.CV_8UC1)
 
 
 def test_minrect_blobs():

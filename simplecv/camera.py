@@ -1,21 +1,25 @@
-# SimpleCV Cameras & Devices Library
-#
-# This library is used managing input from different cameras.
+'''
+SimpleCV Cameras & Devices Library
 
+This library is used managing input from different cameras.
+'''
+from collections import deque
+from cStringIO import StringIO
+from types import InstanceType
 import os
 import re
-import time
 import subprocess
+import tempfile
 import threading
+import time
 import urllib2
 import warnings
-import tempfile
 
 import ctypes as ct
 import cv2
+from cv2 import cv
 import numpy as np
-from collections import deque
-from types import InstanceType
+import pygame as pg
 
 FREENECT_ENABLED = True
 try:
@@ -41,12 +45,21 @@ try:
 except ImportError:
     ARAVIS_ENABLED = False
 
-from simplecv.base import cv, pg, logger, SYSTEM, PIL_ENABLED, StringIO, \
-    npArray2cvMat
 
-if PIL_ENABLED:
-    from simplecv.base import pil
+PIL_ENABLED = True
+try:
+    from PIL import Image as PilImage
+    from PIL import ImageFont as pilImageFont
+    from PIL import ImageDraw as pilImageDraw
+    from PIL.GifImagePlugin import getheader, getdata
+except ImportError:
+    try:
+        import Image as PilImage
+        from GifImagePlugin import getheader, getdata
+    except ImportError:
+        PIL_ENABLED = False
 
+from simplecv.base import logger, SYSTEM, nparray_to_cvmat
 from simplecv.color import Color
 from simplecv.display import Display
 from simplecv.image_class import Image, ImageSet, ColorSpace
@@ -1345,7 +1358,8 @@ class JpegStreamCamera(FrameSource):
                 time.sleep(0.1)
 
         self.capture_time = self.cam_thread.get_thread_capture_time()
-        return Image(pil.open(StringIO(self.cam_thread.current_frame)), self)
+        return Image(PilImage.open(StringIO(self.cam_thread.current_frame)),
+                     self)
 
 
 _SANE_INIT = False
@@ -2118,7 +2132,7 @@ class StereoImage(object):
         pt_cvmat[0, 0] = (point[1], point[0])
         line = cv.CreateMat(1, 1, cv.CV_32FC3)
         cv.ComputeCorrespondEpilines(pt_cvmat, which_image,
-                                     npArray2cvMat(fnd_mat), line)
+                                     nparray_to_cvmat(fnd_mat), line)
         line_np_array = np.array(line).squeeze()
         line_np_array = line_np_array[[1.00, 0, 2]]
         pts1 = (pts1[0], (-line_np_array[2] - line_np_array[0] * pts1[0])
@@ -2884,7 +2898,7 @@ class AVTCameraThread(threading.Thread):
             frame = self.camera._get_frame(1000)
 
             if frame:
-                img = Image(pil.fromstring(
+                img = Image(PilImage.fromstring(
                     self.camera.imgformat,
                     (self.camera.width, self.camera.height),
                     frame.ImageBuffer[:int(frame.ImageBufferSize)]))
@@ -3462,7 +3476,7 @@ class AVTCamera(FrameSource):
         else:
             self.run_command("AcquisitionStart")
             frame = self._get_frame()
-            img = Image(pil.fromstring(
+            img = Image(PilImage.fromstring(
                 self.imgformat, (self.width, self.height),
                 frame.image_buffer[:int(frame.image_buffer_size)]))
             self.run_command("AcquisitionStop")
@@ -3478,7 +3492,7 @@ class AVTCamera(FrameSource):
         self.set_property('FrameStartTriggerMode', 'FreeRun')
 
     def unbuffer(self):
-        img = Image(pil.fromstring(
+        img = Image(PilImage.fromstring(
             self.imgformat, (self.width, self.height),
             self.frame.ImageBuffer[:int(self.frame.ImageBufferSize)]))
 
