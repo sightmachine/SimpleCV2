@@ -11,54 +11,39 @@ class MOGSegmentation(SegmentationBase):
     the background.
 
     history - length of the pixel history to be stored
-    nMixtures - number of gaussian distributions to be stored per pixel
-    backgroundRatio - chance of a pixel being included into the background
-     model
-    noiseSigma - noise amount
-    learning rate - higher learning rate means the system will adapt faster to
+    mixtures - number of gaussian distributions to be stored per pixel
+    bg_ratio - chance of a pixel being included into the background model
+    noise_sigma - noise amount
+    learningrate - higher learning rate means the system will adapt faster to
      new backgrounds
     """
 
-    mError = False
-    mDiffImg = None
-    mColorImg = None
-    mReady = False
-
-    # OpenCV default parameters
-    history = 200
-    nMixtures = 5
-    backgroundRatio = 0.7
-    noiseSigma = 15
-    learningRate = 0.7
-    bsMOG = None
-
-    def __init__(self, history=200, nMixtures=5, backgroundRatio=0.7,
-                 noiseSigma=15, learningRate=0.7):
+    def __init__(self, history=200, mixtures=5, bg_ratio=0.7,
+                 noise_sigma=15, learningrate=0.7):
 
         try:
             import cv2
         except ImportError:
             raise ImportError("Cannot load OpenCV library which is required "
-                              "by SimpleCV")
-            return
+                              "by simplecv")
+
         if not hasattr(cv2, 'BackgroundSubtractorMOG'):
             raise ImportError("A newer version of OpenCV is needed")
-            return
 
-        self.mError = False
-        self.mReady = False
-        self.mDiffImg = None
-        self.mColorImg = None
-        self.mBlobMaker = BlobMaker()
+        self.error = False
+        self.ready = False
+        self.diff_img = None
+        self.color_img = None
+        self.blobmaker = BlobMaker()
 
         self.history = history
-        self.nMixtures = nMixtures
-        self.backgroundRatio = backgroundRatio
-        self.noiseSigma = noiseSigma
-        self.learningRate = learningRate
+        self.mixtures = mixtures
+        self.bg_ratio = bg_ratio
+        self.noise_sigma = noise_sigma
+        self.learning_rate = learningrate
 
-        self.mBSMOG = cv2.BackgroundSubtractorMOG(history, nMixtures,
-                                                  backgroundRatio, noiseSigma)
+        self.bs_mog = cv2.BackgroundSubtractorMOG(history, mixtures,
+                                                  bg_ratio, noise_sigma)
 
     def add_image(self, img):
         """
@@ -67,17 +52,17 @@ class MOGSegmentation(SegmentationBase):
         if img is None:
             return
 
-        self.mColorImg = img
-        self.mDiffImg = Image(
-            self.mBSMOG.apply(img.get_numpy_cv2(), None, self.learningRate),
+        self.color_img = img
+        self.diff_img = Image(
+            self.bs_mog.apply(img.get_numpy_cv2(), None, self.learning_rate),
             cv2image=True)
-        self.mReady = True
+        self.ready = True
 
     def is_ready(self):
         """
         Returns true if the camera has a segmented image ready.
         """
-        return self.mReady
+        return self.ready
 
     def is_error(self):
         """
@@ -85,53 +70,52 @@ class MOGSegmentation(SegmentationBase):
         Eventually we'll consruct a syntax of errors so this becomes
         more expressive
         """
-        return self.mError  # need to make a generic error checker
+        return self.error  # need to make a generic error checker
 
     def reset_error(self):
         """
         Clear the previous error.
         """
-        self.mError = False
+        self.error = False
 
     def reset(self):
         """
         Perform a reset of the segmentation systems underlying data.
         """
-        self.mModelImg = None
-        self.mDiffImg = None
+        self.diff_img = None
 
     def get_raw_image(self):
         """
         Return the segmented image with white representing the foreground
         and black the background.
         """
-        return self.mDiffImg
+        return self.diff_img
 
     def get_segmented_image(self, white_fg=True):
         """
         Return the segmented image with white representing the foreground
         and black the background.
         """
-        return self.mDiffImg
+        return self.diff_img
 
     def get_segmented_blobs(self):
         """
         return the segmented blobs from the fg/bg image
         """
-        retVal = []
-        if self.mColorImg is not None and self.mDiffImg is not None:
-            retVal = self.mBlobMaker.extractFromBinary(self.mDiffImg,
-                                                       self.mColorImg)
-        return retVal
+        ret_val = []
+        if self.color_img is not None and self.diff_img is not None:
+            ret_val = self.blobmaker.extractFromBinary(self.diff_img,
+                                                       self.color_img)
+        return ret_val
 
     def __getstate__(self):
         mydict = self.__dict__.copy()
-        self.mBlobMaker = None
-        self.mDiffImg = None
+        self.blobmaker = None
+        self.diff_img = None
         del mydict['blobmaker']
-        del mydict['mDiffImg']
+        del mydict['diff_img']
         return mydict
 
     def __setstate__(self, mydict):
         self.__dict__ = mydict
-        self.mBlobMaker = BlobMaker()
+        self.blobmaker = BlobMaker()
