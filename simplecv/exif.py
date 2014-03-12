@@ -1221,7 +1221,7 @@ class Ratio:
 
 
 # for ease of dealing with tags
-class IFD_Tag:
+class IfdTag:
     def __init__(self, printable, tag, field_type, values, field_offset,
                  field_length):
         # printable version of data
@@ -1248,7 +1248,7 @@ class IFD_Tag:
 
 
 # class that handles an EXIF header
-class EXIF_header:
+class ExifHeader:
     def __init__(self, file, endian, offset, fake_exif, strict, debug=0):
         self.file = file
         self.endian = endian
@@ -1288,25 +1288,25 @@ class EXIF_header:
         return s
 
     # return first IFD
-    def first_IFD(self):
+    def first_ifd(self):
         return self.s2n(4, 4)
 
     # return pointer to next IFD
-    def next_IFD(self, ifd):
+    def next_ifd(self, ifd):
         entries = self.s2n(ifd, 2)
         return self.s2n(ifd + 2 + 12 * entries, 4)
 
     # return list of IFDs in header
-    def list_IFDs(self):
-        i = self.first_IFD()
+    def list_ifds(self):
+        i = self.first_ifd()
         a = []
         while i:
             a.append(i)
-            i = self.next_IFD(i)
+            i = self.next_ifd(i)
         return a
 
     # return list of entries in this IFD
-    def dump_IFD(self, ifd, ifd_name, dict=EXIF_TAGS, relative=0,
+    def dump_ifd(self, ifd, ifd_name, dict=EXIF_TAGS, relative=0,
                  stop_tag='UNDEF'):
         entries = self.s2n(ifd, 2)
         for i in range(entries):
@@ -1418,11 +1418,11 @@ class EXIF_header:
                                 # use lookup table for this tag
                                 printable += tag_entry[1].get(i, repr(i))
 
-                self.tags[ifd_name + ' ' + tag_name] = IFD_Tag(printable, tag,
-                                                               field_type,
-                                                               values,
-                                                               field_offset,
-                                                               count * typelen)
+                self.tags[ifd_name + ' ' + tag_name] = IfdTag(printable, tag,
+                                                              field_type,
+                                                              values,
+                                                              field_offset,
+                                                              count * typelen)
                 if self.debug:
                     print ' debug:   %s: %s' % \
                           (tag_name,
@@ -1434,7 +1434,7 @@ class EXIF_header:
     # extract uncompressed TIFF thumbnail (like pulling teeth)
     # we take advantage of the pre-existing layout in the thumbnail IFD as
     # much as possible
-    def extract_TIFF_thumbnail(self, thumb_ifd):
+    def extract_tiff_thumbnail(self, thumb_ifd):
         entries = self.s2n(thumb_ifd, 2)
         # this is header plus offset to IFD ...
         if self.endian == 'M':
@@ -1527,7 +1527,7 @@ class EXIF_header:
             if note.values[0:7] == [78, 105, 107, 111, 110, 0, 1]:
                 if self.debug:
                     print "Looks like a type 1 Nikon MakerNote."
-                self.dump_IFD(note.field_offset + 8, 'MakerNote',
+                self.dump_ifd(note.field_offset + 8, 'MakerNote',
                               dict=MAKERNOTE_NIKON_OLDER_TAGS)
             elif note.values[0:7] == [78, 105, 107, 111, 110, 0, 2]:
                 if self.debug:
@@ -1536,19 +1536,19 @@ class EXIF_header:
                         note.values[12:14] != [42L, 0L]:
                     raise ValueError("Missing marker tag '42' in MakerNote.")
                 # skip the Makernote label and the TIFF header
-                self.dump_IFD(note.field_offset + 10 + 8, 'MakerNote',
+                self.dump_ifd(note.field_offset + 10 + 8, 'MakerNote',
                               dict=MAKERNOTE_NIKON_NEWER_TAGS, relative=1)
             else:
                 # E99x or D1
                 if self.debug:
                     print "Looks like an unlabeled type 2 Nikon MakerNote"
-                self.dump_IFD(note.field_offset, 'MakerNote',
+                self.dump_ifd(note.field_offset, 'MakerNote',
                               dict=MAKERNOTE_NIKON_NEWER_TAGS)
             return
 
         # Olympus
         if make.startswith('OLYMPUS'):
-            self.dump_IFD(note.field_offset + 8, 'MakerNote',
+            self.dump_ifd(note.field_offset + 8, 'MakerNote',
                           dict=MAKERNOTE_OLYMPUS_TAGS)
             # XXX TODO
             #for i in (('MakerNote Tag 0x2020',
@@ -1558,7 +1558,7 @@ class EXIF_header:
 
         # Casio
         if 'CASIO' in make or 'Casio' in make:
-            self.dump_IFD(note.field_offset, 'MakerNote',
+            self.dump_ifd(note.field_offset, 'MakerNote',
                           dict=MAKERNOTE_CASIO_TAGS)
             return
 
@@ -1573,7 +1573,7 @@ class EXIF_header:
             offset = self.offset
             self.offset += note.field_offset
             # process note with bogus values (note is actually at offset 12)
-            self.dump_IFD(12, 'MakerNote', dict=MAKERNOTE_FUJIFILM_TAGS)
+            self.dump_ifd(12, 'MakerNote', dict=MAKERNOTE_FUJIFILM_TAGS)
             # reset to correct values
             self.endian = endian
             self.offset = offset
@@ -1581,7 +1581,7 @@ class EXIF_header:
 
         # Canon
         if make == 'Canon':
-            self.dump_IFD(note.field_offset, 'MakerNote',
+            self.dump_ifd(note.field_offset, 'MakerNote',
                           dict=MAKERNOTE_CANON_TAGS)
             for i in (('MakerNote Tag 0x0001', MAKERNOTE_CANON_TAG_0x001),
                       ('MakerNote Tag 0x0004', MAKERNOTE_CANON_TAG_0x004)):
@@ -1606,8 +1606,8 @@ class EXIF_header:
                 val = value[i]
             # it's not a real IFD Tag but we fake one to make everybody
             # happy. this will have a "proprietary" type
-            self.tags['MakerNote ' + name] = IFD_Tag(str(val), None, 0, None,
-                                                     None, None)
+            self.tags['MakerNote ' + name] = IfdTag(str(val), None, 0, None,
+                                                    None, None)
 
 
 # process an image file (expects an open file object)
@@ -1652,47 +1652,47 @@ def process_file(f, stop_tag='UNDEF', details=True, strict=False, debug=False):
     # deal with the EXIF info we found
     if debug:
         print {'I': 'Intel', 'M': 'Motorola'}[endian], 'format'
-    hdr = EXIF_header(f, endian, offset, fake_exif, strict, debug)
-    ifd_list = hdr.list_IFDs()
+    hdr = ExifHeader(f, endian, offset, fake_exif, strict, debug)
+    ifd_list = hdr.list_ifds()
     ctr = 0
     for i in ifd_list:
         if ctr == 0:
-            IFD_name = 'Image'
+            ifd_name = 'Image'
         elif ctr == 1:
-            IFD_name = 'Thumbnail'
+            ifd_name = 'Thumbnail'
             thumb_ifd = i
         else:
-            IFD_name = 'IFD %d' % ctr
+            ifd_name = 'IFD %d' % ctr
         if debug:
-            print ' IFD %d (%s) at offset %d:' % (ctr, IFD_name, i)
-        hdr.dump_IFD(i, IFD_name, stop_tag=stop_tag)
+            print ' IFD %d (%s) at offset %d:' % (ctr, ifd_name, i)
+        hdr.dump_ifd(i, ifd_name, stop_tag=stop_tag)
         # EXIF IFD
-        exif_off = hdr.tags.get(IFD_name + ' ExifOffset')
+        exif_off = hdr.tags.get(ifd_name + ' ExifOffset')
         if exif_off:
             if debug:
                 print ' EXIF SubIFD at offset %d:' % exif_off.values[0]
-            hdr.dump_IFD(exif_off.values[0], 'EXIF', stop_tag=stop_tag)
+            hdr.dump_ifd(exif_off.values[0], 'EXIF', stop_tag=stop_tag)
             # Interoperability IFD contained in EXIF IFD
             intr_off = hdr.tags.get('EXIF SubIFD InteroperabilityOffset')
             if intr_off:
                 if debug:
                     print ' EXIF Interoperability SubSubIFD at offset %d:' \
                           % intr_off.values[0]
-                hdr.dump_IFD(intr_off.values[0], 'EXIF Interoperability',
+                hdr.dump_ifd(intr_off.values[0], 'EXIF Interoperability',
                              dict=INTR_TAGS, stop_tag=stop_tag)
         # GPS IFD
-        gps_off = hdr.tags.get(IFD_name + ' GPSInfo')
+        gps_off = hdr.tags.get(ifd_name + ' GPSInfo')
         if gps_off:
             if debug:
                 print ' GPS SubIFD at offset %d:' % gps_off.values[0]
-            hdr.dump_IFD(gps_off.values[0], 'GPS', dict=GPS_TAGS,
+            hdr.dump_ifd(gps_off.values[0], 'GPS', dict=GPS_TAGS,
                          stop_tag=stop_tag)
         ctr += 1
 
     # extract uncompressed TIFF thumbnail
     thumb = hdr.tags.get('Thumbnail Compression')
     if thumb and thumb.printable == 'Uncompressed TIFF':
-        hdr.extract_TIFF_thumbnail(thumb_ifd)
+        hdr.extract_tiff_thumbnail(thumb_ifd)
 
     # JPEG thumbnail (thankfully the JPEG data is stored as a unit)
     thumb_off = hdr.tags.get('Thumbnail JPEGInterchangeFormat')
