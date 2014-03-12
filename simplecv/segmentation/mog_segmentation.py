@@ -14,12 +14,11 @@ class MOGSegmentation(SegmentationBase):
     mixtures - number of gaussian distributions to be stored per pixel
     bg_ratio - chance of a pixel being included into the background model
     noise_sigma - noise amount
-    learningrate - higher learning rate means the system will adapt faster to
+    learning_rate - higher learning rate means the system will adapt faster to
      new backgrounds
     """
 
-    def __init__(self, history=200, mixtures=5, bg_ratio=0.7,
-                 noise_sigma=15, learningrate=0.7):
+    def __init__(self, **kwargs):
 
         try:
             import cv2
@@ -36,14 +35,15 @@ class MOGSegmentation(SegmentationBase):
         self.color_img = None
         self.blobmaker = BlobMaker()
 
-        self.history = history
-        self.mixtures = mixtures
-        self.bg_ratio = bg_ratio
-        self.noise_sigma = noise_sigma
-        self.learning_rate = learningrate
+        self.history = kwargs.get('history', 200)
+        self.mixtures = kwargs.get('mixtures', 5)
+        self.bg_ratio = kwargs.get('bg_ratio', 0.7)
+        self.noise_sigma = kwargs.get('noise_sigma', 15)
+        self.learning_rate = kwargs.get('learning_rate', 0.7)
 
-        self.bs_mog = cv2.BackgroundSubtractorMOG(history, mixtures,
-                                                  bg_ratio, noise_sigma)
+        self.bs_mog = cv2.BackgroundSubtractorMOG(self.history, self.mixtures,
+                                                  self.bg_ratio,
+                                                  self.noise_sigma)
 
     def add_image(self, img):
         """

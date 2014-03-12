@@ -27,9 +27,9 @@ class DiffSegmentation(SegmentationBase):
 
     """
 
-    def __init__(self, grayonly=False, threshold=(10, 10, 10)):
-        self.grayonly_mode = grayonly
-        self.threshold = threshold
+    def __init__(self, **kwargs):
+        self.grayonly_mode = kwargs.get('grayonly', False)
+        self.threshold = kwargs.get('threshold', (10, 10, 10))
         self.error = False
         self.curr_img = None
         self.last_img = None

@@ -3,7 +3,7 @@ from simplecv.color import Color
 from simplecv.segmentation.mog_segmentation import MOGSegmentation
 
 mog = MOGSegmentation(history=200, mixtures=5, bg_ratio=0.3, noise_sigma=16,
-                      learningrate=0.3)
+                      learning_rate=0.3)
 
 cam = Camera()
 

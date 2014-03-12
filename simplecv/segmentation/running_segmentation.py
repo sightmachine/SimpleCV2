@@ -13,18 +13,18 @@ class RunningSegmentation(SegmentationBase):
     accumulator = ((1-alpha)input_image)+((alpha)accumulator)
     """
 
-    def __init__(self, alpha=0.7, thresh=(20, 20, 20)):
+    def __init__(self, **kwargs):
         """
         Create an running background difference.
         alpha - the update weighting where:
         accumulator = ((1-alpha)input_image)+((alpha)accumulator)
 
-        threshold - the foreground background difference threshold.
+        thresh - the foreground background difference threshold.
         """
         self.error = False
         self.ready = False
-        self.alpha = alpha
-        self.thresh = thresh
+        self.alpha = kwargs.get('alpha', 0.7)
+        self.thresh = kwargs.get('alpha', (20, 20, 20))
         self.model_img = None
         self.diff_img = None
         self.color_img = None
