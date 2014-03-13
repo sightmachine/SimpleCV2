@@ -10,14 +10,11 @@
 # that all the correct test per operation exist
 
 import os
-import sys
 import pickle
-import operator
 from math import sqrt
 import tempfile
 
 import numpy as np
-from nose.tools import with_setup, nottest
 
 from simplecv.base import cv, logger, nparray_to_cvmat
 from simplecv.color import Color, ColorCurve, ColorMap
@@ -86,7 +83,7 @@ standard_path = "../data/test/standard/"
 
 
 #Given a set of images, a path, and a tolerance do the image diff.
-def imgDiffs(test_imgs, name_stem, tolerance, path):
+def img_diffs(test_imgs, name_stem, tolerance, path):
     count = len(test_imgs)
     for idx in range(0, count):
         lhs = test_imgs[idx].apply_layers()  # this catches drawing methods
@@ -102,7 +99,7 @@ def imgDiffs(test_imgs, name_stem, tolerance, path):
 
 
 #Save a list of images to a standard path.
-def imgSaves(test_imgs, name_stem, path=standard_path):
+def img_saves(test_imgs, name_stem, path=standard_path):
     count = len(test_imgs)
     for idx in range(0, count):
         fname = standard_path + name_stem + str(idx) + ".jpg"
@@ -112,9 +109,9 @@ def imgSaves(test_imgs, name_stem, path=standard_path):
 #perform the actual image save and image diffs.
 def perform_diff(result, name_stem, tolerance=3.0, path=standard_path):
     if VISUAL_TEST:  # save the correct images for a visual test
-        imgSaves(result, name_stem, path)
+        img_saves(result, name_stem, path)
     else:  # otherwise we test our output against the visual test
-        if imgDiffs(result, name_stem, tolerance, path):
+        if img_diffs(result, name_stem, tolerance, path):
             assert False
         else:
             pass
@@ -131,16 +128,6 @@ def test_image_stretch():
     perform_diff(result, name_stem)
 
 
-#These function names are required by nose test, please leave them as is
-def setup_context():
-    img = Image(testimage)
-
-
-def destroy_context():
-    img = ""
-
-
-@with_setup(setup_context, destroy_context)
 def test_image_loadsave():
     img = Image(testimage)
     img.save(testoutput)
@@ -199,8 +186,6 @@ def test_image_copy():
     name_stem = "test_image_copy"
     perform_diff(result, name_stem)
 
-    pass
-
 
 def test_image_getitem():
     img = Image(testimage)
@@ -247,14 +232,14 @@ def test_image_setslice():
     perform_diff(result, name_stem)
 
 
-def test_detection_findCorners():
+def test_detection_find_corners():
     img = Image(testimage2)
     corners = img.find_corners(25)
     corners.draw()
     if len(corners) == 0:
         assert False
     result = [img]
-    name_stem = "test_detection_findCorners"
+    name_stem = "test_detection_find_corners"
     perform_diff(result, name_stem)
 
 
@@ -295,7 +280,6 @@ def test_color_meancolor():
     h, l, s = img.mean_color('HLS')
     if not (84 < h < 85 and 117 < l < 118 and 160 < s < 161):
         assert False
-    pass
 
 
 def test_image_smooth():
@@ -312,10 +296,9 @@ def test_image_smooth():
     result.append(img.smooth('gaussian', (5, 5), 0, grayscale=True))
     name_stem = "test_image_smooth"
     perform_diff(result, name_stem)
-    pass
 
 
-def test_image_gammaCorrect():
+def test_image_gamma_correct():
     img = Image(topImg)
     img2 = img.gamma_correct(1)
     img3 = img.gamma_correct(0.5)
@@ -426,7 +409,6 @@ def test_image_splitchannels():
     result = [r, g, b, red, green, blue]
     name_stem = "test_image_splitchannels"
     perform_diff(result, name_stem)
-    pass
 
 
 def test_image_histogram():
@@ -436,8 +418,6 @@ def test_image_histogram():
     for i in h:
         if type(i) != int:
             assert False
-
-    pass
 
 
 def test_detection_lines():
@@ -488,7 +468,6 @@ def test_detection_feature_measures():
     fs4 = fs.sort_color_distance()
     fs5 = fs.sort_area()
     fs1 = fs.sort_distance()
-    pass
 
 
 def test_detection_blobs_appx():
@@ -596,23 +575,21 @@ def test_detection_barcode():
         result = [img1, img2]
         name_stem = "test_detection_barcode"
         perform_diff(result, name_stem)
-    else:
-        pass
 
 
 def test_detection_x():
-    tmpX = Image(testimage).find_lines().x()[0]
+    tmp_x = Image(testimage).find_lines().x()[0]
 
-    if tmpX > 0 and Image(testimage).size()[0]:
+    if tmp_x > 0 and Image(testimage).size()[0]:
         pass
     else:
         assert False
 
 
 def test_detection_y():
-    tmpY = Image(testimage).find_lines().y()[0]
+    tmp_y = Image(testimage).find_lines().y()[0]
 
-    if tmpY > 0 and Image(testimage).size()[0]:
+    if tmp_y > 0 and Image(testimage).size()[0]:
         pass
     else:
         assert False
@@ -661,8 +638,6 @@ def test_color_colordistance():
     if c1.color_distance((255, 255, 255)) != sqrt(255 ** 2 * 3):
         assert False
 
-    pass
-
 
 def test_detection_length():
     img = Image(testimage)
@@ -674,8 +649,6 @@ def test_detection_length():
         assert False
     if len(val) < 0:
         assert False
-
-    pass
 
 
 def test_detection_sortangle():
@@ -696,7 +669,7 @@ def test_detection_sortarea():
     # FIXME: Find blobs may appear to be broken. Returning type none
 
 
-def test_detection_sortLength():
+def test_detection_sort_length():
     img = Image(testimage)
     val = img.find_lines().sort_length()
     # FIXME: Length is being returned as euclidean type,
@@ -708,13 +681,13 @@ def test_detection_sortLength():
 #def test_sortDistance():
 
 def test_image_add():
-    imgA = Image(blackimage)
-    imgB = Image(whiteimage)
+    img_a = Image(blackimage)
+    img_b = Image(whiteimage)
+    img_c = img_a + img_b
+    # FIXME: add assertion
 
-    imgC = imgA + imgB
 
-
-def test_color_curve_HSL():
+def test_color_curve_hsl():
     # These are the weights
     y = np.array([[0, 0], [64, 128], [192, 128], [255, 255]])
     curve = ColorCurve(y)
@@ -723,7 +696,7 @@ def test_color_curve_HSL():
     img3 = img - img2
 
     result = [img2, img3]
-    name_stem = "test_color_curve_HLS"
+    name_stem = "test_color_curve_hsl"
     perform_diff(result, name_stem)
 
     c = img3.mean_color()
@@ -732,7 +705,7 @@ def test_color_curve_HSL():
         assert False
 
 
-def test_color_curve_RGB():
+def test_color_curve_rgb():
     # These are the weights
     y = np.array([[0, 0], [64, 128], [192, 128], [255, 255]])
     curve = ColorCurve(y)
@@ -741,7 +714,7 @@ def test_color_curve_RGB():
     img3 = img - img2
 
     result = [img2, img3]
-    name_stem = "test_color_curve_RGB"
+    name_stem = "test_color_curve_rgb"
     perform_diff(result, name_stem)
 
     c = img3.mean_color()
@@ -750,7 +723,7 @@ def test_color_curve_RGB():
         assert False
 
 
-def test_color_curve_GRAY():
+def test_color_curve_gray():
     # These are the weights
     y = np.array([[0, 0], [64, 128], [192, 128], [255, 255]])
     curve = ColorCurve(y)
@@ -759,7 +732,7 @@ def test_color_curve_GRAY():
     img2 = img.apply_intensity_curve(curve)
 
     result = [img2]
-    name_stem = "test_color_curve_GRAY"
+    name_stem = "test_color_curve_gray"
     perform_diff(result, name_stem)
 
     g = gray.mean_color()
@@ -908,12 +881,12 @@ def test_image_affine():
     src = ((0, 0), (img.width - 1, 0), (img.width - 1, img.height - 1))
     dst = ((img.width / 2, 0), (img.width - 1, img.height / 2),
            (img.width / 2, img.height - 1))
-    aWarp = cv.CreateMat(2, 3, cv.CV_32FC1)
-    cv.GetAffineTransform(src, dst, aWarp)
-    atrans = img.transform_affine(aWarp)
+    a_warp = cv.CreateMat(2, 3, cv.CV_32FC1)
+    cv.GetAffineTransform(src, dst, a_warp)
+    atrans = img.transform_affine(a_warp)
 
-    aWarp2 = np.array(aWarp)
-    atrans2 = img.transform_affine(aWarp2)
+    a_warp2 = np.array(a_warp)
+    atrans2 = img.transform_affine(a_warp2)
 
     test = atrans - atrans2
     c = test.mean_color()
@@ -935,11 +908,11 @@ def test_image_perspective():
            (img.width * 0.9, img.height * 0.1),
            (img.width * 0.8, img.height * 0.7),
            (img.width * 0.2, img.height * 0.9))
-    pWarp = cv.CreateMat(3, 3, cv.CV_32FC1)
-    cv.GetPerspectiveTransform(src, dst, pWarp)
-    ptrans = img.transform_perspective(pWarp)
-    pWarp2 = np.array(pWarp)
-    ptrans2 = img.transform_perspective(pWarp2)
+    p_warp = cv.CreateMat(3, 3, cv.CV_32FC1)
+    cv.GetPerspectiveTransform(src, dst, p_warp)
+    ptrans = img.transform_perspective(p_warp)
+    p_warp2 = np.array(p_warp)
+    ptrans2 = img.transform_perspective(p_warp2)
     test = ptrans - ptrans2
     np_test = test.get_numpy()
     mc = test.mean_color()
@@ -997,7 +970,7 @@ def test_image_get_gray_pixel():
 
 
 def test_camera_calibration():
-    fakeCamera = FrameSource()
+    fake_camera = FrameSource()
     path = "../data/sampleimages/CalibImage"
     ext = ".png"
     imgs = []
@@ -1006,24 +979,24 @@ def test_camera_calibration():
         img = Image(fname)
         imgs.append(img)
 
-    fakeCamera.calibrate(imgs)
+    fake_camera.calibrate(imgs)
     #we're just going to check that the function doesn't puke
-    mat = fakeCamera.get_camera_matrix()
+    mat = fake_camera.get_camera_matrix()
     if not isinstance(mat, cv.cvmat):
         assert False
     #we're also going to test load in save in the same pass
     matname = "TestCalibration"
-    if False == fakeCamera.save_calibration(matname):
+    if False == fake_camera.save_calibration(matname):
         assert False
-    if False == fakeCamera.load_calibration(matname):
+    if False == fake_camera.load_calibration(matname):
         assert False
 
 
 def test_camera_undistort():
-    fakeCamera = FrameSource()
-    fakeCamera.load_calibration("../data/test/StereoVision/Default")
+    fake_camera = FrameSource()
+    fake_camera.load_calibration("../data/test/StereoVision/Default")
     img = Image("../data/sampleimages/CalibImage0.png")
-    img2 = fakeCamera.undistort(img)
+    img2 = fake_camera.undistort(img)
 
     results = [img2]
     name_stem = "test_camera_undistort"
@@ -1116,58 +1089,58 @@ def test_image_region_select():
 
 
 def test_image_subtract():
-    imgA = Image(logo)
-    imgB = Image(logo_inverted)
-    imgC = imgA - imgB
-    results = [imgC]
+    img_a = Image(logo)
+    img_b = Image(logo_inverted)
+    img_c = img_a - img_b
+    results = [img_c]
     name_stem = "test_image_subtract"
     perform_diff(results, name_stem)
 
 
 def test_image_negative():
-    imgA = Image(logo)
-    imgB = -imgA
-    results = [imgB]
+    img_a = Image(logo)
+    img_b = -img_a
+    results = [img_b]
     name_stem = "test_image_negative"
     perform_diff(results, name_stem)
 
 
 def test_image_divide():
-    imgA = Image(logo)
-    imgB = Image(logo_inverted)
+    img_a = Image(logo)
+    img_b = Image(logo_inverted)
 
-    imgC = imgA / imgB
+    img_c = img_a / img_b
 
-    results = [imgC]
+    results = [img_c]
     name_stem = "test_image_divide"
     perform_diff(results, name_stem)
 
 
 def test_image_and():
-    imgA = Image(barcode)
-    imgB = imgA.invert()
+    img_a = Image(barcode)
+    img_b = img_a.invert()
 
-    imgC = imgA & imgB  # should be all black
+    img_c = img_a & img_b  # should be all black
 
-    results = [imgC]
+    results = [img_c]
     name_stem = "test_image_and"
     perform_diff(results, name_stem)
 
 
 def test_image_or():
-    imgA = Image(barcode)
-    imgB = imgA.invert()
+    img_a = Image(barcode)
+    img_b = img_a.invert()
 
-    imgC = imgA | imgB  # should be all white
+    img_c = img_a | img_b  # should be all white
 
-    results = [imgC]
+    results = [img_c]
     name_stem = "test_image_or"
     perform_diff(results, name_stem)
 
 
 def test_image_edgemap():
-    imgA = Image(logo)
-    imgB = imgA._get_edge_map()
+    img_a = Image(logo)
+    img_b = img_a._get_edge_map()
     #results = [imgB]
     #name_stem = "test_image_edgemap"
     #perform_diff(results,name_stem)
@@ -1217,41 +1190,35 @@ def test_color_colormap_build():
 
 
 def test_feature_get_height():
-    imgA = Image(logo)
-    lines = imgA.find_lines(1)
+    img_a = Image(logo)
+    lines = img_a.find_lines(1)
     heights = lines.get_height()
 
     if len(heights) <= 0:
         assert False
-    else:
-        pass
 
 
 def test_feature_get_width():
-    imgA = Image(logo)
-    lines = imgA.find_lines(1)
+    img_a = Image(logo)
+    lines = img_a.find_lines(1)
     widths = lines.get_width()
 
     if len(widths) <= 0:
         assert False
-    else:
-        pass
 
 
 def test_feature_crop():
-    imgA = Image(logo)
+    img_a = Image(logo)
 
-    lines = imgA.find_lines()
+    lines = img_a.find_lines()
 
-    croppedImages = lines.crop()
+    cropped_images = lines.crop()
 
-    if len(croppedImages) <= 0:
+    if len(cropped_images) <= 0:
         assert False
-    else:
-        pass
 
 
-def test_color_conversion_func_BGR():
+def test_color_conversion_func_bgr():
     #we'll just go through the space to make sure nothing blows up
     img = Image(testimage)
     results = []
@@ -1269,11 +1236,11 @@ def test_color_conversion_func_BGR():
     results.append(bgr.to_hsv())
     results.append(bgr.to_xyz())
 
-    name_stem = "test_color_conversion_func_BGR"
+    name_stem = "test_color_conversion_func_bgr"
     perform_diff(results, name_stem, tolerance=4.0)
 
 
-def test_color_conversion_func_RGB():
+def test_color_conversion_func_rgb():
     img = Image(testimage)
     if not img.is_bgr():
         assert False
@@ -1300,7 +1267,7 @@ def test_color_conversion_func_RGB():
         assert False
 
 
-def test_color_conversion_func_HSV():
+def test_color_conversion_func_hsv():
     img = Image(testimage)
     hsv = img.to_hsv()
     results = [hsv]
@@ -1309,11 +1276,11 @@ def test_color_conversion_func_HSV():
     results.append(hsv.to_hls())
     results.append(hsv.to_hsv())
     results.append(hsv.to_xyz())
-    name_stem = "test_color_conversion_func_HSV"
+    name_stem = "test_color_conversion_func_hsv"
     perform_diff(results, name_stem, tolerance=4.0)
 
 
-def test_color_conversion_func_HLS():
+def test_color_conversion_func_hls():
     img = Image(testimage)
 
     hls = img.to_hls()
@@ -1325,11 +1292,11 @@ def test_color_conversion_func_HLS():
     results.append(hls.to_hsv())
     results.append(hls.to_xyz())
 
-    name_stem = "test_color_conversion_func_HLS"
+    name_stem = "test_color_conversion_func_hls"
     perform_diff(results, name_stem, tolerance=4.0)
 
 
-def test_color_conversion_func_XYZ():
+def test_color_conversion_func_xyz():
     img = Image(testimage)
 
     xyz = img.to_xyz()
@@ -1340,7 +1307,7 @@ def test_color_conversion_func_XYZ():
     results.append(xyz.to_hsv())
     results.append(xyz.to_xyz())
 
-    name_stem = "test_color_conversion_func_XYZ"
+    name_stem = "test_color_conversion_func_xyz"
     perform_diff(results, name_stem, tolerance=8.0)
 
 
@@ -1437,7 +1404,7 @@ def test_blob_methods():
     img = Image("../data/sampleimages/blockhead.png")
     blobber = BlobMaker()
     blobs = blobber.extract(img)
-    BL = (img.width, img.height)
+    bl = (img.width, img.height)
     first = blobs[0]
     for b in blobs:
         b.get_width()
@@ -1496,8 +1463,6 @@ def test_detection_ocr():
     print foundtext
     if len(foundtext) <= 1:
         assert False
-    else:
-        pass
 
 
 def test_template_match():
@@ -1509,8 +1474,6 @@ def test_template_match():
     results = [source]
     name_stem = "test_template_match"
     perform_diff(results, name_stem)
-
-    pass
 
 
 def test_template_match_once():
@@ -1530,7 +1493,7 @@ def test_template_match_once():
         assert False
 
 
-def test_template_match_RGB():
+def test_template_match_rgb():
     source = Image("../data/sampleimages/templatetest.png")
     template = Image("../data/sampleimages/template.png")
     t = 2
@@ -1539,8 +1502,6 @@ def test_template_match_RGB():
     results = [source]
     name_stem = "test_template_match"
     perform_diff(results, name_stem)
-
-    pass
 
 
 def test_image_intergralimage():
@@ -1560,8 +1521,6 @@ def test_segmentation_diff():
     blobs = segmentor.get_segmented_blobs()
     if blobs is None:
         assert False
-    else:
-        pass
 
 
 def test_segmentation_running():
@@ -1573,8 +1532,6 @@ def test_segmentation_running():
     blobs = segmentor.get_segmented_blobs()
     if blobs is None:
         assert False
-    else:
-        pass
 
 
 def test_segmentation_color():
@@ -1586,8 +1543,6 @@ def test_segmentation_color():
     blobs = segmentor.get_segmented_blobs()
     if blobs is None:
         assert False
-    else:
-        pass
 
 
 def test_embiggen():
@@ -1613,10 +1568,8 @@ def test_embiggen():
     name_stem = "test_embiggen"
     perform_diff(results, name_stem)
 
-    pass
 
-
-def test_createBinaryMask():
+def test_create_binary_mask():
     img2 = Image(logo)
     results = []
     results.append(
@@ -1626,39 +1579,34 @@ def test_createBinaryMask():
     results.append(
         img2.create_binary_mask(color1=(0, 0, 128), color2=(255, 255, 255)))
 
-    name_stem = "test_createBinaryMask"
+    name_stem = "test_create_binary_mask"
     perform_diff(results, name_stem)
 
-    pass
 
-
-def test_applyBinaryMask():
+def test_apply_binary_mask():
     img = Image(logo)
     mask = img.create_binary_mask(color1=(0, 128, 128), color2=(255, 255, 255))
     results = []
     results.append(img.apply_binary_mask(mask))
     results.append(img.apply_binary_mask(mask, bg_color=Color.RED))
 
-    name_stem = "test_applyBinaryMask"
+    name_stem = "test_apply_binary_mask"
     perform_diff(results, name_stem, tolerance=3.0)
 
-    pass
 
-
-def test_applyPixelFunc():
+def test_apply_pixel_func():
     img = Image(logo)
 
-    def myFunc((r, g, b)):
+    def myfunc((r, g, b)):
         return b, g, r
 
-    img = img.apply_pixel_function(myFunc)
-    name_stem = "test_applyPixelFunc"
+    img = img.apply_pixel_function(myfunc)
+    name_stem = "test_apply_pixel_func"
     results = [img]
     perform_diff(results, name_stem)
-    pass
 
 
-def test_applySideBySide():
+def test_apply_side_by_side():
     img = Image(logo)
     img3 = Image(testimage2)
 
@@ -1687,10 +1635,8 @@ def test_applySideBySide():
     results.append(img.side_by_side(img3, side='top', scale=True))
     results.append(img.side_by_side(img3, side='bottom', scale=True))
 
-    name_stem = "test_applySideBySide"
+    name_stem = "test_apply_side_by_side"
     perform_diff(results, name_stem)
-
-    pass
 
 
 def test_resize():
@@ -1711,22 +1657,20 @@ def test_resize():
     if img4.width != w * 2 or img4.height != h * 2:
         assert False
 
-        pass
-
     results = [img2, img3, img4]
     name_stem = "test_resize"
     perform_diff(results, name_stem)
 
 
-def test_createAlphaMask():
-    alphaMask = Image(alphaSrcImg)
-    mask = alphaMask.create_alpha_mask(hue=60)
-    mask2 = alphaMask.create_alpha_mask(hue_lb=59, hue_ub=61)
+def test_create_alpha_mask():
+    alpha_mask = Image(alphaSrcImg)
+    mask = alpha_mask.create_alpha_mask(hue=60)
+    mask2 = alpha_mask.create_alpha_mask(hue_lb=59, hue_ub=61)
     top = Image(topImg)
     bottom = Image(bottomImg)
     bottom = bottom.blit(top, alpha_mask=mask2)
     results = [mask, mask2, bottom]
-    name_stem = "test_createAlphaMask"
+    name_stem = "test_create_alpha_mask"
     perform_diff(results, name_stem)
 
 
@@ -1743,8 +1687,6 @@ def test_blit_regular():
     name_stem = "test_blit_regular"
     perform_diff(results, name_stem)
 
-    pass
-
 
 def test_blit_mask():
     top = Image(topImg)
@@ -1760,8 +1702,6 @@ def test_blit_mask():
     name_stem = "test_blit_mask"
     perform_diff(results, name_stem)
 
-    pass
-
 
 def test_blit_alpha():
     top = Image(topImg)
@@ -1776,25 +1716,21 @@ def test_blit_alpha():
     name_stem = "test_blit_alpha"
     perform_diff(results, name_stem)
 
-    pass
-
 
 def test_blit_alpha_mask():
     top = Image(topImg)
     bottom = Image(bottomImg)
-    aMask = Image(alphaMaskImg)
+    a_mask = Image(alphaMaskImg)
     results = []
 
-    results.append(bottom.blit(top, alpha_mask=aMask))
-    results.append(bottom.blit(top, alpha_mask=aMask, pos=(-10, -10)))
-    results.append(bottom.blit(top, alpha_mask=aMask, pos=(-10, 10)))
-    results.append(bottom.blit(top, alpha_mask=aMask, pos=(10, -10)))
-    results.append(bottom.blit(top, alpha_mask=aMask, pos=(10, 10)))
+    results.append(bottom.blit(top, alpha_mask=a_mask))
+    results.append(bottom.blit(top, alpha_mask=a_mask, pos=(-10, -10)))
+    results.append(bottom.blit(top, alpha_mask=a_mask, pos=(-10, 10)))
+    results.append(bottom.blit(top, alpha_mask=a_mask, pos=(10, -10)))
+    results.append(bottom.blit(top, alpha_mask=a_mask, pos=(10, 10)))
 
     name_stem = "test_blit_alpha_mask"
     perform_diff(results, name_stem)
-
-    pass
 
 
 def test_imageset():
@@ -1815,12 +1751,12 @@ def test_hsv_conversion():
         assert False
 
 
-def test_whiteBalance():
+def test_white_balance():
     img = Image("../data/sampleimages/BadWB2.jpg")
     output = img.white_balance()
     output2 = img.white_balance(method="GrayWorld")
     results = [output, output2]
-    name_stem = "test_whiteBalance"
+    name_stem = "test_white_balance"
     perform_diff(results, name_stem)
 
 
@@ -1854,7 +1790,7 @@ def test_hough_circles():
         assert False
 
 
-def test_drawRectangle():
+def test_draw_rectangle():
     img = Image(testimage2)
     img.draw_rectangle(0, 0, 100, 100, color=Color.BLUE, width=0, alpha=0)
     img.draw_rectangle(1, 1, 100, 100, color=Color.BLUE, width=2, alpha=128)
@@ -1865,36 +1801,32 @@ def test_drawRectangle():
     img.draw_rectangle(5, 5, 100, 100, color=Color.BLUE, width=-1)
 
     results = [img]
-    name_stem = "test_drawRectangle"
+    name_stem = "test_draw_rectangle"
     perform_diff(results, name_stem)
 
-    pass
 
-
-def test_BlobMinRect():
+def test_blob_min_rect():
     img = Image(testimageclr)
     blobs = img.find_blobs()
     for b in blobs:
         b.draw_min_rect(color=Color.BLUE, width=3, alpha=123)
     results = [img]
-    name_stem = "test_BlobMinRect"
+    name_stem = "test_blob_min_rect"
     perform_diff(results, name_stem)
-    pass
 
 
-def test_BlobRect():
+def test_blob_rect():
     img = Image(testimageclr)
     blobs = img.find_blobs()
     for b in blobs:
         b.draw_rect(color=Color.BLUE, width=3, alpha=123)
 
     results = [img]
-    name_stem = "test_BlobRect"
+    name_stem = "test_blob_rect"
     perform_diff(results, name_stem)
-    pass
 
 
-def test_BlobPickle():
+def test_blob_pickle():
     img = Image(testimageclr)
     blobs = img.find_blobs()
     for b in blobs:
@@ -1902,8 +1834,6 @@ def test_BlobPickle():
         ub = pickle.loads(p)
         if (ub.mask - b.mask).mean_color() != Color.BLACK:
             assert False
-
-    pass
 
 
 def test_blob_isa_methods():
@@ -1921,7 +1851,7 @@ def test_blob_isa_methods():
         assert False
 
 
-def test_findKeypoints():
+def test_find_keypoints():
     try:
         import cv2
     except:
@@ -1965,7 +1895,7 @@ def test_findKeypoints():
         else:
             print "Found None."
     results = [img]
-    name_stem = "test_findKeypoints"
+    name_stem = "test_find_keypoints"
     #~ perform_diff(results,name_stem)
 
     pass
@@ -2166,7 +2096,7 @@ def test_repalette():
     #perform_diff(results,name_stem)
 
 
-def test_drawPalette():
+def test_draw_palette():
     # FIXME: Test should have assertion
     img = Image(testimageclr)
     img = img.scale(0.1)  # scale down the image to reduce test time
@@ -2224,7 +2154,7 @@ def test_threshold():
         img.threshold(t)
 
 
-def test_smartThreshold():
+def test_smart_threshold():
     img = Image("../data/sampleimages/RatTop.png")
     mask = Image((img.width, img.height))
     mask.dl().circle((100, 100), 80, color=Color.MAYBE_BACKGROUND, filled=True)
@@ -2235,13 +2165,11 @@ def test_smartThreshold():
     new_mask2 = img.smart_threshold(rect=(30, 30, 150, 185))
 
     results = [new_mask1, new_mask2]
-    name_stem = "test_smartThreshold"
+    name_stem = "test_smart_threshold"
     perform_diff(results, name_stem)
 
-    pass
 
-
-def test_smartFindBlobs():
+def test_smart_find_blobs():
     img = Image("../data/sampleimages/RatTop.png")
     mask = Image((img.width, img.height))
     mask.dl().circle((100, 100), 80, color=Color.MAYBE_BACKGROUND, filled=True)
@@ -2262,10 +2190,8 @@ def test_smartFindBlobs():
             blobs2.draw()
             results.append(img)
 
-    name_stem = "test_smartFindBlobs"
+    name_stem = "test_smart_find_blobs"
     perform_diff(results, name_stem)
-
-    pass
 
 
 def test_image_webp_load():
@@ -2281,8 +2207,6 @@ def test_image_webp_load():
 
         if len(img.to_string()) <= 1:
             assert False
-        else:
-            pass
 
 
 def test_image_webp_save():
@@ -2307,19 +2231,19 @@ def test_detection_spatial_relationships():
     template = img.crop(200, 200, 50, 50)
     motion = img.embiggen((img.width + 10, img.height + 10), pos=(10, 10))
     motion = motion.crop(0, 0, img.width, img.height)
-    blobFS = img.find_blobs()
-    lineFS = img.find_lines()
-    cornFS = img.find_corners()
-    moveFS = img.find_motion(motion)
-    moveFS = FeatureSet(moveFS[42:52])  # l337 s5p33d h4ck - okay not really
-    tempFS = img.find_template(template, threshold=1)
-    aCirc = (img.width / 2, img.height / 2,
-             np.min([img.width / 2, img.height / 2]))
-    aRect = (50, 50, 200, 200)
-    aPoint = (img.width / 2, img.height / 2)
-    aPoly = [(0, 0), (img.width / 2, 0), (0, img.height / 2)]  # a triangle
+    blob_fs = img.find_blobs()
+    line_fs = img.find_lines()
+    corn_fs = img.find_corners()
+    move_fs = img.find_motion(motion)
+    move_fs = FeatureSet(move_fs[42:52])  # l337 s5p33d h4ck - okay not really
+    temp_fs = img.find_template(template, threshold=1)
+    a_circ = (img.width / 2, img.height / 2,
+              np.min([img.width / 2, img.height / 2]))
+    a_rect = (50, 50, 200, 200)
+    a_point = (img.width / 2, img.height / 2)
+    a_poly = [(0, 0), (img.width / 2, 0), (0, img.height / 2)]  # a triangle
 
-    feats = [blobFS, lineFS, cornFS, tempFS, moveFS]
+    feats = [blob_fs, line_fs, corn_fs, temp_fs, move_fs]
 
     for f in feats:
         print str(len(f))
@@ -2339,24 +2263,22 @@ def test_detection_spatial_relationships():
             g.inside(sample)
             g.outside(sample)
 
-            g.inside(aRect)
-            g.outside(aRect)
+            g.inside(a_rect)
+            g.outside(a_rect)
 
-            g.inside(aCirc)
-            g.outside(aCirc)
+            g.inside(a_circ)
+            g.outside(a_circ)
 
-            g.inside(aPoly)
-            g.outside(aPoly)
+            g.inside(a_poly)
+            g.outside(a_poly)
 
-            g.above(aPoint)
-            g.below(aPoint)
-            g.left(aPoint)
-            g.right(aPoint)
-
-    pass
+            g.above(a_point)
+            g.below(a_point)
+            g.left(a_point)
+            g.right(a_point)
 
 
-def test_getEXIFData():
+def test_get_exif_data():
     img = Image("../data/sampleimages/cat.jpg")
     img2 = Image(testimage)
     d1 = img.get_exif_data()
@@ -2384,30 +2306,27 @@ def test_get_raw_dft():
     assert raw3[0].channels == 2
 
 
-def test_getDFTLogMagnitude():
+def test_get_dft_log_magnitude():
     img = Image("../data/sampleimages/RedDog2.jpg")
     lm3 = img.get_dft_log_magnitude()
     lm1 = img.get_dft_log_magnitude(grayscale=True)
 
     results = [lm3, lm1]
-    name_stem = "test_getDFTLogMagnitude"
+    name_stem = "test_get_dft_log_magnitude"
     perform_diff(results, name_stem, tolerance=6.0)
 
-    pass
 
-
-def test_applyDFTFilter():
+def test_apply_dft_filter():
     img = Image("../data/sampleimages/RedDog2.jpg")
     flt = Image("../data/sampleimages/RedDogFlt.png")
     f1 = img.apply_dft_filter(flt)
     f2 = img.apply_dft_filter(flt, grayscale=True)
     results = [f1, f2]
-    name_stem = "test_applyDFTFilter"
+    name_stem = "test_apply_dft_filter"
     perform_diff(results, name_stem)
-    pass
 
 
-def test_highPassFilter():
+def test_high_pass_filter():
     img = Image("../data/sampleimages/RedDog2.jpg")
     a = img.high_pass_filter(0.5)
     b = img.high_pass_filter(0.5, grayscale=True)
@@ -2419,10 +2338,9 @@ def test_highPassFilter():
     results = [a, b, c, d, e, f]
     name_stem = "test_HighPassFilter"
     perform_diff(results, name_stem)
-    pass
 
 
-def test_lowPassFilter():
+def test_low_pass_filter():
     img = Image("../data/sampleimages/RedDog2.jpg")
     a = img.low_pass_filter(0.5)
     b = img.low_pass_filter(0.5, grayscale=True)
@@ -2435,10 +2353,8 @@ def test_lowPassFilter():
     name_stem = "test_LowPassFilter"
     perform_diff(results, name_stem)
 
-    pass
 
-
-def test_DFT_gaussian():
+def test_dft_gaussian():
     img = Image("../data/sampleimages/RedDog2.jpg")
     flt = DFT.create_gaussian_filter(dia=300, size=(300, 300), highpass=False)
     fltimg = img.filter(flt)
@@ -2449,10 +2365,9 @@ def test_DFT_gaussian():
     results = [fltimg, fltimggray, fltimg1, fltimggray1]
     name_stem = "test_DFT_gaussian"
     perform_diff(results, name_stem)
-    pass
 
 
-def test_DFT_butterworth():
+def test_dft_butterworth():
     img = Image("../data/sampleimages/RedDog2.jpg")
     flt = DFT.create_butterworth_filter(dia=300, size=(300, 300), order=3,
                                         highpass=False)
@@ -2465,10 +2380,9 @@ def test_DFT_butterworth():
     results = [fltimg, fltimggray, fltimg1, fltimggray1]
     name_stem = "test_DFT_butterworth"
     perform_diff(results, name_stem)
-    pass
 
 
-def test_DFT_lowpass():
+def test_dft_lowpass():
     img = Image("../data/sampleimages/RedDog2.jpg")
     flt = DFT.create_lowpass_filter(x_cutoff=150, size=(600, 600))
     fltimg = img.filter(flt)
@@ -2476,10 +2390,9 @@ def test_DFT_lowpass():
     results = [fltimg, fltimggray]
     name_stem = "test_DFT_lowpass"
     perform_diff(results, name_stem, 20)
-    pass
 
 
-def test_DFT_highpass():
+def test_dft_highpass():
     img = Image("../data/sampleimages/RedDog2.jpg")
     flt = DFT.create_lowpass_filter(x_cutoff=10, size=(600, 600))
     fltimg = img.filter(flt)
@@ -2487,10 +2400,9 @@ def test_DFT_highpass():
     results = [fltimg, fltimggray]
     name_stem = "test_DFT_highpass"
     perform_diff(results, name_stem, 20)
-    pass
 
 
-def test_DFT_notch():
+def test_dft_notch():
     img = Image("../data/sampleimages/RedDog2.jpg")
     flt = DFT.create_notch_filter(dia1=500, size=(512, 512), ftype="lowpass")
     fltimg = img.filter(flt)
@@ -2503,7 +2415,7 @@ def test_DFT_notch():
     perform_diff(results, name_stem, 20)
 
 
-def test_findHaarFeatures():
+def test_find_haar_features():
     img = Image("../data/sampleimages/orson_welles.jpg")
     face = HaarCascade("face.xml")  # old HaarCascade
     f = img.find_haar_features(face)
@@ -2523,7 +2435,7 @@ def test_findHaarFeatures():
         assert False
 
     results = [img]
-    name_stem = "test_findHaarFeatures"
+    name_stem = "test_find_haar_features"
     perform_diff(results, name_stem)
 
 
@@ -2547,8 +2459,6 @@ def test_biblical_flood_fill():
     name_stem = "test_biblical_flood_fill"
     perform_diff(results, name_stem)
 
-    pass
-
 
 def test_flood_fill_to_mask():
     img = Image(testimage2)
@@ -2564,10 +2474,8 @@ def test_flood_fill_to_mask():
     name_stem = "test_flood_fill_to_mask"
     perform_diff(results, name_stem)
 
-    pass
 
-
-def test_findBlobsFromMask():
+def test_find_blobs_from_mask():
     img = Image(testimage2)
     mask = img.binarize().invert()
     b1 = img.find_blobs_from_mask(mask)
@@ -2576,7 +2484,7 @@ def test_findBlobsFromMask():
     b2.draw()
 
     results = [img]
-    name_stem = "test_findBlobsFromMask"
+    name_stem = "test_find_blobs_from_mask"
     perform_diff(results, name_stem)
 
     if len(b1) == len(b2):
@@ -2585,7 +2493,7 @@ def test_findBlobsFromMask():
         assert False
 
 
-def test_bandPassFilter():
+def test_band_pass_filter():
     img = Image("../data/sampleimages/RedDog2.jpg")
     a = img.band_pass_filter(0.1, 0.3)
     b = img.band_pass_filter(0.1, 0.3, grayscale=True)
@@ -2597,18 +2505,16 @@ def test_bandPassFilter():
                              y_cutoff_low=[0.1, 0.2, 0.3],
                              y_cutoff_high=[0.6, 0.6, 0.6])
     results = [a, b, c, d, e, f]
-    name_stem = "test_bandPassFilter"
+    name_stem = "test_band_pass_filter"
     perform_diff(results, name_stem)
 
 
 def test_image_slice():
     img = Image("../data/sampleimages/blockhead.png")
-    I = img.find_lines()
-    I2 = I[0:10]
-    if type(I2) == list:
+    i = img.find_lines()
+    i2 = i[0:10]
+    if type(i2) == list:
         assert False
-    else:
-        pass
 
 
 def test_blob_spatial_relationships():
@@ -2635,26 +2541,26 @@ def test_blob_spatial_relationships():
     assert center.overlaps(overlap)
     assert overlap.overlaps(center)
 
-    myTuple = (img.width / 2, img.height / 2)
+    my_tuple = (img.width / 2, img.height / 2)
 
-    assert top.above(myTuple)
-    assert bottom.below(myTuple)
-    assert right.right(myTuple)
-    assert left.left(myTuple)
+    assert top.above(my_tuple)
+    assert bottom.below(my_tuple)
+    assert right.right(my_tuple)
+    assert left.left(my_tuple)
 
-    assert top.above(myTuple)
-    assert bottom.below(myTuple)
-    assert right.right(myTuple)
-    assert left.left(myTuple)
-    assert center.contains(myTuple)
+    assert top.above(my_tuple)
+    assert bottom.below(my_tuple)
+    assert right.right(my_tuple)
+    assert left.left(my_tuple)
+    assert center.contains(my_tuple)
 
-    myNPA = np.array([img.width / 2, img.height / 2])
+    my_npa = np.array([img.width / 2, img.height / 2])
 
-    assert top.above(myNPA)
-    assert bottom.below(myNPA)
-    assert right.right(myNPA)
-    assert left.left(myNPA)
-    assert center.contains(myNPA)
+    assert top.above(my_npa)
+    assert bottom.below(my_npa)
+    assert right.right(my_npa)
+    assert left.left(my_npa)
+    assert center.contains(my_npa)
 
     assert center.contains(inside)
 
@@ -2690,7 +2596,6 @@ def test_line_crop():
         results.append(ls.crop())
     name_stem = "test_lineCrop"
     perform_diff(results, name_stem, tolerance=3.0)
-    pass
 
 
 def test_get_corners():
@@ -2752,17 +2657,17 @@ def test_save_kwargs():
 def test_on_edge():
     img1 = "./../data/sampleimages/EdgeTest1.png"
     img2 = "./../data/sampleimages/EdgeTest2.png"
-    imgA = Image(img1)
-    imgB = Image(img2)
-    imgC = Image(img2)
-    imgD = Image(img2)
-    imgE = Image(img2)
+    img_a = Image(img1)
+    img_b = Image(img2)
+    img_c = Image(img2)
+    img_d = Image(img2)
+    img_e = Image(img2)
 
-    blobs = imgA.find_blobs()
-    circs = imgB.find_circle(thresh=200)
-    corners = imgC.find_corners()
-    kp = imgD.find_keypoints()
-    lines = imgE.find_lines()
+    blobs = img_a.find_blobs()
+    circs = img_b.find_circle(thresh=200)
+    corners = img_c.find_corners()
+    kp = img_d.find_keypoints()
+    lines = img_e.find_lines()
 
     rim = blobs.on_image_edge()
     inside = blobs.not_on_image_edge()
@@ -2789,7 +2694,7 @@ def test_on_edge():
     rim.draw(color=Color.RED)
     inside.draw(color=Color.BLUE)
 
-    results = [imgA, imgB, imgC, imgD, imgE]
+    results = [img_a, img_b, img_c, img_d, img_e]
     name_stem = "test_onEdge_Features"
     #~ perform_diff(results,name_stem,tolerance=8.0)
 
@@ -2892,7 +2797,7 @@ def test_pixelize():
     perform_diff(results, name_stem, tolerance=6.0)
 
 
-def test_hueFromRGB():
+def test_hue_from_rgb():
     img = Image("lenna")
     img_hsv = img.to_hsv()
     h, s, r = img_hsv[100, 300]
@@ -2904,7 +2809,7 @@ def test_hueFromRGB():
         assert False
 
 
-def test_hueFromBGR():
+def test_hue_from_bgr():
     img = Image("lenna")
     img_hsv = img.to_hsv()
     h, s, r = img_hsv[150, 400]
@@ -3079,7 +2984,7 @@ def test_point_intersection():
     perform_diff(results, name_stem, tolerance=6.0)
 
 
-def test_findSkintoneBlobs():
+def test_find_skintone_blobs():
     # FIXME: Test should have assertion
     img = Image('../data/sampleimages/04000.jpg')
 
@@ -3097,23 +3002,23 @@ def test_findSkintoneBlobs():
             pass
 
 
-def test_getSkintoneMask():
-    imgSet = []
-    imgSet.append(Image('../data/sampleimages/040000.jpg'))
-    imgSet.append(Image('../data/sampleimages/040001.jpg'))
-    imgSet.append(Image('../data/sampleimages/040002.jpg'))
-    imgSet.append(Image('../data/sampleimages/040003.jpg'))
-    imgSet.append(Image('../data/sampleimages/040004.jpg'))
-    imgSet.append(Image('../data/sampleimages/040005.jpg'))
-    imgSet.append(Image('../data/sampleimages/040006.jpg'))
-    imgSet.append(Image('../data/sampleimages/040007.jpg'))
-    masks = [img.get_skintone_mask() for img in imgSet]
-    VISUAL_TEST = True
+def test_get_skintone_mask():
+    img_set = []
+    img_set.append(Image('../data/sampleimages/040000.jpg'))
+    img_set.append(Image('../data/sampleimages/040001.jpg'))
+    img_set.append(Image('../data/sampleimages/040002.jpg'))
+    img_set.append(Image('../data/sampleimages/040003.jpg'))
+    img_set.append(Image('../data/sampleimages/040004.jpg'))
+    img_set.append(Image('../data/sampleimages/040005.jpg'))
+    img_set.append(Image('../data/sampleimages/040006.jpg'))
+    img_set.append(Image('../data/sampleimages/040007.jpg'))
+    masks = [img.get_skintone_mask() for img in img_set]
+    visual_test = True
     name_stem = 'test_skintone'
     perform_diff(masks, name_stem, tolerance=17)
 
 
-def test_findKeypoints_all():
+def test_find_keypoints_all():
     try:
         import cv2
     except:
@@ -3147,7 +3052,7 @@ def test_findKeypoints_all():
                 k.crop()
             kp.draw()
         results = [img]
-        name_stem = "test_findKeypoints"
+        name_stem = "test_find_keypoints"
         #~ perform_diff(results,name_stem,tolerance=8)
     pass
 
@@ -3256,7 +3161,7 @@ def test_save_to_gif():
     assert saved == len(imgs)
 
 
-def sliceinImageSet():
+def test_sliceing_image_set():
     imgset = ImageSet("../data/sampleimages/")
     imgset = imgset[8::-2]
     if isinstance(imgset, ImageSet):
@@ -3349,9 +3254,9 @@ def test_blob_edge_images():
     m4 = b[-1].get_full_hull_edge_image()
 
 
-def test_LineScan():
+def test_line_scan():
     def lsstuff(ls):
-        def aLine(x, m, b):
+        def a_line(x, m, b):
             return m * x + b
 
         ls2 = ls.smooth(degree=4)
@@ -3366,8 +3271,8 @@ def test_LineScan():
         ls2.local_maxima()
         fft, f = ls2.fft()
         ls3 = ls2.ifft(fft)
-        ls4 = ls3.fit_to_model(aLine)
-        ls4.get_model_parameters(aLine)
+        ls4 = ls3.fit_to_model(a_line)
+        ls4.get_model_parameters(a_line)
 
     img = Image("lenna")
     ls = img.get_line_scan(x=128, channel=1)
@@ -3380,9 +3285,9 @@ def test_LineScan():
 
 def test_uncrop():
     img = Image('lenna')
-    croppedImg = img.crop(10, 20, 250, 500)
-    sourcePts = croppedImg.uncrop([(2, 3), (56, 23), (24, 87)])
-    if sourcePts:
+    cropped_img = img.crop(10, 20, 250, 500)
+    source_pts = cropped_img.uncrop([(2, 3), (56, 23), (24, 87)])
+    if source_pts:
         pass
 
 
@@ -3396,13 +3301,13 @@ def test_grid():
     perform_diff(result, name_stem, 12.0)
 
 
-def test_removeGrid():
+def test_remove_grid():
     img = Image("lenna")
-    gridImage = img.grid()
-    dlayer = gridImage.remove_grid()
+    grid_image = img.grid()
+    dlayer = grid_image.remove_grid()
     if dlayer is None:
         assert False
-    dlayer1 = gridImage.remove_grid()
+    dlayer1 = grid_image.remove_grid()
     if dlayer1 is not None:
         assert False
     pass
@@ -3437,7 +3342,7 @@ def test_line_perp():
         assert False
 
 
-def test_line_imgIntersection():
+def test_line_img_intersection():
     img = Image((512, 512))
     for x in range(200, 400):
         img[x, 200] = (255.0, 255.0, 255.0)
@@ -3448,7 +3353,7 @@ def test_line_imgIntersection():
         assert False
 
 
-def test_line_cropToEdges():
+def test_line_crop_to_edges():
     img = Image((512, 512))
     l = Line(img, ((-10, -5), (400, 400)))
     l_cr = l.crop_to_image_edges()
@@ -3458,7 +3363,7 @@ def test_line_cropToEdges():
         assert False
 
 
-def test_line_extendToEdges():
+def test_line_extend_to_edges():
     img = Image((512, 512))
     l = Line(img, ((10, 10), (30, 30)))
     l_ext = l.extend_to_image_edges()
@@ -3468,7 +3373,7 @@ def test_line_extendToEdges():
         assert False
 
 
-def test_findGridLines():
+def test_find_grid_lines():
     img = Image("simplecv")
     img = img.grid((10, 10), (0, 255, 255))
     lines = img.find_grid_lines()
@@ -3481,7 +3386,7 @@ def test_findGridLines():
         assert False
 
 
-def test_logicalAND():
+def test_logical_and():
     img = Image("lenna")
     img1 = img.logical_and(img.invert())
     if not img1.get_numpy().all():
@@ -3490,7 +3395,7 @@ def test_logicalAND():
         assert False
 
 
-def test_logicalOR():
+def test_logical_or():
     img = Image("lenna")
     img1 = img.logical_or(img.invert())
     if img1.get_numpy().all():
@@ -3499,7 +3404,7 @@ def test_logicalOR():
         assert False
 
 
-def test_logicalNAND():
+def test_logical_nand():
     img = Image("lenna")
     img1 = img.logical_nand(img.invert())
     if img1.get_numpy().all():
@@ -3508,7 +3413,7 @@ def test_logicalNAND():
         assert False
 
 
-def test_logicalXOR():
+def test_logical_xor():
     img = Image("lenna")
     img1 = img.logical_xor(img.invert())
     if img1.get_numpy().all():
@@ -3517,7 +3422,7 @@ def test_logicalXOR():
         assert False
 
 
-def test_matchSIFTKeyPoints():
+def test_match_sift_key_points():
     try:
         import cv2
     except ImportError:
@@ -3538,7 +3443,7 @@ def test_matchSIFTKeyPoints():
         assert False
 
 
-def test_findFeatures():
+def test_find_features():
     img = Image('../data/sampleimages/mtest.png')
     h_features = img.find_features("harris", threshold=500)
     s_features = img.find_features("szeliski", threshold=500)
@@ -3548,7 +3453,7 @@ def test_findFeatures():
         assert False
 
 
-def test_ColorMap():
+def test_color_map():
     img = Image('../data/sampleimages/mtest.png')
     blobs = img.find_blobs()
     cm = ColorMap((Color.RED, Color.YELLOW, Color.BLUE), min(blobs.get_area()),
@@ -3560,7 +3465,7 @@ def test_ColorMap():
     perform_diff(result, name_stem, 1.0)
 
 
-def test_Steganograpy():
+def test_steganograpy():
     img = Image(logo)
     msg = 'How do I SimpleCV?'
     img.stega_encode(msg)
@@ -3574,18 +3479,18 @@ def test_watershed():
     img1 = img.watershed()
     img2 = img.watershed(dilate=3, erode=2)
     img3 = img.watershed(mask=img.threshold(128), erode=1, dilate=1)
-    myMask = Image((img.width, img.height))
-    myMask = myMask.flood_fill((0, 0), color=Color.WATERSHED_BG)
+    my_mask = Image((img.width, img.height))
+    my_mask = my_mask.flood_fill((0, 0), color=Color.WATERSHED_BG)
     mask = img.threshold(128)
-    myMask = (myMask - mask.dilate(2) + mask.erode(2))
-    img4 = img.watershed(mask=myMask, use_my_mask=True)
+    my_mask = (my_mask - mask.dilate(2) + mask.erode(2))
+    img4 = img.watershed(mask=my_mask, use_my_mask=True)
     blobs = img.find_blobs_from_watershed(dilate=3, erode=2)
     blobs = img.find_blobs_from_watershed()
     blobs = img.find_blobs_from_watershed(mask=img.threshold(128), erode=1,
                                           dilate=1)
     blobs = img.find_blobs_from_watershed(mask=img.threshold(128), erode=1,
                                           dilate=1, invert=True)
-    blobs = img.find_blobs_from_watershed(mask=myMask, use_my_mask=True)
+    blobs = img.find_blobs_from_watershed(mask=my_mask, use_my_mask=True)
     result = [img1, img2, img3, img4]
     name_stem = "test_watershed"
     perform_diff(result, name_stem, 3.0)
@@ -3600,7 +3505,7 @@ def test_minmax():
     pass
 
 
-def testROIFeature():
+def test_roi_feature():
     img = Image(testimageclr)
     mask = img.threshold(248).dilate(5)
     blobs = img.find_blobs_from_mask(mask, minsize=1)
@@ -3611,7 +3516,7 @@ def testROIFeature():
     ymax = np.max(y)
     w = xmax - xmin
     h = ymax - ymin
-    roiList = []
+    roi_list = []
 
     def subtest(data, effect):
         broke = False
@@ -3628,22 +3533,22 @@ def testROIFeature():
     broi = ROI(blobs)
     broi2 = ROI(blobs, image=img)
 
-    roiList.append(ROI(x=x, y=y, image=img))
-    roiList.append(ROI(x=list(x), y=list(y), image=img))
-    roiList.append(ROI(x=tuple(x), y=tuple(y), image=img))
-    roiList.append(ROI(zip(x, y), image=img))
-    roiList.append(ROI((xmin, ymin), (xmax, ymax), image=img))
-    roiList.append(ROI(xmin, ymin, w, h, image=img))
-    roiList.append(
+    roi_list.append(ROI(x=x, y=y, image=img))
+    roi_list.append(ROI(x=list(x), y=list(y), image=img))
+    roi_list.append(ROI(x=tuple(x), y=tuple(y), image=img))
+    roi_list.append(ROI(zip(x, y), image=img))
+    roi_list.append(ROI((xmin, ymin), (xmax, ymax), image=img))
+    roi_list.append(ROI(xmin, ymin, w, h, image=img))
+    roi_list.append(
         ROI([(xmin, ymin), (xmax, ymin), (xmax, ymax), (xmin, ymax)],
             image=img))
-    roiList.append(ROI(roiList[0]))
+    roi_list.append(ROI(roi_list[0]))
 
     # test the basics
-    def toXYWH(roi):
+    def to_xywh(roi):
         return roi.to_xywh()
 
-    if subtest(roiList, toXYWH):
+    if subtest(roi_list, to_xywh):
         assert False
     broi.translate(10, 10)
     broi.translate(-10)
@@ -3653,38 +3558,42 @@ def testROIFeature():
     broi.to_unit_xywh()
     broi.to_unit_tl_and_br()
     broi.to_unit_points()
-    roiList[0].crop()
-    newROI = ROI(zip(x, y), image=mask)
-    test = newROI.crop()
+    roi_list[0].crop()
+    new_roi = ROI(zip(x, y), image=mask)
+    test = new_roi.crop()
     xroi, yroi = np.where(test.get_gray_numpy() > 128)
-    roiPts = zip(xroi, yroi)
-    realPts = newROI.coord_transform_pts(roiPts)
-    unitROI = newROI.coord_transform_pts(roiPts, output="ROI_UNIT")
-    unitSRC = newROI.coord_transform_pts(roiPts, output="SRC_UNIT")
-    src1 = newROI.coord_transform_pts(roiPts, intype="SRC_UNIT", output='SRC')
-    src2 = newROI.coord_transform_pts(roiPts, intype="ROI_UNIT", output='SRC')
-    src3 = newROI.coord_transform_pts(roiPts, intype="SRC_UNIT", output='ROI')
-    src4 = newROI.coord_transform_pts(roiPts, intype="ROI_UNIT", output='ROI')
-    fs = newROI.split_x(10)
-    fs = newROI.split_x(.5, unit_vals=True)
+    roi_pts = zip(xroi, yroi)
+    real_pts = new_roi.coord_transform_pts(roi_pts)
+    unit_roi = new_roi.coord_transform_pts(roi_pts, output="ROI_UNIT")
+    unit_src = new_roi.coord_transform_pts(roi_pts, output="SRC_UNIT")
+    src1 = new_roi.coord_transform_pts(roi_pts, intype="SRC_UNIT",
+                                       output='SRC')
+    src2 = new_roi.coord_transform_pts(roi_pts, intype="ROI_UNIT",
+                                       output='SRC')
+    src3 = new_roi.coord_transform_pts(roi_pts, intype="SRC_UNIT",
+                                       output='ROI')
+    src4 = new_roi.coord_transform_pts(roi_pts, intype="ROI_UNIT",
+                                       output='ROI')
+    fs = new_roi.split_x(10)
+    fs = new_roi.split_x(.5, unit_vals=True)
     for f in fs:
         f.draw(color=Color.BLUE)
-    fs = newROI.split_x(newROI.xtl + 10, src_vals=True)
-    xs = newROI.xtl
-    fs = newROI.split_x([10, 20])
-    fs = newROI.split_x([xs + 10, xs + 20, xs + 30], src_vals=True)
-    fs = newROI.split_x([0.3, 0.6, 0.9], unit_vals=True)
-    fs = newROI.split_y(10)
-    fs = newROI.split_y(.5, unit_vals=True)
+    fs = new_roi.split_x(new_roi.xtl + 10, src_vals=True)
+    xs = new_roi.xtl
+    fs = new_roi.split_x([10, 20])
+    fs = new_roi.split_x([xs + 10, xs + 20, xs + 30], src_vals=True)
+    fs = new_roi.split_x([0.3, 0.6, 0.9], unit_vals=True)
+    fs = new_roi.split_y(10)
+    fs = new_roi.split_y(.5, unit_vals=True)
     for f in fs:
         f.draw(color=Color.BLUE)
-    fs = newROI.split_y(newROI.ytl + 30, src_vals=True)
-    testROI = ROI(blobs[0], mask)
+    fs = new_roi.split_y(new_roi.ytl + 30, src_vals=True)
+    test_roi = ROI(blobs[0], mask)
     for b in blobs[1:]:
-        testROI.merge(b)
+        test_roi.merge(b)
 
 
-def test_findKeypointClusters():
+def test_find_keypoint_clusters():
     img = Image('simplecv')
     kpc = img.find_keypoint_clusters()
     if len(kpc) <= 0:
@@ -3693,7 +3602,7 @@ def test_findKeypointClusters():
         pass
 
 
-def test_replaceLineScan():
+def test_replace_line_scan():
     img = Image("lenna")
     ls = img.get_line_scan(x=100)
     ls[50] = 0
@@ -3704,14 +3613,14 @@ def test_replaceLineScan():
         assert False
     ls = img.get_line_scan(x=100, channel=1)
     ls[50] = 0
-    newImg = img.replace_line_scan(ls)
-    if newImg[100, 50][1] == 0:
+    new_img = img.replace_line_scan(ls)
+    if new_img[100, 50][1] == 0:
         pass
     else:
         assert False
 
 
-def test_runningAverage():
+def test_running_average():
     img = Image('lenna')
     ls = img.get_line_scan(y=120)
     ra = ls.running_average(5)
@@ -3721,9 +3630,9 @@ def test_runningAverage():
         assert False
 
 
-def lineScan_perform_diff(oLineScan, pLineScan, func, **kwargs):
-    nLineScan = func(oLineScan, **kwargs)
-    diff = sum([(i - j) for i, j in zip(pLineScan, nLineScan)])
+def line_scan_perform_diff(o_linescan, p_linescan, func, **kwargs):
+    n_linescan = func(o_linescan, **kwargs)
+    diff = sum([(i - j) for i, j in zip(p_linescan, n_linescan)])
     if diff > 10 or diff < -10:
         return False
     return True
@@ -3733,7 +3642,7 @@ def test_linescan_smooth():
     img = Image("lenna")
     l1 = img.get_line_scan(x=60)
     l2 = l1.smooth(degree=7)
-    if lineScan_perform_diff(l1, l2, LineScan.smooth, degree=7):
+    if line_scan_perform_diff(l1, l2, LineScan.smooth, degree=7):
         pass
     else:
         assert False
@@ -3743,7 +3652,7 @@ def test_linescan_normalize():
     img = Image("lenna")
     l1 = img.get_line_scan(x=90)
     l2 = l1.normalize()
-    if lineScan_perform_diff(l1, l2, LineScan.normalize):
+    if line_scan_perform_diff(l1, l2, LineScan.normalize):
         pass
     else:
         assert False
@@ -3753,7 +3662,7 @@ def test_linescan_scale():
     img = Image("lenna")
     l1 = img.get_line_scan(y=90)
     l2 = l1.scale()
-    if lineScan_perform_diff(l1, l2, LineScan.scale):
+    if line_scan_perform_diff(l1, l2, LineScan.scale):
         pass
     else:
         assert False
@@ -3763,7 +3672,7 @@ def test_linescan_derivative():
     img = Image("lenna")
     l1 = img.get_line_scan(y=140)
     l2 = l1.derivative()
-    if lineScan_perform_diff(l1, l2, LineScan.derivative):
+    if line_scan_perform_diff(l1, l2, LineScan.derivative):
         pass
     else:
         assert False
@@ -3773,20 +3682,20 @@ def test_linescan_resample():
     img = Image("lenna")
     l1 = img.get_line_scan(pt1=(300, 300), pt2=(450, 500))
     l2 = l1.resample(n=50)
-    if lineScan_perform_diff(l1, l2, LineScan.resample, n=50):
+    if line_scan_perform_diff(l1, l2, LineScan.resample, n=50):
         pass
     else:
         assert False
 
 
-def test_linescan_fitToModel():
-    def aLine(x, m, b):
+def test_linescan_fit_to_model():
+    def a_line(x, m, b):
         return x * m + b
 
     img = Image("lenna")
     l1 = img.get_line_scan(y=200)
-    l2 = l1.fit_to_model(aLine)
-    if lineScan_perform_diff(l1, l2, LineScan.fit_to_model, f=aLine):
+    l2 = l1.fit_to_model(a_line)
+    if line_scan_perform_diff(l1, l2, LineScan.fit_to_model, f=a_line):
         pass
     else:
         assert False
@@ -3797,7 +3706,7 @@ def test_linescan_convolve():
     img = Image("lenna")
     l1 = img.get_line_scan(x=400)
     l2 = l1.convolve(kernel)
-    if lineScan_perform_diff(l1, l2, LineScan.convolve, kernel=kernel):
+    if line_scan_perform_diff(l1, l2, LineScan.convolve, kernel=kernel):
         pass
     else:
         assert False
@@ -3807,8 +3716,8 @@ def test_linescan_threshold():
     img = Image("lenna")
     l1 = img.get_line_scan(x=350)
     l2 = l1.threshold(threshold=200, invert=True)
-    if lineScan_perform_diff(l1, l2, LineScan.threshold, threshold=200,
-                             invert=True):
+    if line_scan_perform_diff(l1, l2, LineScan.threshold, threshold=200,
+                              invert=True):
         pass
     else:
         assert False
@@ -3818,7 +3727,7 @@ def test_linescan_invert():
     img = Image("lenna")
     l1 = img.get_line_scan(y=200)
     l2 = l1.invert(max=40)
-    if lineScan_perform_diff(l1, l2, LineScan.invert, max=40):
+    if line_scan_perform_diff(l1, l2, LineScan.invert, max=40):
         pass
     else:
         assert False
@@ -3828,17 +3737,17 @@ def test_linescan_median():
     img = Image("lenna")
     l1 = img.get_line_scan(x=120)
     l2 = l1.median(sz=9)
-    if lineScan_perform_diff(l1, l2, LineScan.median, sz=9):
+    if line_scan_perform_diff(l1, l2, LineScan.median, sz=9):
         pass
     else:
         assert False
 
 
-def test_linescan_medianFilter():
+def test_linescan_median_filter():
     img = Image("lenna")
     l1 = img.get_line_scan(y=250)
     l2 = l1.median_filter(kernel_size=7)
-    if lineScan_perform_diff(l1, l2, LineScan.median_filter, kernel_size=7):
+    if line_scan_perform_diff(l1, l2, LineScan.median_filter, kernel_size=7):
         pass
     else:
         assert False
@@ -3848,13 +3757,13 @@ def test_linescan_detrend():
     img = Image("lenna")
     l1 = img.get_line_scan(y=90)
     l2 = l1.detrend()
-    if lineScan_perform_diff(l1, l2, LineScan.detrend):
+    if line_scan_perform_diff(l1, l2, LineScan.detrend):
         pass
     else:
         assert False
 
 
-def test_getFREAKDescriptor():
+def test_get_freak_descriptor():
     try:
         import cv2
     except ImportError:
@@ -3872,31 +3781,24 @@ def test_getFREAKDescriptor():
                     assert False
                 if d.shape[0] != len(f) and d.shape[1] != 64:
                     assert False
-        else:
-            pass
-    pass
 
 
-def test_grayPeaks():
+def test_gray_peaks():
     i = Image('lenna')
     peaks = i.gray_peaks()
     if peaks is None:
         assert False
-    else:
-        pass
 
 
-def test_findPeaks():
+def test_find_peaks():
     img = Image('lenna')
     ls = img.get_line_scan(x=150)
     peaks = ls.find_peaks()
     if peaks is None:
         assert False
-    else:
-        pass
 
 
-def test_LineScan_sub():
+def test_line_scan_sub():
     img = Image('lenna')
     ls = img.get_line_scan(x=200)
     ls1 = ls - ls
@@ -3906,7 +3808,7 @@ def test_LineScan_sub():
         assert False
 
 
-def test_LineScan_add():
+def test_line_scan_add():
     img = Image('lenna')
     ls = img.get_line_scan(x=20)
     l = ls + ls
@@ -3917,7 +3819,7 @@ def test_LineScan_add():
         assert False
 
 
-def test_LineScan_mul():
+def test_line_scan_mul():
     img = Image('lenna')
     ls = img.get_line_scan(x=20)
     l = ls * ls
@@ -3928,7 +3830,7 @@ def test_LineScan_mul():
         assert False
 
 
-def test_LineScan_div():
+def test_line_scan_div():
     img = Image('lenna')
     ls = img.get_line_scan(x=20)
     l = ls / ls
@@ -3939,26 +3841,26 @@ def test_LineScan_div():
         assert False
 
 
-def test_tvDenoising():
-    return  # this is way too slow.
-    try:
-        from skimage.filter import denoise_tv_chambolle
-
-        img = Image('lenna')
-        img1 = img.tv_denoising(gray=False, weight=20)
-        img2 = img.tv_denoising(weight=50, max_iter=250)
-        img3 = img.to_gray()
-        img3 = img3.tv_denoising(gray=True, weight=20)
-        img4 = img.tv_denoising(resize=0.5)
-        result = [img1, img2, img3, img4]
-        name_stem = "test_tvDenoising"
-        perform_diff(result, name_stem, 3)
-    except ImportError:
-        pass
+# def test_tvDenoising():
+#     return  # this is way too slow.
+#     try:
+#         from skimage.filter import denoise_tv_chambolle
+#
+#         img = Image('lenna')
+#         img1 = img.tv_denoising(gray=False, weight=20)
+#         img2 = img.tv_denoising(weight=50, max_iter=250)
+#         img3 = img.to_gray()
+#         img3 = img3.tv_denoising(gray=True, weight=20)
+#         img4 = img.tv_denoising(resize=0.5)
+#         result = [img1, img2, img3, img4]
+#         name_stem = "test_tvDenoising"
+#         perform_diff(result, name_stem, 3)
+#     except ImportError:
+#         pass
 
 
 # FIXME: the following tests should be merged
-def test_motionBlur():
+def test_motion_blur():
     i = Image('lenna')
     d = ('n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw')
     i0 = i.motion_blur(intensity=20, direction=d[0])
@@ -3982,7 +3884,7 @@ def test_motionBlur():
         assert False
 
 
-def test_motionBlur2():
+def test_motion_blur2():
     image = Image('lenna')
     d = (-70, -45, -30, -10, 100, 150, 235, 420)
     p = (10, 20, 30, 40, 50, 60, 70, 80)
@@ -4002,7 +3904,7 @@ def test_motionBlur2():
         assert False
 
 
-def test_faceRecognize():
+def test_face_recognize():
     try:
         import cv2
 
@@ -4054,13 +3956,11 @@ def test_faceRecognize():
                 pass
             else:
                 assert False
-        else:
-            pass
     except ImportError:
         pass
 
 
-def test_channelMixer():
+def test_channel_mixer():
     i = Image('lenna')
     r = i.channel_mixer()
     g = i.channel_mixer(channel='g', weight=(100, 20, 30))
@@ -4080,7 +3980,7 @@ def test_prewitt():
         assert False
 
 
-def test_edgeSnap():
+def test_edge_snap():
     img = Image('shapes.png', sample=True).edges()
 
     list1 = [(129, 32), (19, 88), (124, 135)]
@@ -4088,8 +3988,8 @@ def test_edgeSnap():
     list3 = [(158, 357), (339, 82)]
 
     for list_ in list1, list2, list3:
-        edgeLines = img.edge_snap(list_)
-        edgeLines.draw(color=Color.YELLOW, width=4)
+        edge_lines = img.edge_snap(list_)
+        edge_lines.draw(color=Color.YELLOW, width=4)
 
     name_stem = "test_edgeSnap"
     result = [img]
@@ -4104,10 +4004,9 @@ def test_grayscalmatrix():
 
     if not array_equal(img.get_gray_numpy(), newimg.get_gray_numpy()):
         assert False
-    pass
 
 
-def test_getLightness():
+def test_get_lightness():
     img = Image('lenna')
     i = img.get_lightness()
     if int(i[27, 42][0]) == int((max(img[27, 42]) + min(img[27, 42])) / 2):
@@ -4116,7 +4015,7 @@ def test_getLightness():
         assert False
 
 
-def test_getLuminosity():
+def test_get_luminosity():
     img = Image('lenna')
     i = img.get_luminosity()
     a = np.array(img[27, 42], dtype=np.int)
@@ -4126,7 +4025,7 @@ def test_getLuminosity():
         assert False
 
 
-def test_getAverage():
+def test_get_average():
     img = Image('lenna')
     i = img.get_average()
     if int(i[0, 0][0]) == int((img[0, 0][0]
@@ -4137,9 +4036,7 @@ def test_getAverage():
         assert False
 
 
-def test_smartRotate():
-    import time
-
+def test_smart_rotate():
     img = Image('kptest2.png', sample=True)
 
     st1 = img.smart_rotate(auto=False, fixed=False).resize(500, 500)
@@ -4162,7 +4059,7 @@ def test_normalize():
     pass
 
 
-def test_getNormalizedHueHistogram():
+def test_get_normalized_hue_histogram():
     img = Image('lenna')
     a = img.get_normalized_hue_histogram((0, 0, 100, 100))
     b = img.get_normalized_hue_histogram()
@@ -4176,30 +4073,29 @@ def test_getNormalizedHueHistogram():
         assert False
 
 
-def test_backProjecHueHistogram():
+def test_back_project_hue_histogram():
     img = Image('lenna')
     img2 = Image('lyle')
     a = img2.get_normalized_hue_histogram()
-    imgA = img.back_project_hue_histogram(a)
-    imgB = img.back_project_hue_histogram((10, 10, 50, 50), smooth=False,
-                                          full_color=True)
-    imgC = img.back_project_hue_histogram(img2, threshold=1)
-    result = [imgA, imgB, imgC]
+    img_a = img.back_project_hue_histogram(a)
+    img_b = img.back_project_hue_histogram((10, 10, 50, 50), smooth=False,
+                                           full_color=True)
+    img_c = img.back_project_hue_histogram(img2, threshold=1)
+    result = [img_a, img_b, img_c]
     name_stem = "test_image_histBackProj"
     perform_diff(result, name_stem, 5)
 
 
-def test_findBlobsFromHueHistogram():
+def test_find_blobs_from_hue_histogram():
     img = Image('lenna')
     img2 = Image('lyle')
     a = img2.get_normalized_hue_histogram()
-    A = img.find_blobs_from_hue_histogram(a)
-    B = img.find_blobs_from_hue_histogram((10, 10, 50, 50), smooth=False)
-    C = img.find_blobs_from_hue_histogram(img2, threshold=1)
-    pass
+    a = img.find_blobs_from_hue_histogram(a)
+    b = img.find_blobs_from_hue_histogram((10, 10, 50, 50), smooth=False)
+    c = img.find_blobs_from_hue_histogram(img2, threshold=1)
 
 
-def test_drawingLayerToSVG():
+def test_drawing_layer_to_svg():
     img = Image('lenna')
     dl = img.dl()
     dl.line((0, 0), (100, 100))
