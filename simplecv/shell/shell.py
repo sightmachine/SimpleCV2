@@ -27,9 +27,9 @@ from simplecv.shell.tutorial import magic_tutorial
 from simplecv.shell.example import magic_examples
 
 try:
-    from simplecv import __version__ as SIMPLECV_VERSION
+    from simplecv import __version__ as simplecv_version
 except ImportError:
-    SIMPLECV_VERSION = ''
+    simplecv_version = ''
 
 
 #Command to clear the shell screen
@@ -88,7 +88,7 @@ def magic_docs(self, arg):
 
 banner = '+-----------------------------------------------------------+\n'
 banner += ' SimpleCV '
-banner += SIMPLECV_VERSION
+banner += simplecv_version
 banner += ' [interactive shell] - http://simplecv.org\n'
 banner += '+-----------------------------------------------------------+\n'
 banner += '\n'
@@ -123,33 +123,33 @@ def setup_ipython():
         cfg.PromptManager.out_template = "SimpleCV:\\#: "
         #~ cfg.InteractiveShellEmbed.prompt_in1 = "SimpleCV:\\#> "
         #~ cfg.InteractiveShellEmbed.prompt_out="SimpleCV:\\#: "
-        scvShell = InteractiveShellEmbed(config=cfg, banner1=banner,
-                                         exit_msg=exit_msg)
-        scvShell.define_magic("tutorial", magic_tutorial)
-        scvShell.define_magic("clear", magic_clear)
-        scvShell.define_magic("example", magic_examples)
-        scvShell.define_magic("forums", magic_forums)
-        scvShell.define_magic("walkthrough", magic_walkthrough)
-        scvShell.define_magic("docs", magic_docs)
+        scv_shell = InteractiveShellEmbed(config=cfg, banner1=banner,
+                                          exit_msg=exit_msg)
+        scv_shell.define_magic("tutorial", magic_tutorial)
+        scv_shell.define_magic("clear", magic_clear)
+        scv_shell.define_magic("example", magic_examples)
+        scv_shell.define_magic("forums", magic_forums)
+        scv_shell.define_magic("walkthrough", magic_walkthrough)
+        scv_shell.define_magic("docs", magic_docs)
     except ImportError:
         try:
             from IPython.Shell import IPShellEmbed
 
             argsv = ['-pi1', 'SimpleCV:\\#>', '-pi2', '   .\\D.:', '-po',
                      'SimpleCV:\\#>', '-nosep']
-            scvShell = IPShellEmbed(argsv)
-            scvShell.set_banner(banner)
-            scvShell.set_exit_msg(exit_msg)
-            scvShell.IP.api.expose_magic("tutorial", magic_tutorial)
-            scvShell.IP.api.expose_magic("clear", magic_clear)
-            scvShell.IP.api.expose_magic("example", magic_examples)
-            scvShell.IP.api.expose_magic("forums", magic_forums)
-            scvShell.IP.api.expose_magic("walkthrough", magic_walkthrough)
-            scvShell.IP.api.expose_magic("docs", magic_docs)
+            scv_shell = IPShellEmbed(argsv)
+            scv_shell.set_banner(banner)
+            scv_shell.set_exit_msg(exit_msg)
+            scv_shell.IP.api.expose_magic("tutorial", magic_tutorial)
+            scv_shell.IP.api.expose_magic("clear", magic_clear)
+            scv_shell.IP.api.expose_magic("example", magic_examples)
+            scv_shell.IP.api.expose_magic("forums", magic_forums)
+            scv_shell.IP.api.expose_magic("walkthrough", magic_walkthrough)
+            scv_shell.IP.api.expose_magic("docs", magic_docs)
         except ImportError:
             raise
 
-    return scvShell()
+    return scv_shell()
 
 
 def setup_bpython():
@@ -171,7 +171,7 @@ def setup_plain():
     return code.interact(banner=banner, local=globals())
 
 
-def run_notebook(mainArgs):
+def run_notebook(main_args):
 
     if IPython.__version__.startswith('1.'):
         # Run the ipython notebook server
@@ -187,18 +187,18 @@ def run_notebook(mainArgs):
 
     kernelmanager.MappingKernelManager.first_beat = 30.0
     app = notebookapp.NotebookApp.instance()
-    mainArgs += [
+    main_args += [
         '--port', '5050',
         '--c', code,
     ]
-    app.initialize(mainArgs)
+    app.initialize(main_args)
     app.start()
     sys.exit()
 
 
 def self_update():
-    URL = "https://github.com/sightmachine/SimpleCV/zipball/master"
-    command = "pip install -U %s" % URL
+    url = "https://github.com/sightmachine/SimpleCV/zipball/master"
+    command = "pip install -U %s" % url
 
     if os.getuid() == 0:
         command = "sudo " + command
@@ -255,4 +255,4 @@ def main(*args):
 
     init_logging(log_level)
     shellclear()
-    scvShell = run_shell(interface)
+    scv_shell = run_shell(interface)

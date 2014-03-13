@@ -7,7 +7,7 @@ import platform
 from subprocess import call
 
 from simplecv.camera import Camera
-from simplecv.features import FeatureSet
+from simplecv.features.features import FeatureSet
 from simplecv.image_class import Image
 
 lb = "\n"  # linebreak
@@ -345,9 +345,9 @@ def tutorial_slicing():
     print "Please type this now:"
     print shouldbe
     print lb
-    while (in_text != shouldbe):
+    while in_text != shouldbe:
         in_text = raw_input("SimpleCV:>")
-        if(in_text != shouldbe):
+        if in_text != shouldbe:
             print "sorry, that is incorrect"
             print "please type:"
             print shouldbe

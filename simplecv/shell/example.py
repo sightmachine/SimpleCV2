@@ -6,15 +6,15 @@ from subprocess import call
 from simplecv.base import LAUNCH_PATH
 
 
-def listFiles(directory):
+def list_files(directory):
     for path, dirs, files in os.walk(directory):
         for f in files:
             yield os.path.join(path, f)
 
 
 def magic_examples(self, arg):
-    DIR = os.path.join(LAUNCH_PATH, 'examples')
-    files = [f for f in listFiles(DIR) if f.endswith('.py')]
+    dir = os.path.join(LAUNCH_PATH, 'examples')
+    files = [f for f in list_files(dir) if f.endswith('.py')]
     file_names = [file.split('/')[-1] for file in files]
     iarg = None
     arg = str(arg)
