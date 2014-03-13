@@ -1,4 +1,9 @@
-class HaarLikeFeature():
+"""
+HaarLikeFeature class
+"""
+
+
+class HaarLikeFeature(object):
     """
     Create a single Haar feature and optionally set the regions that define
     the Haar feature and its name. The formal of the feature is
@@ -13,15 +18,15 @@ class HaarLikeFeature():
     Takes the right side of the image and subtracts from the left hand side
     of the image.
     """
-    mName = None
-    mRegions = None
+    name = None
+    regions = None
 
     def __init__(self, name=None, regions=None):
 
-        self.mName = name
-        self.mRegions = regions
+        self.name = name
+        self.regions = regions
 
-    def setRegions(self, regions):
+    def set_regions(self, regions):
         """
         Set the list of regions. The regions are square coordinates on a unit
         sized image followed by the sign of a region.
@@ -36,58 +41,58 @@ class HaarLikeFeature():
         Takes the right side of the image and subtracts from the left hand side
         of the image.
         """
-        self.mRegions = regions
+        self.regions = regions
 
-    def setName(self, name):
+    def set_name(self, name):
         """
         Set the name of this feature, the name must be unique.
         """
-        self.mName = name
+        self.name = name
 
-    def apply(self, intImg):
+    def apply(self, int_img):
         """
         This method takes in an integral image and applies the haar-cascade
         to the image, and returns the result.
         """
-        w = intImg.shape[0] - 1
-        h = intImg.shape[1] - 1
+        w = int_img.shape[0] - 1
+        h = int_img.shape[1] - 1
         accumulator = 0
-        for i in range(len(self.mRegions)):
+        for i in range(len(self.regions)):
             # using the integral image
-            # A = Lower Right Hand Corner
-            # B = upper right hand corner
-            # C = lower left hand corner
-            # D = upper left hand corner
-            # sum = A - B - C  + D
+            # a = Lower Right Hand Corner
+            # b = upper right hand corner
+            # c = lower left hand corner
+            # d = upper left hand corner
+            # sum = a - b - c + d
             # regions are in
-            # (p,q,r,s,t) format
-            p = self.mRegions[i][0]  # p = left (all are unit length)
-            q = self.mRegions[i][1]  # q = top
-            r = self.mRegions[i][2]  # r = right
-            s = self.mRegions[i][3]  # s = bottom
-            sign = self.mRegions[i][4]  # t = sign
-            xA = int(w * r)
-            yA = int(h * s)
-            xB = int(w * r)
-            yB = int(h * q)
-            xC = int(w * p)
-            yC = int(h * s)
-            xD = int(w * p)
-            yD = int(h * q)
-            accumulator += sign * (intImg[xA, yA] - intImg[xB, yB]
-                                   - intImg[xC, yC] + intImg[xD, yD])
+            # (left, top, right, bottom, sign) format
+            left = self.regions[i][0]  # left (all are unit length)
+            top = self.regions[i][1]  # top
+            right = self.regions[i][2]  # right
+            bottom = self.regions[i][3]  # bottom
+            sign = self.regions[i][4]  # sign
+            x_a = int(w * right)
+            y_a = int(h * bottom)
+            x_b = int(w * right)
+            y_b = int(h * top)
+            x_c = int(w * left)
+            y_c = int(h * bottom)
+            x_d = int(w * left)
+            y_d = int(h * top)
+            accumulator += sign * (int_img[x_a, y_a] - int_img[x_b, y_b]
+                                   - int_img[x_c, y_c] + int_img[x_d, y_d])
         return accumulator
 
-    def writeToFile(self, file):
+    def write_to_file(self, ofile):
         """
-        Write the Haar cascade to a human readable file. file is an open file
+        Write the Haar cascade to a human readable file. ofile is an open file
         pointer.
         """
-        file.write(self.mName)
-        file.write(" " + str(len(self.mRegions)) + "\n")
-        for i in range(len(self.mRegions)):
-            temp = self.mRegions[i]
+        ofile.write(self.name)
+        ofile.write(" " + str(len(self.regions)) + "\n")
+        for i in range(len(self.regions)):
+            temp = self.regions[i]
             for j in range(len(temp)):
-                file.write(str(temp[j]) + ' ')
-            file.write('\n')
-        file.write('\n')
+                ofile.write(str(temp[j]) + ' ')
+            ofile.write('\n')
+        ofile.write('\n')

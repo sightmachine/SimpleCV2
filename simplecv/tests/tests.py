@@ -479,7 +479,7 @@ def test_detection_feature_measures():
         l = f.length()
         c = f.mean_color()
         d = f.color_distance()
-        th = f.angle()
+        th = f.get_angle()
         pts = f.coordinates()
         dist = f.distance_from()  # distance from center of image
 
@@ -631,7 +631,7 @@ def test_detection_area():
 
 
 def test_detection_angle():
-    angle_val = Image(testimage).find_lines().angle()[0]
+    angle_val = Image(testimage).find_lines().get_angle()[0]
 
 
 def test_image():
@@ -1462,7 +1462,7 @@ def test_blob_methods():
         b.blob_mask()
         b.get_hull_img()
         b.get_hull_mask()
-        b.angle()
+        b.get_angle()
         b.above(first)
         b.below(first)
         b.left(first)
@@ -1842,7 +1842,7 @@ def test_hough_circles():
     circs[0].distance_from(point=(0, 0))
     circs[0].draw()
     img2 = circs[0].crop()
-    img3 = circs[0].crop(noMask=True)
+    img3 = circs[0].crop(no_mask=True)
 
     results = [img, img2, img3]
     name_stem = "test_hough_circle"
@@ -1945,12 +1945,12 @@ def test_findKeypoints():
         if kp is not None:
             print "Found: " + str(len(kp))
             for k in kp:
-                k.getObject()
-                k.descriptor()
+                k.get_object()
+                k.get_descriptor()
                 k.quality()
-                k.octave()
-                k.flavor()
-                k.angle()
+                k.get_octave()
+                k.get_flavor()
+                k.get_angle()
                 k.coordinates()
                 k.draw()
                 k.distance_from()
@@ -1980,7 +1980,7 @@ def test_movement_feature():
         fs.draw(color=Color.RED)
         img = fs[0].crop()
         color = fs[1].mean_color()
-        wndw = fs[1].windowSz()
+        wndw = fs[1].window_sz()
         for f in fs:
             f.vector()
             f.magnitude()
@@ -1993,7 +1993,7 @@ def test_movement_feature():
         fs.draw(color=Color.RED)
         img = fs[0].crop()
         color = fs[1].mean_color()
-        wndw = fs[1].windowSz()
+        wndw = fs[1].window_sz()
         for f in fs:
             f.vector()
             f.magnitude()
@@ -2006,7 +2006,7 @@ def test_movement_feature():
         fs.draw(color=Color.RED)
         img = fs[0].crop()
         color = fs[1].mean_color()
-        wndw = fs[1].windowSz()
+        wndw = fs[1].window_sz()
         for f in fs:
             f.vector()
             f.magnitude()
@@ -2086,7 +2086,7 @@ def test_keypoint_match():
         f.draw_rect()
         f.draw()
         f.get_homography()
-        f.getMinRect()
+        f.get_min_rect()
         f.x
         f.y
         f.coordinates()
@@ -2804,15 +2804,15 @@ def test_feature_angles():
 
     for bs in b:
         tl = bs.top_left_corner()
-        img.draw_text(str(bs.angle()), tl[0], tl[1], color=Color.RED)
+        img.draw_text(str(bs.get_angle()), tl[0], tl[1], color=Color.RED)
 
     for ls in l:
         tl = ls.top_left_corner()
-        img2.draw_text(str(ls.angle()), tl[0], tl[1], color=Color.GREEN)
+        img2.draw_text(str(ls.get_angle()), tl[0], tl[1], color=Color.GREEN)
 
     for ks in k:
         tl = ks.top_left_corner()
-        img3.draw_text(str(ks.angle()), tl[0], tl[1], color=Color.BLUE)
+        img3.draw_text(str(ks.get_angle()), tl[0], tl[1], color=Color.BLUE)
 
     results = [img, img2, img3]
     name_stem = "test_feature_angles"
@@ -2826,8 +2826,8 @@ def test_feature_angles_rotate():
 
     for bs in b:
         temp = bs.crop()
-        derp = temp.rotate(bs.angle(), fixed=False)
-        derp.draw_text(str(bs.angle()), 10, 10, color=Color.RED)
+        derp = temp.rotate(bs.get_angle(), fixed=False)
+        derp.draw_text(str(bs.get_angle()), 10, 10, color=Color.RED)
         results.append(derp)
         bs.rectify_major_axis()
         results.append(bs.blob_image())
@@ -3129,12 +3129,12 @@ def test_findKeypoints_all():
             continue
         if kp is not None:
             for k in kp:
-                k.getObject()
-                k.descriptor()
+                k.get_object()
+                k.get_descriptor()
                 k.quality()
-                k.octave()
-                k.flavor()
-                k.angle()
+                k.get_octave()
+                k.get_flavor()
+                k.get_angle()
                 k.coordinates()
                 k.draw()
                 k.distance_from()
@@ -3421,7 +3421,7 @@ def test_line_parallel():
     img = Image("lenna")
     l1 = Line(img, ((100, 200), (300, 400)))
     l2 = Line(img, ((200, 300), (400, 500)))
-    if l1.isParallel(l2):
+    if l1.is_parallel(l2):
         pass
     else:
         assert False
@@ -3431,7 +3431,7 @@ def test_line_perp():
     img = Image("lenna")
     l1 = Line(img, ((100, 200), (100, 400)))
     l2 = Line(img, ((200, 300), (400, 300)))
-    if l1.isPerpendicular(l2):
+    if l1.is_perpendicular(l2):
         pass
     else:
         assert False
@@ -3442,7 +3442,7 @@ def test_line_imgIntersection():
     for x in range(200, 400):
         img[x, 200] = (255.0, 255.0, 255.0)
     l = Line(img, ((300, 100), (300, 500)))
-    if l.imgIntersections(img) == [(300, 200)]:
+    if l.img_intersections(img) == [(300, 200)]:
         pass
     else:
         assert False
@@ -3451,7 +3451,7 @@ def test_line_imgIntersection():
 def test_line_cropToEdges():
     img = Image((512, 512))
     l = Line(img, ((-10, -5), (400, 400)))
-    l_cr = l.cropToImageEdges()
+    l_cr = l.crop_to_image_edges()
     if l_cr.end_points == ((0, 5), (400, 400)):
         pass
     else:
@@ -3461,7 +3461,7 @@ def test_line_cropToEdges():
 def test_line_extendToEdges():
     img = Image((512, 512))
     l = Line(img, ((10, 10), (30, 30)))
-    l_ext = l.extendToImageEdges()
+    l_ext = l.extend_to_image_edges()
     if l_ext.end_points == [(0, 0), (511, 511)]:
         pass
     else:
@@ -3641,44 +3641,44 @@ def testROIFeature():
 
     # test the basics
     def toXYWH(roi):
-        return roi.toXYWH()
+        return roi.to_xywh()
 
     if subtest(roiList, toXYWH):
         assert False
     broi.translate(10, 10)
     broi.translate(-10)
     broi.translate(y=-10)
-    broi.toTLAndBR()
-    broi.toPoints()
-    broi.toUnitXYWH()
-    broi.toUnitTLAndBR()
-    broi.toUnitPoints()
+    broi.to_tl_and_br()
+    broi.to_points()
+    broi.to_unit_xywh()
+    broi.to_unit_tl_and_br()
+    broi.to_unit_points()
     roiList[0].crop()
     newROI = ROI(zip(x, y), image=mask)
     test = newROI.crop()
     xroi, yroi = np.where(test.get_gray_numpy() > 128)
     roiPts = zip(xroi, yroi)
-    realPts = newROI.CoordTransformPts(roiPts)
-    unitROI = newROI.CoordTransformPts(roiPts, output="ROI_UNIT")
-    unitSRC = newROI.CoordTransformPts(roiPts, output="SRC_UNIT")
-    src1 = newROI.CoordTransformPts(roiPts, intype="SRC_UNIT", output='SRC')
-    src2 = newROI.CoordTransformPts(roiPts, intype="ROI_UNIT", output='SRC')
-    src3 = newROI.CoordTransformPts(roiPts, intype="SRC_UNIT", output='ROI')
-    src4 = newROI.CoordTransformPts(roiPts, intype="ROI_UNIT", output='ROI')
-    fs = newROI.splitX(10)
-    fs = newROI.splitX(.5, unitVals=True)
+    realPts = newROI.coord_transform_pts(roiPts)
+    unitROI = newROI.coord_transform_pts(roiPts, output="ROI_UNIT")
+    unitSRC = newROI.coord_transform_pts(roiPts, output="SRC_UNIT")
+    src1 = newROI.coord_transform_pts(roiPts, intype="SRC_UNIT", output='SRC')
+    src2 = newROI.coord_transform_pts(roiPts, intype="ROI_UNIT", output='SRC')
+    src3 = newROI.coord_transform_pts(roiPts, intype="SRC_UNIT", output='ROI')
+    src4 = newROI.coord_transform_pts(roiPts, intype="ROI_UNIT", output='ROI')
+    fs = newROI.split_x(10)
+    fs = newROI.split_x(.5, unit_vals=True)
     for f in fs:
         f.draw(color=Color.BLUE)
-    fs = newROI.splitX(newROI.xtl + 10, srcVals=True)
+    fs = newROI.split_x(newROI.xtl + 10, src_vals=True)
     xs = newROI.xtl
-    fs = newROI.splitX([10, 20])
-    fs = newROI.splitX([xs + 10, xs + 20, xs + 30], srcVals=True)
-    fs = newROI.splitX([0.3, 0.6, 0.9], unitVals=True)
-    fs = newROI.splitY(10)
-    fs = newROI.splitY(.5, unitVals=True)
+    fs = newROI.split_x([10, 20])
+    fs = newROI.split_x([xs + 10, xs + 20, xs + 30], src_vals=True)
+    fs = newROI.split_x([0.3, 0.6, 0.9], unit_vals=True)
+    fs = newROI.split_y(10)
+    fs = newROI.split_y(.5, unit_vals=True)
     for f in fs:
         f.draw(color=Color.BLUE)
-    fs = newROI.splitY(newROI.ytl + 30, srcVals=True)
+    fs = newROI.split_y(newROI.ytl + 30, src_vals=True)
     testROI = ROI(blobs[0], mask)
     for b in blobs[1:]:
         testROI.merge(b)

@@ -350,7 +350,7 @@ class Blob(Feature):
         layer.line(tl, bl, color, width=width, alpha=alpha, antialias=False)
         layer.line(tr, br, color, width=width, alpha=alpha, antialias=False)
 
-    def angle(self):
+    def get_angle(self):
         """
         **SUMMARY**
 
@@ -370,7 +370,7 @@ class Blob(Feature):
 
         >>> img = Image("lenna")
         >>> blobs = img.find_blobs()
-        >>> blobs[-1].angle()
+        >>> blobs[-1].get_angle()
 
         """
         #return self.min_rectangle[2]+90.00
@@ -493,7 +493,7 @@ class Blob(Feature):
         >>> blobs[-2].img.show()
 
         """
-        final_rotation = self.angle()
+        final_rotation = self.get_angle()
         if self.min_rect_width() > self.min_rect_height():
             final_rotation = final_rotation
 

@@ -1,14 +1,13 @@
-'''
-SimpleCV Detection Library
+#SimpleCV Detection Library
+#
+#This library includes classes for finding things in images
 
-This library includes classes for finding things in images
+#FYI -
+#All angles shalt be described in degrees with zero pointing east in the
+#plane of the image with all positive rotations going counter-clockwise.
+#Therefore a rotation from the x-axis to to the y-axis is positive and follows
+#the right hand rule.
 
-FYI -
-All angles shalt be described in degrees with zero pointing east in the
-plane of the image with all positive rotations going counter-clockwise.
-Therefore a rotation from the x-axis to to the y-axis is positive and follows
-the right hand rule.
-'''
 from copy import copy
 from math import atan2, sqrt, pi, sin, cos, radians
 
@@ -87,7 +86,7 @@ class Line(Feature):
     def __init__(self, i, line):
         self.image = i
         self.vector = None
-        self.yIntercept = None
+        self.y_intercept = None
         self.end_points = copy(line)
 
         if self.end_points[1][0] - self.end_points[0][0] == 0:
@@ -168,8 +167,9 @@ class Line(Feature):
         >>> myLine = l[0].crop()
 
         """
-        tl = self.top_left_corner()
-        return self.image.crop(tl[0], tl[1], self.get_width(), self.get_height())
+        tlc = self.top_left_corner()
+        return self.image.crop(tlc[0], tlc[1], self.get_width(), 
+                               self.get_height())
 
     def mean_color(self):
         """
@@ -191,7 +191,7 @@ class Line(Feature):
         >>> c = l[0].mean_color()
 
         """
-        (pt1, pt2) = self.end_points
+        (pt1, _) = self.end_points
         #we're going to walk the line, and take the mean color from all the px
         #points -- there's probably a much more optimal way to do this
         (maxx, minx, maxy, miny) = self.get_extents()
@@ -232,8 +232,8 @@ class Line(Feature):
 
                 error = error + d_err
                 if error >= 0.5:
-                    y = y + 1
-                    error = error - 1.0
+                    y += 1
+                    error -= 1.0
         else:
             #this is a "steep" line, so we iterate over X
             #copy and paste.  Ugh, sorry.
@@ -254,10 +254,10 @@ class Line(Feature):
                     px.append(self.image[x - 1, y])
                     weights.append(abs(error))
 
-                error = error + (1.0 / d_err)  # we use the reciprocal of error
+                error += 1.0 / d_err  # we use the reciprocal of error
                 if error >= 0.5:
-                    x = x + 1
-                    error = error - 1.0
+                    x += 1
+                    error -= 1.0
 
         #once we have iterated over every pixel in the line, we avg the weights
         clr_arr = np.array(px)
@@ -269,7 +269,7 @@ class Line(Feature):
         temp = sum(weighted_clrs) / sum(weight_arr)  # return the weighted avg
         return float(temp[0]), float(temp[1]), float(temp[2])
 
-    def findIntersection(self, line):
+    def find_intersection(self, line):
         """
         **SUMMARY**
 
@@ -283,7 +283,7 @@ class Line(Feature):
 
         >>> img = Image("lenna")
         >>> l = img.find_lines()
-        >>> c = l[0].findIntersection[1]
+        >>> c = l[0].find_intersection[1]
 
 
         TODO: THIS NEEDS TO RETURN A TUPLE OF FLOATS
@@ -310,7 +310,7 @@ class Line(Feature):
 
         return x, y
 
-    def isParallel(self, line):
+    def is_parallel(self, line):
         """
         **SUMMARY**
 
@@ -324,14 +324,14 @@ class Line(Feature):
 
         >>> img = Image("lenna")
         >>> l = img.find_lines()
-        >>> c = l[0].isParallel(l[1])
+        >>> c = l[0].is_parallel(l[1])
 
         """
         if self.slope == line.slope:
             return True
         return False
 
-    def isPerpendicular(self, line):
+    def is_perpendicular(self, line):
         """
         **SUMMARY**
 
@@ -345,7 +345,7 @@ class Line(Feature):
 
         >>> img = Image("lenna")
         >>> l = img.find_lines()
-        >>> c = l[0].isPerpendicular(l[1])
+        >>> c = l[0].is_perpendicular(l[1])
 
         """
         if self.slope == float("inf"):
@@ -362,7 +362,7 @@ class Line(Feature):
             return True
         return False
 
-    def imgIntersections(self, img):
+    def img_intersections(self, img):
         """
         **SUMMARY**
 
@@ -377,7 +377,7 @@ class Line(Feature):
 
         >>> img = Image("lenna")
         >>> l = img.find_lines()
-        >>> c = l[0].imgIntersections(img.binarize())
+        >>> c = l[0].img_intersections(img.binarize())
 
         """
         pixels = []
@@ -400,7 +400,7 @@ class Line(Feature):
 
         return matched_pixels
 
-    def angle(self):
+    def get_angle(self):
         """
         **SUMMARY**
 
@@ -418,7 +418,7 @@ class Line(Feature):
         >>> img = Image("OWS.jpg")
         >>> ls = img.find_lines
         >>> for l in ls:
-        >>>    if l.angle() == 0:
+        >>>    if l.get_angle() == 0:
         >>>       print "I AM HORIZONTAL."
 
 
@@ -427,8 +427,7 @@ class Line(Feature):
         a = 0
         b = 1
         if self.end_points[a][0] > self.end_points[b][0]:
-            b = 0
-            a = 1
+            a, b = b, a
 
         d_x = self.end_points[b][0] - self.end_points[a][0]
         d_y = self.end_points[b][1] - self.end_points[a][1]
@@ -436,7 +435,7 @@ class Line(Feature):
         return float(
             360.00 * (atan2(d_y, d_x) / (2 * np.pi)))  # formerly 0 was west
 
-    def cropToImageEdges(self):
+    def crop_to_image_edges(self):
         """
         **SUMMARY**
 
@@ -453,7 +452,7 @@ class Line(Feature):
 
         >>> img = Image("lenna")
         >>> l = Line(img, ((-100, -50), (1000, 25))
-        >>> cr_l = l.cropToImageEdges()
+        >>> cr_l = l.crop_to_image_edges()
 
         """
         pt1, pt2 = self.end_points
@@ -489,8 +488,8 @@ class Line(Feature):
             if 0 <= y <= h:
                 ep.append((w, (int(round(y)))))
 
-        ep = list(set(
-            ep))  # remove duplicates of points if line cross image at corners
+        # remove duplicates of points if line cross image at corners
+        ep = list(set(ep))
         ep.sort()
         if len(ep) == 2:
             # if points lies outside image then change them
@@ -507,7 +506,7 @@ class Line(Feature):
 
         return Line(self.image, (pt1, pt2))
 
-    def getVector(self):
+    def get_vector(self):
         # this should be a lazy property
         if self.vector is None:
             self.vector = [
@@ -516,12 +515,12 @@ class Line(Feature):
         return self.vector
 
     def dot(self, other):
-        return np.dot(self.getVector(), other.getVector())
+        return np.dot(self.get_vector(), other.get_vector())
 
     def cross(self, other):
-        return np.cross(self.getVector(), other.getVector())
+        return np.cross(self.get_vector(), other.get_vector())
 
-    def getYIntercept(self):
+    def get_y_intercept(self):
         """
         **SUMMARY**
 
@@ -536,16 +535,15 @@ class Line(Feature):
 
         >>> img = Image("lenna")
         >>> l = Line(img, ((50, 150), (2, 225))
-        >>> b = l.getYIntercept()
+        >>> b = l.get_y_intercept()
         """
-        if self.yIntercept is None:
-            pt1, pt2 = self.end_points
-            m = self.slope
+        if self.y_intercept is None:
+            pt1, _ = self.end_points
             #y = mx + b | b = y-mx
-            self.yIntercept = pt1[1] - m * pt1[0]
-        return self.yIntercept
+            self.y_intercept = pt1[1] - self.slope * pt1[0]
+        return self.y_intercept
 
-    def extendToImageEdges(self):
+    def extend_to_image_edges(self):
         """
         **SUMMARY**
 
@@ -560,7 +558,7 @@ class Line(Feature):
 
         >>> img = Image("lenna")
         >>> l = Line(img, ((50, 150), (2, 225))
-        >>> cr_l = l.extendToImageEdges()
+        >>> cr_l = l.extend_to_image_edges()
 
         """
         pt1, pt2 = self.end_points
@@ -599,8 +597,8 @@ class Line(Feature):
             if 0 <= y <= h:
                 ep.append((w, (int(round(y)))))
 
-        ep = list(set(
-            ep))  # remove duplicates of points if line cross image at corners
+        # remove duplicates of points if line cross image at corners
+        ep = list(set(ep))
         ep.sort()
 
         return Line(self.image, ep)
@@ -649,9 +647,9 @@ class Barcode(Feature):
         self.x = 0
         self.y = 0
 
-        for p in self.points:
-            self.x += p[0]
-            self.y += p[1]
+        for pnt in self.points:
+            self.x += pnt[0]
+            self.y += pnt[1]
 
         if numpoints:
             self.x /= numpoints
@@ -775,7 +773,7 @@ class HaarFeature(Feature):
     _width = ""
     _height = ""
     neighbors = ''
-    featureName = 'None'
+    feature_name = 'None'
 
     def __init__(self, i, haarobject, haarclassifier=None, cv2flag=True):
         self.image = i
@@ -791,7 +789,7 @@ class HaarFeature(Feature):
         #set bounding points of the rectangle
         self.classifier = haarclassifier
         if haarclassifier is not None:
-            self.featureName = haarclassifier.getName()
+            self.feature_name = haarclassifier.get_name()
 
         super(HaarFeature, self).__init__(i, at_x, at_y, points)
 
@@ -820,10 +818,10 @@ class HaarFeature(Feature):
         self.image.draw_line(self.points[3], self.points[0], color, width)
 
     def __getstate__(self):
-        dict = self.__dict__.copy()
-        if 'classifier' in dict:
-            del dict["classifier"]
-        return dict
+        sdict = self.__dict__.copy()
+        if 'classifier' in sdict:
+            del sdict["classifier"]
+        return sdict
 
     def mean_color(self):
         """
@@ -877,19 +875,19 @@ class Chessboard(Feature):
     This class is used for Calibration, it uses a chessboard
     to calibrate from pixels to real world measurements.
     """
-    spCorners = []
+    sp_corners = []
     dimensions = ()
 
-    def __init__(self, i, dim, subpixelCorners):
+    def __init__(self, i, dim, subpixel_corners):
         self.dimensions = dim
-        self.spCorners = subpixelCorners
-        at_x = np.average(np.array(self.spCorners)[:, 0])
-        at_y = np.average(np.array(self.spCorners)[:, 1])
+        self.sp_corners = subpixel_corners
+        at_x = np.average(np.array(self.sp_corners)[:, 0])
+        at_y = np.average(np.array(self.sp_corners)[:, 1])
 
-        posdiagsorted = sorted(self.spCorners,
+        posdiagsorted = sorted(self.sp_corners,
                                key=lambda corner: corner[0] + corner[1])
         #sort corners along the x + y axis
-        negdiagsorted = sorted(self.spCorners,
+        negdiagsorted = sorted(self.sp_corners,
                                key=lambda corner: corner[0] - corner[1])
         #sort corners along the x - y axis
 
@@ -916,7 +914,7 @@ class Chessboard(Feature):
 
         """
         cv.DrawChessboardCorners(self.image.get_bitmap(), self.dimensions,
-                                 self.spCorners, 1)
+                                 self.sp_corners, 1)
 
     def get_area(self):
         """
@@ -933,7 +931,7 @@ class Chessboard(Feature):
         **EXAMPLE**
 
         >>> img = Image("corners.jpg")
-        >>> feats = img.findChessboardCorners()
+        >>> feats = img.find_chessboard_corners()
         >>> print feats[-1].get_area()
 
         """
@@ -980,14 +978,14 @@ class TemplateMatch(Feature):
 
         super(TemplateMatch, self).__init__(image, at_x, at_y, points)
 
-    def _templateOverlaps(self, other):
+    def _template_overlaps(self, other):
         """
         Returns true if this feature overlaps another template feature.
         """
         (maxx, minx, maxy, miny) = self.get_extents()
         overlap = False
-        for p in other.points:
-            if p[0] <= maxx and p[0] >= minx and p[1] <= maxy and p[1] >= miny:
+        for pnt in other.points:
+            if maxx >= pnt[0] >= minx and maxy >= pnt[1] >= miny:
                 overlap = True
                 break
 
@@ -1050,8 +1048,8 @@ class TemplateMatch(Feature):
         drawing layer.
         """
         self.image.dl().rectangle((self.x, self.y),
-                                  (self.get_width(), self.get_height()), color=color,
-                                  width=width)
+                                  (self.get_width(), self.get_height()),
+                                  color=color, width=width)
 
 
 ######################################################################
@@ -1253,7 +1251,7 @@ class Circle(Feature):
         """
         return self.r * 2
 
-    def crop(self, noMask=False):
+    def crop(self, no_mask=False):
         """
         **SUMMARY**
 
@@ -1261,8 +1259,8 @@ class Circle(Feature):
 
         **PARAMETERS**
 
-        * *noMask* - if noMask=True we return the bounding box image of the
-         circle. if noMask=False (default) we return the masked circle with the
+        * *no_mask* - if no_mask=True we return the bounding box image of the
+         circle. if no_mask=False (default) we return the masked circle with the
          rest of the area set to black
 
         **RETURNS**
@@ -1270,9 +1268,9 @@ class Circle(Feature):
         The masked circle image.
 
         """
-        if noMask:
-            return self.image.crop(self.x, self.y, self.get_width(), self.get_height(),
-                                   centered=True)
+        if no_mask:
+            return self.image.crop(self.x, self.y, self.get_width(),
+                                   self.get_height(), centered=True)
         else:
             mask = self.image.get_empty(1)
             result = self.image.get_empty()
@@ -1283,10 +1281,10 @@ class Circle(Feature):
             cv.Circle(mask, (self.x, self.y), self.r, color=(255, 255, 255),
                       thickness=-1)
             cv.Copy(self.image.get_bitmap(), result, mask)
-            retVal = Image(result)
-            retVal = retVal.crop(self.x, self.y, self.get_width(), self.get_height(),
-                                 centered=True)
-            return retVal
+            ret_value = Image(result)
+            ret_value = ret_value.crop(self.x, self.y, self.get_width(),
+                                       self.get_height(), centered=True)
+            return ret_value
 
 
 ###############################################################################
@@ -1303,25 +1301,25 @@ class KeyPoint(Feature):
     image = ""  # parent image
     points = []
     __avgColor = None
-    mAngle = 0
-    mOctave = 0
-    mResponse = 0.00
-    mFlavor = ""
-    mDescriptor = None
-    mKeyPoint = None
+    angle = 0
+    octave = 0
+    response = 0.00
+    flavor = ""
+    descriptor = None
+    key_point = None
 
     def __init__(self, i, keypoint, descriptor=None, flavor="SURF"):
-        self.mKeyPoint = keypoint
+        self.key_point = keypoint
         x = keypoint.pt[1]  # KAT
         y = keypoint.pt[0]
         self._r = keypoint.size / 2.0
         self._avgColor = None
         self.image = i
-        self.mAngle = keypoint.angle
-        self.mOctave = keypoint.octave
-        self.mResponse = keypoint.response
-        self.mFlavor = flavor
-        self.mDescriptor = descriptor
+        self.angle = keypoint.angle
+        self.octave = keypoint.octave
+        self.response = keypoint.response
+        self.flavor = flavor
+        self.descriptor = descriptor
         r = self._r
         points = ((x + r, y + r), (x + r, y - r),
                   (x - r, y - r), (x - r, y + r))
@@ -1336,23 +1334,23 @@ class KeyPoint(Feature):
             y = (r * cos(rp)) + self.y
             self.points.append((x, y))
 
-    def getObject(self):
+    def get_object(self):
         """
         **SUMMARY**
 
         Returns the raw keypoint object.
 
         """
-        return self.mKeyPoint
+        return self.key_point
 
-    def descriptor(self):
+    def get_descriptor(self):
         """
         **SUMMARY**
 
         Returns the raw keypoint descriptor.
 
         """
-        return self.mDescriptor
+        return self.descriptor
 
     def quality(self):
         """
@@ -1361,27 +1359,27 @@ class KeyPoint(Feature):
         Returns the quality metric for the keypoint object.
 
         """
-        return self.mResponse
+        return self.response
 
-    def octave(self):
+    def get_octave(self):
         """
         **SUMMARY**
 
         Returns the raw keypoint's octave (if it has one).
 
         """
-        return self.mOctave
+        return self.octave
 
-    def flavor(self):
+    def get_flavor(self):
         """
         **SUMMARY**
 
         Returns the type of keypoint as a string (e.g. SURF/MSER/ETC)
 
         """
-        return self.mFlavor
+        return self.flavor
 
-    def angle(self):
+    def get_angle(self):
         """
         **SUMMARY**
 
@@ -1393,7 +1391,7 @@ class KeyPoint(Feature):
         An angle value in degrees.
 
         """
-        return self.mAngle
+        return self.angle
 
     def draw(self, color=Color.GREEN, width=1):
         """
@@ -1417,8 +1415,8 @@ class KeyPoint(Feature):
         """
         self.image.dl().circle((self.x, self.y), self._r, color, width)
         pt1 = (int(self.x), int(self.y))
-        pt2 = (int(self.x + (self.radius() * sin(radians(self.angle())))),
-               int(self.y + (self.radius() * cos(radians(self.angle())))))
+        pt2 = (int(self.x + (self.radius() * sin(radians(self.get_angle())))),
+               int(self.y + (self.radius() * cos(radians(self.get_angle())))))
         self.image.dl().line(pt1, pt2, color, width)
 
     def show(self, color=Color.GREEN):
@@ -1477,7 +1475,7 @@ class KeyPoint(Feature):
             self._avgColor = (temp[0], temp[1], temp[2])
         return self._avgColor
 
-    def colorDistance(self, color=(0, 0, 0)):
+    def color_distance(self, color=(0, 0, 0)):
         """
         Return the euclidean color distance of the color tuple at x,y from
         a given color (default black)
@@ -1527,7 +1525,7 @@ class KeyPoint(Feature):
         """
         return self._r * 2
 
-    def crop(self, noMask=False):
+    def crop(self, no_mask=False):
         """
         **SUMMARY**
 
@@ -1535,8 +1533,8 @@ class KeyPoint(Feature):
 
         **PARAMETERS**
 
-        * *noMask* - if noMask=True we return the bounding box image of the
-         circle. if noMask=False (default) we return the masked circle with
+        * *no_mask* - if no_mask=True we return the bounding box image of the
+         circle. if no_mask=False (default) we return the masked circle with
          the rest of the area set to black
 
         **RETURNS**
@@ -1544,9 +1542,9 @@ class KeyPoint(Feature):
         The masked circle image.
 
         """
-        if noMask:
-            return self.image.crop(self.x, self.y, self.get_width(), self.get_height(),
-                                   centered=True)
+        if no_mask:
+            return self.image.crop(self.x, self.y, self.get_width(),
+                                   self.get_height(), centered=True)
         else:
             mask = self.image.get_empty(1)
             result = self.image.get_empty()
@@ -1557,10 +1555,10 @@ class KeyPoint(Feature):
             cv.Circle(mask, (int(self.x), int(self.y)), int(self._r),
                       color=(255, 255, 255), thickness=-1)
             cv.Copy(self.image.get_bitmap(), result, mask)
-            retVal = Image(result)
-            retVal = retVal.crop(self.x, self.y, self.get_width(), self.get_height(),
-                                 centered=True)
-            return retVal
+            ret_value = Image(result)
+            ret_value = ret_value.crop(self.x, self.y, self.get_width(),
+                                       self.get_height(), centered=True)
+            return ret_value
 
 
 ######################################################################
@@ -1621,8 +1619,6 @@ class Motion(Feature):
         drawing layer.
 
         """
-        new_x = 0
-        new_y = 0
         if normalize:
             win = self.window / 2
             w = sqrt((win * win) * 2)
@@ -1634,7 +1630,7 @@ class Motion(Feature):
 
         self.image.dl().line((self.x, self.y), (new_x, new_y), color, width)
 
-    def normalizeTo(self, max_mag):
+    def normalize_to(self, max_mag):
         """
         **SUMMARY**
 
@@ -1647,7 +1643,7 @@ class Motion(Feature):
             return None
         mag = self.magnitude()
         new_mag = mag / max_mag
-        unit = self.unitVector()
+        unit = self.unit_vector()
         self.norm_dx = unit[0] * new_mag
         self.norm_dy = unit[1] * new_mag
 
@@ -1657,7 +1653,7 @@ class Motion(Feature):
         """
         return sqrt((self.dx * self.dx) + (self.dy * self.dy))
 
-    def unitVector(self):
+    def unit_vector(self):
         """
         Returns the unit vector direction of the flow vector as an (x,y) tuple.
         """
@@ -1673,7 +1669,7 @@ class Motion(Feature):
         """
         return self.dx, self.dy
 
-    def windowSz(self):
+    def window_sz(self):
         """
         Return the window size that we sampled over.
         """
@@ -1727,20 +1723,20 @@ class KeypointMatch(Feature):
     y = 0.00
     image = ""  # parent image
     points = []
-    _minRect = []
-    _avgColor = None
+    _min_rect = []
+    _avg_color = None
     _homography = []
     _template = None
 
-    def __init__(self, image, template, minRect, _homography):
+    def __init__(self, image, template, min_rect, _homography):
         self._template = template
-        self._minRect = minRect
+        self._min_rect = min_rect
         self._homography = _homography
         xmax = 0
         ymax = 0
         xmin = image.width
         ymin = image.height
-        for p in minRect:
+        for p in min_rect:
             if p[0] > xmax:
                 xmax = p[0]
             if p[0] < xmin:
@@ -1786,10 +1782,10 @@ class KeypointMatch(Feature):
 
 
         """
-        self.image.dl().line(self._minRect[0], self._minRect[1], color, width)
-        self.image.dl().line(self._minRect[1], self._minRect[2], color, width)
-        self.image.dl().line(self._minRect[2], self._minRect[3], color, width)
-        self.image.dl().line(self._minRect[3], self._minRect[0], color, width)
+        self.image.dl().line(self._min_rect[0], self._min_rect[1], color, width)
+        self.image.dl().line(self._min_rect[1], self._min_rect[2], color, width)
+        self.image.dl().line(self._min_rect[2], self._min_rect[3], color, width)
+        self.image.dl().line(self._min_rect[3], self._min_rect[0], color, width)
 
     def draw_rect(self, color=Color.GREEN, width=1):
         """
@@ -1809,8 +1805,8 @@ class KeypointMatch(Feature):
         the axes aligned box masked to just include the image data of the
         minimum bounding rectangle.
         """
-        tl = self.top_left_corner()
-        raw = self.image.crop(tl[0], tl[1], self.get_width(),
+        tlc = self.top_left_corner()
+        raw = self.image.crop(tlc[0], tlc[1], self.get_width(),
                               self.get_height())  # crop the minbouding rect
         return raw
 
@@ -1834,26 +1830,26 @@ class KeypointMatch(Feature):
         >>> c = kp.mean_color()
 
         """
-        if self._avgColor is None:
-            TL = self.top_left_corner()
-            raw = self.image.crop(TL[0], TL[0], self.get_width(),
+        if self._avg_color is None:
+            tlc = self.top_left_corner()
+            raw = self.image.crop(tlc[0], tlc[0], self.get_width(),
                                   self.get_height())  # crop the minbouding rect
             mask = Image((self.get_width(), self.get_height()))
-            mask.dl().polygon(self._minRect, color=Color.WHITE,
+            mask.dl().polygon(self._min_rect, color=Color.WHITE,
                               filled=pickle.TRUE)
             mask = mask.apply_layers()
-            retVal = cv.Avg(raw.get_bitmap(), mask._get_grayscale_bitmap())
-            self._avgColor = retVal
+            ret_value = cv.Avg(raw.get_bitmap(), mask._get_grayscale_bitmap())
+            self._avg_color = ret_value
         else:
-            retVal = self._avgColor
-        return retVal
+            ret_value = self._avg_color
+        return ret_value
 
-    def getMinRect(self):
+    def get_min_rect(self):
         """
         Returns the minimum bounding rectangle of the feature as a list
         of (x,y) tuples.
         """
-        return self._minRect
+        return self._min_rect
 
     def get_homography(self):
         """
@@ -1872,14 +1868,14 @@ class ShapeContextDescriptor(Feature):
     y = 0.00
     image = ""  # parent image
     points = []
-    _minRect = []
-    _avgColor = None
+    _min_rect = []
+    _avg_color = None
     _descriptor = None
-    _sourceBlob = None
+    _source_blob = None
 
     def __init__(self, image, point, descriptor, blob):
         self._descriptor = descriptor
-        self._sourceBlob = blob
+        self._source_blob = blob
         x = point[0]
         y = point[1]
         points = [(x - 1, y - 1), (x + 1, y - 1), (x + 1, y + 1),
@@ -1928,8 +1924,8 @@ class ROI(Feature):
     # we are going to assume x,y,w,h is our canonical form
     points = []  # point list for cross compatibility
     image = None
-    subFeatures = []
-    _meanColor = None
+    sub_features = []
+    _mean_color = None
 
     def __init__(self, x, y=None, w=None, h=None, image=None):
         """
@@ -1956,9 +1952,9 @@ class ROI(Feature):
         **EXAMPLE**
 
         >>> img = Image('lenna')
-        >>> x,y = np.where(img.threshold(230).get_gray_numpy() > 128 )
-        >>> roi = ROI(zip(x,y),img)
-        >>> roi = ROI(x,y,img)
+        >>> x, y = np.where(img.threshold(230).get_gray_numpy() > 128)
+        >>> roi = ROI(zip(x, y), img)
+        >>> roi2 = ROI(x, y, img)
 
         """
         #After forgetting to set img=Image I put this catch
@@ -1982,10 +1978,10 @@ class ROI(Feature):
                 self.image = x[0].image
 
         if isinstance(x, Feature):
-            self.subFeatures = FeatureSet([x])
+            self.sub_features = FeatureSet([x])
         elif isinstance(x, (list, tuple)) and len(x) > 0 \
                 and isinstance(x, Feature):
-            self.subFeatures = FeatureSet(x)
+            self.sub_features = FeatureSet(x)
 
         result = self._standardize(x, y, w, h)
         if result is None:
@@ -2016,7 +2012,7 @@ class ROI(Feature):
 
         **EXAMPLE**
 
-        >>> roi = ROI(10,10,100,100,img)
+        >>> roi = ROI(10, 10, 100, 100, img)
         >>> roi.resize(2)
         >>> roi.show()
 
@@ -2039,10 +2035,10 @@ class ROI(Feature):
             ny = self.ytl + ((self.h - nh) / 2.0)
             self._rebase([nx, ny, nw, nh])
 
-    def overlaps(self, otherROI):
-        for p in otherROI.points:
-            if p[0] <= self.maxX() and p[0] >= self.minX() \
-                    and p[1] <= self.maxY() and p[1] >= self.minY():
+    def overlaps(self, other_roi):
+        for pnt in other_roi.points:
+            if self.get_max_x() >= pnt[0] >= self.get_min_x() \
+                    and self.get_max_y() >= pnt[1] >= self.get_min_y():
                 return True
         return False
 
@@ -2063,8 +2059,8 @@ class ROI(Feature):
 
         **EXAMPLE**
 
-        >>> roi = ROI(10,10,100,100,img)
-        >>> roi.translate(30,30)
+        >>> roi = ROI(10, 10, 100, 100, img)
+        >>> roi.translate(30, 30)
         >>> roi.show()
 
         """
@@ -2078,7 +2074,7 @@ class ROI(Feature):
         if isinstance(x, (float, int)) and isinstance(y, (float, int)):
             self._rebase([self.xtl + x, self.ytl + y, self.w, self.h])
 
-    def toXYWH(self):
+    def to_xywh(self):
         """
         **SUMMARY**
 
@@ -2091,14 +2087,14 @@ class ROI(Feature):
 
         **EXAMPLE**
 
-        >>> roi = ROI(10,10,100,100,img)
-        >>> roi.translate(30,30)
-        >>> print roi.toXYWH()
+        >>> roi = ROI(10, 10, 100, 100, img)
+        >>> roi.translate(30, 30)
+        >>> print roi.to_xywh()
 
         """
         return [self.xtl, self.ytl, self.w, self.h]
 
-    def toTLAndBR(self):
+    def to_tl_and_br(self):
         """
         **SUMMARY**
 
@@ -2111,14 +2107,14 @@ class ROI(Feature):
 
         **EXAMPLE**
 
-        >>> roi = ROI(10,10,100,100,img)
-        >>> roi.translate(30,30)
-        >>> print roi.toTLAndBR()
+        >>> roi = ROI(10, 10, 100, 100, img)
+        >>> roi.translate(30, 30)
+        >>> print roi.to_tl_and_br()
 
         """
         return [(self.xtl, self.ytl), (self.xtl + self.w, self.ytl + self.h)]
 
-    def toPoints(self):
+    def to_points(self):
         """
         **SUMMARY**
 
@@ -2132,8 +2128,8 @@ class ROI(Feature):
 
         **EXAMPLE**
 
-        >>> roi = ROI(10,10,100,100,img)
-        >>> print roi.toPoints()
+        >>> roi = ROI(10, 10, 100, 100, img)
+        >>> print roi.to_points()
         """
 
         tl = (self.xtl, self.ytl)
@@ -2142,7 +2138,7 @@ class ROI(Feature):
         bl = (self.xtl, self.ytl + self.h)
         return [tl, tr, br, bl]
 
-    def toUnitXYWH(self):
+    def to_unit_xywh(self):
         """
         **SUMMARY**
 
@@ -2157,14 +2153,14 @@ class ROI(Feature):
 
         **EXAMPLE**
 
-        >>> roi = ROI(10,10,100,100,img)
-        >>> print roi.toUnitXYWH()
+        >>> roi = ROI(10, 10, 100, 100, img)
+        >>> print roi.to_unit_xywh()
         """
         if self.image is None:
             return None
         srcw = float(self.image.width)
         srch = float(self.image.height)
-        x, y, w, h = self.toXYWH()
+        x, y, w, h = self.to_xywh()
         nx = 0
         ny = 0
         if x != 0:
@@ -2174,7 +2170,7 @@ class ROI(Feature):
 
         return [nx, ny, w / srcw, h / srch]
 
-    def toUnitTLAndBR(self):
+    def to_unit_tl_and_br(self):
         """
         **SUMMARY**
 
@@ -2188,9 +2184,9 @@ class ROI(Feature):
 
         **EXAMPLE**
 
-        >>> roi = ROI(10,10,100,100,img)
-        >>> roi.translate(30,30)
-        >>> print roi.toUnitTLAndBR()
+        >>> roi = ROI(10, 10, 100, 100, img)
+        >>> roi.translate(30, 30)
+        >>> print roi.to_unit_tl_and_br()
 
         """
 
@@ -2198,7 +2194,7 @@ class ROI(Feature):
             return None
         srcw = float(self.image.width)
         srch = float(self.image.height)
-        x, y, w, h = self.toXYWH()
+        x, y, w, h = self.to_xywh()
         nx = 0
         ny = 0
         nw = w / srcw
@@ -2210,7 +2206,7 @@ class ROI(Feature):
 
         return [(nx, ny), (nx + nw, ny + nh)]
 
-    def toUnitPoints(self):
+    def to_unit_points(self):
         """
         **SUMMARY**
 
@@ -2224,26 +2220,25 @@ class ROI(Feature):
 
         **EXAMPLE**
 
-        >>> roi = ROI(10,10,100,100,img)
-        >>> print roi.toUnitPoints()
+        >>> roi = ROI(10, 10, 100, 100, img)
+        >>> print roi.to_unit_points()
         """
 
         if self.image is None:
             return None
         srcw = float(self.image.width)
         srch = float(self.image.height)
-        pts = self.toPoints()
-        retVal = []
-        for p in pts:
-            x, y = p
+        ret_value = []
+        for pnt in self.to_points():
+            x, y = pnt
             if x != 0:
-                x = x / srcw
+                x /= srcw
             if y != 0:
-                y = y / srch
-            retVal.append((x, y))
-        return retVal
+                y /= srch
+            ret_value.append((x, y))
+        return ret_value
 
-    def CoordTransformX(self, x, intype="ROI", output="SRC"):
+    def coord_transform_x(self, x, intype="ROI", output="SRC"):
         """
         **SUMMARY**
 
@@ -2274,7 +2269,7 @@ class ROI(Feature):
         >>> blobs = img.find_blobs()
         >>> roi = ROI(blobs[0])
         >>> x = roi.crop()..... /find some x values in the crop region
-        >>> xt = roi.CoordTransformX(x)
+        >>> xt = roi.coord_transform_x(x)
         >>> #xt are no in the space of the original image.
         """
         if self.image is None:
@@ -2289,7 +2284,7 @@ class ROI(Feature):
         return self._transform(x, self.image.width, self.w, self.xtl, intype,
                                output)
 
-    def CoordTransformY(self, y, intype="ROI", output="SRC"):
+    def coord_transform_y(self, y, intype="ROI", output="SRC"):
         """
         **SUMMARY**
 
@@ -2320,7 +2315,7 @@ class ROI(Feature):
         >>> blobs = img.find_blobs()
         >>> roi = ROI(blobs[0])
         >>> y = roi.crop()..... /find some y values in the crop region
-        >>> yt = roi.CoordTransformY(y)
+        >>> yt = roi.coord_transform_y(y)
         >>> #yt are no in the space of the original image.
         """
 
@@ -2336,7 +2331,7 @@ class ROI(Feature):
         return self._transform(y, self.image.height, self.h, self.ytl, intype,
                                output)
 
-    def CoordTransformPts(self, pts, intype="ROI", output="SRC"):
+    def coord_transform_pts(self, pts, intype="ROI", output="SRC"):
         """
         **SUMMARY**
 
@@ -2365,8 +2360,8 @@ class ROI(Feature):
         >>> img = Image('lenna')
         >>> blobs = img.find_blobs()
         >>> roi = ROI(blobs[0])
-        >>> pts = roi.crop()..... /find some x,y values in the crop region
-        >>> pts = roi.CoordTransformPts(pts)
+        >>> pts = roi.crop()..... /find some x, y values in the crop region
+        >>> pts = roi.coord_transform_pts(pts)
         >>> #yt are no in the space of the original image.
         """
         if self.image is None:
@@ -2388,8 +2383,8 @@ class ROI(Feature):
                             output)
         return zip(x, y)
 
-    def _transform(self, x, imgsz, roisz, offset, intype, output):
-        xtemp = []
+    @staticmethod
+    def _transform(x, imgsz, roisz, offset, intype, output):
         # we are going to go to src unit coordinates
         # and then we'll go back.
         if intype == "SRC":
@@ -2401,26 +2396,25 @@ class ROI(Feature):
         elif intype == "SRC_UNIT":
             xtemp = x
         else:
-            logger.warning("Bad Parameter to CoordTransformX")
+            logger.warning("Bad Parameter to coord_transform_x")
             return None
 
-        retVal = []
         if output == "SRC":
-            retVal = [int(xt * imgsz) for xt in xtemp]
+            ret_value = [int(xt * imgsz) for xt in xtemp]
         elif output == "ROI":
-            retVal = [int((xt * imgsz) - offset) for xt in xtemp]
+            ret_value = [int((xt * imgsz) - offset) for xt in xtemp]
         elif output == "ROI_UNIT":
-            retVal = [int(((xt * imgsz) - offset) / float(roisz)) for xt in
-                      xtemp]
+            ret_value = [int(((xt * imgsz) - offset) / float(roisz)) for xt in
+                         xtemp]
         elif output == "SRC_UNIT":
-            retVal = xtemp
+            ret_value = xtemp
         else:
-            logger.warning("Bad Parameter to CoordTransformX")
+            logger.warning("Bad Parameter to coord_transform_x")
             return None
 
-        return retVal
+        return ret_value
 
-    def splitX(self, x, unitVals=False, srcVals=False):
+    def split_x(self, x, unit_vals=False, src_vals=False):
         """
         **SUMMARY**
         Split the ROI at an x value.
@@ -2428,16 +2422,16 @@ class ROI(Feature):
         x can be a list of sequentianl tuples of x split points  e.g [0.3,0.6]
         where we assume the top and bottom are also on the list.
         Use units to split as a percentage (e.g. 30% down).
-        The srcVals means use coordinates of the original image.
+        The src_vals means use coordinates of the original image.
 
 
         **PARAMETERS**
 
         * *x*-The split point. Can be a single point or a list of points. the
          type is determined by the flags.
-        * *unitVals* - Use unit vals for the split point. E.g. 0.5 means split
+        * *unit_vals* - Use unit vals for the split point. E.g. 0.5 means split
          at 50% of the ROI.
-        * *srcVals* - Use x values relative to the source image rather than
+        * *src_vals* - Use x values relative to the source image rather than
          relative to the ROI.
 
 
@@ -2447,22 +2441,22 @@ class ROI(Feature):
 
         **EXAMPLE**
 
-        >>> roi = ROI(0,0,100,100,img)
-        >>> splits = roi.splitX(50) # create two ROIs
+        >>> roi = ROI(0, 0, 100, 100, img)
+        >>> splits = roi.split_x(50) # create two ROIs
 
         """
-        retVal = FeatureSet()
-        if unitVals and srcVals:
+        ret_value = FeatureSet()
+        if unit_vals and src_vals:
             logger.warning("Not sure how you would like to split the feature")
             return None
 
         if not isinstance(x, (list, tuple)):
             x = [x]
 
-        if unitVals:
-            x = self.CoordTransformX(x, intype="ROI_UNIT", output="SRC")
-        elif not srcVals:
-            x = self.CoordTransformX(x, intype="ROI", output="SRC")
+        if unit_vals:
+            x = self.coord_transform_x(x, intype="ROI_UNIT", output="SRC")
+        elif not src_vals:
+            x = self.coord_transform_x(x, intype="ROI", output="SRC")
 
         for xt in x:
             if xt < self.xtl or xt > self.xtl + self.w:
@@ -2475,10 +2469,10 @@ class ROI(Feature):
             xstart = x[i]
             xstop = x[i + 1]
             w = xstop - xstart
-            retVal.append(ROI(xstart, self.ytl, w, self.h, self.image))
-        return retVal
+            ret_value.append(ROI(xstart, self.ytl, w, self.h, self.image))
+        return ret_value
 
-    def splitY(self, y, unitVals=False, srcVals=False):
+    def split_y(self, y, unit_vals=False, src_vals=False):
         """
         **SUMMARY**
         Split the ROI at an x value.
@@ -2486,16 +2480,16 @@ class ROI(Feature):
         y can be a list of sequentianl tuples of y split points  e.g [0.3,0.6]
         where we assume the top and bottom are also on the list.
         Use units to split as a percentage (e.g. 30% down).
-        The srcVals means use coordinates of the original image.
+        The src_vals means use coordinates of the original image.
 
 
         **PARAMETERS**
 
         * *y*-The split point. Can be a single point or a list of points. the
          type is determined by the flags.
-        * *unitVals* - Use unit vals for the split point. E.g. 0.5 means split
+        * *unit_vals* - Use unit vals for the split point. E.g. 0.5 means split
          at 50% of the ROI.
-        * *srcVals* - Use x values relative to the source image rather than
+        * *src_vals* - Use x values relative to the source image rather than
          relative to the ROI.
 
         **RETURNS**
@@ -2504,22 +2498,22 @@ class ROI(Feature):
 
         **EXAMPLE**
 
-        >>> roi = ROI(0,0,100,100,img)
-        >>> splits = roi.splitY(50) # create two ROIs
+        >>> roi = ROI(0, 0, 100, 100, img)
+        >>> splits = roi.split_y(50) # create two ROIs
 
         """
-        retVal = FeatureSet()
-        if unitVals and srcVals:
+        ret_value = FeatureSet()
+        if unit_vals and src_vals:
             logger.warning("Not sure how you would like to split the feature")
             return None
 
         if not isinstance(y, (list, tuple)):
             y = [y]
 
-        if unitVals:
-            y = self.CoordTransformY(y, intype="ROI_UNIT", output="SRC")
-        elif not srcVals:
-            y = self.CoordTransformY(y, intype="ROI", output="SRC")
+        if unit_vals:
+            y = self.coord_transform_y(y, intype="ROI_UNIT", output="SRC")
+        elif not src_vals:
+            y = self.coord_transform_y(y, intype="ROI", output="SRC")
 
         for yt in y:
             if yt < self.ytl or yt > self.ytl + self.h:
@@ -2532,8 +2526,8 @@ class ROI(Feature):
             ystart = y[i]
             ystop = y[i + 1]
             h = ystop - ystart
-            retVal.append(ROI(self.xtl, ystart, self.w, h, self.image))
-        return retVal
+            ret_value.append(ROI(self.xtl, ystart, self.w, h, self.image))
+        return ret_value
 
     def merge(self, regions):
         """
@@ -2556,10 +2550,10 @@ class ROI(Feature):
         **EXAMPLE**
 
         >>>  blobs = img.find_blobs()
-        >>>  roi = ROI(blob[0])
-        >>>  print roi.toXYWH()
-        >>>  roi.merge(blob[2])
-        >>>  print roi.toXYWH()
+        >>>  roi = ROI(blobs[0])
+        >>>  print roi.to_xywh()
+        >>>  roi.merge(blobs[2])
+        >>>  print roi.to_xywh()
 
         """
         result = self._standardize(regions)
@@ -2576,16 +2570,16 @@ class ROI(Feature):
                 h = np.clip(h, 0, self.image.height - y)
             self._rebase([x, y, w, h])
             if isinstance(regions, ROI):
-                self.subFeatures += regions
+                self.sub_features += regions
             elif isinstance(regions, Feature):
-                self.subFeatures.append(regions)
+                self.sub_features.append(regions)
             elif isinstance(regions, (list, tuple)):
                 if isinstance(regions[0], ROI):
-                    for r in regions:
-                        self.subFeatures += r.subFeatures
+                    for reg in regions:
+                        self.sub_features += reg.sub_features
                 elif isinstance(regions[0], Feature):
-                    for r in regions:
-                        self.subFeatures.append(r)
+                    for reg in regions:
+                        self.sub_features.append(reg)
 
     def rebase(self, x, y=None, w=None, h=None):
         """
@@ -2594,10 +2588,10 @@ class ROI(Feature):
 
         """
         if isinstance(x, Feature):
-            self.subFeatures.append(x)
+            self.sub_features.append(x)
         elif isinstance(x, (list, tuple)) and len[x] > 0 \
                 and isinstance(x, Feature):
-            self.subFeatures += list(x)
+            self.sub_features += list(x)
         result = self._standardize(x, y, w, h)
         if result is None:
             logger.warning("Could not create an ROI from your data.")
@@ -2626,7 +2620,7 @@ class ROI(Feature):
         >>> img.show()
 
         """
-        x, y, w, h = self.toXYWH()
+        x, y, w, h = self.to_xywh()
         self.image.draw_rectangle(x, y, w, h, width=width, color=color)
 
     def show(self, color=Color.GREEN, width=2):
@@ -2665,23 +2659,23 @@ class ROI(Feature):
         >>> img = Image("OWS.jpg")
         >>> blobs = img.find_blobs(128)
         >>> for b in blobs:
-        >>>    if b.mean_color() == color.WHITE:
+        >>>    if b.mean_color() == Color.WHITE:
         >>>       print "Found a white thing"
 
         """
-        x, y, w, h = self.toXYWH()
+        x, y, w, h = self.to_xywh()
         return self.image.crop(x, y, w, h).mean_color()
 
     def _rebase(self, roi):
         x, y, w, h = roi
-        self._mMaxX = None
-        self._mMaxY = None
-        self._mMinX = None
-        self._mMinY = None
-        self._mWidth = None
-        self._mHeight = None
-        self.mExtents = None
-        self.mBoundingBox = None
+        self._max_x = None
+        self._max_y = None
+        self._min_x = None
+        self._min_y = None
+        self._width = None
+        self._height = None
+        self.extents = None
+        self.bounding_box = None
         self.xtl = x
         self.ytl = y
         self.w = w
@@ -2708,7 +2702,7 @@ class ROI(Feature):
 
                 return [x, y, w, h]
         elif isinstance(x, ROI):
-            x, y, w, h = x.toXYWH()
+            x, y, w, h = x.to_xywh()
         #If it's a feature extract what we need
         elif isinstance(x, FeatureSet) and len(x) > 0:
             #double check that everything in the list is a feature
@@ -2723,11 +2717,11 @@ class ROI(Feature):
             h = ymax - ymin
 
         elif isinstance(x, Feature):
-            theFeature = x
-            x = theFeature.points[0][0]
-            y = theFeature.points[0][1]
-            w = theFeature.get_width()
-            h = theFeature.get_height()
+            the_feature = x
+            x = the_feature.points[0][0]
+            y = the_feature.points[0][1]
+            w = the_feature.get_width()
+            h = the_feature.get_height()
 
         # [x,y,w,h] (x,y,w,h)
         elif isinstance(x, (tuple, list)) and len(x) == 4 \
@@ -2845,7 +2839,7 @@ class ROI(Feature):
         return [x, y, w, h]
 
     def crop(self):
-        retVal = None
+        ret_value = None
         if self.image is not None:
-            retVal = self.image.crop(self.xtl, self.ytl, self.w, self.h)
-        return retVal
+            ret_value = self.image.crop(self.xtl, self.ytl, self.w, self.h)
+        return ret_value

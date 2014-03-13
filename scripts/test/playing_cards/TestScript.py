@@ -46,9 +46,9 @@ for d in datapoints:
     if( l is not None ):
         v = 70
         h = 30
-        vl = l.filter(np.abs(l.angle()) > v)
+        vl = l.filter(np.abs(l.get_angle()) > v)
         vl = vl.filter(vl.length() > img.height/6)
-        hl = l.filter(np.abs(l.angle()) < h)
+        hl = l.filter(np.abs(l.get_angle()) < h)
         hl = hl.filter(hl.length() > img.width/8)
         vl.draw(color=Color.RED,width=3)
         hl.draw(color=Color.BLUE,width=3)

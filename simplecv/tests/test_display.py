@@ -1131,7 +1131,7 @@ def test_hough_circles():
     circs[0].distance_from(point=(0, 0))
     circs[0].draw()
     img2 = circs[0].crop()
-    img3 = circs[0].crop(noMask=True)
+    img3 = circs[0].crop(no_mask=True)
 
     results = [img, img2, img3]
     name_stem = "test_hough_circle"
@@ -1203,12 +1203,12 @@ def test_findKeypoints():
     img = Image(testimage2)
     kp = img.find_keypoints()
     for k in kp:
-        k.getObject()
-        k.descriptor()
+        k.get_object()
+        k.get_descriptor()
         k.quality()
-        k.octave()
-        k.flavor()
-        k.angle()
+        k.get_octave()
+        k.get_flavor()
+        k.get_angle()
         k.coordinates()
         k.draw()
         k.distance_from()
@@ -1235,7 +1235,7 @@ def test_movement_feature():
         fs.draw(color=Color.RED)
         img = fs[0].crop()
         color = fs[1].mean_color()
-        wndw = fs[1].windowSz()
+        wndw = fs[1].window_sz()
         for f in fs:
             f.vector()
             f.magnitude()
@@ -1248,7 +1248,7 @@ def test_movement_feature():
         fs.draw(color=Color.RED)
         img = fs[0].crop()
         color = fs[1].mean_color()
-        wndw = fs[1].windowSz()
+        wndw = fs[1].window_sz()
         for f in fs:
             f.vector()
             f.magnitude()
@@ -1261,7 +1261,7 @@ def test_movement_feature():
         fs.draw(color=Color.RED)
         img = fs[0].crop()
         color = fs[1].mean_color()
-        wndw = fs[1].windowSz()
+        wndw = fs[1].window_sz()
         for f in fs:
             f.vector()
             f.magnitude()
@@ -1331,7 +1331,7 @@ def test_keypoint_match():
         f.draw_rect()
         f.draw()
         f.get_homography()
-        f.getMinRect()
+        f.get_min_rect()
         #f.mean_color()
         f.crop()
         f.x
@@ -1615,15 +1615,15 @@ def test_feature_angles():
 
     for bs in b:
         tl = bs.top_left_corner()
-        img.draw_text(str(bs.angle()), tl[0], tl[1], color=Color.RED)
+        img.draw_text(str(bs.get_angle()), tl[0], tl[1], color=Color.RED)
 
     for ls in l:
         tl = ls.top_left_corner()
-        img2.draw_text(str(ls.angle()), tl[0], tl[1], color=Color.GREEN)
+        img2.draw_text(str(ls.get_angle()), tl[0], tl[1], color=Color.GREEN)
 
     for ks in k:
         tl = ks.top_left_corner()
-        img3.draw_text(str(ks.angle()), tl[0], tl[1], color=Color.BLUE)
+        img3.draw_text(str(ks.get_angle()), tl[0], tl[1], color=Color.BLUE)
 
     results = [img, img2, img3]
     name_stem = "test_feature_angles"
@@ -1637,8 +1637,8 @@ def test_feature_angles_rotate():
 
     for bs in b:
         temp = bs.crop()
-        derp = temp.rotate(bs.angle(), fixed=False)
-        derp.draw_text(str(bs.angle()), 10, 10, color=Color.RED)
+        derp = temp.rotate(bs.get_angle(), fixed=False)
+        derp.draw_text(str(bs.get_angle()), 10, 10, color=Color.RED)
         results.append(derp)
         bs.rectify_major_axis()
         results.append(bs.blob_image())

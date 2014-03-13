@@ -24,6 +24,7 @@ class HaarLikeFeatureExtractor(FeatureExtractorBase):
         """
         # we define the black (positive) and white (negative) regions of an
         # image to get our haar wavelet
+        # FIXME: hope this should be self.do45 = do.45
         self.do45 = True
         self.featureset = None
         if fname is not None:
@@ -42,11 +43,11 @@ class HaarLikeFeatureExtractor(FeatureExtractorBase):
         # -1 loads all
         # otherwise loads min(nfeats,features in file)
         self.featureset = []
-        f = open(fname, 'r')
-        #line = f.readline()
+        ofile = open(fname, 'r')
+        #line = ofile.readline()
         #count = int(line)
-        temp = f.read()
-        f.close()
+        temp = ofile.read()
+        ofile.close()
         data = temp.split()
         count = int(data.pop(0))
         self.featureset = []
@@ -68,11 +69,11 @@ class HaarLikeFeatureExtractor(FeatureExtractorBase):
         """
         Save wavelets to file
         """
-        f = open(fname, 'w')
-        f.write(str(len(self.featureset)) + '\n\n')
+        ofile = open(fname, 'w')
+        ofile.write(str(len(self.featureset)) + '\n\n')
         for i in range(len(self.featureset)):
-            self.featureset[i].writeToFile(f)
-        f.close()
+            self.featureset[i].write_to_file(ofile)
+        ofile.close()
         return None
 
     def extract(self, img):

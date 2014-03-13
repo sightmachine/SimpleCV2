@@ -3938,7 +3938,7 @@ class Image:
 
         if isinstance(cascade, basestring):
             cascade = HaarCascade(cascade)
-            if not cascade.getCascade():
+            if not cascade.get_cascade():
                 return None
         elif isinstance(cascade, HaarCascade):
             pass
@@ -3950,7 +3950,7 @@ class Image:
         try:
             import cv2
 
-            haar_classify = cv2.CascadeClassifier(cascade.getFHandle())
+            haar_classify = cv2.CascadeClassifier(cascade.get_fhandle())
             objects = haar_classify.detectMultiScale(
                 self.get_gray_numpy_cv2(), scaleFactor=scale_factor,
                 minNeighbors=min_neighbors, minSize=min_size,
@@ -3960,7 +3960,7 @@ class Image:
         except ImportError:
             objects = cv.HaarDetectObjects(
                 self._get_equalized_grayscale_bitmap(),
-                cascade.getCascade(), storage, scale_factor, min_neighbors,
+                cascade.get_cascade(), storage, scale_factor, min_neighbors,
                 use_canny, min_size)
             cv2flag = False
 
@@ -8120,7 +8120,7 @@ class Image:
             for f in fs:
                 match = False
                 for f2 in finalfs:
-                    if f2._templateOverlaps(f):  # if they overlap
+                    if f2._template_overlaps(f):  # if they overlap
                         f2.consume(f)  # merge them
                         match = True
                         break
@@ -9370,7 +9370,7 @@ class Image:
 
         max_mag = math.sqrt(max_mag)  # do the normalization
         for f in fs:
-            f.normalizeTo(max_mag)
+            f.normalize_to(max_mag)
 
         return fs
 
@@ -13718,7 +13718,7 @@ class Image:
                 or not 0 <= y <= self.height - 1 \
                 or not 0 <= x2 <= self.width - 1 \
                 or not 0 <= y2 <= self.height - 1:
-            l = Line(self, ((x, y), (x2, y2))).cropToImageEdges()
+            l = Line(self, ((x, y), (x2, y2))).crop_to_image_edges()
             if l:
                 ep = list(l.end_points)
                 ep.sort()
@@ -15540,7 +15540,7 @@ class Image:
         conv = lambda x: int(x + 90) / bins
 
         #Adding lines to bins
-        [binn[conv(line.angle())].append(line) for line in lines]
+        [binn[conv(line.get_angle())].append(line) for line in lines]
 
         #computing histogram, value of each column is total length of all lines
         #in the bin
@@ -15550,7 +15550,7 @@ class Image:
         index = np.argmax(np.array(hist))
 
         #Good ol weighted mean, for the selected bin
-        avg = sum([line.angle() * line.length() for line in binn[index]]) \
+        avg = sum([line.get_angle() * line.length() for line in binn[index]]) \
             / sum([line.length() for line in binn[index]])
 
         #Mean of centers of all lines in selected bin

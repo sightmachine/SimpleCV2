@@ -400,7 +400,7 @@ class FeatureSet(list):
         """
         return spsd.squareform(spsd.pdist(self.coordinates()))
 
-    def angle(self):
+    def get_angle(self):
         """
         **SUMMARY**
 
@@ -415,12 +415,12 @@ class FeatureSet(list):
 
         >>> img = Image("lenna")
         >>> l = img.find_lines()
-        >>> angs = l.angle()
+        >>> angs = l.get_angle()
         >>> print angs
 
 
         """
-        return np.array([f.angle() for f in self])
+        return np.array([f.get_angle() for f in self])
 
     def sort_angle(self, theta=0):
         """
@@ -439,7 +439,7 @@ class FeatureSet(list):
         >>> print angs
 
         """
-        return FeatureSet(sorted(self, key=lambda f: abs(f.angle() - theta)))
+        return FeatureSet(sorted(self, key=lambda f: abs(f.get_angle() - theta)))
 
     def length(self):
         """
@@ -567,7 +567,7 @@ class FeatureSet(list):
         >>> my_blobs.filter(my_blobs.get_area() > 0.9 * my_blobs.length**2)
 
         # any lines within 45 degrees of horizontal
-        >>> my_lines.filter(abs(my_lines.angle()) < numpy.pi / 4)
+        >>> my_lines.filter(abs(my_lines.get_angle()) < numpy.pi / 4)
 
         # only return corners in the upper diagonal of the image
         >>> my_corners.filter(my_corners.x() - my_corners.y() > 0)
@@ -1434,7 +1434,7 @@ class Feature(object):
         """
         return spsd.euclidean(np.array(color), np.array(self.mean_color()))
 
-    def angle(self):
+    def get_angle(self):
         """
         **SUMMARY**
 
@@ -1454,7 +1454,7 @@ class Feature(object):
         >>> img = Image("OWS.jpg")
         >>> blobs = img.find_blobs(128)
         >>> for b in blobs:
-        >>>    if b.angle() == 0:
+        >>>    if b.get_angle() == 0:
         >>>       print "I AM HORIZONTAL."
 
         **TODO**
