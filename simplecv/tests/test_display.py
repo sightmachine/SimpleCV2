@@ -1039,7 +1039,7 @@ def test_createAlphaMask():
     mask2 = alphaMask.create_alpha_mask(hue_lb=59, hue_ub=61)
     top = Image(topImg)
     bottom = Image(bottomImg)
-    bottom = bottom.blit(top, alphaMask=mask2)
+    bottom = bottom.blit(top, alpha_mask=mask2)
     results = [mask, mask2, bottom]
     name_stem = "test_createAlphaMask"
     perform_diff(results, name_stem)
@@ -1094,11 +1094,11 @@ def test_blit_alpha_mask():
     aMask = Image(alphaMaskImg)
     results = []
 
-    results.append(bottom.blit(top, alphaMask=aMask))
-    results.append(bottom.blit(top, alphaMask=aMask, pos=(-10, -10)))
-    results.append(bottom.blit(top, alphaMask=aMask, pos=(-10, 10)))
-    results.append(bottom.blit(top, alphaMask=aMask, pos=(10, -10)))
-    results.append(bottom.blit(top, alphaMask=aMask, pos=(10, 10)))
+    results.append(bottom.blit(top, alpha_mask=aMask))
+    results.append(bottom.blit(top, alpha_mask=aMask, pos=(-10, -10)))
+    results.append(bottom.blit(top, alpha_mask=aMask, pos=(-10, 10)))
+    results.append(bottom.blit(top, alpha_mask=aMask, pos=(10, -10)))
+    results.append(bottom.blit(top, alpha_mask=aMask, pos=(10, 10)))
 
     name_stem = "test_blit_alpha_mask"
     perform_diff(results, name_stem)
@@ -1285,7 +1285,7 @@ def test_keypoint_extraction():
     img3 = Image("../data/sampleimages/KeypointTemplate2.png")
 
     kp1 = img1.find_keypoints()
-    kp2 = img2.find_keypoints(highQuality=True)
+    kp2 = img2.find_keypoints(highquality=True)
     kp3 = img3.find_keypoints(flavor="STAR")
     kp1.draw()
     kp2.draw()
@@ -1316,13 +1316,13 @@ def test_keypoint_match():
     match2 = Image("../data/sampleimages/aerospace.jpg")  # should be none
 
     fs0 = match0.find_keypoint_match(template)  # test zero
-    fs1 = match1.find_keypoint_match(template, quality=300.00, minDist=0.5,
-                                     minMatch=0.2)
-    fs3 = match3.find_keypoint_match(template, quality=300.00, minDist=0.5,
-                                     minMatch=0.2)
+    fs1 = match1.find_keypoint_match(template, quality=300.00, min_dist=0.5,
+                                     min_match=0.2)
+    fs3 = match3.find_keypoint_match(template, quality=300.00, min_dist=0.5,
+                                     min_match=0.2)
     print "This should fail"
-    fs2 = match2.find_keypoint_match(template, quality=500.00, minDist=0.2,
-                                     minMatch=0.1)
+    fs2 = match2.find_keypoint_match(template, quality=500.00, min_dist=0.2,
+                                     min_match=0.1)
     if fs0 is not None and fs1 is not None and fs2 is None and fs3 is not None:
         fs0.draw()
         fs1.draw()
@@ -1354,7 +1354,7 @@ def test_draw_keypoint_matches():
     template = Image("../data/sampleimages/KeypointTemplate2.png")
     match0 = Image("../data/sampleimages/kptest0.png")
     result = match0.draw_keypoint_matches(template, thresh=500.00,
-                                          minDist=0.15, width=1)
+                                          min_dist=0.15, width=1)
 
     results = [result]
     name_stem = "test_draw_keypoint_matches"
@@ -1435,10 +1435,10 @@ def test_highPassFilter():
     img = Image("../data/sampleimages/RedDog2.jpg")
     a = img.high_pass_filter(0.5)
     b = img.high_pass_filter(0.5, grayscale=True)
-    c = img.high_pass_filter(0.5, yCutoff=0.4)
-    d = img.high_pass_filter(0.5, yCutoff=0.4, grayscale=True)
+    c = img.high_pass_filter(0.5, y_cutoff=0.4)
+    d = img.high_pass_filter(0.5, y_cutoff=0.4, grayscale=True)
     e = img.high_pass_filter([0.5, 0.4, 0.3])
-    f = img.high_pass_filter([0.5, 0.4, 0.3], yCutoff=[0.5, 0.4, 0.3])
+    f = img.high_pass_filter([0.5, 0.4, 0.3], y_cutoff=[0.5, 0.4, 0.3])
 
     results = [a, b, c, d, e, f]
     name_stem = "test_HighPassFilter"
@@ -1449,10 +1449,10 @@ def test_lowPassFilter():
     img = Image("../data/sampleimages/RedDog2.jpg")
     a = img.low_pass_filter(0.5)
     b = img.low_pass_filter(0.5, grayscale=True)
-    c = img.low_pass_filter(0.5, yCutoff=0.4)
-    d = img.low_pass_filter(0.5, yCutoff=0.4, grayscale=True)
+    c = img.low_pass_filter(0.5, y_cutoff=0.4)
+    d = img.low_pass_filter(0.5, y_cutoff=0.4, grayscale=True)
     e = img.low_pass_filter([0.5, 0.4, 0.3])
-    f = img.low_pass_filter([0.5, 0.4, 0.3], yCutoff=[0.5, 0.4, 0.3])
+    f = img.low_pass_filter([0.5, 0.4, 0.3], y_cutoff=[0.5, 0.4, 0.3])
 
     results = [a, b, c, d, e, f]
     name_stem = "test_LowPassFilter"
@@ -1537,13 +1537,13 @@ def test_bandPassFilter():
     img = Image("../data/sampleimages/RedDog2.jpg")
     a = img.band_pass_filter(0.1, 0.3)
     b = img.band_pass_filter(0.1, 0.3, grayscale=True)
-    c = img.band_pass_filter(0.1, 0.3, yCutoffLow=0.1, yCutoffHigh=0.3)
-    d = img.band_pass_filter(0.1, 0.3, yCutoffLow=0.1, yCutoffHigh=0.3,
+    c = img.band_pass_filter(0.1, 0.3, y_cutoff_low=0.1, y_cutoff_high=0.3)
+    d = img.band_pass_filter(0.1, 0.3, y_cutoff_low=0.1, y_cutoff_high=0.3,
                              grayscale=True)
     e = img.band_pass_filter([0.1, 0.2, 0.3], [0.5, 0.5, 0.5])
     f = img.band_pass_filter([0.1, 0.2, 0.3], [0.5, 0.5, 0.5],
-                             yCutoffLow=[0.1, 0.2, 0.3],
-                             yCutoffHigh=[0.6, 0.6, 0.6])
+                             y_cutoff_low=[0.1, 0.2, 0.3],
+                             y_cutoff_high=[0.6, 0.6, 0.6])
     results = [a, b, c, d, e, f]
     name_stem = "test_bandPassFilter"
     perform_diff(results, name_stem)
@@ -1756,15 +1756,15 @@ def test_image_new_smooth():
     result.append(img.median_filter((5, 5), grayscale=True))
     result.append(img.bilateral_filter())
     result.append(
-        img.bilateral_filter(diameter=14, sigmaColor=20, sigmaSpace=34))
+        img.bilateral_filter(diameter=14, sigma_color=20, sigma_space=34))
     result.append(img.bilateral_filter(grayscale=True))
     result.append(img.blur())
     result.append(img.blur((5, 5)))
     result.append(img.blur((3, 5), grayscale=True))
     result.append(img.gaussian_blur())
-    result.append(img.gaussian_blur((3, 7), sigmaX=10, sigmaY=12))
+    result.append(img.gaussian_blur((3, 7), sigma_x=10, sigma_y=12))
     result.append(
-        img.gaussian_blur((7, 9), sigmaX=10, sigmaY=12, grayscale=True))
+        img.gaussian_blur((7, 9), sigma_x=10, sigma_y=12, grayscale=True))
     name_stem = "test_image_new_smooth"
     perform_diff(result, name_stem)
 

@@ -2042,7 +2042,7 @@ class StereoImage(object):
                 cv.Normalize(dsp, dsp_visual, 0, 256, cv.CV_MINMAX)
                 dsp_visual = Image(dsp_visual)
                 return Image(dsp_visual.get_bitmap(),
-                             colorSpace=ColorSpace.GRAY)
+                             color_space=ColorSpace.GRAY)
 
             elif method == 'GC':
                 dsp_left = cv.CreateMat(colums, rows, cv.CV_32F)
@@ -2056,7 +2056,7 @@ class StereoImage(object):
                 #cv.Scale(dsp_left, dsp_left_visual, -scale)
                 dsp_left_visual = Image(dsp_left_visual)
                 return Image(dsp_left_visual.get_bitmap(),
-                             colorSpace=ColorSpace.GRAY)
+                             color_space=ColorSpace.GRAY)
 
             elif method == 'SGBM':
                 try:

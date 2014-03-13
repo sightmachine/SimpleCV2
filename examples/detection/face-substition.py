@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# 
+#
 # Released under the BSD license. See LICENSE file for details.
 """
 All this example does is find a face and replace it with another image. The
@@ -30,9 +30,9 @@ while display.isNotDone():
     if faces:
         face = faces[-1]
         # Load the image to super impose and scale it correctly
-        troll = troll_face.scale(face.get_height(), face.get_width()) 
+        troll = troll_face.scale(face.get_height(), face.get_width())
         mymask = troll.invert()
         # Super impose the new face on the existing face
-        img = img.blit(troll, face.top_left_corner(), alphaMask=mymask)
+        img = img.blit(troll, face.top_left_corner(), alpha_mask=mymask)
     # Display the image
     img.save(display)

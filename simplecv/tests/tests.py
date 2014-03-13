@@ -454,7 +454,7 @@ def test_detection_lines():
 
 def test_detection_lines_standard():
     img = Image(testimage2)
-    lines = img.find_lines(useStandard=True)
+    lines = img.find_lines(use_standard=True)
     lines.draw()
     result = [img]
     name_stem = "test_detection_lines_standard"
@@ -1724,7 +1724,7 @@ def test_createAlphaMask():
     mask2 = alphaMask.create_alpha_mask(hue_lb=59, hue_ub=61)
     top = Image(topImg)
     bottom = Image(bottomImg)
-    bottom = bottom.blit(top, alphaMask=mask2)
+    bottom = bottom.blit(top, alpha_mask=mask2)
     results = [mask, mask2, bottom]
     name_stem = "test_createAlphaMask"
     perform_diff(results, name_stem)
@@ -1785,11 +1785,11 @@ def test_blit_alpha_mask():
     aMask = Image(alphaMaskImg)
     results = []
 
-    results.append(bottom.blit(top, alphaMask=aMask))
-    results.append(bottom.blit(top, alphaMask=aMask, pos=(-10, -10)))
-    results.append(bottom.blit(top, alphaMask=aMask, pos=(-10, 10)))
-    results.append(bottom.blit(top, alphaMask=aMask, pos=(10, -10)))
-    results.append(bottom.blit(top, alphaMask=aMask, pos=(10, 10)))
+    results.append(bottom.blit(top, alpha_mask=aMask))
+    results.append(bottom.blit(top, alpha_mask=aMask, pos=(-10, -10)))
+    results.append(bottom.blit(top, alpha_mask=aMask, pos=(-10, 10)))
+    results.append(bottom.blit(top, alpha_mask=aMask, pos=(10, -10)))
+    results.append(bottom.blit(top, alpha_mask=aMask, pos=(10, 10)))
 
     name_stem = "test_blit_alpha_mask"
     perform_diff(results, name_stem)
@@ -2033,7 +2033,7 @@ def test_keypoint_extraction():
     img4 = Image("../data/sampleimages/KeypointTemplate2.png")
 
     kp1 = img1.find_keypoints()
-    kp2 = img2.find_keypoints(highQuality=True)
+    kp2 = img2.find_keypoints(highquality=True)
     kp3 = img3.find_keypoints(flavor="STAR")
     if not cv2.__version__.startswith("$Rev:"):
         kp4 = img4.find_keypoints(flavor="BRISK")
@@ -2071,13 +2071,13 @@ def test_keypoint_match():
     match2 = Image("../data/sampleimages/aerospace.jpg")  # should be none
 
     fs0 = match0.find_keypoint_match(template)  # test zero
-    fs1 = match1.find_keypoint_match(template, quality=300.00, minDist=0.5,
-                                     minMatch=0.2)
-    fs3 = match3.find_keypoint_match(template, quality=300.00, minDist=0.5,
-                                     minMatch=0.2)
+    fs1 = match1.find_keypoint_match(template, quality=300.00, min_dist=0.5,
+                                     min_match=0.2)
+    fs3 = match3.find_keypoint_match(template, quality=300.00, min_dist=0.5,
+                                     min_match=0.2)
     print "This should fail"
-    fs2 = match2.find_keypoint_match(template, quality=500.00, minDist=0.2,
-                                     minMatch=0.1)
+    fs2 = match2.find_keypoint_match(template, quality=500.00, min_dist=0.2,
+                                     min_match=0.1)
     if fs0 is not None and fs1 is not None and fs2 is None and fs3 is not None:
         fs0.draw()
         fs1.draw()
@@ -2107,7 +2107,7 @@ def test_draw_keypoint_matches():
     template = Image("../data/sampleimages/KeypointTemplate2.png")
     match0 = Image("../data/sampleimages/kptest0.png")
     result = match0.draw_keypoint_matches(template, thresh=500.00,
-                                          minDist=0.15, width=1)
+                                          min_dist=0.15, width=1)
 
     results = [result]
     name_stem = "test_draw_keypoint_matches"
@@ -2411,10 +2411,10 @@ def test_highPassFilter():
     img = Image("../data/sampleimages/RedDog2.jpg")
     a = img.high_pass_filter(0.5)
     b = img.high_pass_filter(0.5, grayscale=True)
-    c = img.high_pass_filter(0.5, yCutoff=0.4)
-    d = img.high_pass_filter(0.5, yCutoff=0.4, grayscale=True)
+    c = img.high_pass_filter(0.5, y_cutoff=0.4)
+    d = img.high_pass_filter(0.5, y_cutoff=0.4, grayscale=True)
     e = img.high_pass_filter([0.5, 0.4, 0.3])
-    f = img.high_pass_filter([0.5, 0.4, 0.3], yCutoff=[0.5, 0.4, 0.3])
+    f = img.high_pass_filter([0.5, 0.4, 0.3], y_cutoff=[0.5, 0.4, 0.3])
 
     results = [a, b, c, d, e, f]
     name_stem = "test_HighPassFilter"
@@ -2426,10 +2426,10 @@ def test_lowPassFilter():
     img = Image("../data/sampleimages/RedDog2.jpg")
     a = img.low_pass_filter(0.5)
     b = img.low_pass_filter(0.5, grayscale=True)
-    c = img.low_pass_filter(0.5, yCutoff=0.4)
-    d = img.low_pass_filter(0.5, yCutoff=0.4, grayscale=True)
+    c = img.low_pass_filter(0.5, y_cutoff=0.4)
+    d = img.low_pass_filter(0.5, y_cutoff=0.4, grayscale=True)
     e = img.low_pass_filter([0.5, 0.4, 0.3])
-    f = img.low_pass_filter([0.5, 0.4, 0.3], yCutoff=[0.5, 0.4, 0.3])
+    f = img.low_pass_filter([0.5, 0.4, 0.3], y_cutoff=[0.5, 0.4, 0.3])
 
     results = [a, b, c, d, e, f]
     name_stem = "test_LowPassFilter"
@@ -2589,13 +2589,13 @@ def test_bandPassFilter():
     img = Image("../data/sampleimages/RedDog2.jpg")
     a = img.band_pass_filter(0.1, 0.3)
     b = img.band_pass_filter(0.1, 0.3, grayscale=True)
-    c = img.band_pass_filter(0.1, 0.3, yCutoffLow=0.1, yCutoffHigh=0.3)
-    d = img.band_pass_filter(0.1, 0.3, yCutoffLow=0.1, yCutoffHigh=0.3,
+    c = img.band_pass_filter(0.1, 0.3, y_cutoff_low=0.1, y_cutoff_high=0.3)
+    d = img.band_pass_filter(0.1, 0.3, y_cutoff_low=0.1, y_cutoff_high=0.3,
                              grayscale=True)
     e = img.band_pass_filter([0.1, 0.2, 0.3], [0.5, 0.5, 0.5])
     f = img.band_pass_filter([0.1, 0.2, 0.3], [0.5, 0.5, 0.5],
-                             yCutoffLow=[0.1, 0.2, 0.3],
-                             yCutoffHigh=[0.6, 0.6, 0.6])
+                             y_cutoff_low=[0.1, 0.2, 0.3],
+                             y_cutoff_high=[0.6, 0.6, 0.6])
     results = [a, b, c, d, e, f]
     name_stem = "test_bandPassFilter"
     perform_diff(results, name_stem)
@@ -3318,8 +3318,8 @@ def test_histograms():
     img.vertical_histogram(normalize=True)
     img.horizontal_histogram(normalize=True)
 
-    img.vertical_histogram(forPlot=True, normalize=True)
-    img.horizontal_histogram(forPlot=True, normalize=True)
+    img.vertical_histogram(for_plot=True, normalize=True)
+    img.horizontal_histogram(for_plot=True, normalize=True)
 
 
 def test_blob_full_masks():
@@ -3578,14 +3578,14 @@ def test_watershed():
     myMask = myMask.flood_fill((0, 0), color=Color.WATERSHED_BG)
     mask = img.threshold(128)
     myMask = (myMask - mask.dilate(2) + mask.erode(2))
-    img4 = img.watershed(mask=myMask, useMyMask=True)
+    img4 = img.watershed(mask=myMask, use_my_mask=True)
     blobs = img.find_blobs_from_watershed(dilate=3, erode=2)
     blobs = img.find_blobs_from_watershed()
     blobs = img.find_blobs_from_watershed(mask=img.threshold(128), erode=1,
                                           dilate=1)
     blobs = img.find_blobs_from_watershed(mask=img.threshold(128), erode=1,
                                           dilate=1, invert=True)
-    blobs = img.find_blobs_from_watershed(mask=myMask, useMyMask=True)
+    blobs = img.find_blobs_from_watershed(mask=myMask, use_my_mask=True)
     result = [img1, img2, img3, img4]
     name_stem = "test_watershed"
     perform_diff(result, name_stem, 3.0)
@@ -4099,7 +4099,7 @@ def test_edgeSnap():
 def test_grayscalmatrix():
     img = Image("lenna")
     graymat = img.get_grayscale_matrix()
-    newimg = Image(graymat, colorSpace=ColorSpace.GRAY)
+    newimg = Image(graymat, color_space=ColorSpace.GRAY)
     from numpy import array_equal
 
     if not array_equal(img.get_gray_numpy(), newimg.get_gray_numpy()):
@@ -4155,7 +4155,7 @@ def test_smartRotate():
 def test_normalize():
     img = Image("lenna")
     img1 = img.normalize()
-    img2 = img.normalize(minCut=0, maxCut=0)
+    img2 = img.normalize(min_cut=0, max_cut=0)
     result = [img1, img2]
     name_stem = "test_image_normalize"
     perform_diff(result, name_stem, 5)
@@ -4182,7 +4182,7 @@ def test_backProjecHueHistogram():
     a = img2.get_normalized_hue_histogram()
     imgA = img.back_project_hue_histogram(a)
     imgB = img.back_project_hue_histogram((10, 10, 50, 50), smooth=False,
-                                          fullColor=True)
+                                          full_color=True)
     imgC = img.back_project_hue_histogram(img2, threshold=1)
     result = [imgA, imgB, imgC]
     name_stem = "test_image_histBackProj"
