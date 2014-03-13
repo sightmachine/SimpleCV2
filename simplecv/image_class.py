@@ -1379,7 +1379,7 @@ class Image:
         **EXAMPLE**
 
         >>> if img.is_rgb():
-            ... r, g, b = img.split_channels()
+        ...     r, g, b = img.split_channels()
 
         **SEE ALSO**
 
@@ -1402,7 +1402,7 @@ class Image:
         **EXAMPLE**
 
         >>> if img.is_bgr():
-        >>>    b, g, r = img.split_channels()
+        ...     b, g, r = img.split_channels()
 
         **SEE ALSO**
 
@@ -1424,7 +1424,7 @@ class Image:
         **EXAMPLE**
 
         >>> if img.is_hsv():
-        >>>    h,s,v = img.split_channels()
+        ...     h, s ,v = img.split_channels()
 
         **SEE ALSO**
 
@@ -1446,7 +1446,7 @@ class Image:
         **EXAMPLE**
 
         >>> if img.is_hls():
-        >>>    h,l,s = img.split_channels()
+        ...     h, l, s = img.split_channels()
 
         **SEE ALSO**
 
@@ -1468,7 +1468,7 @@ class Image:
         **EXAMPLE**
 
         >>> if img.is_xyz():
-        >>>    x,y,z = img.split_channels()
+        ...     x, y, z = img.split_channels()
 
         **SEE ALSO**
 
@@ -1490,7 +1490,7 @@ class Image:
         **EXAMPLE**
 
         >>> if img.is_gray():
-        >>>    print "The image is in Grayscale."
+        ...     print "The image is in Grayscale."
 
         **SEE ALSO**
 
@@ -1512,7 +1512,7 @@ class Image:
         **EXAMPLE**
 
         >>> if img.is_ycrcb():
-        >>>    Y, Cr, Cb = img.split_channels()
+        ...     y, cr, cb = img.split_channels()
 
         **SEE ALSO**
 
@@ -13428,7 +13428,7 @@ class Image:
                 x = np.ones((1, self.height))[0] * x
                 y = range(0, self.height, 1)
                 pts = zip(x, y)
-                ret_val.pointLoc = pts
+                ret_val.point_loc = pts
             else:
                 warnings.warn(
                     "ImageClass.get_line_scan - that is not valid scanline.")
@@ -13444,7 +13444,7 @@ class Image:
                 y = np.ones((1, self.width))[0] * y
                 x = range(0, self.width, 1)
                 pts = zip(x, y)
-                ret_val.pointLoc = pts
+                ret_val.point_loc = pts
 
             else:
                 warnings.warn(
@@ -13458,7 +13458,7 @@ class Image:
 
             pts = self.bresenham_line(pt1, pt2)
             ret_val = LineScan([img[p[0], p[1]] for p in pts])
-            ret_val.pointLoc = pts
+            ret_val.point_loc = pts
             ret_val.image = self
             ret_val.pt1 = pt1
             ret_val.pt2 = pt2
@@ -13500,7 +13500,7 @@ class Image:
         >>> a = img.get_line_scan(x=10)
         >>> for index in range(len(a)):
             ... a[index] = 0
-        >>> newimg = img.putLineScan(a, x=50)
+        >>> newimg = img.set_line_scan(a, x=50)
         >>> newimg.show()
         # This will show you a black line in column 50.
 
@@ -14054,6 +14054,7 @@ class Image:
             import cv2
         except ImportError:
             print "This function is available for OpenCV >= 2.3"
+            return
         if grayscale:
             retval = cv2.bitwise_xor(self.get_gray_numpy_cv2(),
                                      img.get_gray_numpy_cv2())
@@ -14089,9 +14090,10 @@ class Image:
 
         **EXAMPLE**
 
+        >>> camera = Camera()
         >>> template = Image("template.png")
-        >>> img = camera.getImage()
-        >>> fs = img.macthSIFTKeyPoints(template)
+        >>> img = camera.get_image()
+        >>> fs = img.match_sift_key_points(template)
 
         **SEE ALSO**
 
@@ -14183,9 +14185,10 @@ class Image:
 
         **EXAMPLE**
 
-        >>> img = cam.getImage()
+        >>> cam = Camera()
+        >>> img = cam.get_image()
         >>> template = Image("myTemplate.png")
-        >>> result = img.drawSIFTKeypointMatch(self, template, 300.00):
+        >>> result = img.draw_sift_key_point_match(template, 300.00):
 
         **SEE ALSO**
 
@@ -15042,7 +15045,7 @@ class Image:
         **EXAMPLES**
 
         >>> cam = Camera()
-        >>> img = cam.getImage()
+        >>> img = cam.get_image()
         >>> recognizer = FaceRecognizer()
         >>> recognizer.load("training.xml")
         >>> print img.recognize_face(recognizer)
@@ -15081,7 +15084,7 @@ class Image:
         **EXAMPLES**
 
         >>> cam = Camera()
-        >>> img = cam.getImage()
+        >>> img = cam.get_image()
         >>> recognizer = FaceRecognizer()
         >>> recognizer.load("training.xml")
         >>> feat = img.find_and_recognize_faces(recognizer, "face.xml")
@@ -15597,8 +15600,8 @@ class Image:
         A normalized grayscale image.
 
         **EXAMPLE**
-        >>> img = Image ('lenna')
-        >>> norm = i.normalize()
+        >>> img = Image('lenna')
+        >>> norm = img.normalize()
         >>> norm.show()
 
         """
@@ -15846,7 +15849,7 @@ class Image:
 
         **EXAMPLE**
 
-        >>>  filter = DFT.createGaussianFilter()
+        >>>  filter = DFT.create_gaussian_filter()
         >>>  myImage = Image("MyImage.png")
         >>>  result = myImage.filter(filter)
         >>>  result.show()
