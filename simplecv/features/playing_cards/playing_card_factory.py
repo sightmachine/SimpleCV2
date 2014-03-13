@@ -13,7 +13,7 @@ class CardError(Exception):
         return repr(self.msg)
 
 
-class PlayingCardFactory():
+class PlayingCardFactory(object):
     def __init__(self, parameter_dict=None):
         if parameter_dict is not None:
             self.parameterize(parameter_dict)
@@ -55,18 +55,18 @@ class PlayingCardFactory():
             # and cleanup the features so it is not
             # too heavy
             card = self._refine_estimates(card)
-        except CardError as ce:
-            card = ce.card
+        except CardError as cerr:
+            card = cerr.card
             if card is not None:
                 # maybe we got a joker or someone
                 # is being a jackass and showing us the
                 # back of the card.
                 card = self._is_non_standard_card(card)
-            warnings.warn(ce.msg)  # we may swallow this later
+            warnings.warn(cerr.msg)  # we may swallow this later
             # optionally we may want to log these to
             # see where we fail and why or do a parameter
             # adjustment and try again
-        except:
+        except Exception:
             # this means we had an error somewhere
             # else maybe numpy
             print "Generic Error."
