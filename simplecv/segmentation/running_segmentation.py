@@ -105,7 +105,7 @@ class RunningSegmentation(SegmentationBase):
         ret_val = []
         if self.color_img is not None and self.diff_img is not None:
             eight_bit = self._float_to_int(self.diff_img)
-            ret_val = self.blobmaker.extractFromBinary(
+            ret_val = self.blobmaker.extract_from_binary(
                 eight_bit.binarize(thresh=self.thresh), self.color_img)
         return ret_val
 

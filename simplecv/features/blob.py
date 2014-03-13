@@ -77,7 +77,7 @@ class Blob(Feature):
 
     def __init__(self):
         self._scdescriptors = None
-        self._completeContour = None
+        self._complete_contour = None
         self.contour = []
         self.convex_hull = []
         self.min_rectangle = [-1, -1, -1, -1, -1]  # angle from this
@@ -311,7 +311,8 @@ class Blob(Feature):
                             (self.get_width(), self.get_height()), color, width,
                             filled=False, alpha=alpha)
 
-    def draw_min_rect(self, layer=None, color=Color.DEFAULT, width=1, alpha=128):
+    def draw_min_rect(self, layer=None, color=Color.DEFAULT,
+                      width=1, alpha=128):
         """
         **SUMMARY**
 
@@ -536,15 +537,15 @@ class Blob(Feature):
         theta = 2 * np.pi * (angle / 360.0)
         mode = ""
         point = (self.x, self.y)
-        self.img = self.img.rotate(angle, mode, point)
+        self.image = self.image.rotate(angle, mode, point)
         self.hull_img = self.hull_img.rotate(angle, mode, point)
         self.mask = self.mask.rotate(angle, mode, point)
         self.hull_mask = self.hull_mask.rotate(angle, mode, point)
 
         self.contour = map(lambda x:
-                            (x[0] * np.cos(theta) - x[1] * np.sin(theta),
-                             x[0] * np.sin(theta) + x[1] * np.cos(theta)),
-                            self.contour)
+                           (x[0] * np.cos(theta) - x[1] * np.sin(theta),
+                            x[0] * np.sin(theta) + x[1] * np.cos(theta)),
+                           self.contour)
         self.convex_hull = map(lambda x:
                                (x[0] * np.cos(theta) - x[1] * np.sin(theta),
                                 x[0] * np.sin(theta) + x[1] * np.cos(theta)),
@@ -608,25 +609,16 @@ class Blob(Feature):
         if width == -1:
             #  copy the mask into 3 channels and
             #  multiply by the appropriate color
-            maskred = cv.CreateImage(
-                                cv.GetSize(self.mask._get_grayscale_bitmap()),
-                                cv.IPL_DEPTH_8U, 1)
-            maskgrn = cv.CreateImage(
-                                cv.GetSize(self.mask._get_grayscale_bitmap()),
-                                cv.IPL_DEPTH_8U, 1)
-            maskblu = cv.CreateImage(
-                                cv.GetSize(self.mask._get_grayscale_bitmap()),
-                                cv.IPL_DEPTH_8U, 1)
-            maskbit = cv.CreateImage(
-                                cv.GetSize(self.mask._get_grayscale_bitmap()),
-                                cv.IPL_DEPTH_8U, 3)
+            gs_bitmap = self.mask._get_grayscale_bitmap()
+            img_size = cv.GetSize(gs_bitmap)
+            maskred = cv.CreateImage(img_size, cv.IPL_DEPTH_8U, 1)
+            maskgrn = cv.CreateImage(img_size, cv.IPL_DEPTH_8U, 1)
+            maskblu = cv.CreateImage(img_size, cv.IPL_DEPTH_8U, 1)
+            maskbit = cv.CreateImage(img_size, cv.IPL_DEPTH_8U, 3)
 
-            cv.ConvertScale(self.mask._get_grayscale_bitmap(), maskred,
-                            color[0] / 255.0)
-            cv.ConvertScale(self.mask._get_grayscale_bitmap(), maskgrn,
-                            color[1] / 255.0)
-            cv.ConvertScale(self.mask._get_grayscale_bitmap(), maskblu,
-                            color[2] / 255.0)
+            cv.ConvertScale(gs_bitmap, maskred, color[0] / 255.0)
+            cv.ConvertScale(gs_bitmap, maskgrn, color[1] / 255.0)
+            cv.ConvertScale(gs_bitmap, maskblu, color[2] / 255.0)
 
             cv.Merge(maskblu, maskgrn, maskred, None, maskbit)
 
@@ -815,7 +807,7 @@ class Blob(Feature):
 
         mx = self.bounding_box[0] + offset[0]
         my = self.bounding_box[1] + offset[1]
-        layer.blit(self.img, coordinates=(mx, my))
+        layer.blit(self.image, coordinates=(mx, my))
         return None
 
     def is_square(self, tolerance=0.05, ratiotolerance=0.05):
@@ -844,7 +836,7 @@ class Blob(Feature):
         >>>     print "it is hip to be square."
 
         """
-        aspect_ratio = abs(1 - self.aspect_ratio())
+        aspect_ratio = abs(1 - self.get_aspect_ratio())
         if self.is_rectangle(tolerance) and aspect_ratio < ratiotolerance:
             return True
         return False
@@ -990,8 +982,9 @@ class Blob(Feature):
         cv.Zero(ret_value)
         bmp = self.image.get_bitmap()
         mask = self.mask.get_bitmap()
-        tl = self.top_left_corner()
-        cv.SetImageROI(bmp, (tl[0], tl[1], self.get_width(), self.get_height()))
+        tlc = self.top_left_corner()
+        cv.SetImageROI(bmp, (tlc[0], tlc[1], self.get_width(),
+                             self.get_height()))
         cv.Copy(bmp, ret_value, mask)
         cv.ResetImageROI(bmp)
         return Image(ret_value)
@@ -1030,8 +1023,9 @@ class Blob(Feature):
         cv.Zero(ret_value)
         bmp = self.image.get_bitmap()
         mask = self.hull_mask.get_bitmap()
-        tl = self.top_left_corner()
-        cv.SetImageROI(bmp, (tl[0], tl[1], self.get_width(), self.get_height()))
+        tlc = self.top_left_corner()
+        cv.SetImageROI(bmp, (tlc[0], tlc[1], self.get_width(),
+                             self.get_height()))
         cv.Copy(bmp, ret_value, mask)
         cv.ResetImageROI(bmp)
         return Image(ret_value)
@@ -1116,7 +1110,7 @@ class Blob(Feature):
 
 
         """
-        return self.img
+        return self.image
 
     def blob_mask(self):
         """
@@ -1195,8 +1189,10 @@ class Blob(Feature):
         bmp = self.image.get_bitmap()
         mask = self.mask.get_bitmap()
         tlc = self.top_left_corner()
-        cv.SetImageROI(ret_value, (tlc[0], tlc[1], self.get_width(), self.get_height()))
-        cv.SetImageROI(bmp, (tlc[0], tlc[1], self.get_width(), self.get_height()))
+        cv.SetImageROI(ret_value, (tlc[0], tlc[1], self.get_width(),
+                                   self.get_height()))
+        cv.SetImageROI(bmp, (tlc[0], tlc[1], self.get_width(),
+                             self.get_height()))
         cv.Copy(bmp, ret_value, mask)
         cv.ResetImageROI(bmp)
         cv.ResetImageROI(ret_value)
@@ -1211,9 +1207,11 @@ class Blob(Feature):
         cv.Zero(ret_value)
         bmp = self.image.get_bitmap()
         mask = self.hull_mask.get_bitmap()
-        tl = self.top_left_corner()
-        cv.SetImageROI(ret_value, (tl[0], tl[1], self.get_width(), self.get_height()))
-        cv.SetImageROI(bmp, (tl[0], tl[1], self.get_width(), self.get_height()))
+        tlc = self.top_left_corner()
+        cv.SetImageROI(ret_value, (tlc[0], tlc[1], self.get_width(),
+                                   self.get_height()))
+        cv.SetImageROI(bmp, (tlc[0], tlc[1], self.get_width(),
+                             self.get_height()))
         cv.Copy(bmp, ret_value, mask)
         cv.ResetImageROI(bmp)
         cv.ResetImageROI(ret_value)
@@ -1227,8 +1225,9 @@ class Blob(Feature):
                                    cv.IPL_DEPTH_8U, 3)
         cv.Zero(ret_value)
         mask = self.mask.get_bitmap()
-        tl = self.top_left_corner()
-        cv.SetImageROI(ret_value, (tl[0], tl[1], self.get_width(), self.get_height()))
+        tlc = self.top_left_corner()
+        cv.SetImageROI(ret_value, (tlc[0], tlc[1], self.get_width(),
+                                   self.get_height()))
         cv.Copy(mask, ret_value)
         cv.ResetImageROI(ret_value)
         return Image(ret_value)
@@ -1241,8 +1240,9 @@ class Blob(Feature):
                                    cv.IPL_DEPTH_8U, 3)
         cv.Zero(ret_value)
         mask = self.hull_mask.get_bitmap()
-        tl = self.top_left_corner()
-        cv.SetImageROI(ret_value, (tl[0], tl[1], self.get_width(), self.get_height()))
+        tlc = self.top_left_corner()
+        cv.SetImageROI(ret_value, (tlc[0], tlc[1], self.get_width(),
+                                   self.get_height()))
         cv.Copy(mask, ret_value)
         cv.ResetImageROI(ret_value)
         return Image(ret_value)
@@ -1251,8 +1251,9 @@ class Blob(Feature):
         ret_value = cv.CreateImage((self.get_width(), self.get_height()),
                                    cv.IPL_DEPTH_8U, 3)
         cv.Zero(ret_value)
-        tl = self.top_left_corner()
-        translate = [(cs[0] - tl[0], cs[1] - tl[1]) for cs in self.convex_hull]
+        tlc = self.top_left_corner()
+        translate = [(cs[0] - tlc[0], cs[1] - tlc[1])
+                     for cs in self.convex_hull]
         cv.PolyLine(ret_value, [translate], 1, (255, 255, 255))
         return Image(ret_value)
 
@@ -1270,8 +1271,8 @@ class Blob(Feature):
         ret_value = cv.CreateImage((self.get_width(), self.get_height()),
                                    cv.IPL_DEPTH_8U, 3)
         cv.Zero(ret_value)
-        tl = self.top_left_corner()
-        translate = [(cs[0] - tl[0], cs[1] - tl[1]) for cs in self.contour]
+        tlc = self.top_left_corner()
+        translate = [(cs[0] - tlc[0], cs[1] - tlc[1]) for cs in self.contour]
         cv.PolyLine(ret_value, [translate], 1, (255, 255, 255))
         return Image(ret_value)
 
@@ -1298,24 +1299,26 @@ class Blob(Feature):
         contour = contour[:-1]
         ret_value = [p0]
         while len(contour) > 0:
-            pt = np.array(contour.pop())
-            dist = ((p0[0] - pt[0]) ** 2) + ((p0[1] - pt[1]) ** 2)
+            pnt = np.array(contour.pop())
+            dist = ((p0[0] - pnt[0]) ** 2) + ((p0[1] - pnt[1]) ** 2)
             if dist > max_d:  # create the new point
                 # get the unit vector from p0 to pt
                 # from p0 to pt
-                a = float((pt[0] - p0[0]))
-                b = float((pt[1] - p0[1]))
+                a = float((pnt[0] - p0[0]))
+                b = float((pnt[1] - p0[1]))
                 l = np.sqrt((a ** 2) + (b ** 2))
                 punit = np.array([a / l, b / l])
                 # make it max_distance long and add it to p0
                 new_pnt = (max_distance * punit) + p0
-                ret_value.append(              # push the new point onto
-                    (new_pnt[0], new_pnt[1]))  # the return value
-                contour.append(pt)  # push the new point onto the get_contour too
+                # push the new point onto the return value
+                ret_value.append((new_pnt[0], new_pnt[1]))
+                # push the new point onto the contour too
+                # FIXME: "push the new point" -> ...append(pt) ?
+                contour.append(pnt)
                 p0 = new_pnt
             elif dist > min_d:
-                p0 = np.array(pt)
-                ret_value.append(pt)
+                p0 = np.array(pnt)
+                ret_value.append(pnt)
         return ret_value
 
     def _filter_sc_points(self, min_distance=3, max_distance=8):
@@ -1337,10 +1340,10 @@ class Blob(Feature):
             complete_contour = self._filter_sc_points()
             descriptors = self._generate_sc(complete_contour)
             self._scdescriptors = descriptors
-            self._completeContour = complete_contour
-        return self._scdescriptors, self._completeContour
+            self._complete_contour = complete_contour
+        return self._scdescriptors, self._complete_contour
 
-    def _generate_sc(self, complete_contour, dsz=6, r_bound=[.1, 2.1]):
+    def _generate_sc(self, complete_contour, dsz=6, r_bound=[0.1, 2.1]):
         """
         Create the shape context objects.
         dsz - The size of descriptor as a dszxdsz histogram
@@ -1350,7 +1353,7 @@ class Blob(Feature):
         data = []
         for pnt in complete_contour:  #
             temp = []
-            # take each other point in the get_contour, center it on pnt, and
+            # take each other point in the contour, center it on pnt, and
             # covert it to log polar
             for b in complete_contour:
                 r = np.sqrt((b[0] - pnt[0]) ** 2 + (b[1] - pnt[1]) ** 2)
@@ -1391,12 +1394,12 @@ class Blob(Feature):
         # still need to subsample big contours
         derp = self.get_sc_descriptors()
         descriptors, complete_contour = self.get_sc_descriptors()
-        fs = FeatureSet()
+        fset = FeatureSet()
         for i in range(0, len(complete_contour)):
-            fs.append(ShapeContextDescriptor(self.image, complete_contour[i],
-                                             descriptors[i], self))
+            fset.append(ShapeContextDescriptor(self.image, complete_contour[i],
+                                               descriptors[i], self))
 
-        return fs
+        return fset
 
     def show_correspondence(self, other_blob, side="left"):
         """
@@ -1423,10 +1426,10 @@ class Blob(Feature):
         data = self.shape_context_match(other_blob)
         mapvals = data[0]
         color = Color()
-        for i in range(0, len(self._completeContour)):
-            lhs = self._completeContour[i]
+        for i in range(0, len(self._complete_contour)):
+            lhs = self._complete_contour[i]
             idx = mapvals[i]
-            rhs = other_blob._completeContour[idx]
+            rhs = other_blob._complete_contour[idx]
             if side == "left":
                 shift = (rhs[0] + your_img.width, rhs[1])
                 result.draw_line(lhs, shift, color=color.get_random(),
@@ -1501,7 +1504,7 @@ class Blob(Feature):
         >>> print startpoints, endpoints, farpoints
         """
 
-        def cvFallback():
+        def cv_fallback():
             chull = cv.ConvexHull2(self.contour, cv.CreateMemStorage(),
                                    return_points=False)
             defects = cv.ConvexityDefects(self.contour, chull,
@@ -1524,9 +1527,9 @@ class Blob(Feature):
                            self.contour[defect[0][1]],
                            self.contour[defect[0][2]]) for defect in defects]
             else:
-                points = cvFallback()
+                points = cv_fallback()
         except ImportError:
-            points = cvFallback()
+            points = cv_fallback()
 
         if return_points:
             return FeatureSet(points)

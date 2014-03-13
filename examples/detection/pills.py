@@ -23,7 +23,7 @@ for idx in range(len(packblobs)):
     pills = pills.binarize(127)
 
     bm = BlobMaker()
-    pills = bm.extractFromBinary(pills,pills,minsize=pill_size)
+    pills = bm.extract_from_binary(pills,pills,minsize=pill_size)
     if not pills:
         continue
 

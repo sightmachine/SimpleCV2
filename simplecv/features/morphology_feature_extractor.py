@@ -53,7 +53,7 @@ class MorphologyFeatureExtractor(FeatureExtractorBase):
         if self.blobmaker is None:
             self.blobmaker = BlobMaker()
 
-        fs = self.blobmaker.extractFromBinary(bw_img, img)
+        fs = self.blobmaker.extract_from_binary(bw_img, img)
         if fs is not None and len(fs) > 0:
             fs = fs.sort_area()
             result = []

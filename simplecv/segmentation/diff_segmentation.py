@@ -121,7 +121,7 @@ class DiffSegmentation(SegmentationBase):
         """
         ret_val = []
         if self.color_img is not None and self.diff_img is not None:
-            ret_val = self.blobmaker.extractFromBinary(
+            ret_val = self.blobmaker.extract_from_binary(
                 self.diff_img.binarize(thresh=self.threshold), self.color_img)
         return ret_val
 

@@ -23,11 +23,11 @@ img3 = img.side_by_side(img2,'bottom')
 for j in range(0,3):
     data = blobs[j].ShapeContextMatch(blobs2[j])
     mapvals = data[0]
-    for i in range(0,len(blobs[j]._completeContour)):
+    for i in range(0,len(blobs[j]._complete_contour)):
     #img3.clear_layers()
-        lhs = blobs[j]._completeContour[i]
+        lhs = blobs[j]._complete_contour[i]
         idx = mapvals[i];
-        rhs = blobs2[j]._completeContour[idx[0]]
+        rhs = blobs2[j]._complete_contour[idx[0]]
         rhsShift = (rhs[0],rhs[1]+img.height)
-        img3.draw_line(lhs,rhsShift,color=color.getRandom(),thickness=1)
+        img3.draw_line(lhs,rhsShift,color=color.get_random(),thickness=1)
         img3.show()

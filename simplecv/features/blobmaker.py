@@ -11,18 +11,18 @@ from simplecv.image_class import Image
 
 class BlobMaker(object):
     """
-    Blob maker encapsulates all of the get_contour extraction process and data, so
-    it can be used inside the image class, or extended and used outside the
+    Blob maker encapsulates all of the get_contour extraction process and data,
+    so it can be used inside the image class, or extended and used outside the
     image class. The general idea is that the blob maker provides the utilites
     that one would use for blob extraction. Later implementations may include
     tracking and other features.
     """
-    mMemStorage = None
+    mem_storage = None
 
     def __init__(self):
-        self.mMemStorage = cv.CreateMemStorage()
+        self.mem_storage = cv.CreateMemStorage()
 
-    def extractUsingModel(self, img, colormodel, minsize=10, maxsize=0):
+    def extract_using_model(self, img, colormodel, minsize=10, maxsize=0):
         """
         Extract blobs using a color model
         img        - The input image
@@ -40,7 +40,7 @@ class BlobMaker(object):
         if maxsize <= 0:
             maxsize = img.width * img.height
         gray = colormodel.threshold(img)
-        blobs = self.extractFromBinary(gray, img, minsize, maxsize)
+        blobs = self.extract_from_binary(gray, img, minsize, maxsize)
         ret_value = sorted(blobs, key=lambda x: x.area, reverse=True)
         return FeatureSet(ret_value)
 
@@ -62,21 +62,21 @@ class BlobMaker(object):
 
         #create a single channel image, thresholded to parameters
 
-        blobs = self.extractFromBinary(
+        blobs = self.extract_from_binary(
             img.binarize(threshval, 255, threshblocksize,
                          threshconstant).invert(), img, minsize, maxsize)
         ret_value = sorted(blobs, key=lambda x: x.area, reverse=True)
         return FeatureSet(ret_value)
 
-    def extractFromBinary(self, binaryImg, colorImg, minsize=5, maxsize=-1,
-                          appx_level=3):
+    def extract_from_binary(self, binary_img, color_img, minsize=5, maxsize=-1,
+                            appx_level=3):
         """
         This method performs blob extraction given a binary source image that
         is used to get the blob images, and a color source image.
-        binarymg - The binary image with the blobs.
-        colorImg - The color image.
-        minSize  - The minimum size of the blobs in pixels.
-        maxSize  - The maximum blob size in pixels.
+        binary_img - The binary image with the blobs.
+        color_img - The color image.
+        minsize  - The minimum size of the blobs in pixels.
+        maxsize  - The maximum blob size in pixels.
         * *appx_level* - The blob approximation level - an integer for the
         maximum distance between the true edge and the approximation edge -
         lower numbers yield better approximation.
@@ -88,10 +88,10 @@ class BlobMaker(object):
         #h_next moves to the next external get_contour
         #v_next() moves to the next internal get_contour
         if maxsize <= 0:
-            maxsize = colorImg.width * colorImg.height
+            maxsize = color_img.width * color_img.height
 
         ret_value = []
-        test = binaryImg.mean_color()
+        test = binary_img.mean_color()
         if test[0] == 0.00 and test[1] == 0.00 and test[2] == 0.00:
             return FeatureSet(ret_value)
 
@@ -103,19 +103,19 @@ class BlobMaker(object):
         # Also I am submitting a bug report to Willow Garage - please bare with
         # us.
         ptest = (4 * 255.0) / (
-            binaryImg.width * binaryImg.height)  # val if two pixels are white
+            binary_img.width * binary_img.height)  # val if two pixels are white
         if test[0] <= ptest and test[1] <= ptest and test[2] <= ptest:
             return ret_value
 
-        seq = cv.FindContours(binaryImg._get_grayscale_bitmap(),
-                              self.mMemStorage, cv.CV_RETR_TREE,
+        seq = cv.FindContours(binary_img._get_grayscale_bitmap(),
+                              self.mem_storage, cv.CV_RETR_TREE,
                               cv.CV_CHAIN_APPROX_SIMPLE)
         if not list(seq):
             warnings.warn("Unable to find Blobs. Retuning Empty FeatureSet.")
             return FeatureSet([])
         try:
-            ret_value = self._extractFromBinary(seq, False, colorImg, minsize,
-                                                maxsize, appx_level)
+            ret_value = self._extract_from_binary(seq, False, color_img,
+                                                  minsize, maxsize, appx_level)
         except RuntimeError:
             logger.warning(
                 "You exceeded the recursion limit. This means you probably "
@@ -130,8 +130,8 @@ class BlobMaker(object):
         del seq
         return FeatureSet(ret_value)
 
-    def _extractFromBinary(self, seq, isaHole, colorImg, minsize, maxsize,
-                           appx_level):
+    def _extract_from_binary(self, seq, isa_hole, color_img, minsize, maxsize,
+                             appx_level):
         """
         The recursive entry point for the blob extraction. The blobs and holes
         are presented as a tree and we traverse up and across the tree.
@@ -145,9 +145,9 @@ class BlobMaker(object):
         while True:
             # if we aren't a hole then we are an object,
             # so get and return our features
-            if not isaHole:
-                temp = self._extractData(seq, colorImg, minsize, maxsize,
-                                         appx_level)
+            if not isa_hole:
+                temp = self._extract_data(seq, color_img, minsize, maxsize,
+                                          appx_level)
                 if temp is not None:
                     ret_value.append(temp)
 
@@ -162,13 +162,13 @@ class BlobMaker(object):
                 break
 
         for next_layer in next_layer_down:
-            ret_value += self._extractFromBinary(next_layer, not isaHole,
-                                                 colorImg, minsize, maxsize,
-                                                 appx_level)
+            ret_value += self._extract_from_binary(next_layer, not isa_hole,
+                                                   color_img, minsize, maxsize,
+                                                   appx_level)
 
         return ret_value
 
-    def _extractData(self, seq, color, minsize, maxsize, appx_level):
+    def _extract_data(self, seq, color, minsize, maxsize, appx_level):
         """
         Extract the bulk of the data from a give blob. If the blob's are is too
         large or too small the method returns none.
@@ -222,11 +222,12 @@ class BlobMaker(object):
         chull = cv.ConvexHull2(seq, cv.CreateMemStorage(), return_points=1)
         ret_value.convex_hull = list(chull)
         # KAS -- FLAG FOR REPLACE 6/6/2012
-        #get_hull_mask = self._getHullMask(chull,bb)
+        #get_hull_mask = self._get_hull_mask(chull,bb)
 
         # KAS -- FLAG FOR REPLACE 6/6/2012
-        # ret_value.hull_img = self._getBlobAsImage(chull,bb,color.get_bitmap(),
-        # get_hull_mask)
+        # ret_value.hull_img = self._get_blob_as_image(chull,bb,
+        #                                              color.get_bitmap(),
+        #                                              get_hull_mask)
 
         # KAS -- FLAG FOR REPLACE 6/6/2012
         #ret_value.hull_mask = Image(get_hull_mask)
@@ -258,26 +259,27 @@ class BlobMaker(object):
         ret_value.hu = cv.GetHuMoments(moments)
 
         # KAS -- FLAG FOR REPLACE 6/6/2012
-        mask = self._getMask(seq, bbr)
+        mask = self._get_mask(seq, bbr)
         #ret_value.mask = Image(mask)
 
-        ret_value.avg_color = self._getAvg(color.get_bitmap(), bbr, mask)
+        ret_value.avg_color = self._get_avg(color.get_bitmap(), bbr, mask)
         ret_value.avg_color = ret_value.avg_color[0:3]
-        #ret_value.avg_color = self._getAvg(color.get_bitmap(),
-        #                                   ret_value.bounding_box, mask)
+        #ret_value.avg_color = self._get_avg(color.get_bitmap(),
+        #                                    ret_value.bounding_box, mask)
         #ret_value.avg_color = ret_value.avg_color[0:3]
 
         # KAS -- FLAG FOR REPLACE 6/6/2012
-        #ret_value.img = self._getBlobAsImage(seq,bb,color.get_bitmap(),mask)
+        #ret_value.img = self._get_blob_as_image(seq,bb,color.get_bitmap(),
+        #                                        mask)
 
-        ret_value.hole_contour = self._getHoles(seq)
+        ret_value.hole_contour = self._get_holes(seq)
         ret_value.aspect_ratio = ret_value.min_rectangle[1][0] / \
             ret_value.min_rectangle[1][1]
 
         return ret_value
 
     @staticmethod
-    def _getHoles(seq):
+    def _get_holes(seq):
         """
         This method returns the holes associated with a blob as a list of
         tuples.
@@ -294,7 +296,7 @@ class BlobMaker(object):
         return ret_value
 
     @staticmethod
-    def _getMask(seq, bb):
+    def _get_mask(seq, bb):
         """
         Return a binary image of a particular get_contour sequence.
         """
@@ -315,10 +317,11 @@ class BlobMaker(object):
         return mask
 
     @staticmethod
-    def _getHullMask(hull, bb):
+    def _get_hull_mask(hull, bb):
         """
         Return a mask of the convex hull of a blob.
         """
+        # FIXME: argument bb conflicts with bb = cv.BoundingRect(hull)
         bb = cv.BoundingRect(hull)
         mask = cv.CreateImage((bb[2], bb[3]), cv.IPL_DEPTH_8U, 1)
         cv.Zero(mask)
@@ -327,7 +330,7 @@ class BlobMaker(object):
         return mask
 
     @staticmethod
-    def _getAvg(colorbitmap, bb, mask):
+    def _get_avg(colorbitmap, bb, mask):
         """
         Calculate the average color of a blob given the mask.
         """
@@ -338,10 +341,11 @@ class BlobMaker(object):
         return avg
 
     @staticmethod
-    def _getBlobAsImage(seq, bb, colorbitmap, mask):
+    def _get_blob_as_image(seq, bb, colorbitmap, mask):
         """
         Return an image that contains just pixels defined by the blob sequence.
         """
+        # FIXME: unused argument 'seq'
         cv.SetImageROI(colorbitmap, bb)
         output_img = cv.CreateImage((bb[2], bb[3]), cv.IPL_DEPTH_8U, 3)
         cv.Zero(output_img)

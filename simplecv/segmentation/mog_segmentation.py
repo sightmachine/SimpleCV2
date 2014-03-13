@@ -104,8 +104,8 @@ class MOGSegmentation(SegmentationBase):
         """
         ret_val = []
         if self.color_img is not None and self.diff_img is not None:
-            ret_val = self.blobmaker.extractFromBinary(self.diff_img,
-                                                       self.color_img)
+            ret_val = self.blobmaker.extract_from_binary(self.diff_img,
+                                                         self.color_img)
         return ret_val
 
     def __getstate__(self):

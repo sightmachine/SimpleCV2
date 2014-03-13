@@ -68,7 +68,7 @@ class ColorSegmentation(SegmentationBase):
         """
         return the segmented blobs from the fg/bg image
         """
-        return self.blobmaker.extractFromBinary(self.cur_img, self.truth_img)
+        return self.blobmaker.extract_from_binary(self.cur_img, self.truth_img)
 
     # The following are class specific methods
 
