@@ -7,7 +7,8 @@ import SocketServer
 import threading
 import time
 
-from cv2 import cv
+from cv2.cv import CV_FOURCC
+from cv2 import VideoWriter
 
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 
@@ -215,7 +216,7 @@ class VideoStream(object):
         self.framefill = framefill
         self.lastframe = None
         #if extension == "mpg":
-        self.fourcc = cv.CV_FOURCC('I', 'Y', 'U', 'V')
+        self.fourcc = CV_FOURCC('I', 'Y', 'U', 'V')
         #self.fourcc = 0
         #else:
         #  logger.warning(extension +
@@ -223,8 +224,8 @@ class VideoStream(object):
         #  return False
 
     def initialize_writer(self, size):
-        self.writer = cv.CreateVideoWriter(self.filename, self.fourcc,
-                                           self.fps, size, 1)
+        self.writer = VideoWriter(self.filename, self.fourcc,
+                                  self.fps, size, isColor=True)
         self.videotime = 0.0
         self.starttime = time.time()
 
@@ -259,19 +260,19 @@ class VideoStream(object):
                 lastframes = framesbehind / 2
                 for i in range(0, lastframes):
                     self.framecount += 1
-                    cv.WriteFrame(self.writer, self.lastframe.get_bitmap())
+                    self.writer.write(self.lastframe.get_bitmap())
 
                 theseframes = framesbehind - lastframes
                 for i in range(0, theseframes):
                     self.framecount += 1
-                    cv.WriteFrame(self.writer, img.get_bitmap())
+                    self.writer.write(img.get_bitmap())
                     # split missing frames evenly between
                     # the prior and current frame
             else:  # we are on track
                 self.framecount += 1
-                cv.WriteFrame(self.writer, img.get_bitmap())
+                self.writer.write(img.get_bitmap())
         else:
-            cv.WriteFrame(self.writer, img.get_bitmap())
+            self.writer.write(img.get_bitmap())
             self.framecount += 1
 
         self.lastframe = img
