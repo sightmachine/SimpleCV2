@@ -3729,7 +3729,7 @@ class Image:
         #create a single channel image, thresholded to parameters
 
         blobmaker = BlobMaker()
-        blobs = blobmaker.extractFromBinary(
+        blobs = blobmaker.extract_from_binary(
             self.binarize(threshval, 255, threshblocksize,
                           threshconstant).invert(),
             self, minsize=minsize, maxsize=maxsize, appx_level=appx_level)
@@ -3791,8 +3791,8 @@ class Image:
             maxsize = self.width * self.height
         mask = self.get_skintone_mask(dilate_iter)
         blobmaker = BlobMaker()
-        blobs = blobmaker.extractFromBinary(mask, self, minsize=minsize,
-                                            maxsize=maxsize)
+        blobs = blobmaker.extract_from_binary(mask, self, minsize=minsize,
+                                              maxsize=maxsize)
         if not len(blobs):
             return None
         return FeatureSet(blobs).sort_area()
@@ -9869,10 +9869,10 @@ class Image:
         #create a single channel image, thresholded to parameters
 
         blobmaker = BlobMaker()
-        blobs = blobmaker.extractFromBinary(bwimg,
-                                            self, minsize=minsize,
-                                            maxsize=maxsize,
-                                            appx_level=appx_level)
+        blobs = blobmaker.extract_from_binary(bwimg,
+                                              self, minsize=minsize,
+                                              maxsize=maxsize,
+                                              appx_level=appx_level)
 
         if not len(blobs):
             return None
@@ -10197,7 +10197,7 @@ class Image:
             elif thresh_level > 2:
                 result = result.threshold(1)
             bm = BlobMaker()
-            ret_val = bm.extractFromBinary(result, self, appx_level)
+            ret_val = bm.extract_from_binary(result, self, appx_level)
 
         return ret_val
 
@@ -10525,9 +10525,9 @@ class Image:
         gray = mask._get_grayscale_bitmap()
         result = mask.get_empty(1)
         cv.Threshold(gray, result, threshold, 255, cv.CV_THRESH_BINARY)
-        blobs = blobmaker.extractFromBinary(Image(result), self,
-                                            minsize=minsize, maxsize=maxsize,
-                                            appx_level=appx_level)
+        blobs = blobmaker.extract_from_binary(Image(result), self,
+                                              minsize=minsize, maxsize=maxsize,
+                                              appx_level=appx_level)
 
         if not len(blobs):
             return None
