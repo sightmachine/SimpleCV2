@@ -49,7 +49,7 @@ standard_path = "../data/test/standard/"
 
 
 #Given a set of images, a path, and a tolerance do the image diff.
-def imgDiffs(test_imgs, name_stem, tolerance, path):
+def img_diffs(test_imgs, name_stem, tolerance, path):
     count = len(test_imgs)
     for idx in range(0, count):
         lhs = test_imgs[idx].apply_layers()  # this catches drawing methods
@@ -65,7 +65,7 @@ def imgDiffs(test_imgs, name_stem, tolerance, path):
 
 
 #Save a list of images to a standard path.
-def imgSaves(test_imgs, name_stem, path=standard_path):
+def img_saves(test_imgs, name_stem, path=standard_path):
     count = len(test_imgs)
     for idx in range(0, count):
         fname = standard_path + name_stem + str(idx) + ".jpg"
@@ -75,39 +75,39 @@ def imgSaves(test_imgs, name_stem, path=standard_path):
 #perform the actual image save and image diffs.
 def perform_diff(result, name_stem, tolerance=2.0, path=standard_path):
     if VISUAL_TEST:  # save the correct images for a visual test
-        imgSaves(result, name_stem, path)
+        img_saves(result, name_stem, path)
     else:  # otherwise we test our output against the visual test
-        if imgDiffs(result, name_stem, tolerance, path):
+        if img_diffs(result, name_stem, tolerance, path):
             assert False
         else:
             pass
 
 
-def test_findFundamentalMat():
+def test_find_fundamental_mat():
     for pairs in correct_pairs:
         img1 = Image(pairs[0])
         img2 = Image(pairs[1])
-        StereoImg = StereoImage(img1, img2)
-        if not StereoImg.find_fundamental_mat():
+        stereo_img = StereoImage(img1, img2)
+        if not stereo_img.find_fundamental_mat():
             assert False
 
 
-def test_findHomography():
+def test_find_homography():
     for pairs in correct_pairs:
         img1 = Image(pairs[0])
         img2 = Image(pairs[1])
-        StereoImg = StereoImage(img1, img2)
-        if not StereoImg.find_homography():
+        stereo_img = StereoImage(img1, img2)
+        if not stereo_img.find_homography():
             assert False
 
 
-def test_findDisparityMap():
+def test_find_disparity_map():
     dips = []
     for pairs in correct_pairs:
         img1 = Image(pairs[0])
         img2 = Image(pairs[1])
-        StereoImg = StereoImage(img1, img2)
-        dips.append(StereoImg.find_disparity_map(method="BM"))
+        stereo_img = StereoImage(img1, img2)
+        dips.append(stereo_img.find_disparity_map(method="BM"))
     name_stem = "test_disparitymapBM"
     perform_diff(dips, name_stem)
 
@@ -115,8 +115,8 @@ def test_findDisparityMap():
     for pairs in correct_pairs:
         img1 = Image(pairs[0])
         img2 = Image(pairs[1])
-        StereoImg = StereoImage(img1, img2)
-        dips.append(StereoImg.find_disparity_map(method="SGBM"))
+        stereo_img = StereoImage(img1, img2)
+        dips.append(stereo_img.find_disparity_map(method="SGBM"))
     name_stem = "test_disparitymapSGBM"
     perform_diff(dips, name_stem)
 
@@ -125,27 +125,27 @@ def test_eline():
     for pairs in correct_pairs:
         img1 = Image(pairs[0])
         img2 = Image(pairs[1])
-        StereoImg = StereoImage(img1, img2)
-        F, ptsLeft, ptsRight = StereoImg.find_fundamental_mat()
-        for pts in ptsLeft:
-            line = StereoImg.eline(pts, F, 2)
+        stereo_img = StereoImage(img1, img2)
+        f, pts_left, pts_right = stereo_img.find_fundamental_mat()
+        for pts in pts_left:
+            line = stereo_img.eline(pts, f, 2)
             if line is None:
                 assert False
 
 
-def test_projectPoint():
+def test_project_point():
     for pairs in correct_pairs:
         img1 = Image(pairs[0])
         img2 = Image(pairs[1])
-        StereoImg = StereoImage(img1, img2)
-        H, ptsLeft, ptsRight = StereoImg.find_homography()
-        for pts in ptsLeft:
-            line = StereoImg.project_point(pts, H, 2)
+        stereo_img = StereoImage(img1, img2)
+        h, pts_left, pts_right = stereo_img.find_homography()
+        for pts in pts_left:
+            line = stereo_img.project_point(pts, h, 2)
             if line is None:
                 assert False
 
 
-def test_StereoCalibration():
+def test_stereo_calibration():
     cam = StereoCamera()
     try:
         cam1 = Camera(0)
@@ -165,7 +165,7 @@ def test_StereoCalibration():
         assert True
 
 
-def test_loadCalibration():
+def test_load_calibration():
     cam = StereoCamera()
     calbib = cam.load_calibration("Stereo", "../data/test/StereoVision/")
     if calbib:
@@ -174,7 +174,7 @@ def test_loadCalibration():
         assert False
 
 
-def test_StereoRectify():
+def test_stereo_rectify():
     cam = StereoCamera()
     calib = cam.load_calibration("Stereo", "../data/test/StereoVision/")
     rectify = cam.stereo_rectify(calib)
@@ -184,14 +184,15 @@ def test_StereoRectify():
         assert False
 
 
-def test_getImagesUndistort():
+def test_get_images_undistort():
     img1 = Image(correct_pairs[0][0]).resize(352, 288)
     img2 = Image(correct_pairs[0][1]).resize(352, 288)
     cam = StereoCamera()
     calib = cam.load_calibration("Stereo", "../data/test/StereoVision/")
     rectify = cam.stereo_rectify(calib)
-    rectLeft, rectRight = cam.get_images_undistort(img1, img2, calib, rectify)
-    if rectLeft and rectRight:
+    rect_left, rect_right = cam.get_images_undistort(img1, img2,
+                                                     calib, rectify)
+    if rect_left and rect_right:
         assert True
     else:
         assert False

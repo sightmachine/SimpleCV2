@@ -100,7 +100,7 @@ def test_detection_ocr():
 
     foundtext = img.read_text()
     print foundtext
-    if(len(foundtext) <= 1):
+    if len(foundtext) <= 1:
         assert False
     else:
         pass
@@ -160,8 +160,8 @@ def test_screenshot():
         img = sc.get_image()
         crop = (res[0]/4, res[1]/4, res[0]/2, res[1]/2)
         sc.set_roi(crop)
-        cropImg = sc.get_image()
-        if img and cropImg:
+        crop_img = sc.get_image()
+        if img and crop_img:
             assert True
         else:
             assert False
