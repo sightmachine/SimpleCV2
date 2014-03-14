@@ -3893,7 +3893,7 @@ class Image:
 
         haar_classify = cv2.CascadeClassifier(cascade.get_fhandle())
         objects = haar_classify.detectMultiScale(
-            self.get_gray_numpy_cv2(), scaleFactor=scale_factor,
+            self.get_gray_numpy(), scaleFactor=scale_factor,
             minNeighbors=min_neighbors, minSize=min_size,
             flags=use_canny)
 
