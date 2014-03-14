@@ -3816,7 +3816,8 @@ class Image:
         can provide your own haarcascade file if you have one available.
 
         Note that the cascade parameter can be either a filename, or a
-        HaarCascade loaded with cv.Load(), or a SimpleCV HaarCascade object.
+        HaarCascade loaded with cv2.CascadeClassifier(),
+        or a SimpleCV HaarCascade object.
 
         **PARAMETERS**
 
@@ -3856,7 +3857,7 @@ class Image:
             ...         "myFaces")
         >>> cam = Camera()
         >>> while True:
-        >>>     f = cam.getImage().find_haar_features(faces)
+        >>>     f = cam.get_image().find_haar_features(faces)
         >>>     if f is not None:
         >>>          f.show()
 
@@ -3876,7 +3877,6 @@ class Image:
         anti-surveillance-how-to-hide-from-machines/
 
         """
-        storage = cv.CreateMemStorage(0)
 
         #lovely.  This segfaults if not present
         from simplecv.features.haar_cascade import HaarCascade
@@ -3891,27 +3891,15 @@ class Image:
             logger.warning(
                 'Could not initialize HaarCascade. Enter Valid cascade value.')
 
-        # added all of the arguments from the opencv docs arglist
-        try:
-            import cv2
-
-            haar_classify = cv2.CascadeClassifier(cascade.get_fhandle())
-            objects = haar_classify.detectMultiScale(
-                self.get_gray_numpy_cv2(), scaleFactor=scale_factor,
-                minNeighbors=min_neighbors, minSize=min_size,
-                flags=use_canny)
-            cv2flag = True
-
-        except ImportError:
-            objects = cv.HaarDetectObjects(
-                self._get_equalized_grayscale_bitmap(),
-                cascade.get_cascade(), storage, scale_factor, min_neighbors,
-                use_canny, min_size)
-            cv2flag = False
+        haar_classify = cv2.CascadeClassifier(cascade.get_fhandle())
+        objects = haar_classify.detectMultiScale(
+            self.get_gray_numpy_cv2(), scaleFactor=scale_factor,
+            minNeighbors=min_neighbors, minSize=min_size,
+            flags=use_canny)
 
         if objects is not None:
             return FeatureSet(
-                [HaarFeature(self, o, cascade, cv2flag) for o in objects])
+                [HaarFeature(self, o, cascade, True) for o in objects])
 
         return None
 
