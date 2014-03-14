@@ -998,6 +998,7 @@ class Image:
         URL: The source can be a url, but must include the http://
 
         """
+        self._ndarray = None  # contains image data as numpy.ndarray
         self._mLayers = []
         self.camera = camera
         self._colorSpace = color_space
@@ -1079,74 +1080,27 @@ class Image:
             h = int(source[1])
             source = cv.CreateImage((w, h), cv.IPL_DEPTH_8U, 3)
             cv.Zero(source)
-        if type(source) == cv.cvmat:
-            self._matrix = cv.CreateMat(source.rows, source.cols, cv.CV_8UC3)
-            if (source.step / source.cols) == 3:  # this is just a guess
-                cv.Copy(source, self._matrix, None)
-                self._colorSpace = ColorSpace.BGR
-            elif (source.step / source.cols) == 1:
-                cv.Merge(source, source, source, None, self._matrix)
+
+        elif isinstance(source, np.ndarray):
+            if len(source.shape) == 3 and source.shape[2] == 3:
+                # we have a three channel array
+                self._ndarray = source
+                self._colorSpace = color_space
+            elif len(source.shape) == 2:
+                # we have a single channel array
+                self._ndarray = source
                 self._colorSpace = ColorSpace.GRAY
             else:
-                self._colorSpace = ColorSpace.UNKNOWN
-                warnings.warn("Unable to process the provided cvmat")
+                raise IOError('Cant create image from ndarray with '
+                              'shape {}.'.format(source.shape))
 
-        elif type(source) == np.ndarray:  # handle a numpy array conversion
-            if type(source[0, 0]) == np.ndarray:  # we have a 3 channel array
-                #convert to an iplimage bitmap
-                source = source.astype(np.uint8)
-                self._numpy = source
-                if not cv2image:
-                    invertedsource = source[:, :, ::-1].transpose([1, 0, 2])
-                else:
-                    # If the numpy array is from cv2, then
-                    # it must not be transposed.
-                    invertedsource = source
-
-                # do not un-comment. breaks cv2 image support
-                #invertedsource = source[:, :, ::-1].transpose([1, 0, 2])
-                self._bitmap = cv.CreateImageHeader(
-                    (invertedsource.shape[1], invertedsource.shape[0]),
-                    cv.IPL_DEPTH_8U, 3)
-                cv.SetData(self._bitmap, invertedsource.tostring(),
-                           invertedsource.dtype.itemsize * 3
-                           * invertedsource.shape[1])
-                self._colorSpace = ColorSpace.BGR  # this is an educated guess
-            else:
-                #we have a single channel array, convert to an RGB iplimage
-
-                source = source.astype(np.uint8)
-                if not cv2image:
-                    # we expect width/height but use col/row
-                    source = source.transpose([1, 0])
-                self._bitmap = cv.CreateImage(
-                    (source.shape[1], source.shape[0]),
-                    cv.IPL_DEPTH_8U, 3)
-                channel = cv.CreateImageHeader(
-                    (source.shape[1], source.shape[0]),
-                    cv.IPL_DEPTH_8U, 1)
-                #initialize an empty channel bitmap
-                cv.SetData(channel, source.tostring(),
-                           source.dtype.itemsize * source.shape[1])
-                cv.Merge(channel, channel, channel, None, self._bitmap)
-                self._colorSpace = ColorSpace.BGR
-
-        elif isinstance(source, cv.iplimage):
-            if source.nChannels == 1:
-                self._bitmap = cv.CreateImage(
-                    cv.GetSize(source), source.depth, 3)
-                cv.Merge(source, source, source, None, self._bitmap)
-                self._colorSpace = ColorSpace.GRAY
-            else:
-                self._bitmap = cv.CreateImage(
-                    cv.GetSize(source), source.depth, 3)
-                cv.Copy(source, self._bitmap, None)
-                self._colorSpace = ColorSpace.BGR
         elif isinstance(source, (str, cStringIO.InputType)):
             if source == '':
                 raise IOError("No filename provided to Image constructor")
+            elif not os.path.exists(source):
+                raise IOError("Filename provided does not exist")
 
-            elif webp or source.split('.')[-1] == 'webp':
+            if webp or source.split('.')[-1] == 'webp':
                 try:
                     if source.__class__.__name__ == 'StringIO':
                         source.seek(0)  # set the stringIO to the begining
@@ -1179,17 +1133,7 @@ class Image:
 
             else:
                 self.filename = source
-                try:
-                    self._bitmap = cv.LoadImage(self.filename,
-                                                iscolor=cv.CV_LOAD_IMAGE_COLOR)
-                except:
-                    self._pil = PilImage.open(self.filename).convert("RGB")
-                    self._bitmap = cv.CreateImageHeader(self._pil.size,
-                                                        cv.IPL_DEPTH_8U, 3)
-                    cv.SetData(self._bitmap, self._pil.tostring())
-                    cv.CvtColor(self._bitmap, self._bitmap, cv.CV_RGB2BGR)
-
-                #TODO, on IOError fail back to PIL
+                self._ndarray = cv2.imread(self.filename)
                 self._colorSpace = ColorSpace.BGR
 
         elif type(source) == pg.Surface:
@@ -1222,14 +1166,13 @@ class Image:
         else:
             return
 
-        #if the caller passes in a colorspace we overide it
-        if color_space != ColorSpace.UNKNOWN:
-            self._colorSpace = color_space
+        # #if the caller passes in a colorspace we overide it
+        # if color_space != ColorSpace.UNKNOWN:
+        #     self._colorSpace = color_space
 
-        bm = self.get_bitmap()
-        self.width = bm.width
-        self.height = bm.height
-        self.depth = bm.depth
+        self.height = self._ndarray.shape[0]
+        self.width = self._ndarray.shape[1]
+        self.dtype = self._ndarray.dtype
 
     def __del__(self):
         """
@@ -1909,6 +1852,7 @@ class Image:
         :py:meth:`get_grayscale_matrix`
 
         """
+        raise Exception('Deprecated')
         if self._bitmap:
             return self._bitmap
         elif self._matrix:
@@ -1944,6 +1888,7 @@ class Image:
         :py:meth:`get_grayscale_matrix`
 
         """
+        raise Exception('Deprecated')
         if self._matrix:
             return self._matrix
         else:
@@ -1981,6 +1926,7 @@ class Image:
         :py:meth:`get_grayscale_matrix`
 
         """
+        raise Exception('Deprecated')
         ret_val = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_32F,
                                  3)
         cv.Convert(self.get_bitmap(), ret_val)
@@ -2093,21 +2039,21 @@ class Image:
             [1, 0, 2])
         return self._numpy
 
-    def get_numpy_cv2(self):
+    def get_ndarray(self):
         """
         **SUMMARY**
 
-        Get a Numpy array of the image in width x height x RGB dimensions
+        Get a Numpy array of the image in width x height x chanels dimensions
         compatible with OpenCV >= 2.3
 
         **RETURNS**
 
-        Returns the  3D numpy array of the image compatible with OpenCV >= 2.3
+        Returns the 3D numpy array of the image compatible with OpenCV >= 2.3
 
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> rawImg  = img.get_numpy_cv2()
+        >>> rawImg  = img.get_ndarray()
 
         **SEE ALSO**
 
@@ -2121,16 +2067,13 @@ class Image:
         :py:meth:`get_gray_numpy_cv2`
 
         """
+        return self._ndarray
 
-        if type(self._cv2Numpy) is not np.ndarray:
-            self._cv2Numpy = np.array(self.get_matrix())
-        return self._cv2Numpy
-
-    def get_gray_numpy_cv2(self):
+    def get_gray_ndarray(self):
         """
         **SUMMARY**
 
-        Get a Grayscale Numpy array of the image in width x height y
+        Get a Grayscale Numpy array of the image in width x height
         compatible with OpenCV >= 2.3
 
         **RETURNS**
@@ -2154,9 +2097,11 @@ class Image:
         :py:meth:`get_gray_numpy_cv2`
 
         """
-        if type(self._cv2GrayNumpy) is not np.ndarray:
-            self._cv2GrayNumpy = np.array(self.get_grayscale_matrix())
-        return self._cv2GrayNumpy
+        if self._colorSpace == ColorSpace.GRAY:
+            return self._ndarray
+        else:
+            # TODO: implement convertion to grayscale
+            raise Exception('Not Implemented')
 
     def _get_grayscale_bitmap(self):
         if self._graybitmap:
