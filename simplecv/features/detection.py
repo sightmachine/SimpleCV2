@@ -168,7 +168,7 @@ class Line(Feature):
 
         """
         tlc = self.top_left_corner()
-        return self.image.crop(tlc[0], tlc[1], self.get_width(), 
+        return self.image.crop(tlc[0], tlc[1], self.get_width(),
                                self.get_height())
 
     def mean_color(self):
@@ -1260,8 +1260,8 @@ class Circle(Feature):
         **PARAMETERS**
 
         * *no_mask* - if no_mask=True we return the bounding box image of the
-         circle. if no_mask=False (default) we return the masked circle with the
-         rest of the area set to black
+         circle. if no_mask=False (default) we return the masked circle with
+         the rest of the area set to black
 
         **RETURNS**
 
@@ -1782,10 +1782,14 @@ class KeypointMatch(Feature):
 
 
         """
-        self.image.dl().line(self._min_rect[0], self._min_rect[1], color, width)
-        self.image.dl().line(self._min_rect[1], self._min_rect[2], color, width)
-        self.image.dl().line(self._min_rect[2], self._min_rect[3], color, width)
-        self.image.dl().line(self._min_rect[3], self._min_rect[0], color, width)
+        self.image.dl().line(self._min_rect[0],
+                             self._min_rect[1], color, width)
+        self.image.dl().line(self._min_rect[1],
+                             self._min_rect[2], color, width)
+        self.image.dl().line(self._min_rect[2],
+                             self._min_rect[3], color, width)
+        self.image.dl().line(self._min_rect[3],
+                             self._min_rect[0], color, width)
 
     def draw_rect(self, color=Color.GREEN, width=1):
         """
@@ -1832,8 +1836,9 @@ class KeypointMatch(Feature):
         """
         if self._avg_color is None:
             tlc = self.top_left_corner()
-            raw = self.image.crop(tlc[0], tlc[0], self.get_width(),
-                                  self.get_height())  # crop the minbouding rect
+            # crop the minbouding rect
+            raw = self.image.crop(tlc[0], tlc[0],
+                                  self.get_width(), self.get_height())
             mask = Image((self.get_width(), self.get_height()))
             mask.dl().polygon(self._min_rect, color=Color.WHITE,
                               filled=pickle.TRUE)

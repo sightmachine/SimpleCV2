@@ -157,9 +157,8 @@ class TreeClassifier:
             self.classifier = self.learner(self.data_set_orange)
         elif self.flavor == 1:  # bagged
             self.tree = orange.TreeLearner()
-            self.learner = orngEnsemble.BaggedLearner(self.tree,
-                                                      t=self.flavor_params[
-                                                      "NClassifiers"])
+            self.learner = orngEnsemble.BaggedLearner(
+                self.tree, t=self.flavor_params["NClassifiers"])
             self.classifier = self.learner(self.data_set_orange)
         elif self.flavor == 2:  # forest
             self.tree = orange.TreeLearner()
@@ -169,9 +168,8 @@ class TreeClassifier:
             self.classifier = self.learner(self.data_set_orange)
         elif self.flavor == 3:  # boosted
             self.tree = orange.TreeLearner()
-            self.learner = orngEnsemble.BoostedLearner(self.tree,
-                                                       t=self.flavor_params[
-                                                       "NClassifiers"])
+            self.learner = orngEnsemble.BoostedLearner(
+                self.tree, t=self.flavor_params["NClassifiers"])
             self.classifier = self.learner(self.data_set_orange)
 
     def classify(self, image):
@@ -327,9 +325,8 @@ class TreeClassifier:
             self.classifier = self.learner(self.data_set_orange)
         elif self.flavor == 1:  # bagged
             self.tree = orange.TreeLearner()
-            self.learner = orngEnsemble.BaggedLearner(self.tree,
-                                                      t=self.flavor_params[
-                                                      "NClassifiers"])
+            self.learner = orngEnsemble.BaggedLearner(
+                self.tree, t=self.flavor_params["NClassifiers"])
             self.classifier = self.learner(self.data_set_orange)
         elif self.flavor == 2:  # forest
             self.tree = orange.TreeLearner()
@@ -339,9 +336,8 @@ class TreeClassifier:
             self.classifier = self.learner(self.data_set_orange)
         elif self.flavor == 3:  # boosted
             self.tree = orange.TreeLearner()
-            self.learner = orngEnsemble.BoostedLearner(self.tree,
-                                                       t=self.flavor_params[
-                                                       "NClassifiers"])
+            self.learner = orngEnsemble.BoostedLearner(
+                self.tree, t=self.flavor_params["NClassifiers"])
             self.classifier = self.learner(self.data_set_orange)
 
         correct = 0

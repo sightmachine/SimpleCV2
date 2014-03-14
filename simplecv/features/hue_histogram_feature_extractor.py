@@ -1,6 +1,6 @@
+from cv2 import cv
 import numpy as np
 
-from simplecv.base import cv
 from simplecv.features.feature_extractor_base import FeatureExtractorBase
 
 
@@ -12,10 +12,9 @@ class HueHistogramFeatureExtractor(FeatureExtractorBase):
 
     nbins - the number of Hue bins.
     """
-    nbins = 16
 
     def __init__(self, nbins=16):
-        #we define the black (positive) and white (negative) regions of an
+        # we define the black (positive) and white (negative) regions of an
         # image to get our haar wavelet
         self.nbins = nbins
 

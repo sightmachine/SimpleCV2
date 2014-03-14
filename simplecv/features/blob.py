@@ -2,15 +2,15 @@ import re
 import warnings
 from math import sin, cos, pi
 
+from cv2 import cv
 import numpy as np
-import scipy.stats as sps
 import scipy.spatial.distance as spsd
+import scipy.stats as sps
 
-
-from simplecv.base import cv, LazyProperty
+from simplecv.base import LazyProperty
 from simplecv.color import Color
-from simplecv.features.detection import ShapeContextDescriptor
 from simplecv.features.detection import Line, Corner
+from simplecv.features.detection import ShapeContextDescriptor
 from simplecv.features.features import Feature, FeatureSet
 from simplecv.image_class import Image
 
@@ -101,7 +101,7 @@ class Blob(Feature):
         self.points = []
 
     def __getstate__(self):
-        skip = self.pickle_skip_properties
+        skip = Blob.pickle_skip_properties
         newdict = {}
         for key, value in self.__dict__.items():
             if key in skip:
@@ -304,12 +304,12 @@ class Blob(Feature):
 
         if width < 1:
             layer.rectangle(self.top_left_corner(),
-                            (self.get_width(), self.get_height()), color, width,
-                            filled=True, alpha=alpha)
+                            (self.get_width(), self.get_height()), color,
+                            width, filled=True, alpha=alpha)
         else:
             layer.rectangle(self.top_left_corner(),
-                            (self.get_width(), self.get_height()), color, width,
-                            filled=False, alpha=alpha)
+                            (self.get_width(), self.get_height()), color,
+                            width, filled=False, alpha=alpha)
 
     def draw_min_rect(self, layer=None, color=Color.DEFAULT,
                       width=1, alpha=128):
@@ -635,8 +635,8 @@ class Blob(Feature):
         """
         **SUMMARY**
 
-        Draw the blob get_contour the provided layer -- if no layer is provided,
-        draw to the source image.
+        Draw the blob get_contour the provided layer -- if no layer is
+        provided, draw to the source image.
 
 
         **PARAMETERS**
@@ -1039,7 +1039,7 @@ class Blob(Feature):
         #the cv bindings (only cv2 -- which I am trying to avoid). Have to
         #manually do the offset for the ROI shift.
         l, t = self.top_left_corner()
-        cv.FillPoly(ret_value, 
+        cv.FillPoly(ret_value,
                     [[(p[0] - l, p[1] - t) for p in self.convex_hull]],
                     (255, 255, 255), 8)
         return Image(ret_value)

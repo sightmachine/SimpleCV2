@@ -1,9 +1,10 @@
 import sys
 import warnings
 
+from cv2 import cv
 import numpy as np
 
-from simplecv.base import cv, logger
+from simplecv.base import logger
 from simplecv.features.blob import Blob
 from simplecv.features.features import FeatureSet
 from simplecv.image_class import Image
@@ -17,7 +18,6 @@ class BlobMaker(object):
     that one would use for blob extraction. Later implementations may include
     tracking and other features.
     """
-    mem_storage = None
 
     def __init__(self):
         self.mem_storage = cv.CreateMemStorage()
@@ -102,8 +102,9 @@ class BlobMaker(object):
         # this check catches those bugs. -KAS
         # Also I am submitting a bug report to Willow Garage - please bare with
         # us.
-        ptest = (4 * 255.0) / (
-            binary_img.width * binary_img.height)  # val if two pixels are white
+
+        # val if two pixels are white
+        ptest = (4 * 255.0) / (binary_img.width * binary_img.height)
         if test[0] <= ptest and test[1] <= ptest and test[2] <= ptest:
             return ret_value
 

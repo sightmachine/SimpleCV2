@@ -18,11 +18,8 @@ class HaarLikeFeature(object):
     Takes the right side of the image and subtracts from the left hand side
     of the image.
     """
-    name = None
-    regions = None
 
     def __init__(self, name=None, regions=None):
-
         self.name = name
         self.regions = regions
 

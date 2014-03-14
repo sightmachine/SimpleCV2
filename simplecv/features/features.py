@@ -439,7 +439,8 @@ class FeatureSet(list):
         >>> print angs
 
         """
-        return FeatureSet(sorted(self, key=lambda f: abs(f.get_angle() - theta)))
+        return FeatureSet(sorted(self,
+                                 key=lambda f: abs(f.get_angle() - theta)))
 
     def length(self):
         """
@@ -533,8 +534,8 @@ class FeatureSet(list):
     def sort_color_distance(self, color=(0, 0, 0)):
         """
         Return a sorted FeatureSet with features closest to a given color
-        first. Default is black, so sort_color_distance() will return darkest to
-        brightest
+        first. Default is black, so sort_color_distance() will return darkest
+        to brightest
         """
         return FeatureSet(sorted(self, key=lambda f: f.color_distance(color)))
 
@@ -2528,12 +2529,12 @@ class Feature(object):
                 "feature._point_inside_polygon - this is not a valid polygon")
             return False
 
-            #if( not isinstance(point,tuple) ):
-            #if( len(point) == 2 ):
+            # if( not isinstance(point,tuple) ):
+            # if( len(point) == 2 ):
             #    point = tuple(point)
-            #else:
-            #    logger.warning("feature._point_inside_polygon - this is not a "
-            #                   "valid point")
+            # else:
+            #    logger.warning("feature._point_inside_polygon - this is not "
+            #                   "a valid point")
             #    return False
         #if( cv2.__version__ == '$Rev:4557'):
         counter = 0

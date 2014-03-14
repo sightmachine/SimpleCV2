@@ -1,6 +1,8 @@
 import os
 
-from simplecv.base import cv, logger, LAUNCH_PATH
+from cv2 import cv
+
+from simplecv.base import logger, LAUNCH_PATH
 
 
 class HaarCascade(object):
@@ -9,10 +11,7 @@ class HaarCascade(object):
     To use the class provide it with the path to a Haar cascade XML file and
     optionally a name.
     """
-    _cascade = None
-    _name = None
     _cache = {}
-    _fhandle = None
 
     def __init__(self, fname=None, name=None):
         #if fname.isalpha():

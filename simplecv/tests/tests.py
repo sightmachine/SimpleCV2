@@ -2154,6 +2154,7 @@ def test_threshold():
         img.threshold(t)
 
 
+# FIXME: This test fails when all tests are executed
 def test_smart_threshold():
     img = Image("../data/sampleimages/RatTop.png")
     mask = Image((img.width, img.height))

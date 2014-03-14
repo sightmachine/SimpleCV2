@@ -607,6 +607,7 @@ def test_image_perspective():
         assert False
 
 
+# FIXME: This test intermittently fails
 def test_camera_undistort():
     fake_camera = FrameSource()
     fake_camera.load_calibration("TestCalibration")

@@ -6,7 +6,8 @@ import numpy as np
 from simplecv.image_class import Image
 
 
-class FaceRecognizer():
+class FaceRecognizer(object):
+
     def __init__(self):
         """
         Create a Face Recognizer Class using Fisher Face Recognizer. Uses

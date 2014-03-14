@@ -2,11 +2,12 @@ import glob
 import os
 import warnings
 
+from cv2 import cv
 import numpy as np
 import scipy.cluster.vq as cluster
 import scipy.spatial.distance as spsd
 
-from simplecv.base import cv, IMAGE_FORMATS
+from simplecv.base import IMAGE_FORMATS
 from simplecv.image_class import Image
 
 
@@ -23,12 +24,6 @@ class BOFFeatureExtractor(object):
     padding = the pixel padding of each patch in the resulting image.
 
     """
-    patch_size = (11, 11)
-    num_codes = 128
-    padding = 0
-    layout = (8, 16)
-    codebook_img = None
-    codebook = None
 
     def __init__(self, patchsz=(11, 11), numcodes=128, imglayout=(8, 16),
                  padding=0):
@@ -37,6 +32,8 @@ class BOFFeatureExtractor(object):
         self.layout = imglayout
         self.patch_size = patchsz
         self.num_codes = numcodes
+        self.codebook_img = None
+        self.codebook = None
 
     def generate(self, imgdirs, numcodes=128, size=(11, 11), imgs_per_dir=50,
                  img_layout=(8, 16), padding=0, verbose=True):
@@ -98,7 +95,7 @@ class BOFFeatureExtractor(object):
             print "Got " + str(len(raw_features)) + " features "
             print "Doing K-Means .... this will take a long time"
         self.codebook = self._make_codebook(raw_features, self.num_codes)
-        self.codebook_img = self._codebook_to_img(self.codebook, 
+        self.codebook_img = self._codebook_to_img(self.codebook,
                                                   self.patch_size,
                                                   self.num_codes,
                                                   self.layout,
