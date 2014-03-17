@@ -9,11 +9,11 @@ LENNA_PATH = '../data/sampleimages/lenna.png'
 
 @nottest
 def create_test_array():
-    ''' Returns array 2 x 2 pixels, 8 bit and BGR color space
+    """ Returns array 2 x 2 pixels, 8 bit and BGR color space
         pixels are colored so:
         RED, GREEN
         BLUE, WHITE
-    '''
+    """
     return np.array([[[0, 0, 255], [0, 255, 0]],       # RED,  GREEN
                      [[255, 0, 0], [255, 255, 255]]],  # BLUE, WHITE
                     dtype=np.uint8)
@@ -90,6 +90,7 @@ def test_image_init_tuple_gray():
 def test_image_convert_bgr_to_bgr():
     bgr_array = create_test_array()
     result_bgr_array = Image.convert(bgr_array, ColorSpace.BGR, ColorSpace.BGR)
+    assert bgr_array is not result_bgr_array
     assert_equals(bgr_array.data, result_bgr_array.data)
 
 
@@ -162,3 +163,13 @@ def test_image_hsv_to_gray():
 
     assert_equals(gray_array.data, gray_img.get_ndarray().data)
     assert gray_img.is_gray()
+
+
+def test_image_copy():
+    img = create_test_image()
+    copy_img = img.copy()
+
+    assert img is not copy_img
+    assert_equals(img.size(), copy_img.size())
+    assert_equals(img.get_ndarray().data, copy_img.get_ndarray().data)
+    assert_equals(img.get_color_space(), copy_img.get_color_space())

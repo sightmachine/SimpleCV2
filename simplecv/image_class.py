@@ -1983,6 +1983,7 @@ class Image:
         return self._ndarray
 
     def _get_grayscale_bitmap(self):
+        raise Exception('Deprecated')
         if self._graybitmap:
             return self._graybitmap
 
@@ -2040,6 +2041,7 @@ class Image:
         :py:meth:`get_matrix`
 
         """
+        raise Exception('Deprecated')
         if self._grayMatrix:
             return self._grayMatrix
         else:
@@ -2048,6 +2050,7 @@ class Image:
             return self._grayMatrix
 
     def _get_equalized_grayscale_bitmap(self):
+        raise Exception('Deprecated')
         if self._equalizedgraybitmap:
             return self._equalizedgraybitmap
 
@@ -2065,7 +2068,7 @@ class Image:
 
         **RETURNS**
 
-        Returns a grayscale SimpleCV image.
+        Returns a grayscale simplecv Image.
 
         **EXAMPLE**
 
@@ -2073,7 +2076,10 @@ class Image:
         >>> img = img.equalize()
 
         """
-        return Image(self._get_equalized_grayscale_bitmap())
+        gray_array = Image.convert(self._ndarray, self._colorSpace,
+                                   ColorSpace.GRAY)
+        equalized_array = cv2.equalizeHist(gray_array)
+        return Image(equalized_array, color_space=ColorSpace.GRAY)
 
     def get_pg_surface(self):
         """
@@ -2111,7 +2117,7 @@ class Image:
         The image, converted to rgb, then converted to a string.
 
         """
-        return self.to_rgb().get_bitmap().tostring()
+        return self.to_rgb().get_ndarray().tostring()
 
     def save(self, filehandle_or_filename="", mode="", verbose=False,
              temp=False, path=None, filename=None, clean_temp=False, **params):
@@ -2379,9 +2385,7 @@ class Image:
         >>> img2 = img.copy()
 
         """
-        newimg = self.get_empty()
-        cv.Copy(self.get_bitmap(), newimg)
-        return Image(newimg, color_space=self._colorSpace)
+        return Image(self._ndarray.copy(), color_space=self._colorSpace)
 
     def upload(self, dest, api_key=None, api_secret=None, verbose=True):
         """
