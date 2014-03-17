@@ -173,3 +173,19 @@ def test_image_copy():
     assert_equals(img.size(), copy_img.size())
     assert_equals(img.get_ndarray().data, copy_img.get_ndarray().data)
     assert_equals(img.get_color_space(), copy_img.get_color_space())
+
+
+def test_image_flip_vertical():
+    img = create_test_image()
+    img = img.flip_vertical()
+    flip_array = np.array([[[255, 0, 0], [255, 255, 255]],
+                           [[0, 0, 255], [0, 255, 0]]], dtype=np.uint8)
+    assert_equals(flip_array.data, img.get_ndarray().data)
+
+
+def test_image_flip_horizontal():
+    img = create_test_image()
+    img = img.flip_horizontal()
+    flip_array = np.array([[[0, 255, 0], [0, 0, 255]],
+                           [[255, 255, 255], [255, 0, 0]]], dtype=np.uint8)
+    assert_equals(flip_array.data, img.get_ndarray().data)

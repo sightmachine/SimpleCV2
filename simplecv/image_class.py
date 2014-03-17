@@ -1882,7 +1882,7 @@ class Image:
                                             rgbbitmap.tostring())
         return self._pil
 
-    def get_gray_numpy(self):
+    def get_gray_ndarray(self):
         """
         **SUMMARY**
 
@@ -1909,14 +1909,7 @@ class Image:
         :py:meth:`get_grayscale_matrix`
 
         """
-        raise Exception('Deprecated')
-        if self._grayNumpy != "":
-            return self._grayNumpy
-        else:
-            self._grayNumpy = uint8(
-                np.array(cv.GetMat(self._get_grayscale_bitmap())).transpose())
-
-        return self._grayNumpy
+        return Image.convert(self._ndarray, self._colorSpace, ColorSpace.GRAY)
 
     def get_numpy(self):
         """
@@ -2350,12 +2343,19 @@ class Image:
             return 1
 
         if filename:
-            cv.SaveImage(filename, saveimg.get_bitmap())
-             # set the filename for future save operations
+            if self.is_gray():
+                cv2.imwrite(filename, saveimg.get_ndarray())
+            else:
+                cv2.imwrite(filename, saveimg.to_bgr().get_ndarray())
+
+            # set the filename for future save operations
             self.filename = filename
             self.filehandle = ""
         elif self.filename:
-            cv.SaveImage(self.filename, saveimg.get_bitmap())
+            if self.is_gray():
+                cv2.imwrite(filename, saveimg.get_ndarray())
+            else:
+                cv2.imwrite(filename, saveimg.to_bgr().get_ndarray())
         else:
             return 0
 
@@ -2618,10 +2618,9 @@ class Image:
                                "big or impossibly small. I can't scale that")
                 return self
 
-        scaled_array = np.zeros((w, h, 3), dtype='uint8')
-        ret_val = cv2.resize(self.get_numpy_cv2(), (w, h),
-                             interpolation=interpolation)
-        return Image(ret_val, color_space=self._colorSpace, cv2image=True)
+        scaled_array = cv2.resize(self.get_ndarray(), (w, h),
+                                  interpolation=interpolation)
+        return Image(scaled_array, color_space=self._colorSpace)
 
     def resize(self, w=None, h=None):
         """
@@ -2648,7 +2647,7 @@ class Image:
         >>> img = Image("lenna")
         >>> img2 = img.resize(w=1024) # h is guessed from w
         >>> img3 = img.resize(h=1024) # w is guessed from h
-        >>> img4 = img.resize(w=200,h=100)
+        >>> img4 = img.resize(w=200, h=100)
 
         """
         ret_val = None
@@ -2667,12 +2666,12 @@ class Image:
                            "image really big or impossibly small. "
                            "I can't scale that")
             return ret_val
-        scaled_bitmap = cv.CreateImage((w, h), 8, 3)
-        cv.Resize(self.get_bitmap(), scaled_bitmap)
-        return Image(scaled_bitmap, color_space=self._colorSpace)
+
+        saceld_array = cv2.resize(self.self.get_ndarray())
+        return Image(saceld_array, color_space=self._colorSpace)
 
     def smooth(self, algorithm_name='gaussian', aperture=(3, 3), sigma=0,
-               spatial_sigma=0, grayscale=False, aperature=None):
+               spatial_sigma=0, grayscale=False):
         """
         **SUMMARY**
 
@@ -2703,9 +2702,6 @@ class Image:
 
         * *aperture* - A tuple for the aperture of the gaussian blur as an
                        (x,y) tuple.
-                     - Note there was rampant spelling mistakes in both smooth
-                       & sobel, aperture is spelled as such, and not
-                       "aperature". This code is backwards compatible.
 
         .. Warning::
           These must be odd numbers.
@@ -2735,9 +2731,6 @@ class Image:
         :py:meth:`blur`
 
         """
-        # see comment on argument documentation (spelling error)
-        aperture = aperature if aperature else aperture
-
         if is_tuple(aperture):
             win_x, win_y = aperture
             if win_x <= 0 or win_y <= 0 or win_x % 2 == 0 or win_y % 2 == 0:
@@ -2748,40 +2741,17 @@ class Image:
             raise ValueError("Please provide a tuple to aperture, "
                              "got: %s" % type(aperture))
 
-        #gauss and blur can work in-place, others need a buffer frame
-        #use a string to ID rather than the openCV constant
+        window = (win_x, win_y)
         if algorithm_name == "blur":
-            algorithm = cv.CV_BLUR
+            return self.blur(window, grayscale)
         elif algorithm_name == "bilateral":
-            algorithm = cv.CV_BILATERAL
-            win_y = win_x  # aperture must be square
+            return self.bilateral_filter(diameter=win_x, grayscale=grayscale)
         elif algorithm_name == "median":
-            algorithm = cv.CV_MEDIAN
-            win_y = win_x  # aperture must be square
+            return self.median_filter(window, grayscale)
         else:
-            algorithm = cv.CV_GAUSSIAN  # default algorithm is gaussian
+            return self.gaussian_blur(window, sigma, spatial_sigma, grayscale)
 
-        if grayscale:
-            newimg = self.get_empty(1)
-            cv.Smooth(self._get_grayscale_bitmap(), newimg, algorithm, win_x,
-                      win_y, sigma, spatial_sigma)
-        else:
-            newimg = self.get_empty(3)
-            r = self.get_empty(1)
-            g = self.get_empty(1)
-            b = self.get_empty(1)
-            ro = self.get_empty(1)
-            go = self.get_empty(1)
-            bo = self.get_empty(1)
-            cv.Split(self.get_bitmap(), b, g, r, None)
-            cv.Smooth(r, ro, algorithm, win_x, win_y, sigma, spatial_sigma)
-            cv.Smooth(g, go, algorithm, win_x, win_y, sigma, spatial_sigma)
-            cv.Smooth(b, bo, algorithm, win_x, win_y, sigma, spatial_sigma)
-            cv.Merge(bo, go, ro, None, newimg)
-
-        return Image(newimg, color_space=self._colorSpace)
-
-    def median_filter(self, window='', grayscale=False):
+    def median_filter(self, window, grayscale=False):
         """
         **SUMMARY**
 
@@ -2808,22 +2778,14 @@ class Image:
         cv2.medianBlur function is called.
 
         """
-        try:
-            import cv2
-
-            new_version = True
-        except:
-            new_version = False
-            pass
-
         if is_tuple(window):
             win_x, win_y = window
             if win_x >= 0 and win_y >= 0 and win_x % 2 == 1 and win_y % 2 == 1:
                 if win_x != win_y:
                     win_x = win_y
             else:
-                logger.warning("The aperture (win_x,win_y) must be odd number "
-                               "and greater than 0.")
+                logger.warning("The aperture (win_x, win_y) must be odd "
+                               "number and greater than 0.")
                 return None
 
         elif is_number(window):
@@ -2831,20 +2793,15 @@ class Image:
         else:
             win_x = 3  # set the default aperture window size (3x3)
 
-        if not new_version:
-            grayscale_ = grayscale
-            return self.smooth(algorithm_name='median',
-                               aperture=(win_x, win_y), grayscale=grayscale_)
+        if grayscale:
+            img_medianblur = cv2.medianBlur(self.get_gray_ndarray(), win_x)
+            return Image(img_medianblur, color_space=ColorSpace.GRAY)
         else:
-            if grayscale:
-                img_medianblur = cv2.medianBlur(self.get_gray_numpy(), win_x)
-                return Image(img_medianblur, color_space=ColorSpace.GRAY)
-            else:
-                img_medianblur = cv2.medianBlur(
-                    self.get_numpy()[:, :, ::-1].transpose([1, 0, 2]), win_x)
-                img_medianblur = img_medianblur[:, :, ::-1].transpose(
-                    [1, 0, 2])
-                return Image(img_medianblur, color_space=self._colorSpace)
+            img_medianblur = cv2.medianBlur(
+                self._ndarray[:, :, ::-1].transpose([1, 0, 2]), win_x)
+            img_medianblur = img_medianblur[:, :, ::-1].transpose(
+                [1, 0, 2])
+            return Image(img_medianblur, color_space=self._colorSpace)
 
     def bilateral_filter(self, diameter=5, sigma_color=10, sigma_space=10,
                          grayscale=False):
@@ -2895,14 +2852,6 @@ class Image:
            perhaps diameter=9 for offile applications that needs heavy noise
            filtering.
         """
-        try:
-            import cv2
-
-            new_version = True
-        except:
-            new_version = False
-            pass
-
         if is_tuple(diameter):
             win_x, win_y = diameter
             if win_x >= 0 and win_y >= 0 and win_x % 2 == 1 and win_y % 2 == 1:
@@ -2919,26 +2868,19 @@ class Image:
             win_x = 3  # set the default aperture window size (3x3)
             diameter = (win_x, win_x)
 
-        if not new_version:
-            grayscale_ = grayscale
-            if is_number(diameter):
-                diameter = (diameter, diameter)
-            return self.smooth(algorithm_name='bilateral', aperture=diameter,
-                               grayscale=grayscale_)
+        if grayscale:
+            img_bilateral = cv2.bilateralFilter(self.get_gray_ndarray(),
+                                                diameter, sigma_color,
+                                                sigma_space)
+            return Image(img_bilateral, color_space=ColorSpace.GRAY)
         else:
-            if grayscale:
-                img_bilateral = cv2.bilateralFilter(self.get_gray_numpy(),
-                                                    diameter, sigma_color,
-                                                    sigma_space)
-                return Image(img_bilateral, color_space=ColorSpace.GRAY)
-            else:
-                img_bilateral = cv2.bilateralFilter(
-                    self.get_numpy()[:, :, ::-1].transpose([1, 0, 2]),
-                    diameter, sigma_color, sigma_space)
-                img_bilateral = img_bilateral[:, :, ::-1].transpose([1, 0, 2])
-                return Image(img_bilateral, color_space=self._colorSpace)
+            img_bilateral = cv2.bilateralFilter(
+                self.get_ndarray()[:, :, ::-1].transpose([1, 0, 2]),
+                diameter, sigma_color, sigma_space)
+            img_bilateral = img_bilateral[:, :, ::-1].transpose([1, 0, 2])
+            return Image(img_bilateral, color_space=self._colorSpace)
 
-    def blur(self, window='', grayscale=False):
+    def blur(self, window, grayscale=False):
         """
         **SUMMARY**
 
@@ -2960,14 +2902,6 @@ class Image:
         For OpenCV versions higher than 2.3.0. i.e >= 2.3.0
         -- cv.blur function is called
         """
-        try:
-            import cv2
-
-            new_version = True
-        except:
-            new_version = False
-            pass
-
         if is_tuple(window):
             win_x, win_y = window
             if win_x <= 0 or win_y <= 0:
@@ -2978,21 +2912,16 @@ class Image:
         else:
             window = (3, 3)
 
-        if not new_version:
-            grayscale_ = grayscale
-            return self.smooth(algorithm_name='blur', aperture=window,
-                               grayscale=grayscale_)
+        if grayscale:
+            img_blur = cv2.blur(self.get_gray_ndarray(), window)
+            return Image(img_blur, color_space=ColorSpace.GRAY)
         else:
-            if grayscale:
-                img_blur = cv2.blur(self.get_gray_numpy(), window)
-                return Image(img_blur, color_space=ColorSpace.GRAY)
-            else:
-                img_blur = cv2.blur(
-                    self.get_numpy()[:, :, ::-1].transpose([1, 0, 2]), window)
-                img_blur = img_blur[:, :, ::-1].transpose([1, 0, 2])
-                return Image(img_blur, color_space=self._colorSpace)
+            img_blur = cv2.blur(
+                self.get_ndarray()[:, :, ::-1].transpose([1, 0, 2]), window)
+            img_blur = img_blur[:, :, ::-1].transpose([1, 0, 2])
+            return Image(img_blur, color_space=self._colorSpace)
 
-    def gaussian_blur(self, window='', sigma_x=0, sigma_y=0, grayscale=False):
+    def gaussian_blur(self, window, sigma_x=0, sigma_y=0, grayscale=False):
         """
         **SUMMARY**
 
@@ -3022,20 +2951,6 @@ class Image:
         For OpenCV versions higher than 2.3.0. i.e >= 2.3.0
         -- cv.GaussianBlur function is called
         """
-        try:
-            import cv2
-
-            ver = cv2.__version__
-            new_version = False
-            # For OpenCV versions till 2.4.0,  cv2.__versions__
-            # are of the form "$Rev: 4557 $"
-            if not ver.startswith('$Rev:'):
-                if int(ver.replace('.', '0')) >= 20300:
-                    new_version = True
-        except:
-            new_version = False
-            pass
-
         if is_tuple(window):
             win_x, win_y = window
             if win_x >= 0 and win_y >= 0 and win_x % 2 == 1 and win_y % 2 == 1:
@@ -3047,24 +2962,16 @@ class Image:
 
         elif is_number(window):
             window = (window, window)
-
         else:
             window = (3, 3)  # set the default aperture window size (3x3)
 
-        if not new_version:
-            grayscale_ = grayscale
-            return self.smooth(algorithm_name='blur', aperture=window,
-                               grayscale=grayscale_)
-        else:
-            image_gauss = cv2.GaussianBlur(self.get_numpy_cv2(), window,
-                                           sigma_x, sigmaY=sigma_y)
+        image_gauss = cv2.GaussianBlur(self.get_ndarray(), window,
+                                       sigma_x, sigmaY=sigma_y)
 
-            if grayscale:
-                return Image(image_gauss, color_space=ColorSpace.GRAY,
-                             cv2image=True)
-            else:
-                return Image(image_gauss, color_space=self._colorSpace,
-                             cv2image=True)
+        if grayscale:
+            return Image(image_gauss, color_space=ColorSpace.GRAY)
+        else:
+            return Image(image_gauss, color_space=self._colorSpace)
 
     def invert(self):
         """
@@ -3110,6 +3017,7 @@ class Image:
 
         :py:meth:`binarize`
         """
+        raise Exception('Deprecated! use to_gray()')
         return Image(self._get_grayscale_bitmap(), color_space=ColorSpace.GRAY)
 
     def flip_horizontal(self):
@@ -3139,9 +3047,8 @@ class Image:
         :py:meth:`rotate`
 
         """
-        newimg = self.get_empty()
-        cv.Flip(self.get_bitmap(), newimg, 1)
-        return Image(newimg, color_space=self._colorSpace)
+        flip_array = cv2.flip(self._ndarray, 1)
+        return Image(flip_array, color_space=self._colorSpace)
 
     def flip_vertical(self):
         """
@@ -3161,7 +3068,7 @@ class Image:
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> upsidedown = img.flip_horizontal()
+        >>> img = img.flip_vertical()
 
 
         **SEE ALSO**
@@ -3170,10 +3077,8 @@ class Image:
         :py:meth:`flip_horizontal`
 
         """
-
-        newimg = self.get_empty()
-        cv.Flip(self.get_bitmap(), newimg, 0)
-        return Image(newimg, color_space=self._colorSpace)
+        flip_array = cv2.flip(self._ndarray, 0)
+        return Image(flip_array, color_space=self._colorSpace)
 
     def stretch(self, thresh_low=0, thresh_high=255):
         """
