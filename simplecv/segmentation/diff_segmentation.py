@@ -1,4 +1,4 @@
-from cv2 import cv
+import cv2
 
 from simplecv.features.blobmaker import BlobMaker
 from simplecv.image_class import Image
@@ -63,8 +63,8 @@ class DiffSegmentation(SegmentationBase):
                 self.color_img = img
                 self.curr_img = img
 
-            cv.AbsDiff(self.curr_img.get_bitmap(), self.last_img.get_bitmap(),
-                       self.diff_img.get_bitmap())
+            cv2.absdiff(self.curr_img.get_ndarray(), self.last_img.get_ndarray(),
+                        self.diff_img.get_ndarray())
 
     def is_ready(self):
         """
