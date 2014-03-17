@@ -1075,11 +1075,13 @@ class Image:
                 imgpth = os.path.join(LAUNCH_PATH, 'data/sampleimages', source)
                 source = imgpth
 
-        if isinstance(source, tuple):
+        if isinstance(source, (tuple, list)):
             w = int(source[0])
             h = int(source[1])
-            source = cv.CreateImage((w, h), cv.IPL_DEPTH_8U, 3)
-            cv.Zero(source)
+            if color_space == ColorSpace.GRAY:
+                self._ndarray = np.zeros((h, w), np.uint8)
+            else:
+                self._ndarray = np.zeros((h, w, 3), np.uint8)
 
         elif isinstance(source, np.ndarray):
             if len(source.shape) == 3 and source.shape[2] == 3:

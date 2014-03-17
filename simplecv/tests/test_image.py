@@ -73,6 +73,20 @@ def test_image_init_ndarray_grayscale():
     assert_equals(2, len(img_ndarray.shape))
 
 
+def test_image_init_tuple_bgr():
+    img1 = Image([5, 10], color_space=ColorSpace.BGR)
+    assert img1.is_bgr()
+    assert_equals((5, 10), img1.size())
+    assert_equals(np.zeros((5, 10, 3), np.uint8).data, img1.get_ndarray().data)
+
+
+def test_image_init_tuple_gray():
+    img1 = Image([5, 10], color_space=ColorSpace.GRAY)
+    assert img1.is_gray()
+    assert_equals((5, 10), img1.size())
+    assert_equals(np.zeros((5, 10), np.uint8).data, img1.get_ndarray().data)
+
+
 def test_image_convert_bgr_to_bgr():
     bgr_array = create_test_array()
     result_bgr_array = Image.convert(bgr_array, ColorSpace.BGR, ColorSpace.BGR)
