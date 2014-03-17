@@ -3120,17 +3120,13 @@ class Image:
         :py:meth:`equalize`
 
         """
-        try:
-            newimg = self.get_empty(1)
-            cv.Threshold(self._get_grayscale_bitmap(), newimg, thresh_low, 255,
-                         cv.CV_THRESH_TOZERO)
-            cv.Not(newimg, newimg)
-            cv.Threshold(newimg, newimg, 255 - thresh_high, 255,
-                         cv.CV_THRESH_TOZERO)
-            cv.Not(newimg, newimg)
-            return Image(newimg)
-        except:
-            return None
+        threshold, array = cv2.threshold(self.get_gray_ndarray(), thresh_low,
+                                         255, cv2.THRESH_TOZERO)
+        array = cv2.bitwise_not(array)
+        threshold, array = cv2.threshold(array, 255 - thresh_high, 255,
+                                         cv2.THRESH_TOZERO)
+        array = cv2.bitwise_not(array)
+        return Image(array, color_space=ColorSpace.GRAY)
 
     def gamma_correct(self, gamma=1):
 
@@ -3159,11 +3155,11 @@ class Image:
         if gamma < 0:
             return "Gamma should be a non-negative real number"
         scale = 255.0
-        src = self.get_numpy()
+        src = self.get_ndarray()
         dst = (((1.0 / scale) * src) ** gamma) * scale
         return Image(dst)
 
-    def binarize(self, thresh=-1, maxv=255, blocksize=0, p=5):
+    def binarize(self, thresh=None, maxv=255, blocksize=0, p=5):
         """
         **SUMMARY**
 
@@ -3227,38 +3223,34 @@ class Image:
 
         """
         if is_tuple(thresh):
-            r = self.get_empty(1)
-            g = self.get_empty(1)
-            b = self.get_empty(1)
-            cv.Split(self.get_bitmap(), b, g, r, None)
+            b = self._ndarray[:, :, 0]
+            g = self._ndarray[:, :, 1]
+            r = self._ndarray[:, :, 2]
 
-            cv.Threshold(r, r, thresh[0], maxv, cv.CV_THRESH_BINARY_INV)
-            cv.Threshold(g, g, thresh[1], maxv, cv.CV_THRESH_BINARY_INV)
-            cv.Threshold(b, b, thresh[2], maxv, cv.CV_THRESH_BINARY_INV)
+            _, r = cv2.threshold(r, thresh[2], maxv, cv2.THRESH_BINARY_INV)
+            _, g = cv2.threshold(g, thresh[1], maxv, cv2.THRESH_BINARY_INV)
+            _, b = cv2.threshold(b, thresh[0], maxv, cv2.THRESH_BINARY_INV)
+            array = r + g + b
+            return Image(array, color_space=self._colorSpace)
 
-            cv.Add(r, g, r)
-            cv.Add(r, b, r)
-
-            return Image(r, color_space=self._colorSpace)
-
-        elif thresh == -1:
+        elif thresh is None:
             newbitmap = self.get_empty(1)
             if blocksize:
-                cv.AdaptiveThreshold(self._get_grayscale_bitmap(), newbitmap,
-                                     maxv,
-                                     cv.CV_ADAPTIVE_THRESH_GAUSSIAN_C,
-                                     cv.CV_THRESH_BINARY_INV, blocksize, p)
+                array = cv2.adaptiveThreshold(self.get_gray_ndarray(), maxv,
+                                              cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                              cv2.THRESH_BINARY_INV,
+                                              blocksize, p)
             else:
-                cv.Threshold(self._get_grayscale_bitmap(), newbitmap, thresh,
-                             float(maxv),
-                             cv.CV_THRESH_BINARY_INV + cv.CV_THRESH_OTSU)
-            return Image(newbitmap, color_space=self._colorSpace)
+                _, array = cv2.threshold(
+                    self.get_gray_ndarray(), thresh, float(maxv),
+                    cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+            return Image(array, color_space=self._colorSpace)
         else:
             newbitmap = self.get_empty(1)
-            #desaturate the image, and apply the new threshold
-            cv.Threshold(self._get_grayscale_bitmap(), newbitmap, thresh,
-                         float(maxv), cv.CV_THRESH_BINARY_INV)
-            return Image(newbitmap, color_space=self._colorSpace)
+            # desaturate the image, and apply the new threshold
+            _, array = cv2.threshold(self.get_gray_ndarray(), thresh,
+                                     float(maxv), cv2.THRESH_BINARY_INV)
+            return Image(array, color_space=self._colorSpace)
 
     def mean_color(self, color_space=None):
         """
@@ -3288,37 +3280,32 @@ class Image:
 
 
         """
-
         if color_space is None:
-            return tuple(cv.Avg(self.get_bitmap())[0:3])
-
+            array = self._ndarray
         elif color_space == 'BGR':
-            return tuple(cv.Avg(self.to_bgr().get_bitmap())[0:3])
-
+            array = self.to_bgr().get_ndarray()
         elif color_space == 'RGB':
-            return tuple(cv.Avg(self.to_rgb().get_bitmap())[0:3])
-
+            array = self.to_rgb().get_ndarray()
         elif color_space == 'HSV':
-            return tuple(cv.Avg(self.to_hsv().get_bitmap())[0:3])
-
+            array = self.to_hsv().get_ndarray()
         elif color_space == 'XYZ':
-            return tuple(cv.Avg(self.to_xyz().get_bitmap())[0:3])
-
+            array = self.to_xyz().get_ndarray()
         elif color_space == 'Gray':
-            return cv.Avg(self._get_grayscale_bitmap())[0]
-
+            array = self.to_gray().get_gray_ndarray()
+            return np.average(array)
         elif color_space == 'YCrCb':
-            return tuple(cv.Avg(self.to_ycrcb().get_bitmap())[0:3])
-
+            array = self.to_ycrcb().get_ndarray()
         elif color_space == 'HLS':
-            return tuple(cv.Avg(self.to_hls().get_bitmap())[0:3])
-
+            array = self.to_hls().get_ndarray()
         else:
-            logger.warning("Image.mean_color: There is no supported "
-                           "conversion to the specified colorspace. Use one "
-                           "of these as argument: 'BGR' , 'RGB' , 'HSV' , "
-                           "'Gray' , 'XYZ' , 'YCrCb' , 'HLS' .")
+            logger.warning("Image.meanColor: There is no supported conversion "
+                           "to the specified colorspace. Use one of these as "
+                           "argument: 'BGR' , 'RGB' , 'HSV' , 'Gray' , 'XYZ' "
+                           ", 'YCrCb' , 'HLS' .")
             return None
+        return (np.average(array[:, :, 0]),
+                np.average(array[:, :, 1]),
+                np.average(array[:, :, 2]))
 
     def find_corners(self, maxnum=50, minquality=0.04, mindistance=1.0):
         """
@@ -3369,18 +3356,12 @@ class Image:
         :py:meth:`find_keypoints`
 
         """
-        #initialize buffer frames
-        eig_image = cv.CreateImage(cv.GetSize(self.get_bitmap()),
-                                   cv.IPL_DEPTH_32F, 1)
-        temp_image = cv.CreateImage(cv.GetSize(self.get_bitmap()),
-                                    cv.IPL_DEPTH_32F, 1)
-
-        corner_coordinates = cv.GoodFeaturesToTrack(
-            self._get_grayscale_bitmap(), eig_image, temp_image,
-            maxnum, minquality, mindistance, None)
+        corner_coordinates = cv2.goodFeaturesToTrack(self.get_gray_ndarray(),
+                                                     maxnum, minquality,
+                                                     mindistance)
 
         corner_features = []
-        for (x, y) in corner_coordinates:
+        for x, y in corner_coordinates[:, 0, :]:
             corner_features.append(Corner(self, x, y))
 
         return FeatureSet(corner_features)
@@ -3554,27 +3535,29 @@ class Image:
         >>> mask.show()
 
         """
-        if self._colorSpace != ColorSpace.YCrCb:
-            ycrcb = self.to_ycrcb()
+        if self.is_ycrcb():
+            ycrcb = self._ndarray
         else:
-            ycrcb = self
+            ycrcb = self.to_ycrcb().get_ndarray()
 
-        y = np.ones((256, 1), dtype=uint8) * 0
+        y = np.zeros((256, 1), dtype=uint8)
         y[5:] = 255
-        cr = np.ones((256, 1), dtype=uint8) * 0
+        cr = np.zeros((256, 1), dtype=uint8)
         cr[140:180] = 255
-        cb = np.ones((256, 1), dtype=uint8) * 0
+        cb = np.zeros((256, 1), dtype=uint8)
         cb[77:135] = 255
-        y_img = ycrcb.get_empty(1)
-        cr_img = ycrcb.get_empty(1)
-        cb_img = ycrcb.get_empty(1)
-        cv.Split(ycrcb.get_bitmap(), y_img, cr_img, cb_img, None)
-        cv.LUT(y_img, y_img, cv.fromarray(y))
-        cv.LUT(cr_img, cr_img, cv.fromarray(cr))
-        cv.LUT(cb_img, cb_img, cv.fromarray(cb))
-        temp = self.get_empty()
-        cv.Merge(y_img, cr_img, cb_img, None, temp)
-        mask = Image(temp, color_space=ColorSpace.YCrCb)
+
+        y_array = ycrcb[:, :, 0]
+        cr_array = ycrcb[:, :, 1]
+        cb_array = ycrcb[:, :, 2]
+
+        y_array = cv2.LUT(y_array, y)
+        cr_array = cv2.LUT(cr_array, cr)
+        cb_array = cv2.LUT(cb_array, cb)
+
+        array = np.dstack((y_array, cr_array, cb_array))
+
+        mask = Image(array, color_space=ColorSpace.YCrCb)
         mask = mask.binarize((128, 128, 128))
         mask = mask.to_rgb().binarize()
         mask.dilate(dilate_iter)
@@ -3862,15 +3845,7 @@ class Image:
         """
         **SUMMARY**
 
-        Split the channels of an image into RGB (not the default BGR)
-        single parameter is whether to return the channels as grey images
-        (default) or to return them as tinted color image
-
-        **PARAMETERS**
-
-        * *grayscale* - If this is true we return three grayscale images,
-          one per channel. if it is False return tinted images.
-
+        Split the channels of an image.
 
         **RETURNS**
 
@@ -3888,27 +3863,16 @@ class Image:
 
         :py:meth:`merge_channels`
         """
-        r = self.get_empty(1)
-        g = self.get_empty(1)
-        b = self.get_empty(1)
-        cv.Split(self.get_bitmap(), b, g, r, None)
+        chanel_0 = self._ndarray[:, :, 0]
+        chanel_1 = self._ndarray[:, :, 1]
+        chanel_2 = self._ndarray[:, :, 2]
 
-        red = self.get_empty()
-        green = self.get_empty()
-        blue = self.get_empty()
+        return (Image(chanel_0, color_space=ColorSpace.GRAY),
+                Image(chanel_1, color_space=ColorSpace.GRAY),
+                Image(chanel_2, color_space=ColorSpace.GRAY))
 
-        if grayscale:
-            cv.Merge(r, r, r, None, red)
-            cv.Merge(g, g, g, None, green)
-            cv.Merge(b, b, b, None, blue)
-        else:
-            cv.Merge(None, None, r, None, red)
-            cv.Merge(None, g, None, None, green)
-            cv.Merge(b, None, None, None, blue)
-
-        return Image(red), Image(green), Image(blue)
-
-    def merge_channels(self, r=None, g=None, b=None):
+    def merge_channels(self, r=None, g=None, b=None,
+                       color_space=ColorSpace.UNKNOWN):
         """
         **SUMMARY**
 
@@ -3930,11 +3894,11 @@ class Image:
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> [r,g,b] = img.split_channels()
+        >>> r, g, b = img.split_channels()
         >>> r = r.binarize()
         >>> g = g.binarize()
         >>> b = b.binarize()
-        >>> result = img.merge_channels(r,g,b)
+        >>> result = img.merge_channels(r, g, b)
         >>> result.show()
 
 
@@ -3943,34 +3907,21 @@ class Image:
 
         """
         if r is None and g is None and b is None:
-            logger.warning("ImageClass.merge_channels - we need at least "
+            logger.warning("Image.merge_channels - we need at least "
                            "one valid channel")
             return None
-        if r is None:
-            r = self.get_empty(1)
-            cv.Zero(r)
-        else:
-            rt = r.get_empty(1)
-            cv.Split(r.get_bitmap(), rt, rt, rt, None)
-            r = rt
-        if g is None:
-            g = self.get_empty(1)
-            cv.Zero(g)
-        else:
-            gt = g.get_empty(1)
-            cv.Split(g.get_bitmap(), gt, gt, gt, None)
-            g = gt
-        if b is None:
-            b = self.get_empty(1)
-            cv.Zero(b)
-        else:
-            bt = b.get_empty(1)
-            cv.Split(b.get_bitmap(), bt, bt, bt, None)
-            b = bt
 
-        ret_val = self.get_empty()
-        cv.Merge(b, g, r, None, ret_val)
-        return Image(ret_val)
+        if r is None:
+            r = Image(self.size(), color_space=ColorSpace.GRAY)
+        if g is None:
+            g = Image(self.size(), color_space=ColorSpace.GRAY)
+        if b is None:
+            b = Image(self.size(), color_space=ColorSpace.GRAY)
+
+        array = np.dstack((r.get_ndarray(),
+                           g.get_ndarray(),
+                           b.get_ndarray()))
+        return Image(array)
 
     def apply_hls_curve(self, hcurve, lcurve, scurve):
         """
@@ -4006,24 +3957,20 @@ class Image:
 
         #TODO CHECK ROI
         #TODO CHECK CURVE SIZE
-        #TODO CHECK COLORSPACE
         #TODO CHECK CURVE SIZE
-        temp = cv.CreateImage(self.size(), 8, 3)
-        #Move to HLS space
-        cv.CvtColor(self._bitmap, temp, cv.CV_RGB2HLS)
-        temp_mat = cv.GetMat(temp)  # convert the bitmap to a matrix
-        #now apply the color curve correction
-        temp_mat = np.array(self.get_matrix()).copy()
-        temp_mat[:, :, 0] = np.take(hcurve.curve, temp_mat[:, :, 0])
-        temp_mat[:, :, 1] = np.take(scurve.curve, temp_mat[:, :, 1])
-        temp_mat[:, :, 2] = np.take(lcurve.curve, temp_mat[:, :, 2])
-        #Now we jimmy the np array into a cvMat
-        image = cv.CreateImageHeader((temp_mat.shape[1], temp_mat.shape[0]),
-                                     cv.IPL_DEPTH_8U, 3)
-        cv.SetData(image, temp_mat.tostring(),
-                   temp_mat.dtype.itemsize * 3 * temp_mat.shape[1])
-        cv.CvtColor(image, image, cv.CV_HLS2RGB)
-        return Image(image, color_space=self._colorSpace)
+
+        # Move to HLS space
+        array = self.to_hls().get_ndarray()
+
+        # now apply the color curve correction
+        array[:, :, 0] = np.take(hcurve.curve, array[:, :, 0])
+        array[:, :, 1] = np.take(scurve.curve, array[:, :, 1])
+        array[:, :, 2] = np.take(lcurve.curve, array[:, :, 2])
+
+        # Move back to original color space
+        array = Image.convert(array, ColorSpace.HLS, self._colorSpace)
+
+        return Image(array, color_space=self._colorSpace)
 
     def apply_rgb_curve(self, rcurve, gcurve, bcurve):
         """
