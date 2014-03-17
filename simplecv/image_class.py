@@ -4014,16 +4014,11 @@ class Image:
         if isinstance(rcurve, list):
             rcurve = ColorCurve(rcurve)
 
-        temp_mat = np.array(self.get_matrix()).copy()
-        temp_mat[:, :, 0] = np.take(bcurve.curve, temp_mat[:, :, 0])
-        temp_mat[:, :, 1] = np.take(gcurve.curve, temp_mat[:, :, 1])
-        temp_mat[:, :, 2] = np.take(rcurve.curve, temp_mat[:, :, 2])
-        #Now we jimmy the np array into a cvMat
-        image = cv.CreateImageHeader((temp_mat.shape[1], temp_mat.shape[0]),
-                                     cv.IPL_DEPTH_8U, 3)
-        cv.SetData(image, temp_mat.tostring(),
-                   temp_mat.dtype.itemsize * 3 * temp_mat.shape[1])
-        return Image(image, color_space=self._colorSpace)
+        array = self._ndarray.copy()
+        array[:, :, 0] = np.take(bcurve.curve, array[:, :, 0])
+        array[:, :, 1] = np.take(gcurve.curve, array[:, :, 1])
+        array[:, :, 2] = np.take(rcurve.curve, array[:, :, 2])
+        return Image(array, color_space=self._colorSpace)
 
     def apply_intensity_curve(self, curve):
         """
@@ -4043,10 +4038,8 @@ class Image:
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> rc = ColorCurve([[0,0], [100, 120], [180, 230], [255, 255]])
-        >>> gc = ColorCurve([[0,0], [90, 120], [180, 230], [255, 255]])
-        >>> bc = ColorCurve([[0,0], [70, 110], [180, 230], [240, 255]])
-        >>> img2 = img.apply_rgb_curve(rc,gc,bc)
+        >>> cc = ColorCurve([[0,0], [100, 120], [180, 230], [255, 255]])
+        >>> img2 = img.apply_rgb_curve(cc)
 
         **SEE ALSO**
 
@@ -4090,11 +4083,13 @@ class Image:
         :py:meth:`find_blobs_from_mask`
         """
         # reshape our matrix to 1xN
-        pixels = np.array(self.get_numpy()).reshape(-1, 3)
+        pixels = self._ndarray.copy().reshape(-1, 3)
+
         # calculate the distance each pixel is
         distances = spsd.cdist(pixels, [color])
         distances *= (255.0 / distances.max())  # normalize to 0 - 255
-        return Image(distances.reshape(self.width, self.height))
+        array = distances.reshape(self.width, self.height)
+        return Image(array)
 
     def hue_distance(self, color=Color.BLACK, minsaturation=20, minvalue=20,
                      maxvalue=255):
@@ -4145,7 +4140,7 @@ class Image:
             color_hue = Color.hsv(color)[0]
 
         # again, gets transposed to vsh
-        vsh_matrix = self.to_hsv().get_numpy().reshape(-1, 3)
+        vsh_matrix = self.to_hsv().get_ndarray().reshape(-1, 3)
         hue_channel = np.cast['int'](vsh_matrix[:, 2])
 
         if color_hue < 90:
@@ -4215,11 +4210,10 @@ class Image:
         :py:meth:`find_blobs_from_mask`
 
         """
-        ret_val = self.get_empty()
-        kern = cv.CreateStructuringElementEx(kernelsize, kernelsize, 1, 1,
-                                             cv.CV_SHAPE_RECT)
-        cv.Erode(self.get_bitmap(), ret_val, kern, iterations)
-        return Image(ret_val, color_space=self._colorSpace)
+        kern = cv2.getStructuringElement(cv2.MORPH_RECT,
+                                         (kernelsize, kernelsize), (1, 1))
+        array = cv2.erode(self._ndarray, kern, iterations=iterations)
+        return Image(array, color_space=self._colorSpace)
 
     def dilate(self, iterations=1):
         """
@@ -4264,10 +4258,9 @@ class Image:
         :py:meth:`find_blobs_from_mask`
 
         """
-        ret_val = self.get_empty()
-        kern = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
-        cv.Dilate(self.get_bitmap(), ret_val, kern, iterations)
-        return Image(ret_val, color_space=self._colorSpace)
+        kern = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3), (1, 1))
+        array = cv2.dilate(self._ndarray, kern, iterations)
+        return Image(array, color_space=self._colorSpace)
 
     def morph_open(self):
         """
@@ -4309,18 +4302,9 @@ class Image:
         :py:meth:`find_blobs_from_mask`
 
         """
-        ret_val = self.get_empty()
-        temp = self.get_empty()
-        kern = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
-        try:
-            cv.MorphologyEx(self.get_bitmap(), ret_val, temp, kern,
-                            cv.MORPH_OPEN, 1)
-        except:
-            cv.MorphologyEx(self.get_bitmap(), ret_val, temp, kern,
-                            cv.CV_MOP_OPEN, 1)
-            #OPENCV 2.2 vs 2.3 compatability
-
-        return Image(ret_val)
+        kern = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3), (1, 1))
+        array = cv2.morphologyEx(self._ndarray, cv2.MORPH_OPEN, kern, 1)
+        return Image(array, color_space=self._colorSpace)
 
     def morph_close(self):
         """
@@ -4362,19 +4346,9 @@ class Image:
         :py:meth:`find_blobs_from_mask`
 
         """
-
-        ret_val = self.get_empty()
-        temp = self.get_empty()
-        kern = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
-        try:
-            cv.MorphologyEx(self.get_bitmap(), ret_val, temp, kern,
-                            cv.MORPH_CLOSE, 1)
-        except:
-            cv.MorphologyEx(self.get_bitmap(), ret_val, temp, kern,
-                            cv.CV_MOP_CLOSE, 1)
-            #OPENCV 2.2 vs 2.3 compatability
-
-        return Image(ret_val, color_space=self._colorSpace)
+        kern = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3), (1, 1))
+        array = cv2.morphologyEx(self._ndarray, cv2.MORPH_CLOSE, kern, 1)
+        return Image(array, color_space=self._colorSpace)
 
     def morph_gradient(self):
         """
@@ -4417,17 +4391,9 @@ class Image:
         :py:meth:`find_blobs_from_mask`
 
         """
-
-        ret_val = self.get_empty()
-        temp = self.get_empty()
-        kern = cv.CreateStructuringElementEx(3, 3, 1, 1, cv.CV_SHAPE_RECT)
-        try:
-            cv.MorphologyEx(self.get_bitmap(), ret_val, temp, kern,
-                            cv.MORPH_GRADIENT, 1)
-        except:
-            cv.MorphologyEx(self.get_bitmap(), ret_val, temp, kern,
-                            cv.CV_MOP_GRADIENT, 1)
-        return Image(ret_val, color_space=self._colorSpace)
+        kern = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3), (1, 1))
+        array = cv2.morphologyEx(self._ndarray, cv2.MORPH_GRADIENT, kern)
+        return Image(array, color_space=self._colorSpace)
 
     def histogram(self, numbins=50):
         """
@@ -4456,10 +4422,7 @@ class Image:
         :py:meth:`hue_histogram`
 
         """
-        gray = self._get_grayscale_bitmap()
-
-        (hist, bin_edges) = np.histogram(np.asarray(cv.GetMat(gray)),
-                                         bins=numbins)
+        hist, bin_edges = np.histogram(self.get_gray_ndarray(), bins=numbins)
         return hist.tolist()
 
     def hue_histogram(self, bins=179, dynamic_range=True):
@@ -4484,11 +4447,11 @@ class Image:
 
         """
         if dynamic_range:
-            return np.histogram(self.to_hsv().get_numpy()[:, :, 2],
+            return np.histogram(self.to_hsv().get_ndarray()[:, :, 2],
                                 bins=bins)[0]
         else:
-            return np.histogram(self.to_hsv().get_numpy()[:, :, 2], bins=bins,
-                                range=(0.0, 360.0))[0]
+            return np.histogram(self.to_hsv().get_ndarray()[:, :, 2],
+                                bins=bins, range=(0.0, 360.0))[0]
 
     def hue_peaks(self, bins=179):
         """
@@ -4541,7 +4504,7 @@ class Image:
         #     to get the average peak value
         #     do 'np.mean(maxtab, 0)[1]' on the results
 
-        y_axis, x_axis = np.histogram(self.to_hsv().get_numpy()[:, :, 2],
+        y_axis, x_axis = np.histogram(self.to_hsv().get_ndarray()[:, :, 2],
                                       bins=bins)
         x_axis = x_axis[0:bins]
         lookahead = int(bins / 17)
