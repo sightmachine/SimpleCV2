@@ -1464,6 +1464,53 @@ class Image:
         """
         return self._colorSpace == ColorSpace.YCrCb
 
+    @staticmethod
+    def convert(ndarray, from_color_space, to_color_space):
+        """ Converts a numpy array from one color space to another
+
+        :param ndarray: array to convert
+        :type name: numpy.ndarray.
+        :param from_color_space: color space to convert from.
+        :type state: int.
+        :param from_color_space: color space to convert to.
+        :type state: int.
+        :returns: instance of numpy.ndarray.
+        """
+        if from_color_space == to_color_space:
+            return ndarray.copy()
+
+        color_space_to_string = {
+            ColorSpace.UNKNOWN: 'BGR',  # Unknown handled as default BGR
+            ColorSpace.BGR: 'BGR',
+            ColorSpace.GRAY: 'GRAY',
+            ColorSpace.RGB: 'RGB',
+            ColorSpace.HLS: 'HLS',
+            ColorSpace.HSV: 'HSV',
+            ColorSpace.XYZ: 'XYZ',
+            ColorSpace.YCrCb: 'YCR_CB'
+        }
+
+        converter_slr = 'COLOR_{}2{}'.format(
+            color_space_to_string[from_color_space],
+            color_space_to_string[to_color_space])
+
+        try:
+            converter = getattr(cv2, converter_slr)
+        except AttributeError:
+            # convert to BGR first
+            converter_bgr_str = 'COLOR_{}2BGR'.format(
+                color_space_to_string[from_color_space])
+            converter_slr = 'COLOR_BGR2{}'.format(
+                color_space_to_string[to_color_space])
+
+            converter_bgr = getattr(cv2, converter_bgr_str)
+            converter = getattr(cv2, converter_slr)
+
+            new_ndarray = cv2.cvtColor(ndarray, converter_bgr)
+            return cv2.cvtColor(new_ndarray, converter)
+        else:
+            return cv2.cvtColor(ndarray, converter)
+
     def to_rgb(self):
         """
         **SUMMARY**
@@ -1486,27 +1533,9 @@ class Image:
         :py:meth:`is_rgb`
 
         """
-
-        ret_val = self.get_empty()
-        if self._colorSpace == ColorSpace.BGR or \
-                self._colorSpace == ColorSpace.UNKNOWN:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_BGR2RGB)
-        elif self._colorSpace == ColorSpace.HSV:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_HSV2RGB)
-        elif self._colorSpace == ColorSpace.HLS:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_HLS2RGB)
-        elif self._colorSpace == ColorSpace.XYZ:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_XYZ2RGB)
-        elif self._colorSpace == ColorSpace.YCrCb:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_YCrCb2RGB)
-        elif self._colorSpace == ColorSpace.RGB:
-            ret_val = self.get_bitmap()
-        else:
-            logger.warning(
-                "Image.to_rgb: There is no supported conversion to "
-                "RGB colorspace")
-            return None
-        return Image(ret_val, color_space=ColorSpace.RGB)
+        rgb_array = Image.convert(self._ndarray, self._colorSpace,
+                                  ColorSpace.RGB)
+        return Image(rgb_array, color_space=ColorSpace.RGB)
 
     def to_bgr(self):
         """
@@ -1530,25 +1559,9 @@ class Image:
         :py:meth:`is_bgr`
 
         """
-        ret_val = self.get_empty()
-        if self._colorSpace == ColorSpace.RGB \
-                or self._colorSpace == ColorSpace.UNKNOWN:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_RGB2BGR)
-        elif self._colorSpace == ColorSpace.HSV:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_HSV2BGR)
-        elif self._colorSpace == ColorSpace.HLS:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_HLS2BGR)
-        elif self._colorSpace == ColorSpace.XYZ:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_XYZ2BGR)
-        elif self._colorSpace == ColorSpace.YCrCb:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_YCrCb2BGR)
-        elif self._colorSpace == ColorSpace.BGR:
-            ret_val = self.get_bitmap()
-        else:
-            logger.warning("Image.to_bgr: There is no supported conversion to "
-                           "BGR colorspace")
-            return None
-        return Image(ret_val, color_space=ColorSpace.BGR)
+        bgr_array = Image.convert(self._ndarray, self._colorSpace,
+                                  ColorSpace.BGR)
+        return Image(bgr_array, color_space=ColorSpace.BGR)
 
     def to_hls(self):
         """
@@ -1572,30 +1585,9 @@ class Image:
         :py:meth:`is_hls`
 
         """
-
-        ret_val = self.get_empty()
-        if self._colorSpace == ColorSpace.BGR or \
-                self._colorSpace == ColorSpace.UNKNOWN:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_BGR2HLS)
-        elif self._colorSpace == ColorSpace.RGB:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_RGB2HLS)
-        elif self._colorSpace == ColorSpace.HSV:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_HSV2RGB)
-            cv.CvtColor(ret_val, ret_val, cv.CV_RGB2HLS)
-        elif self._colorSpace == ColorSpace.XYZ:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_XYZ2RGB)
-            cv.CvtColor(ret_val, ret_val, cv.CV_RGB2HLS)
-        elif self._colorSpace == ColorSpace.YCrCb:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_YCrCb2RGB)
-            cv.CvtColor(ret_val, ret_val, cv.CV_RGB2HLS)
-        elif self._colorSpace == ColorSpace.HLS:
-            ret_val = self.get_bitmap()
-        else:
-            logger.warning(
-                "Image.toHSL: There is no supported conversion to HSL "
-                "colorspace")
-            return None
-        return Image(ret_val, color_space=ColorSpace.HLS)
+        hsl_array = Image.convert(self._ndarray, self._colorSpace,
+                                  ColorSpace.HLS)
+        return Image(hsl_array, color_space=ColorSpace.HLS)
 
     def to_hsv(self):
         """
@@ -1619,29 +1611,9 @@ class Image:
         :py:meth:`is_hsv`
 
         """
-        ret_val = self.get_empty()
-        if self._colorSpace == ColorSpace.BGR or \
-                self._colorSpace == ColorSpace.UNKNOWN:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_BGR2HSV)
-        elif self._colorSpace == ColorSpace.RGB:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_RGB2HSV)
-        elif self._colorSpace == ColorSpace.HLS:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_HLS2RGB)
-            cv.CvtColor(ret_val, ret_val, cv.CV_RGB2HSV)
-        elif self._colorSpace == ColorSpace.XYZ:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_XYZ2RGB)
-            cv.CvtColor(ret_val, ret_val, cv.CV_RGB2HSV)
-        elif self._colorSpace == ColorSpace.YCrCb:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_YCrCb2RGB)
-            cv.CvtColor(ret_val, ret_val, cv.CV_RGB2HSV)
-        elif self._colorSpace == ColorSpace.HSV:
-            ret_val = self.get_bitmap()
-        else:
-            logger.warning(
-                "Image.to_hsv: There is no supported conversion to HSV "
-                "colorspace")
-            return None
-        return Image(ret_val, color_space=ColorSpace.HSV)
+        hsv_array = Image.convert(self._ndarray, self._colorSpace,
+                                  ColorSpace.HSV)
+        return Image(hsv_array, color_space=ColorSpace.HSV)
 
     def to_xyz(self):
         """
@@ -1665,30 +1637,9 @@ class Image:
         :py:meth:`is_xyz`
 
         """
-
-        ret_val = self.get_empty()
-        if self._colorSpace == ColorSpace.BGR or \
-                self._colorSpace == ColorSpace.UNKNOWN:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_BGR2XYZ)
-        elif self._colorSpace == ColorSpace.RGB:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_RGB2XYZ)
-        elif self._colorSpace == ColorSpace.HLS:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_HLS2RGB)
-            cv.CvtColor(ret_val, ret_val, cv.CV_RGB2XYZ)
-        elif self._colorSpace == ColorSpace.HSV:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_HSV2RGB)
-            cv.CvtColor(ret_val, ret_val, cv.CV_RGB2XYZ)
-        elif self._colorSpace == ColorSpace.YCrCb:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_YCrCb2RGB)
-            cv.CvtColor(ret_val, ret_val, cv.CV_RGB2XYZ)
-        elif self._colorSpace == ColorSpace.XYZ:
-            ret_val = self.get_bitmap()
-        else:
-            logger.warning(
-                "Image.to_xyz: There is no supported conversion to XYZ "
-                "colorspace")
-            return None
-        return Image(ret_val, color_space=ColorSpace.XYZ)
+        xyz_array = Image.convert(self._ndarray, self._colorSpace,
+                                  ColorSpace.XYZ)
+        return Image(xyz_array, color_space=ColorSpace.XYZ)
 
     def to_gray(self):
         """
@@ -1713,32 +1664,9 @@ class Image:
         :py:meth:`binarize`
 
         """
-
-        ret_val = self.get_empty(1)
-        if self._colorSpace == ColorSpace.BGR \
-                or self._colorSpace == ColorSpace.UNKNOWN:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_BGR2GRAY)
-        elif self._colorSpace == ColorSpace.RGB:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_RGB2GRAY)
-        elif self._colorSpace == ColorSpace.HLS:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_HLS2RGB)
-            cv.CvtColor(ret_val, ret_val, cv.CV_RGB2GRAY)
-        elif self._colorSpace == ColorSpace.HSV:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_HSV2RGB)
-            cv.CvtColor(ret_val, ret_val, cv.CV_RGB2GRAY)
-        elif self._colorSpace == ColorSpace.XYZ:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_XYZ2RGB)
-            cv.CvtColor(ret_val, ret_val, cv.CV_RGB2GRAY)
-        elif self._colorSpace == ColorSpace.YCrCb:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_YCrCb2RGB)
-            cv.CvtColor(ret_val, ret_val, cv.CV_RGB2GRAY)
-        elif self._colorSpace == ColorSpace.GRAY:
-            ret_val = self.get_bitmap()
-        else:
-            logger.warning("Image.to_gray: There is no supported conversion "
-                           "to gray colorspace")
-            return None
-        return Image(ret_val, color_space=ColorSpace.GRAY)
+        gray_array = Image.convert(self._ndarray, self._colorSpace,
+                                   ColorSpace.GRAY)
+        return Image(gray_array, color_space=ColorSpace.GRAY)
 
     def to_ycrcb(self):
         """
@@ -1763,28 +1691,9 @@ class Image:
 
         """
 
-        ret_val = self.get_empty()
-        if self._colorSpace == ColorSpace.BGR \
-                or self._colorSpace == ColorSpace.UNKNOWN:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_BGR2YCrCb)
-        elif self._colorSpace == ColorSpace.RGB:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_RGB2YCrCb)
-        elif self._colorSpace == ColorSpace.HSV:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_HSV2RGB)
-            cv.CvtColor(ret_val, ret_val, cv.CV_RGB2YCrCb)
-        elif self._colorSpace == ColorSpace.HLS:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_HLS2RGB)
-            cv.CvtColor(ret_val, ret_val, cv.CV_RGB2YCrCb)
-        elif self._colorSpace == ColorSpace.XYZ:
-            cv.CvtColor(self.get_bitmap(), ret_val, cv.CV_XYZ2RGB)
-            cv.CvtColor(ret_val, ret_val, cv.CV_RGB2YCrCb)
-        elif self._colorSpace == ColorSpace.YCrCb:
-            ret_val = self.get_bitmap()
-        else:
-            logger.warning("Image.to_ycrcb: There is no supported conversion "
-                           "to YCrCb colorspace")
-            return None
-        return Image(ret_val, color_space=ColorSpace.YCrCb)
+        ycrcb_array = Image.convert(self._ndarray, self._colorSpace,
+                                    ColorSpace.YCrCb)
+        return Image(ycrcb_array, color_space=ColorSpace.YCrCb)
 
     def get_empty(self, channels=3):
         """
@@ -1820,6 +1729,7 @@ class Image:
         :py:meth:`get_grayscale_matrix`
 
         """
+        raise Exception('Deprecated')
         bitmap = cv.CreateImage(self.size(), cv.IPL_DEPTH_8U, channels)
         cv.SetZero(bitmap)
         return bitmap
@@ -1997,6 +1907,7 @@ class Image:
         :py:meth:`get_grayscale_matrix`
 
         """
+        raise Exception('Deprecated')
         if self._grayNumpy != "":
             return self._grayNumpy
         else:
@@ -2031,7 +1942,7 @@ class Image:
         :py:meth:`get_grayscale_matrix`
 
         """
-
+        raise Exception('Deprecated')
         if self._numpy != "":
             return self._numpy
 
@@ -2068,40 +1979,6 @@ class Image:
 
         """
         return self._ndarray
-
-    def get_gray_ndarray(self):
-        """
-        **SUMMARY**
-
-        Get a Grayscale Numpy array of the image in width x height
-        compatible with OpenCV >= 2.3
-
-        **RETURNS**
-
-        Returns the grayscale numpy array compatible with OpenCV >= 2.3
-
-        **EXAMPLE**
-
-        >>> img = Image("lenna")
-        >>> rawImg  = img.get_numpy_cv2()
-
-        **SEE ALSO**
-
-        :py:meth:`get_empty`
-        :py:meth:`get_bitmap`
-        :py:meth:`get_matrix`
-        :py:meth:`get_pil`
-        :py:meth:`get_gray_numpy`
-        :py:meth:`get_grayscale_matrix`
-        :py:meth:`get_numpy`
-        :py:meth:`get_gray_numpy_cv2`
-
-        """
-        if self._colorSpace == ColorSpace.GRAY:
-            return self._ndarray
-        else:
-            # TODO: implement convertion to grayscale
-            raise Exception('Not Implemented')
 
     def _get_grayscale_bitmap(self):
         if self._graybitmap:
@@ -4011,10 +3888,7 @@ class Image:
 
 
         """
-        if self.width and self.height:
-            return cv.GetSize(self.get_bitmap())
-        else:
-            return 0, 0
+        return self.width, self.height
 
     def is_empty(self):
         """
