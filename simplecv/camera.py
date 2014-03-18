@@ -89,7 +89,8 @@ class FrameBufferThread(threading.Thread):
                     cam.pygame_buffer = cam.capture.get_image(
                         cam.pygame_buffer)
                 else:
-                    cv.GrabFrame(cam.capture)
+                    if cam.capture.isOpened():
+                        cam.capture.grab()
                 cam.set_thread_capture_time = time.time()
             time.sleep(0.04)  # max 25 fps, if you're lucky
 
@@ -453,7 +454,7 @@ class FrameSource(object):
             image.save(display)
             if display.mouse_right:
                 print "Closing Window"
-                display.isplaydone = True
+                display.done = True
 
         pg.quit()
 
@@ -473,12 +474,12 @@ class Camera(FrameSource):
     by other processes.  You can check manually if you have compatible devices
     on linux by looking for /dev/video* devices.
 
-    This class wrappers OpenCV's cvCapture class and associated methods.
+    This class wrappers OpenCV's cv2.VideoCapture class and associated methods.
     Read up on OpenCV's CaptureFromCAM method for more details if you need
     finer control than just basic frame retrieval
 
     """
-    capture = ""  # cvCapture object
+    capture = ""  # cv2.VideoCapture object
     thread = ""
     pygame_camera = False
     pygame_buffer = ""
@@ -567,13 +568,13 @@ class Camera(FrameSource):
 
         # This fixes bug with opencv not being
         # able to grab frames from webcams on linux
-        self.capture = cv.CaptureFromCAM(camera_index)
+        self.capture = cv2.VideoCapture(camera_index)
         self.index = camera_index
         if "delay" in prop_set:
             time.sleep(prop_set['delay'])
 
         if SYSTEM == "Linux" and ("height" in prop_set
-                                  or not cv.GrabFrame(self.capture)):
+                                  or not self.capture.grab()):
             import pygame.camera
 
             pygame.camera.init()
@@ -583,7 +584,7 @@ class Camera(FrameSource):
                 self.index = camera_index
                 _index.append(camera_index)
                 print _index
-            if "height" in prop_set and "width" in prop_set:
+            if "height" and "width" in prop_set:
                 self.capture = pygame.camera.Camera("/dev/video" +
                                                     str(camera_index),
                                                     (prop_set['width'],
@@ -615,9 +616,7 @@ class Camera(FrameSource):
             #set any properties in the constructor
             for prop in prop_set.keys():
                 if prop in self.prop_map:
-                    cv.SetCaptureProperty(self.capture,
-                                          self.prop_map[prop],
-                                          prop_set[prop])
+                    self.capture.set(self.prop_map[prop], prop_set[prop])
 
         if threaded:
             self.threaded = True
@@ -637,7 +636,7 @@ class Camera(FrameSource):
         **SUMMARY**
 
         Retrieve the value of a given property,
-        wrapper for cv.GetCaptureProperty
+        wrapper for cv2.VideoCapture.get(propid)
 
         .. Warning::
           For most web cameras only the width and height properties
@@ -666,7 +665,7 @@ class Camera(FrameSource):
                 return False
 
         if prop in self.prop_map:
-            return cv.GetCaptureProperty(self.capture, self.prop_map[prop])
+            return self.capture.get(self.prop_map[prop])
         return False
 
     def get_all_properties(self):
@@ -714,15 +713,15 @@ class Camera(FrameSource):
             return Image(self.pygame_buffer.copy())
 
         if not self.threaded:
-            cv.GrabFrame(self.capture)
             self.capture_time = time.time()
         else:
             self.capture_time = self._thread_capture_time
-
-        frame = cv.RetrieveFrame(self.capture)
-        newimg = cv.CreateImage(cv.GetSize(frame), cv.IPL_DEPTH_8U, 3)
-        cv.Copy(frame, newimg)
-        return Image(newimg, self)
+        if self.capture.isOpened():
+            _, img = self.capture.read()
+        else:
+            warnings.warn("Unable to open camera")
+            return None
+        return Image(img, self, cv2image=True)
 
 
 class VirtualCamera(FrameSource):
@@ -813,11 +812,8 @@ class VirtualCamera(FrameSource):
                     list of directories, or an ImageSet object')
 
         elif self.sourcetype == 'video':
-
-            self.capture = cv.CaptureFromFile(self.source)
-            cv.SetCaptureProperty(self.capture,
-                                  cv.CV_CAP_PROP_POS_FRAMES,
-                                  self.start - 1)
+            self.capture = cv2.VideoCapture(self.source)
+            self.capture.set(cv.CV_CAP_PROP_POS_FRAMES, self.start - 1)
 
         elif self.sourcetype == 'directory':
             pass
@@ -839,28 +835,22 @@ class VirtualCamera(FrameSource):
 
         """
         if self.sourcetype == 'image':
-            self.counter = self.counter + 1
+            self.counter += 1
             return Image(self.source, self)
 
         elif self.sourcetype == 'imageset':
             print len(self.source)
             img = self.source[self.counter % len(self.source)]
-            self.counter = self.counter + 1
+            self.counter += 1
             return img
 
         elif self.sourcetype == 'video':
-            # cv.QueryFrame returns None if the video is finished
-            frame = cv.QueryFrame(self.capture)
-            if frame:
-                img = cv.CreateImage(cv.GetSize(frame), cv.IPL_DEPTH_8U, 3)
-                cv.Copy(frame, img)
-                return Image(img, self)
-            else:
-                return None
+            ret_value, img = self.capture.read()
+            return Image(img, self) if ret_value else None
 
         elif self.sourcetype == 'directory':
             img = self.find_lastest_image(self.source, 'bmp')
-            self.counter = self.counter + 1
+            self.counter += 1
             return Image(img, self)
 
     def rewind(self, start=None):
@@ -893,16 +883,11 @@ class VirtualCamera(FrameSource):
         """
         if self.sourcetype == 'video':
             if not start:
-                cv.SetCaptureProperty(self.capture,
-                                      cv.CV_CAP_PROP_POS_FRAMES,
-                                      self.start - 1)
+                self.capture.set(cv.CV_CAP_PROP_POS_FRAMES, self.start - 1)
             else:
                 if start == 0:
                     start = 1
-                cv.SetCaptureProperty(self.capture,
-                                      cv.CV_CAP_PROP_POS_FRAMES,
-                                      start - 1)
-
+                self.capture.set(cv.CV_CAP_PROP_POS_FRAMES, start - 1)
         else:
             self.counter = 0
 
@@ -928,15 +913,10 @@ class VirtualCamera(FrameSource):
 
         """
         if self.sourcetype == 'video':
-            number_frame = int(cv.GetCaptureProperty(
-                self.capture, cv.CV_CAP_PROP_POS_FRAMES))
-            cv.SetCaptureProperty(self.capture,
-                                  cv.CV_CAP_PROP_POS_FRAMES,
-                                  frame - 1)
+            number_frame = int(self.capture.get(cv.CV_CAP_PROP_POS_FRAMES))
+            self.capture.set(cv.CV_CAP_PROP_POS_FRAMES, frame - 1)
             img = self.get_image()
-            cv.SetCaptureProperty(self.capture,
-                                  cv.CV_CAP_PROP_POS_FRAMES,
-                                  number_frame)
+            self.capture.set(cv.CV_CAP_PROP_POS_FRAMES, number_frame)
             return img
         elif self.sourcetype == 'imageset':
             img = None
@@ -973,11 +953,8 @@ class VirtualCamera(FrameSource):
 
         """
         if self.sourcetype == 'video':
-            number_frame = int(cv.GetCaptureProperty(
-                self.capture, cv.CV_CAP_PROP_POS_FRAMES))
-            cv.SetCaptureProperty(self.capture,
-                                  cv.CV_CAP_PROP_POS_FRAMES,
-                                  number_frame + number - 1)
+            number_frame = int(self.capture.get(cv.CV_CAP_PROP_POS_FRAMES))
+            self.capture.set(cv.CV_CAP_PROP_POS_FRAMES, number_frame + number - 1)
         elif self.sourcetype == 'imageset':
             self.counter = (self.counter + number) % len(self.source)
         else:
@@ -1006,9 +983,7 @@ class VirtualCamera(FrameSource):
 
         """
         if self.sourcetype == 'video':
-            number_frame = int(cv.GetCaptureProperty(
-                self.capture, cv.CV_CAP_PROP_POS_FRAMES))
-            return number_frame
+            return int(self.capture.get(cv.CV_CAP_PROP_POS_FRAMES))
         else:
             return self.counter
 
@@ -1035,9 +1010,7 @@ class VirtualCamera(FrameSource):
 
         """
         if self.sourcetype == 'video':
-            milliseconds = int(cv.GetCaptureProperty(self.capture,
-                                                     cv.CV_CAP_PROP_POS_MSEC))
-            return milliseconds
+            return int(self.capture.get(cv.CV_CAP_PROP_POS_MSEC))
         else:
             raise ValueError('sources other than video do not \
                               have play time property')
@@ -2445,21 +2418,17 @@ class StereoCamera(object):
         left = "Left"
         right = "Right"
         try:
-            capture_left = cv.CaptureFromCAM(cam_left)
-            cv.SetCaptureProperty(capture_left, cv.CV_CAP_PROP_FRAME_WIDTH,
-                                  win_size[0])
-            cv.SetCaptureProperty(capture_left, cv.CV_CAP_PROP_FRAME_HEIGHT,
-                                  win_size[1])
-            frame_left = cv.QueryFrame(capture_left)
-            cv.FindChessboardCorners(frame_left, chessboard)
+            capture_left = cv2.VideoCapture(cam_left)
+            capture_left.set(cv.CV_CAP_PROP_FRAME_WIDTH, win_size[0])
+            capture_left.set(cv.CV_CAP_PROP_FRAME_HEIGHT, win_size[1])
+            _, frame_left = capture_left.read()
+            cv2.findChessboardCorners(frame_left, chessboard)
 
-            capture_right = cv.CaptureFromCAM(cam_right)
-            cv.SetCaptureProperty(capture_right, cv.CV_CAP_PROP_FRAME_WIDTH,
-                                  win_size[0])
-            cv.SetCaptureProperty(capture_right, cv.CV_CAP_PROP_FRAME_HEIGHT,
-                                  win_size[1])
-            frame_right = cv.QueryFrame(capture_right)
-            cv.FindChessboardCorners(frame_right, chessboard)
+            capture_right = cv2.VideoCapture(cam_right)
+            capture_right.set(cv.CV_CAP_PROP_FRAME_WIDTH, win_size[0])
+            capture_right.set(cv.CV_CAP_PROP_FRAME_HEIGHT, win_size[1])
+            frame_right = capture_right.read()
+            cv2.findChessboardCorners(frame_right, chessboard)
         except Exception:
             print "Error Initialising the Left and Right camera"
             return None
@@ -2489,11 +2458,11 @@ class StereoCamera(object):
         f = cv.CreateMat(3, 3, cv.CV_64F)
 
         while True:
-            frame_left = cv.QueryFrame(capture_left)
-            cv.Flip(frame_left, frame_left, 1)
-            frame_right = cv.QueryFrame(capture_right)
-            cv.Flip(frame_right, frame_right, 1)
-            k = cv.WaitKey(3)
+            frame_left = capture_left.read()
+            frame_left = cv2.flip(frame_left, 1)
+            frame_right = capture_right.read()
+            frame_right = cv2.flip(frame_right, 1)
+            k = cv2.waitKey(3)
 
             cor1 = cv.FindChessboardCorners(frame_left, chessboard)
             if cor1[0]:
@@ -2827,42 +2796,21 @@ class StereoCamera(object):
         >>> stereo.get_3d_image(1, 2, Q, "BM", state).show()
         >>> stereo.get_3d_image(1, 2, Q, "SGBM", state).show()
         """
-        cv2flag = True
-        try:
-            import cv2
-        except ImportError:
-            cv2flag = False
-            import cv2.cv as cv
-        if cv2flag:
-            cam_left = cv2.VideoCapture(left_index)
-            cam_right = cv2.VideoCapture(right_index)
-            if cam_left.isOpened():
-                _, img_left = cam_left.read()
-            else:
-                warnings.warn("Unable to open left camera")
-                return None
-            if cam_right.isOpened():
-                _, img_right = cam_right.read()
-            else:
-                warnings.warn("Unable to open right camera")
-                return None
-            img_left = Image(img_left, cv2image=True)
-            img_right = Image(img_right, cv2image=True)
+
+        cam_left = cv2.VideoCapture(left_index)
+        cam_right = cv2.VideoCapture(right_index)
+        if cam_left.isOpened():
+            _, img_left = cam_left.read()
         else:
-            cam_left = cv.CaptureFromCAM(left_index)
-            cam_right = cv.CaptureFromCAM(right_index)
-            img_left = cv.QueryFrame(cam_left)
-            if img_left is None:
-                warnings.warn("Unable to open left camera")
-                return None
-
-            img_right = cv.QueryFrame(cam_right)
-            if img_right is None:
-                warnings.warn("Unable to open right camera")
-                return None
-
-            img_left = Image(img_left, cv2image=True)
-            img_right = Image(img_right, cv2image=True)
+            warnings.warn("Unable to open left camera")
+            return None
+        if cam_right.isOpened():
+            _, img_right = cam_right.read()
+        else:
+            warnings.warn("Unable to open right camera")
+            return None
+        img_left = Image(img_left, cv2image=True)
+        img_right = Image(img_right, cv2image=True)
 
         del cam_left
         del cam_right
@@ -3602,11 +3550,7 @@ class GigECamera(Camera):
         if not ARAVIS_ENABLED:
             warnings.warn("Initializing failed, Aravis library not found.")
             return
-        try:
-            import cv2
-        except ImportError:
-            logger.warning("Can't work OpenCV >= 2.3.0")
-            return None
+
         camera = self._cam
         camera.start_acquisition()
         buff = self._stream.pop_buffer()
@@ -3664,8 +3608,7 @@ class GigECamera(Camera):
         if name is None:
             print "You need to provide a property, available properties are:"
             print ""
-            for prop in self.get_property_list():
-                print prop
+            self.get_all_properties()
             return
 
         if len(args) <= 0:
@@ -3674,6 +3617,7 @@ class GigECamera(Camera):
 
         stringval = "set_{}".format(name)
         try:
+            #FIXME - may be setattr should be used?
             return getattr(self._cam, stringval)(*args)
         except Exception:
             print 'Property {} does not appear to exist or value\
