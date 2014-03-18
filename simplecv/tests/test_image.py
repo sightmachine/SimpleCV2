@@ -1,5 +1,5 @@
 import cv2
-from nose.tools import assert_equals, nottest
+from nose.tools import assert_equals, nottest, raises
 import numpy as np
 
 from simplecv.image_class import Image, ColorSpace
@@ -189,3 +189,173 @@ def test_image_flip_horizontal():
     flip_array = np.array([[[0, 255, 0], [0, 0, 255]],
                            [[255, 255, 255], [255, 0, 0]]], dtype=np.uint8)
     assert_equals(flip_array.data, img.get_ndarray().data)
+
+
+def test_image_operator_wrong_size():
+    array1 = np.ones((2, 2, 3), dtype=np.uint8) * 5
+    img1 = Image(array1)
+    array2 = np.ones((2, 1, 3), dtype=np.uint8) * 5
+    img2 = Image(array2)
+
+    img = img1 - img2
+    assert_equals(None, img)
+    img = img1 + img2
+    assert_equals(None, img)
+    img = img1 & img2
+    assert_equals(None, img)
+    img = img1 | img2
+    assert_equals(None, img)
+    img = img1 / img2
+    assert_equals(None, img)
+    img = img1 * img2
+    assert_equals(None, img)
+
+
+def test_image_sub_image():
+    array1 = np.ones((2, 2, 3), dtype=np.uint8) * 5
+    img1 = Image(array1)
+    array2 = np.ones((2, 2, 3), dtype=np.uint8) * 5
+    img2 = Image(array2)
+    array = np.zeros((2, 2, 3), dtype=np.uint8)
+
+    img = img1 - img2
+    assert_equals(array.data, img.get_ndarray().data)
+
+
+def test_image_sub_int():
+    array1 = np.ones((2, 2, 3), dtype=np.uint8) * 5
+    img1 = Image(array1)
+    array = np.zeros((2, 2, 3), dtype=np.uint8)
+
+    img = img1 - 5
+    assert_equals(array.data, img.get_ndarray().data)
+
+
+def test_image_add_image():
+    array1 = np.ones((2, 2, 3), dtype=np.uint8) * 5
+    img1 = Image(array1)
+    array2 = np.ones((2, 2, 3), dtype=np.uint8) * 5
+    img2 = Image(array2)
+    array = np.ones((2, 2, 3), dtype=np.uint8) * 10
+
+    img = img1 + img2
+    assert_equals(array.data, img.get_ndarray().data)
+
+
+def test_image_add_int():
+    array1 = np.ones((2, 2, 3), dtype=np.uint8) * 5
+    img1 = Image(array1)
+
+    array = np.ones((2, 2, 3), dtype=np.uint8) * 10
+
+    img = img1 + 5
+    assert_equals(array.data, img.get_ndarray().data)
+
+
+def test_image_and_image():
+    array1 = np.ones((2, 2, 3), dtype=np.uint8) * 5
+    img1 = Image(array1)
+    array2 = np.ones((2, 2, 3), dtype=np.uint8) * 3
+    img2 = Image(array2)
+    array = np.ones((2, 2, 3), dtype=np.uint8)
+
+    img = img1 & img2
+    assert_equals(array.data, img.get_ndarray().data)
+
+
+def test_image_and_int():
+    array1 = np.ones((2, 2, 3), dtype=np.uint8) * 5
+    img1 = Image(array1)
+    array = np.ones((2, 2, 3), dtype=np.uint8)
+
+    img = img1 & 3
+    assert_equals(array.data, img.get_ndarray().data)
+
+
+def test_image_or_image():
+    array1 = np.ones((2, 2, 3), dtype=np.uint8) * 5
+    img1 = Image(array1)
+    array2 = np.ones((2, 2, 3), dtype=np.uint8) * 3
+    img2 = Image(array2)
+    array = np.ones((2, 2, 3), dtype=np.uint8) * 7
+
+    img = img1 | img2
+    assert_equals(array.data, img.get_ndarray().data)
+
+
+def test_image_or_int():
+    array1 = np.ones((2, 2, 3), dtype=np.uint8) * 5
+    img1 = Image(array1)
+    array = np.ones((2, 2, 3), dtype=np.uint8) * 7
+
+    img = img1 | 3
+    assert_equals(array.data, img.get_ndarray().data)
+
+
+def test_image_div_image():
+    array1 = np.ones((2, 2, 3), dtype=np.uint8) * 50
+    img1 = Image(array1)
+    array2 = np.ones((2, 2, 3), dtype=np.uint8) * 2
+    img2 = Image(array2)
+    array = np.ones((2, 2, 3), dtype=np.uint8) * 25
+
+    img = img1 / img2
+    assert_equals(array.data, img.get_ndarray().data)
+
+
+def test_image_div_int():
+    array1 = np.ones((2, 2, 3), dtype=np.uint8) * 50
+    img1 = Image(array1)
+    array = np.ones((2, 2, 3), dtype=np.uint8) * 25
+
+    img = img1 / 2
+    assert_equals(array.data, img.get_ndarray().data)
+
+
+def test_image_multiply_image():
+    array1 = np.ones((2, 2, 3), dtype=np.uint8) * 50
+    img1 = Image(array1)
+    array2 = np.ones((2, 2, 3), dtype=np.uint8) * 2
+    img2 = Image(array2)
+    array = np.ones((2, 2, 3), dtype=np.uint8) * 100
+
+    img = img1 * img2
+    assert_equals(array.data, img.get_ndarray().data)
+
+
+def test_image_multiply_int():
+    array1 = np.ones((2, 2, 3), dtype=np.uint8) * 50
+    img1 = Image(array1)
+    array = np.ones((2, 2, 3), dtype=np.uint8) * 100
+
+    img = img1 * 2
+    assert_equals(array.data, img.get_ndarray().data)
+
+
+@raises(ValueError)
+def test_image_pow_image():
+    array1 = np.ones((2, 2, 3), dtype=np.uint8) * 50
+    img1 = Image(array1)
+    array2 = np.ones((2, 2, 3), dtype=np.uint8) * 2
+    img2 = Image(array2)
+    img = img1 ** img2
+
+
+def test_image_pow_int():
+    array1 = np.ones((2, 2, 3), dtype=np.uint8) * 5
+    img1 = Image(array1)
+    array = np.ones((2, 2, 3), dtype=np.uint8) * 255
+
+    img = img1 ** 20
+    assert_equals(array.data, img.get_ndarray().data)
+
+
+def test_image_neg_invert():
+    array1 = np.ones((2, 2, 3), dtype=np.uint8) * 5
+    img1 = Image(array1)
+    array = np.ones((2, 2, 3), dtype=np.uint8) * 250
+
+    img = ~img1
+    assert_equals(array.data, img.get_ndarray().data)
+    img = -img1
+    assert_equals(array.data, img.get_ndarray().data)

@@ -844,7 +844,7 @@ class ImageSet(list):
         return self.__getitem__(slice(i, j))
 
 
-class Image:
+class Image(object):
     """
     **SUMMARY**
 
@@ -4612,70 +4612,90 @@ class Image:
             self._clear_buffers("_matrix")
 
     def __sub__(self, other):
-        newbitmap = self.get_empty()
-        if is_number(other):
-            cv.SubS(self.get_bitmap(), cv.Scalar(other, other, other),
-                    newbitmap)
+        if isinstance(other, Image):
+            if self.size() != other.size():
+                warnings.warn("Both images should have same dimensions. "
+                              "Returning None.")
+                return None
+            array = cv2.subtract(self._ndarray, other.get_ndarray())
+            return Image(array, color_space=self._colorSpace)
         else:
-            cv.Sub(self.get_bitmap(), other.get_bitmap(), newbitmap)
-        return Image(newbitmap, color_space=self._colorSpace)
+            array = self._ndarray - other
+            return Image(array, color_space=self._colorSpace)
 
     def __add__(self, other):
-        newbitmap = self.get_empty()
-        if is_number(other):
-            cv.AddS(self.get_bitmap(), cv.Scalar(other, other, other),
-                    newbitmap)
+        if isinstance(other, Image):
+            if self.size() != other.size():
+                warnings.warn("Both images should have same dimensions. "
+                              "Returning None.")
+                return None
+            array = cv2.add(self._ndarray, other.get_ndarray())
+            return Image(array, color_space=self._colorSpace)
         else:
-            cv.Add(self.get_bitmap(), other.get_bitmap(), newbitmap)
-        return Image(newbitmap, color_space=self._colorSpace)
+            array = self._ndarray + other
+            return Image(array, color_space=self._colorSpace)
 
     def __and__(self, other):
-        newbitmap = self.get_empty()
-        if is_number(other):
-            cv.AndS(self.get_bitmap(), cv.Scalar(other, other, other),
-                    newbitmap)
+        if isinstance(other, Image):
+            if self.size() != other.size():
+                warnings.warn("Both images should have same dimensions. "
+                              "Returning None.")
+                return None
+            array = self._ndarray & other.get_ndarray()
+            return Image(array, color_space=self._colorSpace)
         else:
-            cv.And(self.get_bitmap(), other.get_bitmap(), newbitmap)
-        return Image(newbitmap, color_space=self._colorSpace)
+            array = self._ndarray & other
+            return Image(array, color_space=self._colorSpace)
 
     def __or__(self, other):
-        newbitmap = self.get_empty()
-        if is_number(other):
-            cv.OrS(self.get_bitmap(),
-                   cv.Scalar(other, other, other),
-                   newbitmap)
+        if isinstance(other, Image):
+            if self.size() != other.size():
+                warnings.warn("Both images should have same dimensions. "
+                              "Returning None.")
+                return None
+            array = self._ndarray | other.get_ndarray()
+            return Image(array, color_space=self._colorSpace)
         else:
-            cv.Or(self.get_bitmap(), other.get_bitmap(), newbitmap)
-        return Image(newbitmap, color_space=self._colorSpace)
+            array = self._ndarray | other
+            return Image(array, color_space=self._colorSpace)
 
     def __div__(self, other):
-        newbitmap = self.get_empty()
-        if not is_number(other):
-            cv.Div(self.get_bitmap(), other.get_bitmap(), newbitmap)
+        if isinstance(other, Image):
+            if self.size() != other.size():
+                warnings.warn("Both images should have same dimensions. "
+                              "Returning None.")
+                return None
+            array = cv2.divide(self._ndarray, other.get_ndarray())
+            return Image(array, color_space=self._colorSpace)
         else:
-            cv.ConvertScale(self.get_bitmap(), newbitmap, 1.0 / float(other))
-        return Image(newbitmap, color_space=self._colorSpace)
+            array = self._ndarray / other
+            return Image(array, color_space=self._colorSpace)
 
     def __mul__(self, other):
-        newbitmap = self.get_empty()
-        if not is_number(other):
-            cv.Mul(self.get_bitmap(), other.get_bitmap(), newbitmap)
+        if isinstance(other, Image):
+            if self.size() != other.size():
+                warnings.warn("Both images should have same dimensions. "
+                              "Returning None.")
+                return None
+            array = cv2.multiply(self._ndarray, other.get_ndarray())
+            return Image(array, color_space=self._colorSpace)
         else:
-            cv.ConvertScale(self.get_bitmap(), newbitmap, float(other))
-        return Image(newbitmap, color_space=self._colorSpace)
+            array = self._ndarray * other
+            return Image(array, color_space=self._colorSpace)
 
-    def __pow__(self, other):
-        newbitmap = self.get_empty()
-        cv.Pow(self.get_bitmap(), newbitmap, other)
-        return Image(newbitmap, color_space=self._colorSpace)
+    def __pow__(self, power):
+        if isinstance(power, int):
+            array = cv2.pow(self._ndarray, power)
+            return Image(array, color_space=self._colorSpace)
+        else:
+            raise ValueError('Cant make exponentiation with this type')
 
     def __neg__(self):
-        newbitmap = self.get_empty()
-        cv.Not(self.get_bitmap(), newbitmap)
-        return Image(newbitmap, color_space=self._colorSpace)
+        array = ~self._ndarray
+        return Image(array, color_space=self._colorSpace)
 
     def __invert__(self):
-        return self.invert()
+        return self.__neg__()
 
     def max(self, other):
         """
