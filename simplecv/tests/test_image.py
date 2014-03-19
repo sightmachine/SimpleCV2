@@ -209,6 +209,10 @@ def test_image_operator_wrong_size():
     assert_equals(None, img)
     img = img1 * img2
     assert_equals(None, img)
+    img = img1.max(img2)
+    assert_equals(None, img)
+    img = img1.min(img2)
+    assert_equals(None, img)
 
 
 def test_image_sub_image():
@@ -303,12 +307,16 @@ def test_image_div_image():
     assert_equals(array.data, img.get_ndarray().data)
 
 
-def test_image_div_int():
+def test_image_div_int_float():
     array1 = np.ones((2, 2, 3), dtype=np.uint8) * 50
     img1 = Image(array1)
     array = np.ones((2, 2, 3), dtype=np.uint8) * 25
 
     img = img1 / 2
+    assert_equals(array.data, img.get_ndarray().data)
+
+    array = np.ones((2, 2, 3), dtype=np.uint8) * 20
+    img = img1 / 2.5
     assert_equals(array.data, img.get_ndarray().data)
 
 
@@ -323,12 +331,16 @@ def test_image_multiply_image():
     assert_equals(array.data, img.get_ndarray().data)
 
 
-def test_image_multiply_int():
+def test_image_multiply_int_float():
     array1 = np.ones((2, 2, 3), dtype=np.uint8) * 50
     img1 = Image(array1)
     array = np.ones((2, 2, 3), dtype=np.uint8) * 100
 
     img = img1 * 2
+    assert_equals(array.data, img.get_ndarray().data)
+
+    array = np.ones((2, 2, 3), dtype=np.uint8) * 125
+    img = img1 * 2.5
     assert_equals(array.data, img.get_ndarray().data)
 
 
@@ -341,10 +353,13 @@ def test_image_pow_image():
     img = img1 ** img2
 
 
-def test_image_pow_int():
+def test_image_pow_int_float():
     array1 = np.ones((2, 2, 3), dtype=np.uint8) * 5
     img1 = Image(array1)
     array = np.ones((2, 2, 3), dtype=np.uint8) * 255
+
+    img = img1 ** 20
+    assert_equals(array.data, img.get_ndarray().data)
 
     img = img1 ** 20
     assert_equals(array.data, img.get_ndarray().data)
@@ -358,4 +373,44 @@ def test_image_neg_invert():
     img = ~img1
     assert_equals(array.data, img.get_ndarray().data)
     img = -img1
+    assert_equals(array.data, img.get_ndarray().data)
+
+
+def test_image_max_int():
+    array1 = np.ones((2, 2, 3), dtype=np.uint8) * 5
+    img1 = Image(array1)
+    array = np.ones((2, 2, 3), dtype=np.uint8) * 20
+
+    img = img1.max(20)
+    assert_equals(array.data, img.get_ndarray().data)
+
+
+def test_image_max_image():
+    array1 = np.ones((2, 2, 3), dtype=np.uint8) * 2
+    img1 = Image(array1)
+    array2 = np.ones((2, 2, 3), dtype=np.uint8) * 3
+    img2 = Image(array2)
+    array = np.ones((2, 2, 3), dtype=np.uint8) * 3
+
+    img = img1.max(img2)
+    assert_equals(array.data, img.get_ndarray().data)
+
+
+def test_image_min_int():
+    array1 = np.ones((2, 2, 3), dtype=np.uint8) * 5
+    img1 = Image(array1)
+    array = np.ones((2, 2, 3), dtype=np.uint8) * 5
+
+    img = img1.min(20)
+    assert_equals(array.data, img.get_ndarray().data)
+
+
+def test_image_min_image():
+    array1 = np.ones((2, 2, 3), dtype=np.uint8) * 2
+    img1 = Image(array1)
+    array2 = np.ones((2, 2, 3), dtype=np.uint8) * 3
+    img2 = Image(array2)
+    array = np.ones((2, 2, 3), dtype=np.uint8) * 2
+
+    img = img1.min(img2)
     assert_equals(array.data, img.get_ndarray().data)

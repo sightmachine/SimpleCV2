@@ -16,7 +16,7 @@ from simplecv.features.haar_cascade import HaarCascade
 from simplecv.image_class import Image
 
 
-VISUAL_TEST = True  # if TRUE we save the images
+VISUAL_TEST = False  # if TRUE we save the images
                     # otherwise we DIFF against them - the default is False
 SHOW_WARNING_TESTS = False  # show that warnings are working
                             # tests will pass but warnings are generated.
@@ -82,11 +82,13 @@ def img_diffs(test_imgs, name_stem, tolerance, path):
     count = len(test_imgs)
     for idx in range(0, count):
         lhs = test_imgs[idx].apply_layers()  # this catches drawing methods
+        if lhs.is_gray():
+            lhs = lhs.to_bgr()
         fname = standard_path + name_stem + str(idx) + ".jpg"
         rhs = Image(fname)
         if lhs.width == rhs.width and lhs.height == rhs.height:
             diff = (lhs - rhs)
-            val = np.average(diff.get_numpy())
+            val = np.average(diff.get_ndarray())
             if val > tolerance:
                 print val
                 return True

@@ -1140,10 +1140,8 @@ class Image(object):
 
         elif type(source) == pg.Surface:
             self._pgsurface = source
-            self._bitmap = cv.CreateImageHeader(self._pgsurface.get_size(),
-                                                cv.IPL_DEPTH_8U, 3)
-            cv.SetData(self._bitmap, pg.image.tostring(self._pgsurface, "RGB"))
-            cv.CvtColor(self._bitmap, self._bitmap, cv.CV_RGB2BGR)
+            pg.image.tostring(self._pgsurface, "RGB")
+            self._ndarray = pg.surfarray.array3d(self._pgsurface)
             self._colorSpace = ColorSpace.BGR
 
         elif PIL_ENABLED and \
@@ -1478,7 +1476,9 @@ class Image(object):
         :type state: int.
         :returns: instance of numpy.ndarray.
         """
-        if from_color_space == to_color_space:
+        if from_color_space == to_color_space \
+                or (from_color_space == ColorSpace.UNKNOWN
+                    and to_color_space == ColorSpace.BGR):
             return ndarray.copy()
 
         color_space_to_string = {
@@ -2092,10 +2092,10 @@ class Image(object):
         else:
             if self.is_gray():
                 self._pgsurface = pg.image.fromstring(
-                    self.get_bitmap().tostring(), self.size(), "RGB")
+                    self._ndarray.tostring(), self.size(), "RGB")
             else:
                 self._pgsurface = pg.image.fromstring(
-                    self.to_rgb().get_bitmap().tostring(), self.size(), "RGB")
+                    self.to_rgb().get_ndarray().tostring(), self.size(), "RGB")
             return self._pgsurface
 
     def to_string(self):
@@ -2797,10 +2797,7 @@ class Image(object):
             img_medianblur = cv2.medianBlur(self.get_gray_ndarray(), win_x)
             return Image(img_medianblur, color_space=ColorSpace.GRAY)
         else:
-            img_medianblur = cv2.medianBlur(
-                self._ndarray[:, :, ::-1].transpose([1, 0, 2]), win_x)
-            img_medianblur = img_medianblur[:, :, ::-1].transpose(
-                [1, 0, 2])
+            img_medianblur = cv2.medianBlur(self._ndarray, win_x)
             return Image(img_medianblur, color_space=self._colorSpace)
 
     def bilateral_filter(self, diameter=5, sigma_color=10, sigma_space=10,
@@ -2874,10 +2871,8 @@ class Image(object):
                                                 sigma_space)
             return Image(img_bilateral, color_space=ColorSpace.GRAY)
         else:
-            img_bilateral = cv2.bilateralFilter(
-                self.get_ndarray()[:, :, ::-1].transpose([1, 0, 2]),
-                diameter, sigma_color, sigma_space)
-            img_bilateral = img_bilateral[:, :, ::-1].transpose([1, 0, 2])
+            img_bilateral = cv2.bilateralFilter(self._ndarray, diameter,
+                                                sigma_color, sigma_space)
             return Image(img_bilateral, color_space=self._colorSpace)
 
     def blur(self, window, grayscale=False):
@@ -2916,9 +2911,7 @@ class Image(object):
             img_blur = cv2.blur(self.get_gray_ndarray(), window)
             return Image(img_blur, color_space=ColorSpace.GRAY)
         else:
-            img_blur = cv2.blur(
-                self.get_ndarray()[:, :, ::-1].transpose([1, 0, 2]), window)
-            img_blur = img_blur[:, :, ::-1].transpose([1, 0, 2])
+            img_blur = cv2.blur(self._ndarray, window)
             return Image(img_blur, color_space=self._colorSpace)
 
     def gaussian_blur(self, window, sigma_x=0, sigma_y=0, grayscale=False):
@@ -2965,12 +2958,16 @@ class Image(object):
         else:
             window = (3, 3)  # set the default aperture window size (3x3)
 
-        image_gauss = cv2.GaussianBlur(self.get_ndarray(), window,
-                                       sigma_x, sigmaY=sigma_y)
+        image_gauss = cv2.GaussianBlur(self._ndarray, window, sigma_x,
+                                       None, sigma_y)
 
         if grayscale:
+            image_gauss = cv2.GaussianBlur(self.get_gray_ndarray(), window,
+                                           sigma_x, None, sigma_y)
             return Image(image_gauss, color_space=ColorSpace.GRAY)
         else:
+            image_gauss = cv2.GaussianBlur(self._ndarray, window, sigma_x,
+                                           None, sigma_y)
             return Image(image_gauss, color_space=self._colorSpace)
 
     def invert(self):
@@ -3155,9 +3152,8 @@ class Image(object):
         if gamma < 0:
             return "Gamma should be a non-negative real number"
         scale = 255.0
-        src = self.get_ndarray()
-        dst = (((1.0 / scale) * src) ** gamma) * scale
-        return Image(dst)
+        dst = (((1.0 / scale) * self._ndarray) ** gamma) * scale
+        return Image(dst.astype(self.dtype), color_space=self._colorSpace)
 
     def binarize(self, thresh=None, maxv=255, blocksize=0, p=5):
         """
@@ -3234,7 +3230,6 @@ class Image(object):
             return Image(array, color_space=self._colorSpace)
 
         elif thresh is None:
-            newbitmap = self.get_empty(1)
             if blocksize:
                 array = cv2.adaptiveThreshold(self.get_gray_ndarray(), maxv,
                                               cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
@@ -3242,11 +3237,10 @@ class Image(object):
                                               blocksize, p)
             else:
                 _, array = cv2.threshold(
-                    self.get_gray_ndarray(), thresh, float(maxv),
+                    self.get_gray_ndarray(), -1, float(maxv),
                     cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
             return Image(array, color_space=self._colorSpace)
         else:
-            newbitmap = self.get_empty(1)
             # desaturate the image, and apply the new threshold
             _, array = cv2.threshold(self.get_gray_ndarray(), thresh,
                                      float(maxv), cv2.THRESH_BINARY_INV)
@@ -4587,29 +4581,18 @@ class Image(object):
         return huetab
 
     def __getitem__(self, coord):
-        ret = self.get_matrix()[tuple(reversed(coord))]
-        if type(ret) == cv.cvmat:
-            (width, height) = cv.GetSize(ret)
-            newmat = cv.CreateMat(height, width, ret.type)
-            cv.Copy(ret, newmat)  # this seems to be a bug in opencv
-            # if you don't copy the matrix slice, when you convert to bmp you
-            # get a slice-sized hunk starting at 0, 0
-            return Image(newmat)
-
-        if self.is_bgr():
-            return tuple(reversed(ret))
+        if isinstance(coord, (list, tuple)) and len(coord) == 2:
+            return self._ndarray[coord]
         else:
-            return tuple(ret)
+            print 'coord = ', coord
+            raise Exception('not implemented')
 
     def __setitem__(self, coord, value):
-        value = tuple(reversed(value))  # RGB -> BGR
-
-        if isinstance(coord[0], slice):
-            cv.Set(self.get_matrix()[tuple(reversed(coord))], value)
-            self._clear_buffers("_matrix")
+        if isinstance(coord, (list, tuple)) and len(coord) == 2:
+            self._ndarray[coord] = value
         else:
-            self.get_matrix()[tuple(reversed(coord))] = value
-            self._clear_buffers("_matrix")
+            print 'coord = ', coord
+            raise Exception('not implemented')
 
     def __sub__(self, other):
         if isinstance(other, Image):
@@ -4620,7 +4603,7 @@ class Image(object):
             array = cv2.subtract(self._ndarray, other.get_ndarray())
             return Image(array, color_space=self._colorSpace)
         else:
-            array = self._ndarray - other
+            array = (self._ndarray - other).astype(self.dtype)
             return Image(array, color_space=self._colorSpace)
 
     def __add__(self, other):
@@ -4668,7 +4651,7 @@ class Image(object):
             array = cv2.divide(self._ndarray, other.get_ndarray())
             return Image(array, color_space=self._colorSpace)
         else:
-            array = self._ndarray / other
+            array = (self._ndarray / other).astype(self.dtype)
             return Image(array, color_space=self._colorSpace)
 
     def __mul__(self, other):
@@ -4680,7 +4663,7 @@ class Image(object):
             array = cv2.multiply(self._ndarray, other.get_ndarray())
             return Image(array, color_space=self._colorSpace)
         else:
-            array = self._ndarray * other
+            array = (self._ndarray * other).astype(self.dtype)
             return Image(array, color_space=self._colorSpace)
 
     def __pow__(self, power):
@@ -4713,17 +4696,16 @@ class Image(object):
         A SimpelCV image.
 
         """
-
-        newbitmap = self.get_empty()
-        if is_number(other):
-            cv.MaxS(self.get_bitmap(), other, newbitmap)
-        else:
+        if isinstance(other, Image):
             if self.size() != other.size():
-                warnings.warn(
-                    "Both images should have same sizes. Returning None.")
+                warnings.warn("Both images should have same dimensions. "
+                              "Returning None.")
                 return None
-            cv.Max(self.get_bitmap(), other.get_bitmap(), newbitmap)
-        return Image(newbitmap, color_space=self._colorSpace)
+            array = cv2.max(self._ndarray, other.get_ndarray())
+            return Image(array, color_space=self._colorSpace)
+        else:
+            array = np.maximum(self._ndarray, other)
+            return Image(array, color_space=self._colorSpace)
 
     def min(self, other):
         """
@@ -4741,16 +4723,16 @@ class Image(object):
         IMAGE
         """
 
-        newbitmap = self.get_empty()
-        if is_number(other):
-            cv.MinS(self.get_bitmap(), other, newbitmap)
-        else:
+        if isinstance(other, Image):
             if self.size() != other.size():
-                warnings.warn(
-                    "Both images should have same sizes. Returning None.")
+                warnings.warn("Both images should have same dimensions. "
+                              "Returning None.")
                 return None
-            cv.Min(self.get_bitmap(), other.get_bitmap(), newbitmap)
-        return Image(newbitmap, color_space=self._colorSpace)
+            array = cv2.min(self._ndarray, other.get_ndarray())
+            return Image(array, color_space=self._colorSpace)
+        else:
+            array = np.minimum(self._ndarray, other)
+            return Image(array, color_space=self._colorSpace)
 
     def _clear_buffers(self, clearexcept="_bitmap"):
         for k, v in self._initialized_buffers.items():
@@ -4953,14 +4935,13 @@ class Image(object):
 
         lines_fs = FeatureSet()
         if use_standard:
-            lines = cv.HoughLines2(em, cv.CreateMemStorage(),
-                                   cv.CV_HOUGH_STANDARD, 1.0, cv.CV_PI / 180.0,
-                                   threshold, minlinelength, maxlinegap)
+            lines = cv2.HoughLines(em, 1.0, math.pi/180.0, threshold,
+                                   srn=minlinelength,
+                                   stn=maxlinegap)
             if nlines == -1:
                 nlines = len(lines)
             # All white points (edges) in Canny edge image
-            em = Image(em)
-            x, y = np.where(em.get_gray_numpy() > 128)
+            x, y = np.where(em > 128)
             # Put points in dictionary for fast checkout if point is white
             pts = dict((p, 1) for p in zip(x, y))
 
@@ -5004,8 +4985,9 @@ class Image(object):
                 # less than or equal maxpixelgap then consider them the same
                 # line. If dist is bigger maxpixelgap then check if length of
                 # the line is bigger than minlinelength. If so then add line.
-                dist = float(
-                    'inf')  # distance between two adjacent white points
+
+                # distance between two adjacent white points
+                dist = float('inf')
                 len_l = float('-inf')  # length of the line
                 for p in brl:
                     if p in pts:
@@ -5042,10 +5024,9 @@ class Image(object):
                     lines_fs.append(Line(self, l))
             lines_fs = lines_fs[:nlines]
         else:
-            lines = cv.HoughLines2(em, cv.CreateMemStorage(),
-                                   cv.CV_HOUGH_PROBABILISTIC, 1.0,
-                                   cv.CV_PI / 180.0, threshold, minlinelength,
-                                   maxlinegap)
+            lines = cv2.HoughLinesP(em, 1.0, math.pi/180.0, threshold,
+                                    minLineLength=minlinelength,
+                                    maxLineGap=maxlinegap)
             if nlines == -1:
                 nlines = len(lines)
 
@@ -5162,13 +5143,12 @@ class Image(object):
                 and self._cannyparam[1] == t2:
             return self._edgeMap
 
-        self._edgeMap = self.get_empty(1)
-        cv.Canny(self._get_grayscale_bitmap(), self._edgeMap, t1, t2)
+        self._edgeMap = cv2.Canny(self.get_gray_ndarray(), t1, t2)
         self._cannyparam = (t1, t2)
 
         return self._edgeMap
 
-    def rotate(self, angle, fixed=True, point=[-1, -1], scale=1.0):
+    def rotate(self, angle, fixed=True, point=(-1, -1), scale=1.0):
         """
         **SUMMARY***
 
@@ -12754,15 +12734,15 @@ class Image(object):
         return ret_val
 
     def __getstate__(self):
-        return dict(size=self.size(), colorspace=self._colorSpace,
-                    image=self.apply_layers().get_bitmap().tostring())
+        return dict(colorspace=self._colorSpace,
+                    image=self.apply_layers().get_ndarray().tostring())
 
     def __setstate__(self, mydict):
-        self._bitmap = cv.CreateImageHeader(mydict['size'], cv.IPL_DEPTH_8U, 3)
-        cv.SetData(self._bitmap, mydict['image'])
+        self._ndarray = mydict['image']
         self._colorSpace = mydict['colorspace']
-        self.width = mydict['size'][0]
-        self.height = mydict['size'][1]
+        self.height = self._ndarray.shape[0]
+        self.width = self._ndarray.shape[1]
+        self.dtype = self._ndarray.dtype
 
     def get_area(self):
         '''

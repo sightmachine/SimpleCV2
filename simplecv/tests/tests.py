@@ -87,11 +87,13 @@ def img_diffs(test_imgs, name_stem, tolerance, path):
     count = len(test_imgs)
     for idx in range(0, count):
         lhs = test_imgs[idx].apply_layers()  # this catches drawing methods
+        if lhs.is_gray():
+            lhs = lhs.to_bgr()
         fname = standard_path + name_stem + str(idx) + ".jpg"
         rhs = Image(fname)
         if lhs.width == rhs.width and lhs.height == rhs.height:
             diff = (lhs - rhs)
-            val = np.average(diff.get_numpy())
+            val = np.average(diff.get_ndarray())
             if val > tolerance:
                 print val
                 return True
@@ -140,15 +142,16 @@ def test_image_loadsave():
 
 def test_image_numpy_constructor():
     img = Image(testimage)
-    grayimg = img.grayscale()
+    grayimg = img.to_gray()
 
-    chan3_array = np.array(img.get_matrix())
-    chan1_array = np.array(img.get_grayscale_matrix())
+    chan3_array = np.array(img.get_ndarray())
+    chan1_array = np.array(img.get_gray_ndarray())
 
     img2 = Image(chan3_array)
     grayimg2 = Image(chan1_array)
 
-    if img2[0, 0] == img[0, 0] and grayimg2[0, 0] == grayimg[0, 0]:
+    if (img2[0, 0] == img[0, 0]).all() \
+            and (grayimg2[0, 0] == grayimg[0, 0]).all():
         pass
     else:
         assert False
@@ -179,8 +182,8 @@ def test_image_copy():
     img = Image(testimage2)
     copy = img.copy()
 
-    if img[1, 1] != copy[1, 1] or img.size() != copy.size():
-        assert False
+    assert (img[1, 1] == copy[1, 1]).all()
+    assert img.size() == copy.size()
 
     result = [copy]
     name_stem = "test_image_copy"
@@ -206,7 +209,7 @@ def test_image_getslice():
 def test_image_setitem():
     img = Image(testimage)
     img[1, 1] = (0, 0, 0)
-    newimg = Image(img.get_bitmap())
+    newimg = Image(img.get_ndarray())
     colors = newimg[1, 1]
     if colors[0] == 0 and colors[1] == 0 and colors[2] == 0:
         pass
@@ -221,7 +224,7 @@ def test_image_setitem():
 def test_image_setslice():
     img = Image(testimage)
     img[1:10, 1:10] = (0, 0, 0)  # make a black box
-    newimg = Image(img.get_bitmap())
+    newimg = Image(img.get_ndarray())
     section = newimg[1:10, 1:10]
     for i in range(5):
         colors = section[i, 0]
@@ -250,10 +253,11 @@ def test_color_meancolor():
     a = a.reshape(16, 16)
     b = b.reshape(16, 16)
     c = c.reshape(16, 16)
-    imgarr = np.dstack((a, b, c))
-    img = Image(imgarr)
+    imgarr = np.dstack((a, b, c)).astype(np.uint8)
+    img = Image(imgarr, color_space=ColorSpace.RGB)
 
     b, g, r = img.mean_color('BGR')
+    print b, g, r
     if not (127 < r < 128 and 127 < g < 128 and 63 < b < 64):
         assert False
 
