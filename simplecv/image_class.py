@@ -813,13 +813,12 @@ class ImageSet(list):
         else:
             resized = self
         # Now do the average calculation
-        accumulator = cv.CreateImage((fw, fh), cv.IPL_DEPTH_8U, 3)
-        cv.Zero(accumulator)
+        accumulator = np.zeros((fw, fh, 3), dtype=np.uint8)
         alpha = float(1.0 / len(resized))
         beta = float((len(resized) - 1.0) / len(resized))
         for i in resized:
-            cv.AddWeighted(i.get_bitmap(), alpha,
-                           accumulator, beta, 0, accumulator)
+            cv2.addWeighted(i.get_ndarray(), alpha,
+                            accumulator, beta, 0, accumulator)
         ret_val = Image(accumulator)
         return ret_val
 
@@ -1719,7 +1718,7 @@ class Image(object):
 
         >>> img = Image("lenna")
         >>> rawImg  = img.get_empty()
-        >>> cv.SomeOpenCVFunc(img.get_bitmap(),rawImg)
+        >>> cv2.SomeOpenCVFunc(img.get_bitmap(),rawImg)
 
         **SEE ALSO**
 
@@ -1731,10 +1730,7 @@ class Image(object):
         :py:meth:`get_grayscale_matrix`
 
         """
-        raise Exception('Deprecated')
-        bitmap = cv.CreateImage(self.size(), cv.IPL_DEPTH_8U, channels)
-        cv.SetZero(bitmap)
-        return bitmap
+        raise Exception('Deprecated use np.zeros((h, w, 3), dtype=np.uint8)')
 
     def get_bitmap(self):
         """
@@ -1752,7 +1748,7 @@ class Image(object):
         >>> img = Image("lenna")
         >>> rawImg  = img.get_bitmap()
         >>> rawOut  = img.get_empty()
-        >>> cv.SomeOpenCVFunc(rawImg,rawOut)
+        >>> cv2.SomeOpenCVFunc(rawImg,rawOut)
 
         **SEE ALSO**
 
@@ -1764,12 +1760,7 @@ class Image(object):
         :py:meth:`get_grayscale_matrix`
 
         """
-        raise Exception('Deprecated')
-        if self._bitmap:
-            return self._bitmap
-        elif self._matrix:
-            self._bitmap = cv.GetImage(self._matrix)
-        return self._bitmap
+        raise Exception('Deprecated. use get_ndarray()')
 
     def get_matrix(self):
         """
@@ -1787,7 +1778,7 @@ class Image(object):
         >>> img = Image("lenna")
         >>> rawImg  = img.get_matrix()
         >>> rawOut  = img.get_empty()
-        >>> cv.SomeOpenCVFunc(rawImg,rawOut)
+        >>> cv2.SomeOpenCVFunc(rawImg,rawOut)
 
         **SEE ALSO**
 
@@ -1800,15 +1791,9 @@ class Image(object):
         :py:meth:`get_grayscale_matrix`
 
         """
-        raise Exception('Deprecated')
-        if self._matrix:
-            return self._matrix
-        else:
-            # convert the bitmap to a matrix
-            self._matrix = cv.GetMat(self.get_bitmap())
-            return self._matrix
+        raise Exception('Deprecated use get_ndarray()')
 
-    def get_fp_matrix(self):
+    def get_fp_ndarray(self):
         """
         **SUMMARY**
 
@@ -1825,7 +1810,7 @@ class Image(object):
         >>> img = Image("lenna")
         >>> rawImg  = img.get_fp_matrix()
         >>> rawOut  = img.get_empty()
-        >>> cv.SomeOpenCVFunc(rawImg,rawOut)
+        >>> cv2.SomeOpenCVFunc(rawImg,rawOut)
 
         **SEE ALSO**
 
@@ -1838,11 +1823,7 @@ class Image(object):
         :py:meth:`get_grayscale_matrix`
 
         """
-        raise Exception('Deprecated')
-        ret_val = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_32F,
-                                 3)
-        cv.Convert(self.get_bitmap(), ret_val)
-        return ret_val
+        return self._ndarray.astype(np.float32)
 
     def get_pil(self):
         """
@@ -1876,10 +1857,9 @@ class Image(object):
         if not PIL_ENABLED:
             return None
         if not self._pil:
-            rgbbitmap = self.get_empty()
-            cv.CvtColor(self.get_bitmap(), rgbbitmap, cv.CV_BGR2RGB)
+            rgb_array = self.to_rgb().get_ndarray()
             self._pil = PilImage.fromstring("RGB", self.size(),
-                                            rgbbitmap.tostring())
+                                            rgb_array.tostring())
         return self._pil
 
     def get_gray_ndarray(self):
@@ -1937,13 +1917,7 @@ class Image(object):
         :py:meth:`get_grayscale_matrix`
 
         """
-        raise Exception('Deprecated')
-        if self._numpy != "":
-            return self._numpy
-
-        self._numpy = np.array(self.get_matrix())[:, :, ::-1].transpose(
-            [1, 0, 2])
-        return self._numpy
+        raise Exception('Deprecated. use get_ndarray()')
 
     def get_ndarray(self):
         """
@@ -1976,34 +1950,7 @@ class Image(object):
         return self._ndarray
 
     def _get_grayscale_bitmap(self):
-        raise Exception('Deprecated')
-        if self._graybitmap:
-            return self._graybitmap
-
-        self._graybitmap = self.get_empty(1)
-        temp = self.get_empty(3)
-        if self._colorSpace == ColorSpace.BGR \
-                or self._colorSpace == ColorSpace.UNKNOWN:
-            cv.CvtColor(self.get_bitmap(), self._graybitmap, cv.CV_BGR2GRAY)
-        elif self._colorSpace == ColorSpace.RGB:
-            cv.CvtColor(self.get_bitmap(), self._graybitmap, cv.CV_RGB2GRAY)
-        elif self._colorSpace == ColorSpace.HLS:
-            cv.CvtColor(self.get_bitmap(), temp, cv.CV_HLS2RGB)
-            cv.CvtColor(temp, self._graybitmap, cv.CV_RGB2GRAY)
-        elif self._colorSpace == ColorSpace.HSV:
-            cv.CvtColor(self.get_bitmap(), temp, cv.CV_HSV2RGB)
-            cv.CvtColor(temp, self._graybitmap, cv.CV_RGB2GRAY)
-        elif self._colorSpace == ColorSpace.XYZ:
-            cv.CvtColor(self.get_bitmap(), temp, cv.CV_XYZ2RGB)
-            cv.CvtColor(temp, self._graybitmap, cv.CV_RGB2GRAY)
-        elif self._colorSpace == ColorSpace.GRAY:
-            cv.Split(self.get_bitmap(), self._graybitmap, self._graybitmap,
-                     self._graybitmap, None)
-        else:
-            logger.warning("Image._get_grayscale_bitmap: There is no "
-                           "supported conversion to gray colorspace")
-            return None
-        return self._graybitmap
+        raise Exception('Deprecated use get_gray_ndarray()')
 
     def get_grayscale_matrix(self):
         """
@@ -2021,7 +1968,7 @@ class Image(object):
         >>> img = Image("lenna")
         >>> rawImg  = img.get_grayscale_matrix()
         >>> rawOut  = img.get_empty()
-        >>> cv.SomeOpenCVFunc(rawImg,rawOut)
+        >>> cv2.SomeOpenCVFunc(rawImg,rawOut)
 
         **SEE ALSO**
 
@@ -2034,24 +1981,10 @@ class Image(object):
         :py:meth:`get_matrix`
 
         """
-        raise Exception('Deprecated')
-        if self._grayMatrix:
-            return self._grayMatrix
-        else:
-            # convert the bitmap to a matrix
-            self._grayMatrix = cv.GetMat(self._get_grayscale_bitmap())
-            return self._grayMatrix
+        raise Exception('Deprecated use get_gray_ndarray()')
 
     def _get_equalized_grayscale_bitmap(self):
-        raise Exception('Deprecated')
-        if self._equalizedgraybitmap:
-            return self._equalizedgraybitmap
-
-        self._equalizedgraybitmap = self.get_empty(1)
-        cv.EqualizeHist(self._get_grayscale_bitmap(),
-                        self._equalizedgraybitmap)
-
-        return self._equalizedgraybitmap
+        raise Exception('Deprecated use cv2.equalizeHist(gray_array)')
 
     def equalize(self):
         """
@@ -2587,7 +2520,7 @@ class Image(object):
         * *height* - the new height in pixels.
 
         * *interpolation* - how to generate new pixels that don't match the
-         original pixels. Argument goes direction to cv.Resize.
+         original pixels. Argument goes direction to cv2.resize.
         See http://docs.opencv.org/modules/imgproc/doc/
         geometric_transformations.html?highlight=resize#cv2.resize
         for more details
@@ -2677,7 +2610,7 @@ class Image(object):
 
         Smooth the image, by default with the Gaussian blur.  If desired,
         additional algorithms and apertures can be specified.  Optional
-        parameters are passed directly to OpenCV's cv.Smooth() function.
+        parameters are passed directly to OpenCV's functions.
 
         If grayscale is true the smoothing operation is only performed on a
         single channel otherwise the operation is performed on each channel
@@ -2769,10 +2702,6 @@ class Image(object):
         **Note**
 
         win_x and win_y should be greater than zero, a odd number and equal.
-
-        For OpenCV versions <= 2.3.0
-        this acts as Convience function derived from the :py:meth:`smooth`
-        method. Which internally calls cv.Smooth
 
         For OpenCV versions >= 2.3.0
         cv2.medianBlur function is called.
@@ -3015,7 +2944,6 @@ class Image(object):
         :py:meth:`binarize`
         """
         raise Exception('Deprecated! use to_gray()')
-        return Image(self._get_grayscale_bitmap(), color_space=ColorSpace.GRAY)
 
     def flip_horizontal(self):
         """
@@ -3561,7 +3489,7 @@ class Image(object):
     # http://blog.jozilla.net/2008/06/27/
     # fun-with-python-opencv-and-face-detection/
     def find_haar_features(self, cascade, scale_factor=1.2, min_neighbors=2,
-                           use_canny=cv.CV_HAAR_DO_CANNY_PRUNING,
+                           use_canny=cv2.cv.CV_HAAR_DO_CANNY_PRUNING,
                            min_size=(20, 20), max_size=(1000, 1000)):
         """
         **SUMMARY**
