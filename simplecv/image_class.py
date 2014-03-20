@@ -6957,37 +6957,31 @@ class Image(object):
         >>> img.show()
 
         """
+        if not self.is_bgr():
+            logger.warning("Image.embiggen works only with bgr image")
+            return None
 
         if not isinstance(size, tuple) and size > 1:
             size = (self.width * size, self.height * size)
 
         if size is None or size[0] < self.width or size[1] < self.height:
-            logger.warning("image.embiggenCanvas: the size "
-                           "provided is invalid")
+            logger.warning("Image.embiggen: the size provided is invalid")
             return None
-
-        new_canvas = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
-        cv.SetZero(new_canvas)
-        new_color = cv.RGB(color[0], color[1], color[2])
-        cv.AddS(new_canvas, new_color, new_canvas)
-        top_roi = None
-        bottom_roi = None
+        array = np.zeros((size[1], size[0], 3), dtype=self.dtype)
+        array[:, :, :] = color[::-1]  # RBG to BGR
         if pos is None:
             pos = (((size[0] - self.width) / 2), ((size[1] - self.height) / 2))
-
         (top_roi, bottom_roi) = self._rect_overlap_rois(
             (self.width, self.height), size, pos)
         if top_roi is None or bottom_roi is None:
-            logger.warning("image.embiggenCanvas: the position of the old "
-                           "image doesn't make sense, there is no overlap")
+            logger.warning("Image.embiggen: the position of the old image "
+                           "doesn't make sense, there is no overlap")
             return None
-
-        cv.SetImageROI(new_canvas, bottom_roi)
-        cv.SetImageROI(self.get_bitmap(), top_roi)
-        cv.Copy(self.get_bitmap(), new_canvas)
-        cv.ResetImageROI(new_canvas)
-        cv.ResetImageROI(self.get_bitmap())
-        return Image(new_canvas)
+        blit_array = self._ndarray[top_roi[1]:top_roi[1] + top_roi[3],
+                                   top_roi[0]:top_roi[0] + top_roi[2]]
+        array[bottom_roi[1]:bottom_roi[1] + bottom_roi[3],
+              bottom_roi[0]:bottom_roi[0] + bottom_roi[2]] = blit_array
+        return Image(array, color_space=self._colorSpace)
 
     def _rect_overlap_rois(self, top, bottom, pos):
         """
