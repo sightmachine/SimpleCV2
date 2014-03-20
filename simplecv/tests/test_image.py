@@ -414,3 +414,19 @@ def test_image_min_image():
 
     img = img1.min(img2)
     assert_equals(array.data, img.get_ndarray().data)
+
+
+def test_image_clear():
+    bgr_img = create_test_image()
+    bgr_img.clear()
+    clear_array = np.zeros((bgr_img.width, bgr_img.height, 3), dtype=np.uint8)
+
+    assert_equals(clear_array.data, bgr_img.get_ndarray().data)
+
+
+def test_image_gray_clear():
+    gray_img = create_test_image().to_gray()
+    gray_img.clear()
+    clear_array = np.zeros((gray_img.width, gray_img.height), dtype=np.uint8)
+
+    assert_equals(clear_array.data, gray_img.get_ndarray().data)

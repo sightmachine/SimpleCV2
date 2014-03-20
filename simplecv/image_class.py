@@ -4507,18 +4507,18 @@ class Image(object):
         return huetab
 
     def __getitem__(self, coord):
-        if isinstance(coord, (list, tuple)) and len(coord) == 2:
-            return self._ndarray[coord]
+        if not isinstance(coord, (list, tuple)) and len(coord) == 2:
+            raise Exception('Not implemented for {}'.fromat(coord))
+        if isinstance(coord[0], types.SliceType):
+            return Image(self._ndarray[coord[1], coord[0]],
+                         color_space=self._colorSpace)
         else:
-            print 'coord = ', coord
-            raise Exception('not implemented')
+            return self._ndarray[coord]
 
     def __setitem__(self, coord, value):
-        if isinstance(coord, (list, tuple)) and len(coord) == 2:
-            self._ndarray[coord] = value
-        else:
-            print 'coord = ', coord
-            raise Exception('not implemented')
+        if not isinstance(coord, (list, tuple)) and len(coord) == 2:
+            raise Exception('Not implemented for {}'.fromat(coord))
+        self._ndarray[coord] = value
 
     def __sub__(self, other):
         if isinstance(other, Image):
@@ -5833,7 +5833,6 @@ class Image(object):
             logger.warning("Can't do a negative crop!")
             return None
 
-        ret_val = cv.CreateImage((int(w), int(h)), cv.IPL_DEPTH_8U, 3)
         if x < 0 or y < 0:
             logger.warning("Crop will try to help you, but you have a "
                            "negative crop position, your width and height "
@@ -5853,13 +5852,11 @@ class Image(object):
                            "image. I have no choice but to return None.")
             return None
 
-        ret_val = np.zeros((bottom_roi[3], bottom_roi[2], 3), dtype='uint8')
-
-        ret_val = self.get_numpy_cv2()[
+        array = self._ndarray[
             bottom_roi[1]:bottom_roi[1] + bottom_roi[3],
-            bottom_roi[0]:bottom_roi[0] + bottom_roi[2], :]
+            bottom_roi[0]:bottom_roi[0] + bottom_roi[2]]
 
-        img = Image(ret_val, color_space=self._colorSpace, cv2image=True)
+        img = Image(array, color_space=self._colorSpace)
 
         #Buffering the top left point (x, y) in a image.
         img._uncroppedX = self._uncroppedX + int(x)
@@ -5929,7 +5926,11 @@ class Image(object):
           reason.
 
         """
-        cv.SetZero(self._bitmap)
+        if self.is_gray():
+            self._ndarray = np.zeros(self.size(), dtype=self.dtype)
+        else:
+            self._ndarray = np.zeros((self.width, self.height, 3),
+                                     dtype=self.dtype)
         self._clear_buffers()
 
     def draw(self, features, color=Color.GREEN, width=1, autocolor=False):
@@ -5956,7 +5957,7 @@ class Image(object):
         img.draw(lines)
         img.show()
         """
-        if type(features) == type(self):
+        if isinstance(features, Image):
             warnings.warn("You need to pass drawable features.")
             return None
         if hasattr(features, 'draw'):
@@ -6081,9 +6082,9 @@ class Image(object):
 
         **KAT FIX THIS**
         """
-
-        cv.EllipseBox(self.get_bitmap(), box=boundingbox, color=color,
-                      thicness=width)
+        raise Exception('not implemented')
+        # cv2.ellipse(self._ndarray, box=boundingbox, color=color,
+        #             thicness=width)
 
     def show(self, type='window'):
         """
@@ -6454,7 +6455,7 @@ class Image(object):
         #render the image.
 
     def _render_image(self, layer):
-        img_surf = self.get_pg_surface(self).copy()
+        img_surf = self.get_pg_surface().copy()
         img_surf.blit(layer.surface, (0, 0))
         return Image(img_surf)
 
@@ -6707,8 +6708,8 @@ class Image(object):
                 img = img.crop(x, y, targetw, targeth)
 
         ret_val[targety:targety + targeth,
-                targetx:targetx + targetw, :] = img.get_numpy_cv2()
-        ret_val = Image(ret_val, cv2image=True)
+                targetx:targetx + targetw] = img._ndarray
+        ret_val = Image(ret_val, color_space=self._colorSpace)
         return ret_val
 
     def blit(self, img, pos=None, alpha=None, mask=None, alpha_mask=None):
@@ -6759,118 +6760,87 @@ class Image(object):
         :py:meth:`create_alpha_mask`
 
         """
-        ret_val = Image(self.get_empty())
-        cv.Copy(self.get_bitmap(), ret_val.get_bitmap())
-
-        w = img.width
-        h = img.height
-
         if pos is None:
             pos = (0, 0)
 
         (top_roi, bottom_roi) = self._rect_overlap_rois(
             (img.width, img.height), (self.width, self.height), pos)
 
-        if alpha is not None:
-            cv.SetImageROI(img.get_bitmap(), top_roi)
-            cv.SetImageROI(ret_val.get_bitmap(), bottom_roi)
-            a = float(alpha)
-            b = float(1.00 - a)
-            g = float(0.00)
-            cv.AddWeighted(img.get_bitmap(), a, ret_val.get_bitmap(), b, g,
-                           ret_val.get_bitmap())
-            cv.ResetImageROI(img.get_bitmap())
-            cv.ResetImageROI(ret_val.get_bitmap())
-        elif alpha_mask is not None:
-            if alpha_mask is not None and (alpha_mask.width != img.width
-                                           or alpha_mask.height != img.height):
+        if alpha:
+            top_img = img.copy().crop(*top_roi)
+            bottom_img = self.copy().crop(*bottom_roi)
+            alpha = float(alpha)
+            beta = float(1.00 - alpha)
+            gamma = float(0.00)
+            blit_array = cv2.addWeighted(top_img.get_ndarray(), alpha,
+                                         bottom_img.get_ndarray(), beta, gamma)
+            array = self._ndarray.copy()
+            array[bottom_roi[1]:bottom_roi[1] + bottom_roi[3],
+                  bottom_roi[0]:bottom_roi[0] + bottom_roi[2]] = blit_array
+            return Image(array, color_space=self._colorSpace)
+        elif alpha_mask:
+            if alpha_mask.size() != img.size():
                 logger.warning("Image.blit: your mask and image don't match "
                                "sizes, if the mask doesn't fit, you can not "
                                "blit! Try using the scale function.")
                 return None
+            top_img = img.copy().crop(*top_roi)
+            bottom_img = self.copy().crop(*bottom_roi)
+            mask_img = alpha_mask.crop(*top_roi)
+            # Apply mask to img
+            top_array = top_img.get_ndarray().astype(np.float32)
+            gray_mask_array = mask_img.get_gray_ndarray()
+            gray_mask_array = gray_mask_array.astype(np.float32) / 255.0
+            gray_mask_array = np.dstack((gray_mask_array, gray_mask_array,
+                                         gray_mask_array))
+            masked_top_array = cv2.multiply(top_array, gray_mask_array)
+            # Apply inverted mask to img
+            bottom_array = bottom_img.get_ndarray().astype(np.float32)
+            inv_graymask_array = mask_img.invert().get_gray_ndarray()
+            inv_graymask_array = inv_graymask_array.astype(np.float32) / 255.0
+            inv_graymask_array = np.dstack((inv_graymask_array,
+                                            inv_graymask_array,
+                                            inv_graymask_array))
+            masked_bottom_array = cv2.multiply(bottom_array,
+                                               inv_graymask_array)
 
-            c_img = img.crop(top_roi[0], top_roi[1], top_roi[2], top_roi[3])
-            c_mask = alpha_mask.crop(top_roi[0], top_roi[1],
-                                     top_roi[2], top_roi[3])
-            ret_val_c = ret_val.crop(bottom_roi[0], bottom_roi[1],
-                                     bottom_roi[2], bottom_roi[3])
-            r = c_img.get_empty(1)
-            g = c_img.get_empty(1)
-            b = c_img.get_empty(1)
-            cv.Split(c_img.get_bitmap(), b, g, r, None)
-            rf = cv.CreateImage((c_img.width, c_img.height),
-                                cv.IPL_DEPTH_32F, 1)
-            gf = cv.CreateImage((c_img.width, c_img.height),
-                                cv.IPL_DEPTH_32F, 1)
-            bf = cv.CreateImage((c_img.width, c_img.height),
-                                cv.IPL_DEPTH_32F, 1)
-            af = cv.CreateImage((c_img.width, c_img.height),
-                                cv.IPL_DEPTH_32F, 1)
-            cv.ConvertScale(r, rf)
-            cv.ConvertScale(g, gf)
-            cv.ConvertScale(b, bf)
-            cv.ConvertScale(c_mask._get_grayscale_bitmap(), af)
-            cv.ConvertScale(af, af, scale=(1.0 / 255.0))
-            cv.Mul(rf, af, rf)
-            cv.Mul(gf, af, gf)
-            cv.Mul(bf, af, bf)
+            blit_array = cv2.add(masked_top_array, masked_bottom_array)
+            blit_array = blit_array.astype(self.dtype)
 
-            dr = ret_val_c.get_empty(1)
-            dg = ret_val_c.get_empty(1)
-            db = ret_val_c.get_empty(1)
-            cv.Split(ret_val_c.get_bitmap(), db, dg, dr, None)
-            drf = cv.CreateImage((ret_val_c.width, ret_val_c.height),
-                                 cv.IPL_DEPTH_32F, 1)
-            dgf = cv.CreateImage((ret_val_c.width, ret_val_c.height),
-                                 cv.IPL_DEPTH_32F, 1)
-            dbf = cv.CreateImage((ret_val_c.width, ret_val_c.height),
-                                 cv.IPL_DEPTH_32F, 1)
-            daf = cv.CreateImage((ret_val_c.width, ret_val_c.height),
-                                 cv.IPL_DEPTH_32F, 1)
-            cv.ConvertScale(dr, drf)
-            cv.ConvertScale(dg, dgf)
-            cv.ConvertScale(db, dbf)
-            cv.ConvertScale(c_mask.invert()._get_grayscale_bitmap(), daf)
-            cv.ConvertScale(daf, daf, scale=(1.0 / 255.0))
-            cv.Mul(drf, daf, drf)
-            cv.Mul(dgf, daf, dgf)
-            cv.Mul(dbf, daf, dbf)
+            array = self._ndarray.copy()
+            array[bottom_roi[1]:bottom_roi[1] + bottom_roi[3],
+                  bottom_roi[0]:bottom_roi[0] + bottom_roi[2]] = blit_array
+            return Image(array, color_space=self._colorSpace)
 
-            cv.Add(rf, drf, rf)
-            cv.Add(gf, dgf, gf)
-            cv.Add(bf, dbf, bf)
-
-            cv.ConvertScaleAbs(rf, r)
-            cv.ConvertScaleAbs(gf, g)
-            cv.ConvertScaleAbs(bf, b)
-
-            cv.Merge(b, g, r, None, ret_val_c.get_bitmap())
-            cv.SetImageROI(ret_val.get_bitmap(), bottom_roi)
-            cv.Copy(ret_val_c.get_bitmap(), ret_val.get_bitmap())
-            cv.ResetImageROI(ret_val.get_bitmap())
-
-        elif mask is not None:
-            if mask is not None and (mask.width != img.width
-                                     or mask.height != img.height):
+        elif mask:
+            if mask.size() != img.size():
                 logger.warning("Image.blit: your mask and image don't match "
                                "sizes, if the mask doesn't fit, you can not "
                                "blit! Try using the scale function. ")
                 return None
-            cv.SetImageROI(img.get_bitmap(), top_roi)
-            cv.SetImageROI(mask.get_bitmap(), top_roi)
-            cv.SetImageROI(ret_val.get_bitmap(), bottom_roi)
-            cv.Copy(img.get_bitmap(), ret_val.get_bitmap(), mask.get_bitmap())
-            cv.ResetImageROI(img.get_bitmap())
-            cv.ResetImageROI(mask.get_bitmap())
-            cv.ResetImageROI(ret_val.get_bitmap())
-        else:  # vanilla blit
-            cv.SetImageROI(img.get_bitmap(), top_roi)
-            cv.SetImageROI(ret_val.get_bitmap(), bottom_roi)
-            cv.Copy(img.get_bitmap(), ret_val.get_bitmap())
-            cv.ResetImageROI(img.get_bitmap())
-            cv.ResetImageROI(ret_val.get_bitmap())
+            top_img = img.copy().crop(*top_roi)
+            mask_img = mask.crop(*top_roi)
+            # Apply mask to img
+            top_array = top_img.get_ndarray().astype(np.float32)
+            gray_mask_array = mask_img.get_gray_ndarray()
+            gray_mask_array = gray_mask_array.astype(np.float32) / 255.0
+            gray_mask_array = np.dstack((gray_mask_array, gray_mask_array,
+                                         gray_mask_array))
+            masked_top_array = cv2.multiply(top_array, gray_mask_array)
 
-        return ret_val
+            array = self._ndarray.copy()
+            array[bottom_roi[1]:bottom_roi[1] + bottom_roi[3],
+                  bottom_roi[0]:bottom_roi[0] + bottom_roi[2]] = \
+                masked_top_array
+            return Image(array, color_space=self._colorSpace)
+
+        else:  # vanilla blit
+            top_img = img.copy().crop(*top_roi)
+            array = self._ndarray.copy()
+            array[bottom_roi[1]:bottom_roi[1] + bottom_roi[3],
+                  bottom_roi[0]:bottom_roi[0] + bottom_roi[2]] = \
+                top_img.get_ndarray()
+            return Image(array, color_space=self._colorSpace)
 
     def side_by_side(self, image, side="right", scale=True):
         """
