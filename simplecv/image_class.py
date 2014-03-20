@@ -2002,9 +2002,7 @@ class Image(object):
         >>> img = img.equalize()
 
         """
-        gray_array = Image.convert(self._ndarray, self._colorSpace,
-                                   ColorSpace.GRAY)
-        equalized_array = cv2.equalizeHist(gray_array)
+        equalized_array = cv2.equalizeHist(self.get_gray_ndarray())
         return Image(equalized_array, color_space=ColorSpace.GRAY)
 
     def get_pg_surface(self):
@@ -5000,15 +4998,17 @@ class Image(object):
         :py:class:`Chessboard`
 
         """
-        corners = cv.FindChessboardCorners(
-            self._get_equalized_grayscale_bitmap(), dimensions,
-            cv.CV_CALIB_CB_ADAPTIVE_THRESH + cv.CV_CALIB_CB_NORMALIZE_IMAGE)
+        gray_array = self.get_gray_ndarray()
+        equalized_grayscale_array = cv2.equalizeHist(gray_array)
+        corners = cv2.findChessboardCorners(
+            equalized_grayscale_array, dimensions,
+            cv2.CALIB_CB_ADAPTIVE_THRESH + cv2.CALIB_CB_NORMALIZE_IMAGE)
         if len(corners[1]) == dimensions[0] * dimensions[1]:
             if subpixel:
-                sp_corners = cv.FindCornerSubPix(
-                    self.get_grayscale_matrix(), corners[1],
-                    (11, 11), (-1, -1),
-                    (cv.CV_TERMCRIT_ITER | cv.CV_TERMCRIT_EPS, 10, 0.01))
+                sp_corners = cv2.cornerSubPix(
+                    gray_array, corners[1], (11, 11), (-1, -1),
+                    (cv2.TERM_CRITERIA_MAX_ITER | cv2.TERM_CRITERIA_EPS,
+                     10, 0.01))
             else:
                 sp_corners = corners[1]
             return FeatureSet([Chessboard(self, dimensions, sp_corners)])
@@ -5076,7 +5076,7 @@ class Image(object):
 
         return self._edgeMap
 
-    def rotate(self, angle, fixed=True, point=(-1, -1), scale=1.0):
+    def rotate(self, angle, fixed=True, point=[-1, -1], scale=1.0):
         """
         **SUMMARY***
 
@@ -5124,44 +5124,39 @@ class Image(object):
             point[0] = (self.width - 1) / 2
             point[1] = (self.height - 1) / 2
 
+        # first we create what we thing the rotation matrix should be
+        rot_mat = cv2.getRotationMatrix2D((float(point[0]),
+                                           float(point[1])),
+                                          float(angle), float(scale))
         if fixed:
-            ret_val = self.get_empty()
-            cv.Zero(ret_val)
-            rot_mat = cv.CreateMat(2, 3, cv.CV_32FC1)
-            cv.GetRotationMatrix2D((float(point[0]), float(point[1])),
-                                   float(angle), float(scale), rot_mat)
-            cv.WarpAffine(self.get_bitmap(), ret_val, rot_mat)
-            return Image(ret_val, color_space=self._colorSpace)
+            array = cv2.warpAffine(self._ndarray, rot_mat, self.size())
+            return Image(array, color_space=self._colorSpace)
 
         # otherwise, we're expanding the matrix to
         # fit the image at original size
-        rot_mat = cv.CreateMat(2, 3, cv.CV_32FC1)
-        # first we create what we thing the rotation matrix should be
-        cv.GetRotationMatrix2D((float(point[0]), float(point[1])),
-                               float(angle), float(scale), rot_mat)
         a1 = np.array([0, 0, 1])
         b1 = np.array([self.width, 0, 1])
         c1 = np.array([self.width, self.height, 1])
         d1 = np.array([0, self.height, 1])
-        #So we have defined our image ABC in homogenous coordinates
-        #and apply the rotation so we can figure out the image size
+        # So we have defined our image ABC in homogenous coordinates
+        # and apply the rotation so we can figure out the image size
         a = np.dot(rot_mat, a1)
         b = np.dot(rot_mat, b1)
         c = np.dot(rot_mat, c1)
         d = np.dot(rot_mat, d1)
-        #I am not sure about this but I think the a/b/c/d are transposed
-        #now we calculate the extents of the rotated components.
+        # I am not sure about this but I think the a/b/c/d are transposed
+        # now we calculate the extents of the rotated components.
         min_y = min(a[1], b[1], c[1], d[1])
         min_x = min(a[0], b[0], c[0], d[0])
         max_y = max(a[1], b[1], c[1], d[1])
         max_x = max(a[0], b[0], c[0], d[0])
-        #from the extents we calculate the new size
+        # from the extents we calculate the new size
         new_width = np.ceil(max_x - min_x)
         new_height = np.ceil(max_y - min_y)
-        #now we calculate a new translation
+        # now we calculate a new translation
         tx = 0
         ty = 0
-        #calculate the translation that will get us centered in the new image
+        # calculate the translation that will get us centered in the new image
         if min_x < 0:
             tx = -1.0 * min_x
         elif max_x > new_width - 1:
@@ -5180,16 +5175,14 @@ class Image(object):
                (b[0] + tx, b[1] + ty),
                (c[0] + tx, c[1] + ty))
 
-        cv.GetAffineTransform(src, dst, rot_mat)
-
-        #calculate the translation of the corners to center the image
-        #use these new corner positions as the input to cvGetAffineTransform
-        ret_val = cv.CreateImage((int(new_width), int(new_height)), 8, int(3))
-        cv.Zero(ret_val)
-
-        cv.WarpAffine(self.get_bitmap(), ret_val, rot_mat)
-        #cv.AddS(retVal,(0,255,0),retVal)
-        return Image(ret_val, color_space=self._colorSpace)
+        # calculate the translation of the corners to center the image
+        # use these new corner positions as the input to cvGetAffineTransform
+        rot_mat = cv2.getAffineTransform(
+            np.array(src).astype(np.float32),
+            np.array(dst).astype(np.float32))
+        array = cv2.warpAffine(self._ndarray, rot_mat,
+                               (int(new_width), int(new_height)))
+        return Image(array, color_space=self._colorSpace)
 
     def transpose(self):
         """
@@ -5219,9 +5212,8 @@ class Image(object):
 
 
         """
-        ret_val = cv.CreateImage((self.height, self.width), cv.IPL_DEPTH_8U, 3)
-        cv.Transpose(self.get_bitmap(), ret_val)
-        return Image(ret_val, color_space=self._colorSpace)
+        array = cv2.transpose(self._ndarray)
+        return Image(array, color_space=self._colorSpace)
 
     def shear(self, cornerpoints):
         """
@@ -5257,12 +5249,10 @@ class Image(object):
 
         """
         src = ((0, 0), (self.width - 1, 0), (self.width - 1, self.height - 1))
-        #set the original points
-        a_warp = cv.CreateMat(2, 3, cv.CV_32FC1)
-        #create the empty warp matrix
-        cv.GetAffineTransform(src, cornerpoints, a_warp)
-
-        return self.transform_affine(a_warp)
+        rot_matrix = cv2.getAffineTransform(
+            np.array(src).astype(np.float32),
+            np.array(cornerpoints).astype(np.float32))
+        return self.transform_affine(rot_matrix)
 
     def transform_affine(self, rot_matrix):
         """
@@ -5284,14 +5274,12 @@ class Image(object):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> points = ((50,0), (img.width + 50,0),
-            ...       (img.width, img.height), (0, img.height))
+        >>> points = ((50, 0), (img.width + 50, 0),
+        ...           (img.width, img.height), (0, img.height))
         >>> src = ((0, 0), (img.width - 1, 0),
-            ...    (img.width - 1, img.height - 1))
-        >>> result = cv.createMat(2, 3, cv.CV_32FC1)
-        >>> cv.GetAffineTransform(src, points,result)
-        >>> img.transform_affine(result).show()
-
+        ...        (img.width - 1, img.height - 1))
+        >>> rot_matrix = cv2.getAffineTransform(src, points)
+        >>> img.transform_affine(rot_matrix).show()
 
         **SEE ALSO**
 
@@ -5303,11 +5291,8 @@ class Image(object):
         http://en.wikipedia.org/wiki/Transformation_matrix
 
         """
-        ret_val = self.get_empty()
-        if type(rot_matrix) == np.ndarray:
-            rot_matrix = nparray_to_cvmat(rot_matrix)
-        cv.WarpAffine(self.get_bitmap(), ret_val, rot_matrix)
-        return Image(ret_val, color_space=self._colorSpace)
+        array = cv2.warpAffine(self._ndarray, rot_matrix, self.size())
+        return Image(array, color_space=self._colorSpace)
 
     def warp(self, cornerpoints):
         """
@@ -5349,12 +5334,13 @@ class Image(object):
 
         """
         #original coordinates
-        src = ((0, 0), (self.width - 1, 0), (self.width - 1, self.height - 1),
-               (0, self.height - 1))
-        p_warp = cv.CreateMat(3, 3, cv.CV_32FC1)  # create an empty 3x3 matrix
+        src = np.array(((0, 0), (self.width - 1, 0),
+                        (self.width - 1, self.height - 1),
+                        (0, self.height - 1))).astype(np.float32)
         # figure out the warp matrix
-        cv.GetPerspectiveTransform(src, cornerpoints, p_warp)
-        return self.transform_perspective(p_warp)
+        p_wrap = cv2.getPerspectiveTransform(
+            src, np.array(cornerpoints).astype(np.float32))
+        return self.transform_perspective(p_wrap)
 
     def transform_perspective(self, rot_matrix):
         """
@@ -5381,8 +5367,9 @@ class Image(object):
         >>> src = ((30, 30), (img.width - 10, 70),
             ...    (img.width - 1 - 40, img.height - 1 + 30),
             ...    (20, img.height + 10))
-        >>> result = cv.CreateMat(3, 3, cv.CV_32FC1)
-        >>> cv.GetPerspectiveTransform(src, points, result)
+        >>> result = cv2.getPerspectiveTransform(
+        ...     np.array(src).astype(np.float32),
+        ...     np.array(points).astype(np.float32))
         >>> img.transform_perspective(result).show()
 
 
@@ -5396,21 +5383,9 @@ class Image(object):
         http://en.wikipedia.org/wiki/Transformation_matrix
 
         """
-        try:
-            import cv2
-
-            if not isinstance(rot_matrix, np.ndarray):
-                rot_matrix = np.array(rot_matrix)
-            ret_val = cv2.warpPerspective(src=np.array(self.get_matrix()),
-                                          dsize=(self.width, self.height),
-                                          M=rot_matrix, flags=cv2.INTER_CUBIC)
-            return Image(ret_val, color_space=self._colorSpace, cv2image=True)
-        except:
-            ret_val = self.get_empty()
-            if isinstance(rot_matrix, np.ndarray):
-                rot_matrix = nparray_to_cvmat(rot_matrix)
-            cv.WarpPerspective(self.get_bitmap(), ret_val, rot_matrix)
-            return Image(ret_val, color_space=self._colorSpace)
+        array = cv2.warpPerspective(src=self._ndarray, dsize=self.size(),
+                                    M=rot_matrix, flags=cv2.INTER_CUBIC)
+        return Image(array, color_space=self._colorSpace)
 
     def get_pixel(self, x, y):
         """
@@ -5455,7 +5430,6 @@ class Image(object):
                 ret_val = (c[2], c[1], c[0])
             else:
                 ret_val = (c[0], c[1], c[2])
-
         return ret_val
 
     def get_gray_pixel(self, x, y):

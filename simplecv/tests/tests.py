@@ -14,9 +14,11 @@ import pickle
 from math import sqrt
 import tempfile
 
+from cv2 import cv
+import cv2
 import numpy as np
 
-from simplecv.base import cv, logger, nparray_to_cvmat
+from simplecv.base import logger, nparray_to_cvmat
 from simplecv.color import Color, ColorCurve, ColorMap
 from simplecv.color_model import ColorModel
 from simplecv.camera import FrameSource
@@ -841,7 +843,7 @@ def test_image_rotate_fixed():
 
 def test_image_rotate_full():
     img = Image(testimage2)
-    img2 = img.rotate(180, "full", scale=1)
+    img2 = img.rotate(180, False, scale=1)
 
     results = [img2]
     name_stem = "test_image_rotate_full"
@@ -862,8 +864,7 @@ def test_image_shear_warp():
     s = img.shear(dst)
 
     color = s[0, 0]
-    if color != (0, 0, 0):
-        assert False
+    assert (color == (0, 0, 0)).all()
 
     dst = ((img.width * 0.05, img.height * 0.03),
            (img.width * 0.9, img.height * 0.1),
@@ -876,8 +877,7 @@ def test_image_shear_warp():
     perform_diff(results, name_stem)
 
     color = s[0, 0]
-    if color != (0, 0, 0):
-        assert False
+    assert (color == (0, 0, 0)).all()
 
 
 def test_image_affine():
@@ -885,8 +885,8 @@ def test_image_affine():
     src = ((0, 0), (img.width - 1, 0), (img.width - 1, img.height - 1))
     dst = ((img.width / 2, 0), (img.width - 1, img.height / 2),
            (img.width / 2, img.height - 1))
-    a_warp = cv.CreateMat(2, 3, cv.CV_32FC1)
-    cv.GetAffineTransform(src, dst, a_warp)
+    a_warp = cv2.getAffineTransform(np.array(src).astype(np.float32),
+                                    np.array(dst).astype(np.float32))
     atrans = img.transform_affine(a_warp)
 
     a_warp2 = np.array(a_warp)
