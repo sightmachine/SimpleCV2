@@ -2598,7 +2598,7 @@ class Image(object):
                            "I can't scale that")
             return ret_val
 
-        saceld_array = cv2.resize(self.self.get_ndarray())
+        saceld_array = cv2.resize(self._ndarray, (w, h))
         return Image(saceld_array, color_space=self._colorSpace)
 
     def smooth(self, algorithm_name='gaussian', aperture=(3, 3), sigma=0,
@@ -6875,142 +6875,59 @@ class Image(object):
         """
         # there is probably a cleaner way to do this, but I know I hit every
         # case when they are enumerated
-        ret_val = None
         if side == "top":
-            #clever
-            ret_val = image.side_by_side(self, "bottom", scale)
+            return image.side_by_side(self, "bottom", scale)
         elif side == "bottom":
             if self.width > image.width:
-                if scale:
-                    # scale the other image width to fit
-                    resized = image.resize(w=self.width)
-                    nw = self.width
-                    nh = self.height + resized.height
-                    new_canvas = cv.CreateImage((nw, nh), cv.IPL_DEPTH_8U, 3)
-                    cv.SetZero(new_canvas)
-                    cv.SetImageROI(new_canvas, (0, 0, nw, self.height))
-                    cv.Copy(self.get_bitmap(), new_canvas)
-                    cv.ResetImageROI(new_canvas)
-                    cv.SetImageROI(new_canvas, (0, self.height, resized.width,
-                                                resized.height))
-                    cv.Copy(resized.get_bitmap(), new_canvas)
-                    cv.ResetImageROI(new_canvas)
-                    ret_val = Image(new_canvas, color_space=self._colorSpace)
-                else:
-                    nw = self.width
-                    nh = self.height + image.height
-                    new_canvas = cv.CreateImage((nw, nh), cv.IPL_DEPTH_8U, 3)
-                    cv.SetZero(new_canvas)
-                    cv.SetImageROI(new_canvas, (0, 0, nw, self.height))
-                    cv.Copy(self.get_bitmap(), new_canvas)
-                    cv.ResetImageROI(new_canvas)
-                    xc = (self.width - image.width) / 2
-                    cv.SetImageROI(new_canvas, (xc, self.height, image.width,
-                                                image.height))
-                    cv.Copy(image.get_bitmap(), new_canvas)
-                    cv.ResetImageROI(new_canvas)
-                    ret_val = Image(new_canvas, color_space=self._colorSpace)
+                # scale the other image width to fit
+                resized = image.resize(w=self.width) if scale else image
+                topimage = self
+                w = self.width
             else:  # our width is smaller than the other image
-                if scale:
-                    # scale the other image width to fit
-                    resized = self.resize(w=image.width)
-                    nw = image.width
-                    nh = resized.height + image.height
-                    new_canvas = cv.CreateImage((nw, nh), cv.IPL_DEPTH_8U, 3)
-                    cv.SetZero(new_canvas)
-                    cv.SetImageROI(new_canvas,
-                                   (0, 0, resized.width, resized.height))
-                    cv.Copy(resized.get_bitmap(), new_canvas)
-                    cv.ResetImageROI(new_canvas)
-                    cv.SetImageROI(new_canvas,
-                                   (0, resized.height, nw, image.height))
-                    cv.Copy(image.get_bitmap(), new_canvas)
-                    cv.ResetImageROI(new_canvas)
-                    ret_val = Image(new_canvas, color_space=self._colorSpace)
-                else:
-                    nw = image.width
-                    nh = self.height + image.height
-                    new_canvas = cv.CreateImage((nw, nh), cv.IPL_DEPTH_8U, 3)
-                    cv.SetZero(new_canvas)
-                    xc = (image.width - self.width) / 2
-                    cv.SetImageROI(new_canvas, (xc, 0, self.width,
-                                                self.height))
-                    cv.Copy(self.get_bitmap(), new_canvas)
-                    cv.ResetImageROI(new_canvas)
-                    cv.SetImageROI(new_canvas,
-                                   (0, self.height, image.width, image.height))
-                    cv.Copy(image.get_bitmap(), new_canvas)
-                    cv.ResetImageROI(new_canvas)
-                    ret_val = Image(new_canvas, color_space=self._colorSpace)
-
+                # scale the other image width to fit
+                topimage = self.resize(w=image.width) if scale else self
+                resized = image
+                w = image.width
+            h = topimage.height + image.height
+            xc = (topimage.width - resized.width) / 2
+            array = np.zeros((h, w, 3), dtype=self.dtype)
+            if xc > 0:
+                array[:topimage.height, :topimage.width] = \
+                    topimage.get_ndarray()
+                array[h - resized.height:, xc:xc + resized.width] = \
+                    resized.get_ndarray()
+            else:
+                array[:topimage.height, abs(xc):abs(xc) + topimage.width] = \
+                    topimage.get_ndarray()
+                array[h - resized.height:, :resized.width] = \
+                    resized.get_ndarray()
+            return Image(array, color_space=self._colorSpace)
         elif side == "right":
-            ret_val = image.side_by_side(self, "left", scale)
+            return image.side_by_side(self, "left", scale)
         else:  # default to left
             if self.height > image.height:
-                if scale:
-                    #scale the other image height to fit
-                    resized = image.resize(h=self.height)
-                    nw = self.width + resized.width
-                    nh = self.height
-                    new_canvas = cv.CreateImage((nw, nh), cv.IPL_DEPTH_8U, 3)
-                    cv.SetZero(new_canvas)
-                    cv.SetImageROI(new_canvas,
-                                   (0, 0, resized.width, resized.height))
-                    cv.Copy(resized.get_bitmap(), new_canvas)
-                    cv.ResetImageROI(new_canvas)
-                    cv.SetImageROI(new_canvas,
-                                   (resized.width, 0, self.width, self.height))
-                    cv.Copy(self.get_bitmap(), new_canvas)
-                    cv.ResetImageROI(new_canvas)
-                    ret_val = Image(new_canvas, color_space=self._colorSpace)
-                else:
-                    nw = self.width + image.width
-                    nh = self.height
-                    new_canvas = cv.CreateImage((nw, nh), cv.IPL_DEPTH_8U, 3)
-                    cv.SetZero(new_canvas)
-                    yc = (self.height - image.height) / 2
-                    cv.SetImageROI(new_canvas,
-                                   (0, yc, image.width, image.height))
-                    cv.Copy(image.get_bitmap(), new_canvas)
-                    cv.ResetImageROI(new_canvas)
-                    cv.SetImageROI(new_canvas,
-                                   (image.width, 0, self.width, self.height))
-                    cv.Copy(self.get_bitmap(), new_canvas)
-                    cv.ResetImageROI(new_canvas)
-                    ret_val = Image(new_canvas, color_space=self._colorSpace)
+                # scale the other image height to fit
+                resized = image.resize(h=self.height) if scale else image
+                rightimage = self
+                h = rightimage.height
             else:  # our height is smaller than the other image
-                if scale:
-                    # scale our height to fit
-                    resized = self.resize(h=image.height)
-                    nw = image.width + resized.width
-                    nh = image.height
-                    new_canvas = cv.CreateImage((nw, nh), cv.IPL_DEPTH_8U, 3)
-                    cv.SetZero(new_canvas)
-                    cv.SetImageROI(new_canvas,
-                                   (0, 0, image.width, image.height))
-                    cv.Copy(image.get_bitmap(), new_canvas)
-                    cv.ResetImageROI(new_canvas)
-                    cv.SetImageROI(new_canvas, (image.width, 0, resized.width,
-                                                resized.height))
-                    cv.Copy(resized.get_bitmap(), new_canvas)
-                    cv.ResetImageROI(new_canvas)
-                    ret_val = Image(new_canvas, color_space=self._colorSpace)
-                else:
-                    nw = image.width + self.width
-                    nh = image.height
-                    new_canvas = cv.CreateImage((nw, nh), cv.IPL_DEPTH_8U, 3)
-                    cv.SetZero(new_canvas)
-                    cv.SetImageROI(new_canvas,
-                                   (0, 0, image.width, image.height))
-                    cv.Copy(image.get_bitmap(), new_canvas)
-                    cv.ResetImageROI(new_canvas)
-                    yc = (image.height - self.height) / 2
-                    cv.SetImageROI(new_canvas,
-                                   (image.width, yc, self.width, self.height))
-                    cv.Copy(self.get_bitmap(), new_canvas)
-                    cv.ResetImageROI(new_canvas)
-                    ret_val = Image(new_canvas, color_space=self._colorSpace)
-        return ret_val
+                #scale our height to fit
+                rightimage = self.resize(h=image.height) if scale else self
+                h = image.height
+                resized = image
+            w = rightimage.width + resized.width
+            yc = (rightimage.height - resized.height) / 2
+            array = np.zeros((h, w, 3), dtype=self.dtype)
+            if yc > 0:
+                array[:rightimage.height, w - rightimage.width:] = \
+                    rightimage.get_ndarray()
+                array[yc:yc + resized.height, :resized.width] = \
+                    resized.get_ndarray()
+            else:
+                array[abs(yc):abs(yc) + rightimage.height,
+                      w - rightimage.width:] = rightimage.get_ndarray()
+                array[:resized.height, :resized.width] = resized.get_ndarray()
+            return Image(array, color_space=self._colorSpace)
 
     def embiggen(self, size=None, color=Color.BLACK, pos=None):
         """
