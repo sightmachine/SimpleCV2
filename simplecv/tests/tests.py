@@ -933,29 +933,31 @@ def test_image_perspective():
 def test_image_horz_scanline():
     img = Image(logo)
     sl = img.get_horz_scanline(10)
-    if sl.shape[0] != img.width or sl.shape[1] != 3:
-        assert False
+    assert sl.shape[0] == img.width
+    assert sl.shape[1] == 3
+    assert len(sl.shape) == 2
 
 
 def test_image_vert_scanline():
     img = Image(logo)
     sl = img.get_vert_scanline(10)
-    if sl.shape[0] != img.height or sl.shape[1] != 3:
-        assert False
+    assert sl.shape[0] == img.height
+    assert sl.shape[1] == 3
+    assert len(sl.shape) == 2
 
 
 def test_image_horz_scanline_gray():
     img = Image(logo)
     sl = img.get_horz_scanline_gray(10)
-    if sl.shape[0] != img.width or sl.shape[1] != 1:
-        assert False
+    assert sl.shape[0] == img.width
+    assert len(sl.shape) == 1
 
 
 def test_image_vert_scanline_gray():
     img = Image(logo)
     sl = img.get_vert_scanline_gray(10)
-    if sl.shape[0] != img.height or sl.shape[1] != 1:
-        assert False
+    assert sl.shape[0] == img.width
+    assert len(sl.shape) == 1
 
 
 def test_image_get_pixel():

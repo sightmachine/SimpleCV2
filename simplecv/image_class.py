@@ -5418,18 +5418,13 @@ class Image(object):
           access use python array notation. I.e. img[x][y].
 
         """
-        c = None
         ret_val = None
         if x < 0 or x >= self.width:
-            logger.warning("getRGBPixel: X value is not valid.")
+            logger.warning("get_pixel: X value is not valid.")
         elif y < 0 or y >= self.height:
-            logger.warning("getRGBPixel: Y value is not valid.")
+            logger.warning("get_pixel: Y value is not valid.")
         else:
-            c = cv.Get2D(self.get_bitmap(), y, x)
-            if self._colorSpace == ColorSpace.BGR:
-                ret_val = (c[2], c[1], c[0])
-            else:
-                ret_val = (c[0], c[1], c[2])
+            ret_val = self[x, y]
         return ret_val
 
     def get_gray_pixel(self, x, y):
@@ -5469,8 +5464,7 @@ class Image(object):
         elif y < 0 or y >= self.height:
             logger.warning("get_gray_pixel: Y value is not valid.")
         else:
-            ret_val = cv.Get2D(self._get_grayscale_bitmap(), y, x)
-            ret_val = ret_val[0]
+            ret_val = self.get_gray_ndarray()[x, y]
         return ret_val
 
     def get_vert_scanline(self, column):
@@ -5492,7 +5486,7 @@ class Image(object):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> myColor = [0,0,0]
+        >>> myColor = [0, 0, 0]
         >>> sl = img.get_vert_scanline(423)
         >>> sll = sl.tolist()
         >>> for p in sll:
@@ -5509,11 +5503,9 @@ class Image(object):
         """
         ret_val = None
         if column < 0 or column >= self.width:
-            logger.warning("getVertRGBScanline: column value is not valid.")
+            logger.warning("get_vert_scanline: column value is not valid.")
         else:
-            ret_val = cv.GetCol(self.get_bitmap(), column)
-            ret_val = np.array(ret_val)
-            ret_val = ret_val[:, 0, :]
+            ret_val = self._ndarray[:, column]
         return ret_val
 
     def get_horz_scanline(self, row):
@@ -5551,11 +5543,9 @@ class Image(object):
         """
         ret_val = None
         if row < 0 or row >= self.height:
-            logger.warning("getHorzRGBScanline: row value is not valid.")
+            logger.warning("get_horz_scanline: row value is not valid.")
         else:
-            ret_val = cv.GetRow(self.get_bitmap(), row)
-            ret_val = np.array(ret_val)
-            ret_val = ret_val[0, :, :]
+            ret_val = self._ndarray[row]
         return ret_val
 
     def get_vert_scanline_gray(self, column):
@@ -5595,9 +5585,7 @@ class Image(object):
         if column < 0 or column >= self.width:
             logger.warning("getHorzRGBScanline: row value is not valid.")
         else:
-            ret_val = cv.GetCol(self._get_grayscale_bitmap(), column)
-            ret_val = np.array(ret_val)
-            #retVal = retVal.transpose()
+            ret_val = self.get_gray_ndarray()[:, column]
         return ret_val
 
     def get_horz_scanline_gray(self, row):
@@ -5636,11 +5624,9 @@ class Image(object):
         """
         ret_val = None
         if row < 0 or row >= self.height:
-            logger.warning("getHorzRGBScanline: row value is not valid.")
+            logger.warning("get_horz_scanline_gray: row value is not valid.")
         else:
-            ret_val = cv.GetRow(self._get_grayscale_bitmap(), row)
-            ret_val = np.array(ret_val)
-            ret_val = ret_val.transpose()
+            ret_val = self.get_gray_ndarray()[row]
         return ret_val
 
     def crop(self, x, y=None, w=None, h=None, centered=False, smart=False):
