@@ -1272,7 +1272,7 @@ class Circle(Feature):
             return self.image.crop(self.x, self.y, self.get_width(),
                                    self.get_height(), centered=True)
         else:
-            mask = self.image.get_empty(1)
+            mask = self.image.get_empty()
             result = self.image.get_empty()
 
             # if you want to shave a bit of time we go do

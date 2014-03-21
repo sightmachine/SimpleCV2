@@ -7658,22 +7658,22 @@ class Image(object):
 
 
         """
-        storage = cv.CreateMat(self.width, 1, cv.CV_32FC3)
+
         # a distnace metric for how apart our circles should be
         # this is sa good bench mark
         if distance < 0:
             distance = 1 + max(self.width, self.height) / 50
-        cv.HoughCircles(self._get_grayscale_bitmap(), storage,
-                        cv.CV_HOUGH_GRADIENT, 2, distance, canny, thresh)
-        if storage.rows == 0:
+
+        circs = cv2.HoughCircles(self.get_gray_ndarray(),
+                                 cv2.cv.CV_HOUGH_GRADIENT,
+                                 2, distance, param1=canny, param2=thresh)
+        if circs is None:
             return None
-        circs = np.asarray(storage)
         sz = circs.shape
         circle_fs = FeatureSet()
-        for i in range(sz[0]):
-            circle_fs.append(
-                Circle(self, int(circs[i][0][0]), int(circs[i][0][1]),
-                       int(circs[i][0][2])))
+        for circ in circs[0]:
+            circle_fs.append(Circle(self, int(circ[0]), int(circ[1]),
+                                    int(circ[2])))
         return circle_fs
 
     def white_balance(self, method="Simple"):
@@ -14576,8 +14576,7 @@ class Image(object):
         >>> edgeLines = image.edge_snap([(50, 50), (230, 200)])
         >>> edgeLines.draw(color=Color.YELLOW, width=3)
         """
-
-        img_array = self.get_gray_numpy()
+        img_array = self.get_gray_ndarray()
         c1 = np.count_nonzero(img_array)
         c2 = np.count_nonzero(img_array - 255)
 
@@ -14625,7 +14624,7 @@ class Image(object):
 
         """
 
-        edge_map = np.copy(self.get_gray_numpy())
+        edge_map = np.copy(self.get_gray_ndarray())
 
         #Size of the box around a point which is checked for edges.
         box = step * 4
@@ -14726,9 +14725,8 @@ class Image(object):
         Algorithm used: value = (MAX(R,G,B) + MIN(R,G,B))/2
 
         """
-        if self._colorSpace == ColorSpace.BGR \
-                or self._colorSpace == ColorSpace.UNKNOWN:
-            img_mat = np.array(self.get_numpy_cv2(), dtype=np.int)
+        if self.is_bgr() or self._colorSpace == ColorSpace.UNKNOWN:
+            img_mat = np.array(self._ndarray, dtype=np.int)
             ret_val = np.array((np.max(img_mat, 2) + np.min(img_mat, 2)) / 2,
                                dtype=np.uint8)
         else:
@@ -14762,9 +14760,8 @@ class Image(object):
         Algorithm used: value =  0.21 R + 0.71 G + 0.07 B
 
         """
-        if self._colorSpace == ColorSpace.BGR \
-                or self._colorSpace == ColorSpace.UNKNOWN:
-            img_mat = np.array(self.get_numpy_cv2(), dtype=np.int)
+        if self.is_bgr() or self._colorSpace == ColorSpace.UNKNOWN:
+            img_mat = np.array(self._ndarray, dtype=np.int)
             ret_val = np.array(np.average(img_mat, 2, (0.07, 0.71, 0.21)),
                                dtype=np.uint8)
         else:
@@ -14798,9 +14795,8 @@ class Image(object):
         Algorithm used: value =  (R+G+B)/3
 
         """
-        if self._colorSpace == ColorSpace.BGR \
-                or self._colorSpace == ColorSpace.UNKNOWN:
-            img_mat = np.array(self.get_numpy_cv2(), dtype=np.int)
+        if self.is_bgr() or self._colorSpace == ColorSpace.UNKNOWN:
+            img_mat = np.array(self._ndarray, dtype=np.int)
             ret_val = np.array(img_mat.mean(2), dtype=np.uint8)
         else:
             logger.warnings('Input a RGB image')
