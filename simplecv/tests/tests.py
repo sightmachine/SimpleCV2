@@ -1611,8 +1611,9 @@ def test_apply_binary_mask():
 def test_apply_pixel_func():
     img = Image(logo)
 
-    def myfunc((r, g, b)):
-        return b, g, r
+    def myfunc(pixels):
+        b, g, r = pixels
+        return r, g, b
 
     img = img.apply_pixel_function(myfunc)
     name_stem = "test_apply_pixel_func"

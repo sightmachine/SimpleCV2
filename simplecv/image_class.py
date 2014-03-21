@@ -1730,7 +1730,10 @@ class Image(object):
         :py:meth:`get_grayscale_matrix`
 
         """
-        raise Exception('Deprecated use np.zeros((h, w, 3), dtype=np.uint8)')
+        shape = [self.height, self.width]
+        if channels > 1:
+            shape.append(channels)
+        return np.zeros(shape, dtype=self.dtype)
 
     def get_bitmap(self):
         """
@@ -5076,7 +5079,7 @@ class Image(object):
 
         return self._edgeMap
 
-    def rotate(self, angle, fixed=True, point=[-1, -1], scale=1.0):
+    def rotate(self, angle, fixed=True, point=None, scale=1.0):
         """
         **SUMMARY***
 
@@ -5120,7 +5123,9 @@ class Image(object):
         :py:meth:`rotate90`
 
         """
-        if point[0] == -1 or point[1] == -1:
+        if point is None:
+            point = [-1, -1]
+        elif point[0] == -1 or point[1] == -1:
             point[0] = (self.width - 1) / 2
             point[1] = (self.height - 1) / 2
 
@@ -6252,11 +6257,11 @@ class Image(object):
         **EXAMPLE**
 
         >>> img = Image("Lenna")
-        >>> myLayer1 = DrawingLayer((img.width,img.height))
-        >>> myLayer2 = DrawingLayer((img.width,img.height))
+        >>> myLayer1 = DrawingLayer((img.width, img.height))
+        >>> myLayer2 = DrawingLayer((img.width, img.height))
         >>> #Draw on the layers
-        >>> img.insert_drawing_layer(myLayer1,1) # on top
-        >>> img.insert_drawing_layer(myLayer2,2) # on the bottom
+        >>> img.insert_drawing_layer(myLayer1, 1) # on top
+        >>> img.insert_drawing_layer(myLayer2, 2) # on the bottom
 
 
         **SEE ALSO**
@@ -7204,25 +7209,26 @@ class Image(object):
 
         if hue < 0 or hue > 180:
             logger.warning("Invalid hue color, valid hue range is 0 to 180.")
+            return None
 
-        if self._colorSpace != ColorSpace.HSV:
+        if not self.is_hsv():
             hsv = self.to_hsv()
         else:
-            hsv = self
-        h = hsv.get_empty(1)
-        s = hsv.get_empty(1)
-        ret_val = hsv.get_empty(1)
-        mask = hsv.get_empty(1)
-        cv.Split(hsv.get_bitmap(), h, None, s, None)
-        # thankfully we're not doing a LUT on saturation
-        hlut = np.zeros((256, 1), dtype=uint8)
+            hsv = self.copy()
+
+        h = hsv.get_ndarray()[:, :, 0]
+        v = hsv.get_ndarray()[:, :, 2]
+
+        hlut = np.zeros(256, dtype=np.uint8)
         if hue_lb is not None and hue_ub is not None:
             hlut[hue_lb:hue_ub] = 255
         else:
             hlut[hue] = 255
-        cv.LUT(h, mask, cv.fromarray(hlut))
-        cv.Copy(s, ret_val, mask)  # we'll save memory using hue
-        return Image(ret_val)
+
+        mask = cv2.LUT(h, hlut)[:, :, 0]
+        array = hsv.get_empty(1)
+        array = np.where(mask, v, array)
+        return Image(array, color_space=ColorSpace.GRAY)
 
     def apply_pixel_function(self, func):
         """
@@ -7243,7 +7249,8 @@ class Image(object):
         **EXAMPLE**
 
         >>> def derp(pixels):
-        >>>     return int(b*.2), int(r*.3), int(g*.5)
+        >>>     b, g, r = pixels
+        >>>     return int(b * .2), int(r * .3), int(g * .5)
         >>>
         >>> img = Image("lenna")
         >>> img2 = img.apply_pixel_function(derp)
@@ -7253,7 +7260,7 @@ class Image(object):
         # but I can get vectorize to work with the three channels together...
         # have to split them
         #TODO: benchmark this against vectorize
-        pixels = np.array(self.get_numpy()).reshape(-1, 3).tolist()
+        pixels = np.array(self._ndarray).reshape(-1, 3).tolist()
         result = np.array(map(func, pixels), dtype=uint8).reshape(
             self.width, self.height, 3)
         return Image(result)
@@ -7289,16 +7296,10 @@ class Image(object):
         """
 
         if tilted:
-            img2 = cv.CreateImage((self.width + 1, self.height + 1),
-                                  cv.IPL_DEPTH_32F, 1)
-            img3 = cv.CreateImage((self.width + 1, self.height + 1),
-                                  cv.IPL_DEPTH_32F, 1)
-            cv.Integral(self._get_grayscale_bitmap(), img3, None, img2)
+            _, _, array = cv2.integral3(self.get_gray_ndarray())
         else:
-            img2 = cv.CreateImage((self.width + 1, self.height + 1),
-                                  cv.IPL_DEPTH_32F, 1)
-            cv.Integral(self._get_grayscale_bitmap(), img2)
-        return np.array(cv.GetMat(img2))
+            array = cv2.integral(self.get_gray_ndarray())
+        return array
 
     def convolve(self, kernel=[[1, 0, 0], [0, 1, 0], [0, 0, 1]], center=None):
         """
