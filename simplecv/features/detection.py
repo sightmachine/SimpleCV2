@@ -11,11 +11,12 @@
 from copy import copy
 from math import atan2, sqrt, pi, sin, cos, radians
 
+import cv2
 import numpy as np
 import pickle
 import scipy.spatial.distance as spsd
 
-from simplecv.base import cv, logger
+from simplecv.base import logger
 from simplecv.color import Color
 from simplecv.features.features import Feature, FeatureSet
 from simplecv.image_class import Image
@@ -913,7 +914,7 @@ class Chessboard(Feature):
         drawing layer.
 
         """
-        cv.DrawChessboardCorners(self.image.get_bitmap(), self.dimensions,
+        cv2.drawChessboardCorners(self.image.get_ndarray(), self.dimensions,
                                  self.sp_corners, 1)
 
     def get_area(self):
@@ -1178,10 +1179,9 @@ class Circle(Feature):
         #generate the mask
         if self.avg_color is None:
             mask = self.image.get_empty(1)
-            cv.Zero(mask)
-            cv.Circle(mask, (self.x, self.y), self.r, color=(255, 255, 255),
-                      thickness=-1)
-            temp = cv.Avg(self.image.get_bitmap(), mask)
+            cv2.circle(mask, (self.x, self.y), self.r, color=(255, 255, 255),
+                       thickness=-1)
+            temp = cv2.mean(self.image.get_ndarray(), mask)
             self.avg_color = (temp[0], temp[1], temp[2])
         return self.avg_color
 
@@ -1274,13 +1274,12 @@ class Circle(Feature):
         else:
             mask = self.image.get_empty(1)
             result = self.image.get_empty()
-            cv.Zero(mask)
-            cv.Zero(result)
+
             # if you want to shave a bit of time we go do
             # the crop before the blit
-            cv.Circle(mask, (self.x, self.y), self.r, color=(255, 255, 255),
-                      thickness=-1)
-            cv.Copy(self.image.get_bitmap(), result, mask)
+            cv2.circle(mask, (self.x, self.y), self.r, color=(255, 255, 255),
+                       thickness=-1)
+            np.where(mask, self.image.get_ndarray(), result)
             ret_value = Image(result)
             ret_value = ret_value.crop(self.x, self.y, self.get_width(),
                                        self.get_height(), centered=True)
@@ -1468,10 +1467,9 @@ class KeyPoint(Feature):
         #generate the mask
         if self._avgColor is None:
             mask = self.image.get_empty(1)
-            cv.Zero(mask)
-            cv.Circle(mask, (int(self.x), int(self.y)), int(self._r),
-                      color=(255, 255, 255), thickness=-1)
-            temp = cv.Avg(self.image.get_bitmap(), mask)
+            cv2.circle(mask, (int(self.x), int(self.y)), int(self._r),
+                       color=(255, 255, 255), thickness=-1)
+            temp = cv2.mean(self.image.get_ndarray(), mask)
             self._avgColor = (temp[0], temp[1], temp[2])
         return self._avgColor
 
@@ -1548,13 +1546,12 @@ class KeyPoint(Feature):
         else:
             mask = self.image.get_empty(1)
             result = self.image.get_empty()
-            cv.Zero(mask)
-            cv.Zero(result)
+
             # if you want to shave a bit of time we go do
             # the crop before the blit
-            cv.Circle(mask, (int(self.x), int(self.y)), int(self._r),
-                      color=(255, 255, 255), thickness=-1)
-            cv.Copy(self.image.get_bitmap(), result, mask)
+            cv2.circle(mask, (int(self.x), int(self.y)), int(self._r),
+                       color=(255, 255, 255), thickness=-1)
+            np.where(mask, self.image.get_ndarray(), result)
             ret_value = Image(result)
             ret_value = ret_value.crop(self.x, self.y, self.get_width(),
                                        self.get_height(), centered=True)
@@ -1843,7 +1840,7 @@ class KeypointMatch(Feature):
             mask.dl().polygon(self._min_rect, color=Color.WHITE,
                               filled=pickle.TRUE)
             mask = mask.apply_layers()
-            ret_value = cv.Avg(raw.get_bitmap(), mask._get_grayscale_bitmap())
+            ret_value = cv2.mean(raw.get_ndarray(), mask._get_grayscale_bitmap())
             self._avg_color = ret_value
         else:
             ret_value = self._avg_color
