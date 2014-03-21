@@ -9,31 +9,32 @@
 # test_detection_lines().  This makes it easier to verify visually
 # that all the correct test per operation exist
 
+from math import sqrt
 import os
 import pickle
-from math import sqrt
 import tempfile
 
 from cv2 import cv
+from nose.tools import nottest
 import cv2
 import numpy as np
 
 from simplecv.base import logger, nparray_to_cvmat
+from simplecv.camera import FrameSource
 from simplecv.color import Color, ColorCurve, ColorMap
 from simplecv.color_model import ColorModel
-from simplecv.camera import FrameSource
+from simplecv.dft import DFT
 from simplecv.drawing_layer import DrawingLayer
-from simplecv.image_class import Image, ImageSet, ColorSpace
-from simplecv.features.features import FeatureSet
 from simplecv.features.blobmaker import BlobMaker
 from simplecv.features.detection import Corner, Line, ROI
-from simplecv.linescan import LineScan
-from simplecv.dft import DFT
-from simplecv.segmentation.color_segmentation import ColorSegmentation
-from simplecv.segmentation.running_segmentation import RunningSegmentation
-from simplecv.segmentation.diff_segmentation import DiffSegmentation
-from simplecv.features.haar_cascade import HaarCascade
 from simplecv.features.facerecognizer import FaceRecognizer
+from simplecv.features.features import FeatureSet
+from simplecv.features.haar_cascade import HaarCascade
+from simplecv.image_class import Image, ImageSet, ColorSpace
+from simplecv.linescan import LineScan
+from simplecv.segmentation.color_segmentation import ColorSegmentation
+from simplecv.segmentation.diff_segmentation import DiffSegmentation
+from simplecv.segmentation.running_segmentation import RunningSegmentation
 
 VISUAL_TEST = False  # if TRUE we save the images - otherwise we DIFF against
                      # them - the default is False
@@ -85,40 +86,47 @@ standard_path = "../data/test/standard/"
 
 
 #Given a set of images, a path, and a tolerance do the image diff.
+@nottest
 def img_diffs(test_imgs, name_stem, tolerance, path):
     count = len(test_imgs)
+    ret_val = False
     for idx in range(0, count):
         lhs = test_imgs[idx].apply_layers()  # this catches drawing methods
         if lhs.is_gray():
             lhs = lhs.to_bgr()
         fname = standard_path + name_stem + str(idx) + ".jpg"
         rhs = Image(fname)
-        if lhs.width == rhs.width and lhs.height == rhs.height:
-            diff = (lhs - rhs)
-            val = np.average(diff.get_ndarray())
-            if val > tolerance:
-                print val
-                return True
-    return False
+        if lhs.size() == rhs.size():
+            num_img_pixels = lhs.width * lhs.height * 3
+            diff = cv2.absdiff(lhs.get_ndarray(), rhs.get_ndarray())
+            diff_pixels = (diff > 0).astype(np.uint8)
+            diff_pixels_sum = diff_pixels.sum()
+            if diff_pixels_sum > 0:
+                percent_diff_pixels = diff_pixels_sum / num_img_pixels
+                print "{0:.2f}% difference".format(percent_diff_pixels * 100)
+                lhs = Image((diff_pixels * (0, 0, 255)).astype(np.uint8))
+                fname = standard_path + name_stem + str(idx) + "_DIFF.png"
+                lhs.save(fname)
+                ret_val = True
+    return ret_val
 
 
 #Save a list of images to a standard path.
+@nottest
 def img_saves(test_imgs, name_stem, path=standard_path):
     count = len(test_imgs)
     for idx in range(0, count):
-        fname = standard_path + name_stem + str(idx) + ".jpg"
-        test_imgs[idx].save(fname)  # ,quality=95)
+        fname = standard_path + name_stem + str(idx) + ".png"
+        test_imgs[idx].save(fname)
 
 
 #perform the actual image save and image diffs.
-def perform_diff(result, name_stem, tolerance=3.0, path=standard_path):
+@nottest
+def perform_diff(result, name_stem, tolerance=0.03, path=standard_path):
     if VISUAL_TEST:  # save the correct images for a visual test
         img_saves(result, name_stem, path)
     else:  # otherwise we test our output against the visual test
-        if img_diffs(result, name_stem, tolerance, path):
-            assert False
-        else:
-            pass
+        assert not img_diffs(result, name_stem, tolerance, path)
 
 
 def test_image_stretch():
@@ -1585,7 +1593,7 @@ def test_create_binary_mask():
     results.append(
         img2.create_binary_mask(color1=(0, 0, 128), color2=(255, 255, 255)))
 
-    name_stem = "test_create_binary_mask"
+    name_stem = "test_createBinaryMask"
     perform_diff(results, name_stem)
 
 
@@ -1596,7 +1604,7 @@ def test_apply_binary_mask():
     results.append(img.apply_binary_mask(mask))
     results.append(img.apply_binary_mask(mask, bg_color=Color.RED))
 
-    name_stem = "test_apply_binary_mask"
+    name_stem = "test_applyBinaryMask"
     perform_diff(results, name_stem, tolerance=3.0)
 
 

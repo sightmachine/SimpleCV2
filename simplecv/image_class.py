@@ -7067,7 +7067,7 @@ class Image(object):
 
         >>> img = Image("lenna")
         >>> mask = img.create_binary_mask(color1=(0, 128, 128),
-            ...                         color2=(255, 255, 255))
+        ...                               color2=(255, 255, 255))
         >>> mask.show()
 
         **SEE ALSO**
@@ -7078,6 +7078,10 @@ class Image(object):
         :py:meth:`threshold`
 
         """
+        if not self.is_bgr():
+            logger.warning("create_binary_mask works only with BGR image")
+            return None
+
         if color1[0] - color2[0] == 0 \
                 or color1[1] - color2[1] == 0 \
                 or color1[2] - color2[2] == 0:
@@ -7094,64 +7098,20 @@ class Image(object):
                            "outside of the range of 0 to 255")
             return None
 
-        r = self.get_empty(1)
-        g = self.get_empty(1)
-        b = self.get_empty(1)
+        # converting to BGR
+        color1 = tuple(reversed(color1))
+        color2 = tuple(reversed(color2))
 
-        rl = self.get_empty(1)
-        gl = self.get_empty(1)
-        bl = self.get_empty(1)
+        results = []
+        for index, color in enumerate(zip(color1, color2)):
+            chanel = (min(color) <= self._ndarray[:, :, index]) \
+                & (self._ndarray[:, :, index] <= max(color))
+            chanel = cv2.multiply(chanel.astype(np.uint8), np.array(255))
+            results.append(chanel)
 
-        rh = self.get_empty(1)
-        gh = self.get_empty(1)
-        bh = self.get_empty(1)
-
-        cv.Split(self.get_bitmap(), b, g, r, None)
-        #the difference == 255 case is where open CV
-        #kinda screws up, this should just be a white image
-        if abs(color1[0] - color2[0]) == 255:
-            cv.Zero(rl)
-            cv.AddS(rl, 255, rl)
-        #there is a corner case here where difference == 0
-        #right now we throw an error on this case.
-        #also we use the triplets directly as OpenCV is
-        # SUPER FINICKY about the type of the threshold.
-        elif color1[0] < color2[0]:
-            cv.Threshold(r, rl, color1[0], 255, cv.CV_THRESH_BINARY)
-            cv.Threshold(r, rh, color2[0], 255, cv.CV_THRESH_BINARY)
-            cv.Sub(rl, rh, rl)
-        else:
-            cv.Threshold(r, rl, color2[0], 255, cv.CV_THRESH_BINARY)
-            cv.Threshold(r, rh, color1[0], 255, cv.CV_THRESH_BINARY)
-            cv.Sub(rl, rh, rl)
-
-        if abs(color1[1] - color2[1]) == 255:
-            cv.Zero(gl)
-            cv.AddS(gl, 255, gl)
-        elif color1[1] < color2[1]:
-            cv.Threshold(g, gl, color1[1], 255, cv.CV_THRESH_BINARY)
-            cv.Threshold(g, gh, color2[1], 255, cv.CV_THRESH_BINARY)
-            cv.Sub(gl, gh, gl)
-        else:
-            cv.Threshold(g, gl, color2[1], 255, cv.CV_THRESH_BINARY)
-            cv.Threshold(g, gh, color1[1], 255, cv.CV_THRESH_BINARY)
-            cv.Sub(gl, gh, gl)
-
-        if abs(color1[2] - color2[2]) == 255:
-            cv.Zero(bl)
-            cv.AddS(bl, 255, bl)
-        elif color1[2] < color2[2]:
-            cv.Threshold(b, bl, color1[2], 255, cv.CV_THRESH_BINARY)
-            cv.Threshold(b, bh, color2[2], 255, cv.CV_THRESH_BINARY)
-            cv.Sub(bl, bh, bl)
-        else:
-            cv.Threshold(b, bl, color2[2], 255, cv.CV_THRESH_BINARY)
-            cv.Threshold(b, bh, color1[2], 255, cv.CV_THRESH_BINARY)
-            cv.Sub(bl, bh, bl)
-
-        cv.And(rl, gl, rl)
-        cv.And(rl, bl, rl)
-        return Image(rl)
+        array = cv2.bitwise_and(results[0], results[1])
+        array = cv2.bitwise_and(array, results[2]).astype(self.dtype)
+        return Image(array, color_space=ColorSpace.GRAY)
 
     def apply_binary_mask(self, mask, bg_color=Color.BLACK):
         """
@@ -7175,7 +7135,7 @@ class Image(object):
 
         >>> img = Image("lenna")
         >>> mask = img.create_binary_mask(color1=(0, 128, 128),
-            ...                         color2=(255, 255, 255))
+        ...                               color2=(255, 255, 255))
         >>> result = img.apply_binary_mask(mask)
         >>> result.show()
 
@@ -7188,18 +7148,17 @@ class Image(object):
         :py:meth:`threshold`
 
         """
-        new_canvas = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_8U,
-                                    3)
-        cv.SetZero(new_canvas)
-        new_bg = cv.RGB(bg_color[0], bg_color[1], bg_color[2])
-        cv.AddS(new_canvas, new_bg, new_canvas)
-        if mask.width != self.width or mask.height != self.height:
+        if self.size() != mask.size():
             logger.warning("Image.apply_binary_mask: your mask and image "
                            "don't match sizes, if the mask doesn't fit, you "
                            "can't apply it! Try using the scale function. ")
             return None
-        cv.Copy(self.get_bitmap(), new_canvas, mask.get_bitmap())
-        return Image(new_canvas, color_space=self._colorSpace)
+
+        array = np.zeros((self.height, self.width, 3), self.dtype)
+        array = cv2.add(array, np.array(tuple(reversed(bg_color)),
+                                        dtype=self.dtype))
+        array = cv2.bitwise_and(self._ndarray, array, mask=mask.get_ndarray())
+        return Image(array, color_space=self._colorSpace)
 
     def create_alpha_mask(self, hue=60, hue_lb=None, hue_ub=None):
         """
