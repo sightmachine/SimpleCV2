@@ -1,4 +1,5 @@
-from cv2 import cv
+import cv2
+import numpy as np
 
 from simplecv.features.blobmaker import BlobMaker
 from simplecv.image_class import Image
@@ -39,17 +40,18 @@ class RunningSegmentation(SegmentationBase):
 
         self.color_img = img
         if self.model_img is None:
-            self.model_img = Image(
-                cv.CreateImage((img.width, img.height), cv.IPL_DEPTH_32F, 3))
-            self.diff_img = Image(
-                cv.CreateImage((img.width, img.height), cv.IPL_DEPTH_32F, 3))
+            self.model_img = Image(img.get_empty(3).astype(np.float32))
+            self.diff_img = Image(img.get_empty(3).astype(np.float32))
+
         else:
             # do the difference
-            cv.AbsDiff(self.model_img.get_bitmap(), img.get_fp_matrix(),
-                       self.diff_img.get_bitmap())
+            self.diff_img._ndarray = cv2.absdiff(self.model_img.get_ndarray(),
+                                                 img.get_fp_ndarray())
+
             #update the model
-            cv.RunningAvg(img.get_fp_matrix(), self.model_img.get_bitmap(),
-                          self.alpha)
+            cv2.accumulateWeighted(img.get_fp_ndarray(),
+                                   self.model_img.get_ndarray(),
+                                   self.alpha)
             self.ready = True
 
     def is_ready(self):
@@ -114,10 +116,8 @@ class RunningSegmentation(SegmentationBase):
         """
         convert a 32bit floating point cv array to an int array
         """
-        temp = cv.CreateImage((img.width, img.height), cv.IPL_DEPTH_8U, 3)
-        cv.Convert(img.get_bitmap(), temp)
 
-        return Image(temp)
+        return Image(np.int8(img.get_ndarray()))
 
     def __getstate__(self):
         mydict = self.__dict__.copy()
