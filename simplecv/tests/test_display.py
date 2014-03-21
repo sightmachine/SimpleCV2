@@ -2,9 +2,8 @@
 # Run test just use:
 #   nosetest test_display.py
 
+import cv2
 import pickle
-
-from cv2 import cv
 import numpy as np
 
 from simplecv.camera import FrameSource
@@ -412,7 +411,7 @@ def test_color_curve_gray():
     y = np.array([[0, 0], [64, 128], [192, 128], [255, 255]])
     curve = ColorCurve(y)
     img = Image(testimage)
-    gray = img.grayscale()
+    gray = img.to_gray()
     img2 = img.apply_intensity_curve(curve)
 
     result = [img2]
@@ -565,8 +564,10 @@ def test_image_affine():
     src = ((0, 0), (img.width - 1, 0), (img.width - 1, img.height - 1))
     dst = ((img.width / 2, 0), (img.width - 1, img.height / 2),
            (img.width / 2, img.height - 1))
-    a_warp = cv.CreateMat(2, 3, cv.CV_32FC1)
-    cv.GetAffineTransform(src, dst, a_warp)
+    src = np.array(src).astype(np.float32)
+    dst = np.array(dst).astype(np.float32)
+
+    a_warp = cv2.getAffineTransform(src, dst)
     atrans = img.transform_affine(a_warp)
 
     a_warp2 = np.array(a_warp)
@@ -592,8 +593,10 @@ def test_image_perspective():
            (img.width * 0.9, img.height * 0.1),
            (img.width * 0.8, img.height * 0.7),
            (img.width * 0.2, img.height * 0.9))
-    p_warp = cv.CreateMat(3, 3, cv.CV_32FC1)
-    cv.GetPerspectiveTransform(src, dst, p_warp)
+    src = np.array(src).astype(np.float32)
+    dst = np.array(dst).astype(np.float32)
+
+    p_warp = cv2.getPerspectiveTransform(src, dst)
     ptrans = img.transform_perspective(p_warp)
 
     p_warp2 = np.array(p_warp)
@@ -1047,7 +1050,7 @@ def test_create_alpha_mask():
     name_stem = "test_create_alpha_mask"
     perform_diff(results, name_stem)
 
-
+aaa = """
 def test_blit_regular():
     top = Image(topImg)
     bottom = Image(bottomImg)
@@ -1792,3 +1795,4 @@ def test_lk():
         pass
     else:
         assert False
+"""
