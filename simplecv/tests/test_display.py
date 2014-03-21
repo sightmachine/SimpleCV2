@@ -1050,7 +1050,7 @@ def test_create_alpha_mask():
     name_stem = "test_create_alpha_mask"
     perform_diff(results, name_stem)
 
-aaa = """
+
 def test_blit_regular():
     top = Image(topImg)
     bottom = Image(bottomImg)
@@ -1795,4 +1795,3 @@ def test_lk():
         pass
     else:
         assert False
-"""
