@@ -7215,16 +7215,13 @@ class Image(object):
             hsv = self.to_hsv()
         else:
             hsv = self.copy()
-
         h = hsv.get_ndarray()[:, :, 0]
         v = hsv.get_ndarray()[:, :, 2]
-
         hlut = np.zeros(256, dtype=np.uint8)
         if hue_lb is not None and hue_ub is not None:
             hlut[hue_lb:hue_ub] = 255
         else:
             hlut[hue] = 255
-
         mask = cv2.LUT(h, hlut)[:, :, 0]
         array = hsv.get_empty(1)
         array = np.where(mask, v, array)
@@ -7261,8 +7258,8 @@ class Image(object):
         # have to split them
         #TODO: benchmark this against vectorize
         pixels = np.array(self._ndarray).reshape(-1, 3).tolist()
-        result = np.array(map(func, pixels), dtype=uint8).reshape(
-            self.width, self.height, 3)
+        result = np.array(map(func, pixels), dtype=uint8).reshape((
+            self.width, self.height, 3))
         return Image(result)
 
     def integral_image(self, tilted=False):
@@ -7301,7 +7298,7 @@ class Image(object):
             array = cv2.integral(self.get_gray_ndarray())
         return array
 
-    def convolve(self, kernel=[[1, 0, 0], [0, 1, 0], [0, 0, 1]], center=None):
+    def convolve(self, kernel=None, center=None):
         """
         **SUMMARY**
 
@@ -7311,8 +7308,7 @@ class Image(object):
 
         **PARAMETERS**
 
-        * *kernel* - The convolution kernel. As a cvArray, cvMat, or Numpy
-         Array.
+        * *kernel* - The convolution kernel. As list, set or Numpy Array.
         * *center* - If true we use the center of the kernel.
 
         **RETURNS**
@@ -7322,7 +7318,7 @@ class Image(object):
         **EXAMPLE**
 
         >>> img = Image("data/sampleimages/simplecv.png")
-        >>> kernel = [[1,0,0],[0,1,0],[0,0,1]]
+        >>> kernel = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
         >>> conv = img.convolve()
 
         **SEE ALSO**
@@ -7330,26 +7326,19 @@ class Image(object):
         http://en.wikipedia.org/wiki/Convolution
 
         """
-        if isinstance(kernel, list):
+        if kernel is None:
+            kernel = np.array(((1, 0, 0), (0, 1, 0), (0, 0, 1)))
+        elif isinstance(kernel, (list, set)):
             kernel = np.array(kernel)
-
-        if type(kernel) == np.ndarray:
-            sz = kernel.shape
-            kernel = kernel.astype(np.float32)
-            my_kernel = cv.CreateMat(sz[0], sz[1], cv.CV_32FC1)
-            cv.SetData(my_kernel, kernel.tostring(),
-                       kernel.dtype.itemsize * kernel.shape[1])
-        elif type(kernel) == cv.mat:
-            my_kernel = kernel
         else:
-            logger.warning("Convolution uses numpy arrays or cv.mat type.")
+            logger.warning("Image.convolve: kernel should be numpy array.")
             return None
-        ret_val = self.get_empty(3)
+
         if center is None:
-            cv.Filter2D(self.get_bitmap(), ret_val, my_kernel)
+            array = cv2.filter2D(self._ndarray, -1, kernel)
         else:
-            cv.Filter2D(self.get_bitmap(), ret_val, my_kernel, center)
-        return Image(ret_val)
+            array = cv2.filter2D(self._ndarray, -1, kernel, anchor=center)
+        return Image(array, color_space=self._colorSpace)
 
     def find_template(self, template_image=None, threshold=5,
                       method="SQR_DIFF_NORM", grayscale=True,
@@ -7399,7 +7388,7 @@ class Image(object):
         **EXAMPLE**
 
         >>> image = Image("/path/to/img.png")
-        >>> pattern_image = image.crop(100,100,100,100)
+        >>> pattern_image = image.crop(100, 100, 100, 100)
         >>> found_patterns = image.find_template(pattern_image)
         >>> found_patterns.draw()
         >>> image.show()
@@ -7412,11 +7401,9 @@ class Image(object):
         if template_image is None:
             logger.info("Need image for matching")
             return
-
         if template_image.width > self.width:
             logger.info("Image too wide")
             return
-
         if template_image.height > self.height:
             logger.info("Image too tall")
             return
@@ -7424,36 +7411,33 @@ class Image(object):
         check = 0  # if check = 0 we want maximal value, otherwise minimal
         # minimal
         if method is None or method == "" or method == "SQR_DIFF_NORM":
-            method = cv.CV_TM_SQDIFF_NORMED
+            method = cv2.TM_SQDIFF_NORMED
             check = 1
         elif method == "SQR_DIFF":  # minimal
-            method = cv.CV_TM_SQDIFF
+            method = cv2.TM_SQDIFF
             check = 1
         elif method == "CCOEFF":  # maximal
-            method = cv.CV_TM_CCOEFF
+            method = cv2.TM_CCOEFF
         elif method == "CCOEFF_NORM":  # maximal
-            method = cv.CV_TM_CCOEFF_NORMED
+            method = cv2.TM_CCOEFF_NORMED
         elif method == "CCORR":  # maximal
-            method = cv.CV_TM_CCORR
+            method = cv2.TM_CCORR
         elif method == "CCORR_NORM":  # maximal
-            method = cv.CV_TM_CCORR_NORMED
+            method = cv2.TM_CCORR_NORMED
         else:
             logger.warning("ooops.. I don't know what template matching "
                            "method you are looking for.")
             return None
-        #create new image for template matching computation
-        matches = cv.CreateMat((self.height - template_image.height + 1),
-                               (self.width - template_image.width + 1),
-                               cv.CV_32FC1)
 
         #choose template matching method to be used
         if grayscale:
-            cv.MatchTemplate(self._get_grayscale_bitmap(),
-                             template_image._get_grayscale_bitmap(), matches,
-                             method)
+            matches = cv2.matchTemplate(self.get_gray_ndarray(),
+                                        template_image.get_gray_ndarray(),
+                                        method)
         else:
-            cv.MatchTemplate(self.get_bitmap(), template_image.get_bitmap(),
-                             matches, method)
+            matches = cv2.matchTemplate(self._ndarray(),
+                                        template_image.get_ndarray(),
+                                        method)
         mean = np.mean(matches)
         sd = np.std(matches)
         if check > 0:
@@ -7488,9 +7472,7 @@ class Image(object):
             # rescale the resulting clusters to fit the template size
             for f in finalfs:
                 f.rescale(template_image.width, template_image.height)
-
             fs = finalfs
-
         return fs
 
     def find_template_once(self, template_image=None, threshold=0.2,
@@ -7539,11 +7521,9 @@ class Image(object):
         if template_image is None:
             logger.info("Need image for template matching.")
             return
-
         if template_image.width > self.width:
             logger.info("Template image is too wide for the given image.")
             return
-
         if template_image.height > self.height:
             logger.info("Template image too tall for the given image.")
             return
@@ -7551,38 +7531,31 @@ class Image(object):
         check = 0  # if check = 0 we want maximal value, otherwise minimal
         # minimal
         if method is None or method == "" or method == "SQR_DIFF_NORM":
-            method = cv.CV_TM_SQDIFF_NORMED
+            method = cv2.TM_SQDIFF_NORMED
             check = 1
         elif method == "SQR_DIFF":  # minimal
-            method = cv.CV_TM_SQDIFF
+            method = cv2.TM_SQDIFF
             check = 1
         elif method == "CCOEFF":  # maximal
-            method = cv.CV_TM_CCOEFF
+            method = cv2.TM_CCOEFF
         elif method == "CCOEFF_NORM":  # maximal
-            method = cv.CV_TM_CCOEFF_NORMED
+            method = cv2.TM_CCOEFF_NORMED
         elif method == "CCORR":  # maximal
-            method = cv.CV_TM_CCORR
+            method = cv2.TM_CCORR
         elif method == "CCORR_NORM":  # maximal
-            method = cv.CV_TM_CCORR_NORMED
+            method = cv2.TM_CCORR_NORMED
         else:
             logger.warning("ooops.. I don't know what template matching "
                            "method you are looking for.")
             return None
-        #create new image for template matching computation
-        matches = cv.CreateMat((self.height - template_image.height + 1),
-                               (self.width - template_image.width + 1),
-                               cv.CV_32FC1)
-
         #choose template matching method to be used
         if grayscale:
-            cv.MatchTemplate(self._get_grayscale_bitmap(),
-                             template_image._get_grayscale_bitmap(), matches,
-                             method)
+            matches = cv2.matchTemplate(self.get_gray_ndarray(),
+                                        template_image.get_gray_ndarray(),
+                                        method)
         else:
-            cv.MatchTemplate(self.get_bitmap(), template_image.get_bitmap(),
-                             matches, method)
-        mean = np.mean(matches)
-        sd = np.std(matches)
+            matches = cv2.matchTemplate(self._ndarray,
+                                        template_image.get_ndarray(), method)
         if check > 0:
             if np.min(matches) <= threshold:
                 compute = np.where(matches == np.min(matches))
@@ -7599,7 +7572,6 @@ class Image(object):
             fs.append(
                 TemplateMatch(self, template_image, (location[1], location[0]),
                               matches[location[0], location[1]]))
-
         return fs
 
     def read_text(self):
@@ -12648,7 +12620,7 @@ class Image(object):
         if bins <= 0:
             raise Exception("Not enough bins")
 
-        img = self.get_gray_numpy()
+        img = self.get_gray_ndarray()
         pts = np.where(img > threshold)
         y = pts[1]
         hist = np.histogram(y, bins=bins, range=(0, self.height),
@@ -12714,7 +12686,7 @@ class Image(object):
         if bins <= 0:
             raise Exception("Not enough bins")
 
-        img = self.get_gray_numpy()
+        img = self.get_gray_ndarray()
         pts = np.where(img > threshold)
         x = pts[0]
         hist = np.histogram(x, bins=bins, range=(0, self.width),
@@ -12766,10 +12738,10 @@ class Image(object):
         """
 
         if channel == -1:
-            img = self.get_gray_numpy()
+            img = self.get_gray_ndarray()
         else:
             try:
-                img = self.get_numpy()[:, :, channel]
+                img = self._ndarray[:, :, channel]
             except IndexError:
                 print 'Channel missing!'
                 return None
@@ -12808,7 +12780,6 @@ class Image(object):
                     "ImageClass.get_line_scan - that is not valid scanline.")
                 return None
 
-            pass
         elif isinstance(pt1, (tuple, list)) and isinstance(pt2, (tuple, list))\
                 and len(pt1) == 2 and len(pt2) == 2 \
                 and x is None and y is None:

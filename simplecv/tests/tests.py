@@ -1495,16 +1495,13 @@ def test_template_match_once():
     template = Image("../data/sampleimages/template.png")
     t = 2
     fs = source.find_template_once(template, threshold=t)
-    if len(fs) == 0:
-        assert False
+    assert len(fs) != 0
 
     fs = source.find_template_once(template, threshold=t, grayscale=False)
-    if len(fs) == 0:
-        assert False
+    assert len(fs) != 0
 
     fs = source.find_template_once(template, method='CCORR_NORM')
-    if len(fs) == 0:
-        assert False
+    assert len(fs) != 0
 
 
 def test_template_match_rgb():
@@ -3722,10 +3719,7 @@ def test_linescan_convolve():
     img = Image("lenna")
     l1 = img.get_line_scan(x=400)
     l2 = l1.convolve(kernel)
-    if line_scan_perform_diff(l1, l2, LineScan.convolve, kernel=kernel):
-        pass
-    else:
-        assert False
+    assert line_scan_perform_diff(l1, l2, LineScan.convolve, kernel=kernel)
 
 
 def test_linescan_threshold():
