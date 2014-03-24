@@ -7726,9 +7726,12 @@ class Image(object):
         >>> img2 = img.white_balance()
 
         """
-        img = self
+        if not self.is_bgr():
+            logger.warning("Image.white_balance: works only with BGR image")
+            return None
+
         if method == "GrayWorld":
-            avg = cv.Avg(img.get_bitmap())
+            avg = cv2.mean(self._ndarray)
             bf = float(avg[0])
             gf = float(avg[1])
             rf = float(avg[2])
@@ -7748,43 +7751,35 @@ class Image(object):
             else:
                 r_factor = af / rf
 
-            b = img.get_empty(1)
-            g = img.get_empty(1)
-            r = img.get_empty(1)
-            cv.Split(self.get_bitmap(), b, g, r, None)
-            bfloat = cv.CreateImage((img.width, img.height),
-                                    cv.IPL_DEPTH_32F, 1)
-            gfloat = cv.CreateImage((img.width, img.height),
-                                    cv.IPL_DEPTH_32F, 1)
-            rfloat = cv.CreateImage((img.width, img.height),
-                                    cv.IPL_DEPTH_32F, 1)
+            b = self._ndarray[:, :, 0]
+            g = self._ndarray[:, :, 1]
+            r = self._ndarray[:, :, 2]
 
-            cv.ConvertScale(b, bfloat, b_factor)
-            cv.ConvertScale(g, gfloat, g_factor)
-            cv.ConvertScale(r, rfloat, r_factor)
+            bfloat = cv2.convertScaleAbs(b.astype(np.float32), alpha=b_factor)
+            gfloat = cv2.convertScaleAbs(g.astype(np.float32), alpha=r_factor)
+            rfloat = cv2.convertScaleAbs(r.astype(np.float32), alpha=g_factor)
 
-            (min_b, max_b, min_b_loc, max_b_loc) = cv.MinMaxLoc(bfloat)
-            (min_g, max_g, min_g_loc, max_g_loc) = cv.MinMaxLoc(gfloat)
-            (min_r, max_r, min_r_loc, max_r_loc) = cv.MinMaxLoc(rfloat)
+            (min_b, max_b, min_b_loc, max_b_loc) = cv2.minMaxLoc(bfloat)
+            (min_g, max_g, min_g_loc, max_g_loc) = cv2.minMaxLoc(gfloat)
+            (min_r, max_r, min_r_loc, max_r_loc) = cv2.minMaxLoc(rfloat)
             scale = max([max_r, max_g, max_b])
             sfactor = 1.00
             if scale > 255:
                 sfactor = 255.00 / float(scale)
 
-            cv.ConvertScale(bfloat, b, sfactor)
-            cv.ConvertScale(gfloat, g, sfactor)
-            cv.ConvertScale(rfloat, r, sfactor)
+            b = cv2.convertScaleAbs(bfloat, alpha=sfactor)
+            g = cv2.convertScaleAbs(gfloat, alpha=sfactor)
+            r = cv2.convertScaleAbs(rfloat, alpha=sfactor)
 
-            ret_val = img.get_empty()
-            cv.Merge(b, g, r, None, ret_val)
-            ret_val = Image(ret_val)
+            array = np.dstack((b, g, r)).astype(self.dtype)
+            return Image(array, color_space=ColorSpace.BGR)
         elif method == "Simple":
             thresh = 0.003
-            sz = img.width * img.height
-            temp_mat = img.get_numpy()
-            bcf = sss.cumfreq(temp_mat[:, :, 0], numbins=256)
-            bcf = bcf[
-                0]  # get our cumulative histogram of values for this color
+            sz = self.width * self.height
+            temp_mat = self._ndarray
+            bcf = sss.cumfreq(self._ndarray[:, :, 0], numbins=256)
+            # get our cumulative histogram of values for this color
+            bcf = bcf[0]
 
             blb = -1  # our upper bound
             bub = 256  # our lower bound
@@ -7798,7 +7793,7 @@ class Image(object):
                 bub = bub - 1
                 upper_thresh = (sz - bcf[bub]) / sz
 
-            gcf = sss.cumfreq(temp_mat[:, :, 1], numbins=256)
+            gcf = sss.cumfreq(self._ndarray[:, :, 1], numbins=256)
             gcf = gcf[0]
             glb = -1  # our upper bound
             gub = 256  # our lower bound
@@ -7812,7 +7807,7 @@ class Image(object):
                 gub = gub - 1
                 upper_thresh = (sz - gcf[gub]) / sz
 
-            rcf = sss.cumfreq(temp_mat[:, :, 2], numbins=256)
+            rcf = sss.cumfreq(self._ndarray[:, :, 2], numbins=256)
             rcf = rcf[0]
             rlb = -1  # our upper bound
             rub = 256  # our lower bound
@@ -7858,8 +7853,7 @@ class Image(object):
                 else:
                     bf = ((float(i) - blbf) * 255.00 / (bubf - blbf))
                     b_lut[i][0] = int(bf)
-            ret_val = img.apply_lut(b_lut, r_lut, g_lut)
-        return ret_val
+            return self.apply_lut(b_lut, r_lut, g_lut)
 
     def apply_lut(self, r_lut=None, b_lut=None, g_lut=None):
         """
@@ -7872,9 +7866,9 @@ class Image(object):
 
         **PARAMETERS**
 
-        * *r_lut* - a tuple or np.array of size (256x1) with dtype=uint8.
-        * *g_lut* - a tuple or np.array of size (256x1) with dtype=uint8.
-        * *b_lut* - a tuple or np.array of size (256x1) with dtype=uint8.
+        * *r_lut* - np.array of size (256x1) with dtype=uint8.
+        * *g_lut* - np.array of size (256x1) with dtype=uint8.
+        * *b_lut* - np.array of size (256x1) with dtype=uint8.
 
         .. warning::
           The dtype is very important. Will throw the following error without
@@ -7900,19 +7894,20 @@ class Image(object):
         This method seems to error on the LUT map for some versions of OpenCV.
         I am trying to figure out why. -KAS
         """
-        r = self.get_empty(1)
-        g = self.get_empty(1)
-        b = self.get_empty(1)
-        cv.Split(self.get_bitmap(), b, g, r, None)
+        if not self.is_bgr():
+            logger.warning("Image.apply_lut: works only with BGR image")
+            return None
+        b = self._ndarray[:, :, 0]
+        g = self._ndarray[:, :, 1]
+        r = self._ndarray[:, :, 2]
         if r_lut is not None:
-            cv.LUT(r, r, cv.fromarray(r_lut))
+            r = cv2.LUT(r, r_lut)
         if g_lut is not None:
-            cv.LUT(g, g, cv.fromarray(g_lut))
+            g = cv2.LUT(g, g_lut)
         if b_lut is not None:
-            cv.LUT(b, b, cv.fromarray(b_lut))
-        temp = self.get_empty()
-        cv.Merge(b, g, r, None, temp)
-        return Image(temp)
+            b = cv2.LUT(b, b_lut)
+        array = np.dstack((b, g, r))
+        return Image(array, color_space=self._colorSpace)
 
     def _get_raw_keypoints(self, thresh=500.00, flavor="SURF", highquality=1,
                            force_reset=False):

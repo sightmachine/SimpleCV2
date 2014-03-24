@@ -105,8 +105,8 @@ def img_diffs(test_imgs, name_stem, tolerance, path):
                 percent_diff_pixels = diff_pixels_sum / num_img_pixels
                 print "{0:.2f}% difference".format(percent_diff_pixels * 100)
                 lhs = Image((diff_pixels * (0, 0, 255)).astype(np.uint8))
-                fname = standard_path + name_stem + str(idx) + "_DIFF.png"
-                lhs.save(fname)
+                lhs.save(fname[:-4] + "_DIFF.png")
+                rhs.save(fname[:-4] + "_RESULT.png")
                 ret_val = True
     return ret_val
 
