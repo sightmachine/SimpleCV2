@@ -8014,20 +8014,6 @@ class Image(object):
                                         minDist=0.15, width=1)
 
         """
-        try:
-            import cv2
-
-            ver = cv2.__version__
-            new_version = 0
-            # For OpenCV versions till 2.4.0,  cv2.__versions__
-            # are of the form "$Rev: 4557 $"
-            if not ver.startswith('$Rev:'):
-                if int(ver.replace('.', '0')) >= 20400:
-                    new_version = 1
-        except:
-            warnings.warn("Can't run Keypoints without OpenCV >= 2.3.0")
-            return None, None
-
         if force_reset:
             self._mKeyPoints = None
             self._mKPDescriptors = None
@@ -8048,13 +8034,8 @@ class Image(object):
                 # cv2.SURF(hessianThreshold, nOctaves,
                 #          nOctaveLayers, extended, upright)
                 detector = cv2.SURF(thresh, 4, 2, highquality, 1)
-                if new_version == 0:
-                    self._mKeyPoints, self._mKPDescriptors = detector.detect(
-                        self.get_gray_numpy(), None, False)
-                else:
-                    self._mKeyPoints, self._mKPDescriptors = \
-                        detector.detectAndCompute(self.get_gray_numpy(),
-                                                  None, False)
+                self._mKeyPoints, self._mKPDescriptors = \
+                    detector.detect(self.get_gray_ndarray(), None, False)
                 if len(self._mKeyPoints) == 0:
                     return None, None
                 if highquality == 1:
@@ -8067,36 +8048,33 @@ class Image(object):
             elif flavor in _descriptors:
                 detector = getattr(cv2, flavor)()
                 self._mKeyPoints, self._mKPDescriptors = \
-                    detector.detectAndCompute(self.get_gray_numpy(), None,
+                    detector.detectAndCompute(self.get_gray_ndarray(), None,
                                               False)
             elif flavor == "MSER":
                 if hasattr(cv2, "FeatureDetector_create"):
                     detector = cv2.FeatureDetector_create("MSER")
-                    self._mKeyPoints = detector.detect(self.get_gray_numpy())
+                    self._mKeyPoints = detector.detect(self.get_gray_ndarray())
         elif flavor == "STAR":
             detector = cv2.StarDetector()
-            self._mKeyPoints = detector.detect(self.get_gray_numpy())
+            self._mKeyPoints = detector.detect(self.get_gray_ndarray())
         elif flavor == "FAST":
             if not hasattr(cv2, "FastFeatureDetector"):
                 warnings.warn("You need OpenCV >= 2.4.0 to support FAST")
                 return None, None
             detector = cv2.FastFeatureDetector(int(thresh), True)
-            self._mKeyPoints = detector.detect(self.get_gray_numpy(), None)
+            self._mKeyPoints = detector.detect(self.get_gray_ndarray(), None)
         elif hasattr(cv2, "FeatureDetector_create"):
             if flavor in _descriptors:
                 extractor = cv2.DescriptorExtractor_create(flavor)
                 if flavor == "FREAK":
-                    if new_version == 0:
-                        warnings.warn(
-                            "You need OpenCV >= 2.4.3 to support FAST")
                     flavor = "SIFT"
                 detector = cv2.FeatureDetector_create(flavor)
-                self._mKeyPoints = detector.detect(self.get_gray_numpy())
+                self._mKeyPoints = detector.detect(self.get_gray_ndarray())
                 self._mKeyPoints, self._mKPDescriptors = extractor.compute(
-                    self.get_gray_numpy(), self._mKeyPoints)
+                    self.get_gray_ndarray(), self._mKeyPoints)
             else:
                 detector = cv2.FeatureDetector_create(flavor)
-                self._mKeyPoints = detector.detect(self.get_gray_numpy())
+                self._mKeyPoints = detector.detect(self.get_gray_ndarray())
         else:
             warnings.warn("simplecv can't seem to find appropriate function "
                           "with your OpenCV version.")
@@ -8319,15 +8297,9 @@ class Image(object):
         :py:meth:`find_keypoints`
 
         """
-        try:
-            import cv2
-        except:
-            warnings.warn("Can't Match Keypoints without OpenCV >= 2.3.0")
-            return
-
         if template is None:
             return None
-        fs = FeatureSet()
+
         skp, sd = self._get_raw_keypoints(quality)
         tkp, td = template._get_raw_keypoints(quality)
         if skp is None or tkp is None:
@@ -8360,7 +8332,6 @@ class Image(object):
             lhs_pt = np.array(lhs)
             if len(rhs_pt) < 16 or len(lhs_pt) < 16:
                 return None
-            homography = []
             (homography, mask) = cv2.findHomography(lhs_pt, rhs_pt, cv2.RANSAC,
                                                     ransacReprojThreshold=1.0)
             w = template.width
@@ -8487,15 +8458,9 @@ class Image(object):
         :py:meth:`find_keypoints`
 
         """
-        try:
-            import cv2
-        except:
-            logger.warning("Can't use Keypoints without OpenCV >= 2.3.0")
-            return None
 
         fs = FeatureSet()
-        kp = []
-        d = []
+
         if highquality:
             kp, d = self._get_raw_keypoints(thresh=min_quality,
                                             force_reset=True,

@@ -2000,12 +2000,6 @@ def test_keypoint_extraction():
 
 
 def test_keypoint_match():
-    try:
-        import cv2
-    except:
-        pass
-        return
-
     template = Image("../data/sampleimages/KeypointTemplate2.png")
     match0 = Image("../data/sampleimages/kptest0.png")
     match1 = Image("../data/sampleimages/kptest1.png")
@@ -2041,16 +2035,10 @@ def test_keypoint_match():
 
 
 def test_draw_keypoint_matches():
-    try:
-        import cv2
-    except:
-        pass
-        return
     template = Image("../data/sampleimages/KeypointTemplate2.png")
     match0 = Image("../data/sampleimages/kptest0.png")
     result = match0.draw_keypoint_matches(template, thresh=500.00,
                                           min_dist=0.15, width=1)
-
     results = [result]
     name_stem = "test_draw_keypoint_matches"
     perform_diff(results, name_stem, tolerance=4.0)
