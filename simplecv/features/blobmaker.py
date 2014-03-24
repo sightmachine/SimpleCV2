@@ -1,6 +1,7 @@
 import sys
 import warnings
 
+import cv2
 from cv2 import cv
 import numpy as np
 
@@ -20,7 +21,7 @@ class BlobMaker(object):
     """
 
     def __init__(self):
-        self.mem_storage = cv.CreateMemStorage()
+        pass
 
     def extract_using_model(self, img, colormodel, minsize=10, maxsize=0):
         """
@@ -108,9 +109,9 @@ class BlobMaker(object):
         if test[0] <= ptest and test[1] <= ptest and test[2] <= ptest:
             return ret_value
 
-        seq = cv.FindContours(binary_img._get_grayscale_bitmap(),
-                              self.mem_storage, cv.CV_RETR_TREE,
-                              cv.CV_CHAIN_APPROX_SIMPLE)
+        seq, _ = cv2.findContours(binary_img.get_gray_ndarray(),
+                                  cv2.RETR_TREE,
+                                  cv2.CHAIN_APPROX_SIMPLE)
         if not list(seq):
             warnings.warn("Unable to find Blobs. Retuning Empty FeatureSet.")
             return FeatureSet([])
@@ -176,7 +177,7 @@ class BlobMaker(object):
         """
         if seq is None or not len(seq):
             return None
-        area = cv.ContourArea(seq)
+        area = cv2.contourArea(seq)
         if area < minsize or area > maxsize:
             return None
 
@@ -184,26 +185,22 @@ class BlobMaker(object):
         ret_value.image = color
         ret_value.area = area
 
-        ret_value.min_rectangle = cv.MinAreaRect2(seq)
-        bbr = cv.BoundingRect(seq)
+        ret_value.min_rectangle = cv2.minAreaRect(seq)
+        bbr = cv2.boundingRect(seq)
         ret_value.x = bbr[0] + (bbr[2] / 2)
         ret_value.y = bbr[1] + (bbr[3] / 2)
-        ret_value.perimeter = cv.ArcLength(seq)
+        ret_value.perimeter = cv2.arcLength(seq, closed=-1)
         if seq is not None:  # KAS
             ret_value.contour = list(seq)
-            try:
-                import cv2
 
-                if ret_value.contour is not None:
-                    ret_value.contour_appx = []
-                    appx = cv2.approxPolyDP(
-                        np.array([ret_value.contour], 'float32'), appx_level,
-                        True)
-                    for p in appx:
-                        ret_value.contour_appx.append(
-                            (int(p[0][0]), int(p[0][1])))
-            except:
-                pass
+            if ret_value.contour is not None:
+                ret_value.contour_appx = []
+                appx = cv2.approxPolyDP(
+                    np.array([ret_value.contour], 'float32'), appx_level,
+                    True)
+                for p in appx:
+                    ret_value.contour_appx.append(
+                        (int(p[0][0]), int(p[0][1])))
 
         # so this is a bit hacky....
 
@@ -220,10 +217,10 @@ class BlobMaker(object):
         ret_value.points = [(xx, yy), (xx + ww, yy), (xx + ww, yy + hh),
                             (xx, yy + hh)]
         ret_value._update_extents()
-        chull = cv.ConvexHull2(seq, cv.CreateMemStorage(), return_points=1)
+        chull = cv2.convexHull(seq, return_points=1)
         ret_value.convex_hull = list(chull)
         # KAS -- FLAG FOR REPLACE 6/6/2012
-        #get_hull_mask = self._get_hull_mask(chull,bb)
+        #get_hull_mask = self._get_hull_mask(chull)
 
         # KAS -- FLAG FOR REPLACE 6/6/2012
         # ret_value.hull_img = self._get_blob_as_image(chull,bb,
@@ -235,20 +232,21 @@ class BlobMaker(object):
 
         del chull
 
-        moments = cv.Moments(seq)
+        moments = cv2.moments(seq)
 
         #This is a hack for a python wrapper bug that was missing
         #the constants required from the ctype
         ret_value.m00 = area
         try:
-            ret_value.m10 = moments.m10
-            ret_value.m01 = moments.m01
-            ret_value.m11 = moments.m11
-            ret_value.m20 = moments.m20
-            ret_value.m02 = moments.m02
-            ret_value.m21 = moments.m21
-            ret_value.m12 = moments.m12
+            ret_value.m10 = moments.get('m10')
+            ret_value.m01 = moments.get('m01')
+            ret_value.m11 = moments.get('m11')
+            ret_value.m20 = moments.get('m20')
+            ret_value.m02 = moments.get('m02')
+            ret_value.m21 = moments.get('m21')
+            ret_value.m12 = moments.get('m12')
         except:
+            #FIXME: can't find this
             ret_value.m10 = cv.GetSpatialMoment(moments, 1, 0)
             ret_value.m01 = cv.GetSpatialMoment(moments, 0, 1)
             ret_value.m11 = cv.GetSpatialMoment(moments, 1, 1)
@@ -257,13 +255,13 @@ class BlobMaker(object):
             ret_value.m21 = cv.GetSpatialMoment(moments, 2, 1)
             ret_value.m12 = cv.GetSpatialMoment(moments, 1, 2)
 
-        ret_value.hu = cv.GetHuMoments(moments)
+        ret_value.hu = cv2.HuMoments(moments)
 
         # KAS -- FLAG FOR REPLACE 6/6/2012
-        mask = self._get_mask(seq, bbr)
+        mask = self._get_mask(seq)
         #ret_value.mask = Image(mask)
 
-        ret_value.avg_color = self._get_avg(color.get_bitmap(), bbr, mask)
+        ret_value.avg_color = self._get_avg(color.get_ndarray(), bbr, mask)
         ret_value.avg_color = ret_value.avg_color[0:3]
         #ret_value.avg_color = self._get_avg(color.get_bitmap(),
         #                                    ret_value.bounding_box, mask)
@@ -297,37 +295,35 @@ class BlobMaker(object):
         return ret_value
 
     @staticmethod
-    def _get_mask(seq, bb):
+    def _get_mask(seq):
         """
         Return a binary image of a particular get_contour sequence.
         """
-        #bb = cv.BoundingRect(seq)
-        mask = cv.CreateImage((bb[2], bb[3]), cv.IPL_DEPTH_8U, 1)
-        cv.Zero(mask)
-        cv.DrawContours(mask, seq, 255, 0, 0, thickness=-1,
-                        offset=(-1 * bb[0], -1 * bb[1]))
+        bbr = cv2.boundingRect(seq)
+        mask = np.zeros((bbr[2], bbr[3]), dtype='uint8')
+        cv2.drawContours(mask, seq, 255, 0, thickness=-1, maxLevel=0,
+                         offset=(-1 * bbr[0], -1 * bbr[1]))
         holes = seq.v_next()
         if holes is not None:
-            cv.DrawContours(mask, holes, 0, 255, 0, thickness=-1,
-                            offset=(-1 * bb[0], -1 * bb[1]))
+            cv2.drawContours(mask, holes, 0, 255, thickness=-1, maxLevel=0,
+                            offset=(-1 * bbr[0], -1 * bbr[1]))
             while holes.h_next() is not None:
                 holes = holes.h_next()
                 if holes is not None:
-                    cv.DrawContours(mask, holes, 0, 255, 0, thickness=-1,
-                                    offset=(-1 * bb[0], -1 * bb[1]))
+                    cv2.drawContours(mask, holes, 0, 255, 0,
+                                     thickness=-1, maxLevel=0,
+                                     offset=(-1 * bbr[0], -1 * bbr[1]))
         return mask
 
     @staticmethod
-    def _get_hull_mask(hull, bb):
+    def _get_hull_mask(hull):
         """
         Return a mask of the convex hull of a blob.
         """
-        # FIXME: argument bb conflicts with bb = cv.BoundingRect(hull)
-        bb = cv.BoundingRect(hull)
-        mask = cv.CreateImage((bb[2], bb[3]), cv.IPL_DEPTH_8U, 1)
-        cv.Zero(mask)
-        cv.DrawContours(mask, hull, 255, 0, 0, thickness=-1,
-                        offset=(-1 * bb[0], -1 * bb[1]))
+        bbr = cv2.boundingRect(hull)
+        mask = np.zeros((bbr[2], bbr[3]), dtype='uint8')
+        cv2.drawContours(mask, hull, 255, 0, thickness=-1, maxLevel=0,
+                        offset=(-1 * bbr[0], -1 * bbr[1]))
         return mask
 
     @staticmethod
@@ -335,21 +331,23 @@ class BlobMaker(object):
         """
         Calculate the average color of a blob given the mask.
         """
-        cv.SetImageROI(colorbitmap, bb)
+        #FIXME: SetImageROI and ResetImageROI deprecated?
+        #bloob field from colorbitmap should be extracted?
+        #cv.SetImageROI(colorbitmap, bb)
         #may need the offset parameter
-        avg = cv.Avg(colorbitmap, mask)
-        cv.ResetImageROI(colorbitmap)
+        avg = cv2.mean(colorbitmap, mask)
+        #cv.ResetImageROI(colorbitmap)
         return avg
 
     @staticmethod
-    def _get_blob_as_image(seq, bb, colorbitmap, mask):
+    def _get_blob_as_image(seq, bbr, colorbitmap, mask):
         """
         Return an image that contains just pixels defined by the blob sequence.
         """
-        # FIXME: unused argument 'seq'
-        cv.SetImageROI(colorbitmap, bb)
-        output_img = cv.CreateImage((bb[2], bb[3]), cv.IPL_DEPTH_8U, 3)
-        cv.Zero(output_img)
-        cv.Copy(colorbitmap, output_img, mask)
-        cv.ResetImageROI(colorbitmap)
+        # FIXME: rewrite to cv2.copyMakeborder
+        #cv.SetImageROI(colorbitmap, bb)
+        output_img = mask = np.zeros((bbr[2], bbr[3]), dtype='uint8')
+        #cv.Zero(output_img)
+        #cv.Copy(colorbitmap, output_img, mask)
+        #cv.ResetImageROI(colorbitmap)
         return Image(output_img)

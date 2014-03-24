@@ -170,11 +170,11 @@ class FrameSource(object):
                             images to perform camera calibration!")
 
         # creation of memory storages
-        image_points = cv.CreateMat(n_boards * board_n, 2, cv2.cv.CV_32FC1)
-        object_points = cv.CreateMat(n_boards * board_n, 3, cv2.cv.CV_32FC1)
-        point_counts = cv.CreateMat(n_boards, 1, cv2.cv.CV_32SC1)
-        intrinsic_matrix = cv.CreateMat(3, 3, cv2.cv.CV_32FC1)
-        distortion_coefficient = cv.CreateMat(5, 1, cv2.cv.CV_32FC1)
+        image_points = cv.CreateMat(n_boards * board_n, 2, cv2.CV_32FC1)
+        object_points = cv.CreateMat(n_boards * board_n, 3, cv2.CV_32FC1)
+        point_counts = cv.CreateMat(n_boards, 1, cv2.CV_32SC1)
+        #intrinsic_matrix = cv.CreateMat(3, 3, cv2.CV_32FC1)
+        #distortion_coefficient = cv.CreateMat(5, 1, cv2.CV_32FC1)
 
         # capture frames of specified properties
         # and modification of matrix values
@@ -187,8 +187,8 @@ class FrameSource(object):
             _, corners = cv2.findChessboardCorners(
                 img.get_grayscale_matrix(),
                 board_sz,
-                cv2.cv.CV_CALIB_CB_ADAPTIVE_THRESH |
-                cv2.cv.CV_CALIB_CB_FILTER_QUADS)
+                cv2.CALIB_CB_ADAPTIVE_THRESH |
+                cv2.CALIB_CB_FILTER_QUADS)
             corners = cv2.cornerSubPix(img.get_grayscale_matrix(),
                                        corners, (11, 11), (-1, -1),
                                        (cv2.cv.CV_TERMCRIT_EPS +
@@ -220,8 +220,8 @@ class FrameSource(object):
                            "for calibration we recommend at least %d",
                            successes, warn_thresh)
 
-        object_points2 = cv.CreateMat(successes * board_n, 3, cv2.cv.CV_32FC1)
-        image_points2 = cv.CreateMat(successes * board_n, 2, cv2.cv.CV_32FC1)
+        object_points2 = cv.CreateMat(successes * board_n, 3, cv2.CV_32FC1)
+        image_points2 = cv.CreateMat(successes * board_n, 2, cv2.CV_32FC1)
         point_counts2 = cv.CreateMat(successes, 1, cv2.cv.CV_32SC1)
 
         for i in range(successes * board_n):
@@ -296,10 +296,10 @@ class FrameSource(object):
                 mat = image_or_2darray
             else:
                 arr = cv.fromarray(np.array(image_or_2darray))
-                mat = cv.CreateMat(cv.GetSize(arr)[1], 1, cv2.cv.CV_64FC2)
+                mat = cv.CreateMat(cv.GetSize(arr)[1], 1, cv2.CV_64FC2)
                 cv.Merge(arr[:, 0], arr[:, 1], None, None, mat)
 
-            upoints = cv.CreateMat(cv.GetSize(mat)[1], 1, cv2.cv.CV_64FC2)
+            upoints = cv.CreateMat(cv.GetSize(mat)[1], 1, cv2.CV_64FC2)
             #FIXME: deprecated
             cv.UndistortPoints(mat, upoints, self._calib_matrix,
                                self._dist_coeff)
@@ -1871,7 +1871,7 @@ class StereoImage(object):
         matched_pts1 = pts1[idx[result]].squeeze()
         matched_pts2 = pts2[result]
         (fnd_mat, mask) = cv2.findFundamentalMat(matched_pts1, matched_pts2,
-                                                 method=cv2.cv.CV_FM_LMEDS)
+                                                 method=cv2.FM_LMEDS)
 
         inlier_ind = mask.nonzero()[0]
         matched_pts1 = matched_pts1[inlier_ind, :]
@@ -1945,7 +1945,7 @@ class StereoImage(object):
         matched_pts2 = pts2[result]
 
         (hmg, mask) = cv2.findHomography(matched_pts1, matched_pts2,
-                                         method=cv2.cv.CV_LMEDS)
+                                         method=cv2.LMEDS)
 
         inlier_ind = mask.nonzero()[0]
         matched_pts1 = matched_pts1[inlier_ind, :]
@@ -2004,9 +2004,9 @@ class StereoImage(object):
                 #state.textureThreshold = 10
                 #state.uniquenessRatio = 15
 
-                dsp = sbm.compute(gray_left, gray_right, cv2.cv.CV_32F)
+                dsp = sbm.compute(gray_left, gray_right, cv2.CV_32F)
                 dsp_visual = cv2.normalize(dsp, 0, 256, cv2.cv.CV_MINMAX,
-                                           cv2.cv.CV_8U)
+                                           cv2.CV_8U)
                 #FIXME: delete?
                 dsp_visual = Image(dsp_visual)
                 return Image(dsp_visual.get_ndarray(),
@@ -2014,13 +2014,13 @@ class StereoImage(object):
 
             #FIXME: deprecated?
             elif method == 'GC':
-                dsp_left = cv.CreateMat(colums, rows, cv2.cv.CV_32F)
-                dsp_right = cv.CreateMat(colums, rows, cv2.cv.CV_32F)
+                dsp_left = cv.CreateMat(colums, rows, cv2.CV_32F)
+                dsp_right = cv.CreateMat(colums, rows, cv2.CV_32F)
                 state = cv.CreateStereoGCState(n_disparity, 8)
                 state.minDisparity = -8
                 cv.FindStereoCorrespondenceGC(gray_left, gray_right, dsp_left,
                                               dsp_right, state, 0)
-                dsp_left_visual = cv.CreateMat(colums, rows, cv2.cv.CV_8U)
+                dsp_left_visual = cv.CreateMat(colums, rows, cv2.CV_8U)
                 cv.Normalize(dsp_left, dsp_left_visual, 0, 256, cv2.cv.CV_MINMAX)
                 dsp_left_visual = Image(dsp_left_visual)
                 return Image(dsp_left_visual.get_bitmap(),
@@ -2079,10 +2079,10 @@ class StereoImage(object):
 
         pts1 = (0, 0)
         pts2 = self.size
-        pt_cvmat = cv.CreateMat(1, 1, cv2.cv.CV_32FC2)
+        pt_cvmat = cv.CreateMat(1, 1, cv2.CV_32FC2)
         # OpenCV seems to use (y, x) coordinate.
         pt_cvmat[0, 0] = (point[1], point[0])
-        line = cv.CreateMat(1, 1, cv2.cv.CV_32FC3)
+        line = cv.CreateMat(1, 1, cv2.CV_32FC3)
         cv.ComputeCorrespondEpilines(pt_cvmat, which_image,
                                      nparray_to_cvmat(fnd_mat), line)
         line_np_array = np.array(line).squeeze()
@@ -2199,7 +2199,7 @@ class StereoImage(object):
             set_obj_param(sbm, state, "textureThreshold")
             set_obj_param(sbm, state, "preFilterType")
 
-            disparity = sbm.compute(gray_left, gray_right, cv2.cv.CV_32F)
+            disparity = sbm.compute(gray_left, gray_right, cv2.CV_32F)
 
         elif method == "SGBM":
             ssgbm = cv2.StereoSGBM()
@@ -2232,10 +2232,10 @@ class StereoImage(object):
         if not isinstance(disparity, np.ndarray):
             disparity = np.array(disparity)
         image_3d = cv2.reprojectImageTo3D(disparity, rpj_mat,
-                                          ddepth=cv2.cv.CV_32F)
+                                          ddepth=cv2.CV_32F)
         image_3d_normalize = cv2.normalize(image_3d, alpha=0, beta=255,
                                            norm_type=cv2.cv.CV_MINMAX,
-                                           dtype=cv2.cv.CV_8UC3)
+                                           dtype=cv2.CV_8UC3)
         ret_value = Image(image_3d_normalize, cv2image=True)
 
         self.image_3d = image_3d
@@ -2271,10 +2271,10 @@ class StereoImage(object):
             rpj_mat = np.array(rpj_mat)
         disparity = disparity.get_numpy_cv2()
         image_3d = cv2.reprojectImageTo3D(disparity, rpj_mat,
-                                          ddepth=cv2.cv.CV_32F)
+                                          ddepth=cv2.CV_32F)
         image_3d_normalize = cv2.normalize(image_3d, alpha=0, beta=255,
                                            norm_type=cv2.cv.CV_MINMAX,
-                                           dtype=cv2.cv.CV_8UC3)
+                                           dtype=cv2.CV_8UC3)
         ret_value = Image(image_3d_normalize, cv2image=True)
 
         self.image_3d = image_3d
@@ -2369,10 +2369,10 @@ class StereoCamera(object):
             return None
 
         cols = nboards * chessboard[0] * chessboard[1]
-        image_points1 = cv.CreateMat(1, cols, cv2.cv.CV_64FC2)
-        image_points2 = cv.CreateMat(1, cols, cv2.cv.CV_64FC2)
+        image_points1 = cv.CreateMat(1, cols, cv2.CV_64FC2)
+        image_points2 = cv.CreateMat(1, cols, cv2.CV_64FC2)
 
-        object_points = cv.CreateMat(1, cols, cv2.cv.CV_64FC3)
+        object_points = cv.CreateMat(1, cols, cv2.CV_64FC3)
 
         while True:
             _, frame_left = capture_left.read()
@@ -2416,8 +2416,8 @@ class StereoCamera(object):
                     del cam_right
                     rtval, cm1, d1, cm2, d2, r, t, e, f = cv2.stereoCalibrate(
                         object_points, image_points1, image_points2,
-                        win_size, flags=cv2.cv.CV_CALIB_SAME_FOCAL_LENGTH
-                                        | cv2.cv.CV_CALIB_ZERO_TANGENT_DIST)
+                        win_size, flags=cv2.CALIB_SAME_FOCAL_LENGTH |
+                                        cv2.CALIB_ZERO_TANGENT_DIST)
                     if rtval:
                         print "Done."
                         return cm1, cm2, d1, d2, r, t, e, f
@@ -2591,11 +2591,11 @@ class StereoCamera(object):
 
         """
         (cm1, cm2, d1, d2, r, t, e, f) = calibration
-        r1 = cv.CreateMat(3, 3, cv2.cv.CV_64F)
-        r2 = cv.CreateMat(3, 3, cv2.cv.CV_64F)
-        p1 = cv.CreateMat(3, 4, cv2.cv.CV_64F)
-        p2 = cv.CreateMat(3, 4, cv2.cv.CV_64F)
-        q = cv.CreateMat(4, 4, cv2.cv.CV_64F)
+        r1 = cv.CreateMat(3, 3, cv2.CV_64F)
+        r2 = cv.CreateMat(3, 3, cv2.CV_64F)
+        p1 = cv.CreateMat(3, 4, cv2.CV_64F)
+        p2 = cv.CreateMat(3, 4, cv2.CV_64F)
+        q = cv.CreateMat(4, 4, cv2.CV_64F)
 
         print "Running stereo rectification..."
 
@@ -2643,12 +2643,12 @@ class StereoCamera(object):
         (r1, r2, p1, p2, q, roi) = rectification
 
         map1x, map1y = cv2.initUndistortRectifyMap(cm1, d1, r1, p1, win_size,
-                                                   cv2.cv.CV_32FC1)
+                                                   cv2.CV_32FC1)
         map2x, map2y = cv2.initUndistortRectifyMap(cm2, d2, r2, p2, win_size,
-                                                   cv2.cv.CV_32FC1)
+                                                   cv2.CV_32FC1)
 
-        dst1 = cv2.remap(img_left, map1x, map1y, cv2.cv.CV_INTER_LINEAR)
-        dst2 = cv2.remap(img_right, map2x, map2y, cv2.cv.CV_INTER_LINEAR)
+        dst1 = cv2.remap(img_left, map1x, map1y, cv2.INTER_LINEAR)
+        dst2 = cv2.remap(img_right, map2x, map2y, cv2.INTER_LINEAR)
         return Image(dst1), Image(dst2)
 
     def get_3d_image(self, left_index, right_index, rpj_mat, method="BM",
