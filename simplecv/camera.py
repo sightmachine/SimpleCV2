@@ -170,11 +170,11 @@ class FrameSource(object):
                             images to perform camera calibration!")
 
         # creation of memory storages
-        image_points = cv.CreateMat(n_boards * board_n, 2, cv.CV_32FC1)
-        object_points = cv.CreateMat(n_boards * board_n, 3, cv.CV_32FC1)
-        point_counts = cv.CreateMat(n_boards, 1, cv.CV_32SC1)
-        intrinsic_matrix = cv.CreateMat(3, 3, cv.CV_32FC1)
-        distortion_coefficient = cv.CreateMat(5, 1, cv.CV_32FC1)
+        image_points = cv.CreateMat(n_boards * board_n, 2, cv2.cv.CV_32FC1)
+        object_points = cv.CreateMat(n_boards * board_n, 3, cv2.cv.CV_32FC1)
+        point_counts = cv.CreateMat(n_boards, 1, cv2.cv.CV_32SC1)
+        intrinsic_matrix = cv.CreateMat(3, 3, cv2.cv.CV_32FC1)
+        distortion_coefficient = cv.CreateMat(5, 1, cv2.cv.CV_32FC1)
 
         # capture frames of specified properties
         # and modification of matrix values
@@ -184,15 +184,15 @@ class FrameSource(object):
         # capturing required number of views
         while successes < n_boards:
             img = image_list[img_idx]
-            (_, corners) = cv.FindChessboardCorners(
+            _, corners = cv2.findChessboardCorners(
                 img.get_grayscale_matrix(),
                 board_sz,
-                cv.CV_CALIB_CB_ADAPTIVE_THRESH |
-                cv.CV_CALIB_CB_FILTER_QUADS)
-            corners = cv.FindCornerSubPix(img.get_grayscale_matrix(),
-                                          corners, (11, 11), (-1, -1),
-                                          (cv.CV_TERMCRIT_EPS +
-                                           cv.CV_TERMCRIT_ITER, 30, 0.1))
+                cv2.cv.CV_CALIB_CB_ADAPTIVE_THRESH |
+                cv2.cv.CV_CALIB_CB_FILTER_QUADS)
+            corners = cv2.cornerSubPix(img.get_grayscale_matrix(),
+                                       corners, (11, 11), (-1, -1),
+                                       (cv2.cv.CV_TERMCRIT_EPS +
+                                        cv2.cv.CV_TERMCRIT_ITER, 30, 0.1))
             # if got a good image, draw chess board
             #if found == 1:
             #    corner_count = len(corners)
@@ -210,9 +210,9 @@ class FrameSource(object):
                     cv.Set2D(object_points, k, 1,
                              grid_sz * (float(j) % board_w))
                     cv.Set2D(object_points, k, 2, 0.0)
-                    k = k + 1
+                    k += 1
                 cv.Set2D(point_counts, successes, 0, board_n)
-                successes = successes + 1
+                successes += 1
 
         # now assigning new matrices according to view_count
         if successes < warn_thresh:
@@ -220,9 +220,9 @@ class FrameSource(object):
                            "for calibration we recommend at least %d",
                            successes, warn_thresh)
 
-        object_points2 = cv.CreateMat(successes * board_n, 3, cv.CV_32FC1)
-        image_points2 = cv.CreateMat(successes * board_n, 2, cv.CV_32FC1)
-        point_counts2 = cv.CreateMat(successes, 1, cv.CV_32SC1)
+        object_points2 = cv.CreateMat(successes * board_n, 3, cv2.cv.CV_32FC1)
+        image_points2 = cv.CreateMat(successes * board_n, 2, cv2.cv.CV_32FC1)
+        point_counts2 = cv.CreateMat(successes, 1, cv2.cv.CV_32SC1)
 
         for i in range(successes * board_n):
             cv.Set2D(image_points2, i, 0, cv.Get2D(image_points, i, 0))
@@ -233,17 +233,14 @@ class FrameSource(object):
         for i in range(successes):
             cv.Set2D(point_counts2, i, 0, cv.Get2D(point_counts, i, 0))
 
-        cv.Set2D(intrinsic_matrix, 0, 0, 1.0)
-        cv.Set2D(intrinsic_matrix, 1, 1, 1.0)
-        rcv = cv.CreateMat(n_boards, 3, cv.CV_64FC1)
-        tcv = cv.CreateMat(n_boards, 3, cv.CV_64FC1)
         # camera calibration
-        cv.CalibrateCamera2(object_points2, image_points2, point_counts2,
-                            (img.width, img.height), intrinsic_matrix,
-                            distortion_coefficient, rcv, tcv, 0)
-        self._calib_matrix = intrinsic_matrix
-        self._dist_coeff = distortion_coefficient
-        return intrinsic_matrix
+        cam_matrix, dist_cft, _, _, _ = cv2.calibrateCamera(object_points2,
+                                                            image_points2,
+                                                            img.size())
+
+        self._calib_matrix = cam_matrix
+        self._dist_coeff = dist_cft
+        return cam_matrix
 
     def get_camera_matrix(self):
         """
@@ -291,20 +288,19 @@ class FrameSource(object):
         if type(image_or_2darray) == InstanceType \
                 and image_or_2darray.__class__ == Image:
             in_img = image_or_2darray  # we have an image
-            ret_val = in_img.get_empty()
-            cv.Undistort2(in_img.get_bitmap(), ret_val,
-                          self._calib_matrix, self._dist_coeff)
+            ret_val = cv2.undistort(in_img.get_ndarray(), self._calib_matrix,
+                                    self._dist_coeff)
             return Image(ret_val)
         else:
-            mat = ''
             if type(image_or_2darray) == cv.cvmat:
                 mat = image_or_2darray
             else:
                 arr = cv.fromarray(np.array(image_or_2darray))
-                mat = cv.CreateMat(cv.GetSize(arr)[1], 1, cv.CV_64FC2)
+                mat = cv.CreateMat(cv.GetSize(arr)[1], 1, cv2.cv.CV_64FC2)
                 cv.Merge(arr[:, 0], arr[:, 1], None, None, mat)
 
-            upoints = cv.CreateMat(cv.GetSize(mat)[1], 1, cv.CV_64FC2)
+            upoints = cv.CreateMat(cv.GetSize(mat)[1], 1, cv2.cv.CV_64FC2)
+            #FIXME: deprecated
             cv.UndistortPoints(mat, upoints, self._calib_matrix,
                                self._dist_coeff)
 
@@ -484,14 +480,14 @@ class Camera(FrameSource):
     pygame_camera = False
     pygame_buffer = ""
 
-    prop_map = {"width": cv.CV_CAP_PROP_FRAME_WIDTH,
-                "height": cv.CV_CAP_PROP_FRAME_HEIGHT,
-                "brightness": cv.CV_CAP_PROP_BRIGHTNESS,
-                "contrast": cv.CV_CAP_PROP_CONTRAST,
-                "saturation": cv.CV_CAP_PROP_SATURATION,
-                "hue": cv.CV_CAP_PROP_HUE,
-                "gain": cv.CV_CAP_PROP_GAIN,
-                "exposure": cv.CV_CAP_PROP_EXPOSURE}
+    prop_map = {"width": cv2.cv.CV_CAP_PROP_FRAME_WIDTH,
+                "height": cv2.cv.CV_CAP_PROP_FRAME_HEIGHT,
+                "brightness": cv2.cv.CV_CAP_PROP_BRIGHTNESS,
+                "contrast": cv2.cv.CV_CAP_PROP_CONTRAST,
+                "saturation": cv2.cv.CV_CAP_PROP_SATURATION,
+                "hue": cv2.cv.CV_CAP_PROP_HUE,
+                "gain": cv2.cv.CV_CAP_PROP_GAIN,
+                "exposure": cv2.cv.CV_CAP_PROP_EXPOSURE}
     #human readable to CV constant property mapping
 
     def __init__(self, camera_index=-1, prop_set={}, threaded=True,
@@ -813,7 +809,7 @@ class VirtualCamera(FrameSource):
 
         elif self.sourcetype == 'video':
             self.capture = cv2.VideoCapture(self.source)
-            self.capture.set(cv.CV_CAP_PROP_POS_FRAMES, self.start - 1)
+            self.capture.set(cv2.cv.CV_CAP_PROP_POS_FRAMES, self.start - 1)
 
         elif self.sourcetype == 'directory':
             pass
@@ -883,11 +879,11 @@ class VirtualCamera(FrameSource):
         """
         if self.sourcetype == 'video':
             if not start:
-                self.capture.set(cv.CV_CAP_PROP_POS_FRAMES, self.start - 1)
+                self.capture.set(cv2.cv.CV_CAP_PROP_POS_FRAMES, self.start - 1)
             else:
                 if start == 0:
                     start = 1
-                self.capture.set(cv.CV_CAP_PROP_POS_FRAMES, start - 1)
+                self.capture.set(cv2.cv.CV_CAP_PROP_POS_FRAMES, start - 1)
         else:
             self.counter = 0
 
@@ -913,10 +909,10 @@ class VirtualCamera(FrameSource):
 
         """
         if self.sourcetype == 'video':
-            number_frame = int(self.capture.get(cv.CV_CAP_PROP_POS_FRAMES))
-            self.capture.set(cv.CV_CAP_PROP_POS_FRAMES, frame - 1)
+            number_frame = int(self.capture.get(cv2.cv.CV_CAP_PROP_POS_FRAMES))
+            self.capture.set(cv2.cv.CV_CAP_PROP_POS_FRAMES, frame - 1)
             img = self.get_image()
-            self.capture.set(cv.CV_CAP_PROP_POS_FRAMES, number_frame)
+            self.capture.set(cv2.cv.CV_CAP_PROP_POS_FRAMES, number_frame)
             return img
         elif self.sourcetype == 'imageset':
             img = None
@@ -953,8 +949,8 @@ class VirtualCamera(FrameSource):
 
         """
         if self.sourcetype == 'video':
-            number_frame = int(self.capture.get(cv.CV_CAP_PROP_POS_FRAMES))
-            self.capture.set(cv.CV_CAP_PROP_POS_FRAMES, number_frame + number - 1)
+            number_frame = int(self.capture.get(cv2.cv.CV_CAP_PROP_POS_FRAMES))
+            self.capture.set(cv2.cv.CV_CAP_PROP_POS_FRAMES, number_frame + number - 1)
         elif self.sourcetype == 'imageset':
             self.counter = (self.counter + number) % len(self.source)
         else:
@@ -983,7 +979,7 @@ class VirtualCamera(FrameSource):
 
         """
         if self.sourcetype == 'video':
-            return int(self.capture.get(cv.CV_CAP_PROP_POS_FRAMES))
+            return int(self.capture.get(cv2.cv.CV_CAP_PROP_POS_FRAMES))
         else:
             return self.counter
 
@@ -1010,7 +1006,7 @@ class VirtualCamera(FrameSource):
 
         """
         if self.sourcetype == 'video':
-            return int(self.capture.get(cv.CV_CAP_PROP_POS_MSEC))
+            return int(self.capture.get(cv2.cv.CV_CAP_PROP_POS_MSEC))
         else:
             raise ValueError('sources other than video do not \
                               have play time property')
@@ -1875,7 +1871,7 @@ class StereoImage(object):
         matched_pts1 = pts1[idx[result]].squeeze()
         matched_pts2 = pts2[result]
         (fnd_mat, mask) = cv2.findFundamentalMat(matched_pts1, matched_pts2,
-                                                 method=cv.CV_FM_LMEDS)
+                                                 method=cv2.cv.CV_FM_LMEDS)
 
         inlier_ind = mask.nonzero()[0]
         matched_pts1 = matched_pts1[inlier_ind, :]
@@ -1949,7 +1945,7 @@ class StereoImage(object):
         matched_pts2 = pts2[result]
 
         (hmg, mask) = cv2.findHomography(matched_pts1, matched_pts2,
-                                         method=cv.CV_LMEDS)
+                                         method=cv2.cv.CV_LMEDS)
 
         inlier_ind = mask.nonzero()[0]
         matched_pts1 = matched_pts1[inlier_ind, :]
@@ -1987,8 +1983,8 @@ class StereoImage(object):
         >>> stereoImg = StereoImage(img1,img2)
         >>> disp = stereoImg.find_disparity_map(method="BM")
         """
-        gray_left = self.image_left.get_grayscale_matrix()
-        gray_right = self.image_right.get_grayscale_matrix()
+        gray_left = self.image_left.get_gray_ndarray()
+        gray_right = self.image_right.get_gray_ndarray()
         (rows, colums) = self.size
         #scale = int(self.image_left.depth)
         if n_disparity % 16 != 0:
@@ -1997,66 +1993,49 @@ class StereoImage(object):
             n_disparity = (n_disparity / 16) * 16
         try:
             if method == 'BM':
-                dsp = cv.CreateMat(colums, rows, cv.CV_32F)
-                state = cv.CreateStereoBMState()
-                state.SADWindowSize = 41
-                state.preFilterType = 1
-                state.preFilterSize = 41
-                state.preFilterCap = 31
-                state.minDisparity = -8
-                state.numberOfDisparities = n_disparity
-                state.textureThreshold = 10
-                #state.speckleRange = 32
-                #state.speckleWindowSize = 100
-                state.uniquenessRatio = 15
-                cv.FindStereoCorrespondenceBM(gray_left, gray_right, dsp,
-                                              state)
-                dsp_visual = cv.CreateMat(colums, rows, cv.CV_8U)
-                cv.Normalize(dsp, dsp_visual, 0, 256, cv.CV_MINMAX)
+                sbm = cv2.StereoBM(cv2.cv.CV_STEREO_BM_BASIC,
+                                   ndisparities=n_disparity,
+                                   SADWindowSize=41)
+                #FIXME: unknown params
+                #state.preFilterType = 1
+                #state.preFilterSize = 41
+                #state.preFilterCap = 31
+                #state.minDisparity = -8
+                #state.textureThreshold = 10
+                #state.uniquenessRatio = 15
+
+                dsp = sbm.compute(gray_left, gray_right, cv2.cv.CV_32F)
+                dsp_visual = cv2.normalize(dsp, 0, 256, cv2.cv.CV_MINMAX,
+                                           cv2.cv.CV_8U)
+                #FIXME: delete?
                 dsp_visual = Image(dsp_visual)
-                return Image(dsp_visual.get_bitmap(),
+                return Image(dsp_visual.get_ndarray(),
                              color_space=ColorSpace.GRAY)
 
+            #FIXME: deprecated?
             elif method == 'GC':
-                dsp_left = cv.CreateMat(colums, rows, cv.CV_32F)
-                dsp_right = cv.CreateMat(colums, rows, cv.CV_32F)
+                dsp_left = cv.CreateMat(colums, rows, cv2.cv.CV_32F)
+                dsp_right = cv.CreateMat(colums, rows, cv2.cv.CV_32F)
                 state = cv.CreateStereoGCState(n_disparity, 8)
                 state.minDisparity = -8
                 cv.FindStereoCorrespondenceGC(gray_left, gray_right, dsp_left,
                                               dsp_right, state, 0)
-                dsp_left_visual = cv.CreateMat(colums, rows, cv.CV_8U)
-                cv.Normalize(dsp_left, dsp_left_visual, 0, 256, cv.CV_MINMAX)
-                #cv.Scale(dsp_left, dsp_left_visual, -scale)
+                dsp_left_visual = cv.CreateMat(colums, rows, cv2.cv.CV_8U)
+                cv.Normalize(dsp_left, dsp_left_visual, 0, 256, cv2.cv.CV_MINMAX)
                 dsp_left_visual = Image(dsp_left_visual)
                 return Image(dsp_left_visual.get_bitmap(),
                              color_space=ColorSpace.GRAY)
 
             elif method == 'SGBM':
-                try:
-                    import cv2
 
-                    ver = cv2.__version__
-                    if ver.startswith("$Rev :"):
-                        logger.warning(
-                            "Can't use SGBM without OpenCV >= 2.4.0")
-                        return None
-                except ImportError:
-                    logger.warning("Can't use SGBM without OpenCV >= 2.4.0")
-                    return None
-                state = cv2.StereoSGBM()
-                state.SADWindowSize = 41
-                state.preFilterCap = 31
-                state.minDisparity = 0
-                state.numberOfDisparities = n_disparity
-                #state.speckleRange = 32
-                #state.speckleWindowSize = 100
-                state.disp12MaxDiff = 1
-                state.fullDP = False
-                state.P1 = 8 * 1 * 41 * 41
-                state.P2 = 32 * 1 * 41 * 41
-                state.uniquenessRatio = 15
-                dsp = state.compute(self.image_left.get_gray_numpy(),
-                                    self.image_right.get_gray_numpy())
+                ssgbm = cv2.StereoSGBM(minDisparity=0, numDisparities=n_disparity, SADWindowSize=41)
+                ssgbm.preFilterCap = 31
+                ssgbm.disp12MaxDiff = 1
+                ssgbm.fullDP = False
+                ssgbm.P1 = 8 * 1 * 41 * 41
+                ssgbm.P2 = 32 * 1 * 41 * 41
+                ssgbm.uniquenessRatio = 15
+                dsp = ssgbm.compute(gray_left, gray_right)
                 return Image(dsp)
 
             else:
@@ -2100,10 +2079,10 @@ class StereoImage(object):
 
         pts1 = (0, 0)
         pts2 = self.size
-        pt_cvmat = cv.CreateMat(1, 1, cv.CV_32FC2)
+        pt_cvmat = cv.CreateMat(1, 1, cv2.cv.CV_32FC2)
         # OpenCV seems to use (y, x) coordinate.
         pt_cvmat[0, 0] = (point[1], point[0])
-        line = cv.CreateMat(1, 1, cv.CV_32FC3)
+        line = cv.CreateMat(1, 1, cv2.cv.CV_32FC3)
         cv.ComputeCorrespondEpilines(pt_cvmat, which_image,
                                      nparray_to_cvmat(fnd_mat), line)
         line_np_array = np.array(line).squeeze()
@@ -2198,19 +2177,11 @@ class StereoImage(object):
         >>> stereo.get_3d_image(rpj_mat, "BM", state).show()
         >>> stereo.get_3d_image(rpj_mat, "SGBM", state).show()
         """
-        img_left = self.image_left
-        img_right = self.image_right
-        cv2flag = True
-        try:
-            import cv2
-        except ImportError:
-            cv2flag = False
-        import cv2.cv as cv
+        gray_left = self.image_left.get_gray_ndarray()
+        gray_right = self.image_right.get_gray_ndarray()
 
-        (rows, colums) = self.size
         if method == "BM":
-            sbm = cv.CreateStereoBMState()
-            disparity = cv.CreateMat(colums, rows, cv.CV_32F)
+            sbm = cv2.StereoBM()
             if not state:
                 state = {"SADWindowSize": 9, "numberOfDisparities": 112,
                          "preFilterType": 1, "speckleWindowSize": 0,
@@ -2228,64 +2199,45 @@ class StereoImage(object):
             set_obj_param(sbm, state, "textureThreshold")
             set_obj_param(sbm, state, "preFilterType")
 
-            gray_left = img_left.get_grayscale_matrix()
-            gray_right = img_right.get_grayscale_matrix()
-            cv.FindStereoCorrespondenceBM(gray_left, gray_right, disparity,
-                                          sbm)
-            disparity_visual = cv.CreateMat(colums, rows, cv.CV_8U)
+            disparity = sbm.compute(gray_left, gray_right, cv2.cv.CV_32F)
 
         elif method == "SGBM":
-            if not cv2flag:
-                warnings.warn("Can't Use SGBM without OpenCV >= 2.4. \
-                               Use SBM instead.")
-            sbm = cv2.StereoSGBM()
+            ssgbm = cv2.StereoSGBM()
             if not state:
                 state = {"SADWindowSize": 9, "numberOfDisparities": 96,
                          "minDisparity": -21, "speckleWindowSize": 0,
                          "preFilterCap": 61, "uniquenessRatio": 7,
                          "speckleRange": 8, "disp12MaxDiff": 1,
                          "fullDP": False}
-                set_obj_param(sbm, state, "disp12MaxDiff")
+                set_obj_param(ssgbm, state, "disp12MaxDiff")
 
-            set_obj_param(sbm, state, "SADWindowSize")
-            set_obj_param(sbm, state, "preFilterCap")
-            set_obj_param(sbm, state, "minDisparity")
-            set_obj_param(sbm, state, "numberOfDisparities")
-            set_obj_param(sbm, state, "P1")
-            set_obj_param(sbm, state, "P2")
-            set_obj_param(sbm, state, "uniquenessRatio")
-            set_obj_param(sbm, state, "speckleRange")
-            set_obj_param(sbm, state, "speckleWindowSize")
-            set_obj_param(sbm, state, "fullDP")
+            set_obj_param(ssgbm, state, "SADWindowSize")
+            set_obj_param(ssgbm, state, "preFilterCap")
+            set_obj_param(ssgbm, state, "minDisparity")
+            set_obj_param(ssgbm, state, "numberOfDisparities")
+            set_obj_param(ssgbm, state, "P1")
+            set_obj_param(ssgbm, state, "P2")
+            set_obj_param(ssgbm, state, "uniquenessRatio")
+            set_obj_param(ssgbm, state, "speckleRange")
+            set_obj_param(ssgbm, state, "speckleWindowSize")
+            set_obj_param(ssgbm, state, "fullDP")
 
-            disparity = sbm.compute(img_left.get_gray_numpy_cv2(),
-                                    img_right.get_gray_numpy_cv2())
-
+            disparity = ssgbm.compute(gray_left, gray_right)
         else:
             warnings.warn("Unknown method. Returning None")
             return None
 
-        if cv2flag:
-            if not isinstance(rpj_mat, np.ndarray):
-                rpj_mat = np.array(rpj_mat)
-            if not isinstance(disparity, np.ndarray):
-                disparity = np.array(disparity)
-            image_3d = cv2.reprojectImageTo3D(disparity, rpj_mat,
-                                              ddepth=cv2.cv.CV_32F)
-            image_3d_normalize = cv2.normalize(image_3d, alpha=0, beta=255,
-                                               norm_type=cv2.cv.CV_MINMAX,
-                                               dtype=cv2.cv.CV_8UC3)
-            ret_value = Image(image_3d_normalize, cv2image=True)
-        else:
-            image_3d = cv.CreateMat(self.image_left.size()[1],
-                                    self.image_left.size()[0], cv2.cv.CV_32FC3)
-            image_3d_normalize = cv.CreateMat(self.image_left.size()[1],
-                                              self.image_left.size()[0],
-                                              cv2.cv.CV_8UC3)
-            cv.ReprojectImageTo3D(disparity, image_3d, rpj_mat)
-            cv.Normalize(image_3d, image_3d_normalize, 0, 255,
-                         cv.CV_MINMAX, cv2.cv.CV_8UC3)
-            ret_value = Image(image_3d_normalize)
+        if not isinstance(rpj_mat, np.ndarray):
+            rpj_mat = np.array(rpj_mat)
+        if not isinstance(disparity, np.ndarray):
+            disparity = np.array(disparity)
+        image_3d = cv2.reprojectImageTo3D(disparity, rpj_mat,
+                                          ddepth=cv2.cv.CV_32F)
+        image_3d_normalize = cv2.normalize(image_3d, alpha=0, beta=255,
+                                           norm_type=cv2.cv.CV_MINMAX,
+                                           dtype=cv2.cv.CV_8UC3)
+        ret_value = Image(image_3d_normalize, cv2image=True)
+
         self.image_3d = image_3d
         return ret_value
 
@@ -2313,35 +2265,18 @@ class StereoImage(object):
         >>> disp = stereo.find_disparity_map()
         >>> stereo.get_3d_image_from_disparity(disp, rpj_mat)
         """
-        cv2flag = True
-        try:
-            import cv2
-        except ImportError:
-            cv2flag = False
-            import cv2.cv as cv
 
-        if cv2flag:
-            if not isinstance(rpj_mat, np.ndarray):
-                rpj_mat = np.array(rpj_mat)
-            disparity = disparity.get_numpy_cv2()
-            image_3d = cv2.reprojectImageTo3D(disparity, rpj_mat,
-                                              ddepth=cv2.cv.CV_32F)
-            image_3d_normalize = cv2.normalize(image_3d, alpha=0, beta=255,
-                                               norm_type=cv2.cv.CV_MINMAX,
-                                               dtype=cv2.cv.CV_8UC3)
-            ret_value = Image(image_3d_normalize, cv2image=True)
-        else:
-            disparity = disparity.get_matrix()
-            image_3d = cv.CreateMat(self.image_left.size()[1],
-                                    self.image_left.size()[0],
-                                    cv2.cv.CV_32FC3)
-            image_3d_normalize = cv.CreateMat(self.image_left.size()[1],
-                                              self.image_left.size()[0],
-                                              cv2.cv.CV_8UC3)
-            cv.ReprojectImageTo3D(disparity, image_3d, rpj_mat)
-            cv.Normalize(image_3d, image_3d_normalize, 0, 255,
-                         cv.CV_MINMAX, cv2.cv.CV_8UC3)
-            ret_value = Image(image_3d_normalize)
+
+        if not isinstance(rpj_mat, np.ndarray):
+            rpj_mat = np.array(rpj_mat)
+        disparity = disparity.get_numpy_cv2()
+        image_3d = cv2.reprojectImageTo3D(disparity, rpj_mat,
+                                          ddepth=cv2.cv.CV_32F)
+        image_3d_normalize = cv2.normalize(image_3d, alpha=0, beta=255,
+                                           norm_type=cv2.cv.CV_MINMAX,
+                                           dtype=cv2.cv.CV_8UC3)
+        ret_value = Image(image_3d_normalize, cv2image=True)
+
         self.image_3d = image_3d
         return ret_value
 
@@ -2419,14 +2354,14 @@ class StereoCamera(object):
         right = "Right"
         try:
             capture_left = cv2.VideoCapture(cam_left)
-            capture_left.set(cv.CV_CAP_PROP_FRAME_WIDTH, win_size[0])
-            capture_left.set(cv.CV_CAP_PROP_FRAME_HEIGHT, win_size[1])
+            capture_left.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, win_size[0])
+            capture_left.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, win_size[1])
             _, frame_left = capture_left.read()
             cv2.findChessboardCorners(frame_left, chessboard)
 
             capture_right = cv2.VideoCapture(cam_right)
-            capture_right.set(cv.CV_CAP_PROP_FRAME_WIDTH, win_size[0])
-            capture_right.set(cv.CV_CAP_PROP_FRAME_HEIGHT, win_size[1])
+            capture_right.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, win_size[0])
+            capture_right.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, win_size[1])
             frame_right = capture_right.read()
             cv2.findChessboardCorners(frame_right, chessboard)
         except Exception:
@@ -2434,61 +2369,41 @@ class StereoCamera(object):
             return None
 
         cols = nboards * chessboard[0] * chessboard[1]
-        image_points1 = cv.CreateMat(1, cols, cv.CV_64FC2)
-        image_points2 = cv.CreateMat(1, cols, cv.CV_64FC2)
+        image_points1 = cv.CreateMat(1, cols, cv2.cv.CV_64FC2)
+        image_points2 = cv.CreateMat(1, cols, cv2.cv.CV_64FC2)
 
-        object_points = cv.CreateMat(1, cols, cv.CV_64FC3)
-        num_points = cv.CreateMat(1, nboards, cv.CV_32S)
-
-        # the intrinsic camera matrices
-        cm1 = cv.CreateMat(3, 3, cv.CV_64F)
-        cm2 = cv.CreateMat(3, 3, cv.CV_64F)
-
-        # the distortion coefficients of both cameras
-        d1 = cv.CreateMat(1, 5, cv.CV_64F)
-        d2 = cv.CreateMat(1, 5, cv.CV_64F)
-
-        # matrices governing the rotation and translation from camera 1
-        # to camera 2
-        r = cv.CreateMat(3, 3, cv.CV_64F)
-        t = cv.CreateMat(3, 1, cv.CV_64F)
-
-        # the essential and fundamental matrices
-        e = cv.CreateMat(3, 3, cv.CV_64F)
-        f = cv.CreateMat(3, 3, cv.CV_64F)
+        object_points = cv.CreateMat(1, cols, cv2.cv.CV_64FC3)
 
         while True:
-            frame_left = capture_left.read()
+            _, frame_left = capture_left.read()
             frame_left = cv2.flip(frame_left, 1)
-            frame_right = capture_right.read()
+            _, frame_right = capture_right.read()
             frame_right = cv2.flip(frame_right, 1)
             k = cv2.waitKey(3)
 
-            cor1 = cv.FindChessboardCorners(frame_left, chessboard)
-            if cor1[0]:
-                cv.DrawChessboardCorners(frame_left, chessboard,
-                                         cor1[1], cor1[0])
-                cv.ShowImage(left, frame_left)
+            res1, cor1 = cv2.findChessboardCorners(frame_left, chessboard)
+            if res1:
+                cv2.drawChessboardCorners(frame_left, chessboard, cor1, res1)
+                cv2.imshow(left, frame_left)
 
-            cor2 = cv.FindChessboardCorners(frame_right, chessboard)
-            if cor2[0]:
-                cv.DrawChessboardCorners(frame_right, chessboard,
-                                         cor2[1], cor2[0])
-                cv.ShowImage(right, frame_right)
+            res2, cor2 = cv2.findChessboardCorners(frame_right, chessboard)
+            if cor2:
+                cv2.drawChessboardCorners(frame_right, chessboard, cor2, res2)
+                cv2.imshow(right, frame_right)
 
             cbrd_mlt = chessboard[0] * chessboard[1]
-            if cor1[0] and cor2[0] and k == 0x20:
+            if res1 and res2 and k == 0x20:
                 print count
                 for i in range(0, len(cor1[1])):
                     cv.Set1D(image_points1, count * cbrd_mlt + i,
-                             cv.Scalar(cor1[1][i][0], cor1[1][i][1]))
+                             cv.Scalar(cor1[i][0], cor1[i][1]))
                     cv.Set1D(image_points2, count * cbrd_mlt + i,
-                             cv.Scalar(cor2[1][i][0], cor2[1][i][1]))
+                             cv.Scalar(cor2[i][0], cor2[i][1]))
 
                 count += 1
 
                 if count == nboards:
-                    cv.DestroyAllWindows()
+                    cv2.destroyAllWindows()
                     for i in range(nboards):
                         for j in range(chessboard[1]):
                             for k in range(chessboard[0]):
@@ -2496,32 +2411,26 @@ class StereoCamera(object):
                                          i * cbrd_mlt + j * chessboard[0] + k,
                                          (k * grid_size, j * grid_size, 0))
 
-                    for i in range(nboards):
-                        cv.Set1D(num_points, i, cbrd_mlt)
-
-                    cv.SetIdentity(cm1)
-                    cv.SetIdentity(cm2)
-                    cv.Zero(d1)
-                    cv.Zero(d2)
-
                     print "Running stereo calibration..."
                     del cam_left
                     del cam_right
-                    cv.StereoCalibrate(
+                    rtval, cm1, d1, cm2, d2, r, t, e, f = cv2.stereoCalibrate(
                         object_points, image_points1, image_points2,
-                        num_points, cm1, d1, cm2, d2, win_size, r, t, e, f,
-                        flags=cv.CV_CALIB_SAME_FOCAL_LENGTH
-                        | cv.CV_CALIB_ZERO_TANGENT_DIST)
+                        win_size, flags=cv2.cv.CV_CALIB_SAME_FOCAL_LENGTH
+                                        | cv2.cv.CV_CALIB_ZERO_TANGENT_DIST)
+                    if rtval:
+                        print "Done."
+                        return cm1, cm2, d1, d2, r, t, e, f
+                    else:
+                        print "Failed."
+                        return None
 
-                    print "Done."
-                    return cm1, cm2, d1, d2, r, t, e, f
-
-            cv.ShowImage(left, frame_left)
-            cv.ShowImage(right, frame_right)
+            cv2.imshow(left, frame_left)
+            cv2.imshow(right, frame_right)
             if k == 0x1b:
                 print "ESC pressed. Exiting. \
                        WARNING: NOT ENOUGH CHESSBOARDS FOUND YET"
-                cv.DestroyAllWindows()
+                cv2.destroyAllWindows()
                 break
 
     def save_calibration(self, calibration=None, fname="Stereo", cdir="."):
@@ -2682,11 +2591,11 @@ class StereoCamera(object):
 
         """
         (cm1, cm2, d1, d2, r, t, e, f) = calibration
-        r1 = cv.CreateMat(3, 3, cv.CV_64F)
-        r2 = cv.CreateMat(3, 3, cv.CV_64F)
-        p1 = cv.CreateMat(3, 4, cv.CV_64F)
-        p2 = cv.CreateMat(3, 4, cv.CV_64F)
-        q = cv.CreateMat(4, 4, cv.CV_64F)
+        r1 = cv.CreateMat(3, 3, cv2.cv.CV_64F)
+        r2 = cv.CreateMat(3, 3, cv2.cv.CV_64F)
+        p1 = cv.CreateMat(3, 4, cv2.cv.CV_64F)
+        p2 = cv.CreateMat(3, 4, cv2.cv.CV_64F)
+        q = cv.CreateMat(4, 4, cv2.cv.CV_64F)
 
         print "Running stereo rectification..."
 
@@ -2733,19 +2642,13 @@ class StereoCamera(object):
         (cm1, cm2, d1, d2, r, t, e, f) = calibration
         (r1, r2, p1, p2, q, roi) = rectification
 
-        dst1 = cv.CloneMat(img_left)
-        dst2 = cv.CloneMat(img_right)
-        map1x = cv.CreateMat(win_size[1], win_size[0], cv.CV_32FC1)
-        map2x = cv.CreateMat(win_size[1], win_size[0], cv.CV_32FC1)
-        map1y = cv.CreateMat(win_size[1], win_size[0], cv.CV_32FC1)
-        map2y = cv.CreateMat(win_size[1], win_size[0], cv.CV_32FC1)
+        map1x, map1y = cv2.initUndistortRectifyMap(cm1, d1, r1, p1, win_size,
+                                                   cv2.cv.CV_32FC1)
+        map2x, map2y = cv2.initUndistortRectifyMap(cm2, d2, r2, p2, win_size,
+                                                   cv2.cv.CV_32FC1)
 
-        #print "Rectifying images..."
-        cv.InitUndistortRectifyMap(cm1, d1, r1, p1, map1x, map1y)
-        cv.InitUndistortRectifyMap(cm2, d2, r2, p2, map2x, map2y)
-
-        cv.Remap(img_left, dst1, map1x, map1y)
-        cv.Remap(img_right, dst2, map2x, map2y)
+        dst1 = cv2.remap(img_left, map1x, map1y, cv2.cv.CV_INTER_LINEAR)
+        dst2 = cv2.remap(img_right, map2x, map2y, cv2.cv.CV_INTER_LINEAR)
         return Image(dst1), Image(dst2)
 
     def get_3d_image(self, left_index, right_index, rpj_mat, method="BM",
