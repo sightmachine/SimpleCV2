@@ -8484,8 +8484,7 @@ class Image(object):
 
         return fs
 
-    def find_motion(self, previous_frame, window=11, method='BM',
-                    aggregate=True):
+    def find_motion(self, previous_frame, window=11, aggregate=True):
         """
         **SUMMARY**
 
@@ -8537,130 +8536,47 @@ class Image(object):
         :py:class:`FeatureSet`
 
         """
-        try:
-            import cv2
-
-            ver = cv2.__version__
-            # For OpenCV versions till 2.4.0,  cv2.__versions__
-            # are of the form "$Rev: 4557 $"
-            if not ver.startswith('$Rev:'):
-                if int(ver.replace('.', '0')) >= 20400:
-                    flag_ver = 1
-                    if window > 9:
-                        window = 9
-            else:
-                flag_ver = 0
-        except:
-            flag_ver = 0
-
-        if self.width != previous_frame.width \
-                or self.height != previous_frame.height:
-            logger.warning("ImageClass.getMotion: To find motion the current "
+        if self.size() != previous_frame.size():
+            logger.warning("Image.find_motion: To find motion the current "
                            "and previous frames must match")
             return None
+
+        flow = cv2.calcOpticalFlowFarneback(previous_frame.get_gray_ndarray(),
+                                            self.get_gray_ndarray(), None, 0.5,
+                                            1, window, 1, 7, 1.5, 0)
         fs = FeatureSet()
         max_mag = 0.00
+        w = math.floor(float(window) / 2.0)
+        cx = ((self.width - window) / window) + 1  # our sample rate
+        cy = ((self.height - window) / window) + 1
+        vx = 0.00
+        vy = 0.00
+        xf = flow[:, :, 0]
+        yf = flow[:, :, 1]
+        for x in range(0, int(cx)):  # go through our sample grid
+            for y in range(0, int(cy)):
+                xi = (x * window) + w  # calculate the sample point
+                yi = (y * window) + w
+                if aggregate:
+                    lowx = int(xi - w)
+                    highx = int(xi + w)
+                    lowy = int(yi - w)
+                    highy = int(yi + w)
+                    # get the average x/y components in the output
+                    xderp = xf[lowy:highy, lowx:highx]
+                    yderp = yf[lowy:highy, lowx:highx]
+                    vx = np.average(xderp)
+                    vy = np.average(yderp)
+                else:  # other wise just sample
+                    vx = xf[yi, xi]
+                    vy = yf[yi, xi]
 
-        if method == "LK" or method == "HS":
-            # create the result images.
-            xf = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_32F, 1)
-            yf = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_32F, 1)
-            win = (window, window)
-            if method == "LK":
-                cv.CalcOpticalFlowLK(self._get_grayscale_bitmap(),
-                                     previous_frame._get_grayscale_bitmap(),
-                                     win, xf, yf)
-            else:
-                cv.CalcOpticalFlowHS(
-                    previous_frame._get_grayscale_bitmap(),
-                    self._get_grayscale_bitmap(), 0, xf, yf,
-                    1.0, (cv.CV_TERMCRIT_ITER | cv.CV_TERMCRIT_EPS, 10, 0.01))
-
-            w = math.floor((float(window)) / 2.0)
-            cx = ((self.width - window) / window) + 1  # our sample rate
-            cy = ((self.height - window) / window) + 1
-            vx = 0.00
-            vy = 0.00
-            for x in range(0, int(cx)):  # go through our sample grid
-                for y in range(0, int(cy)):
-                    xi = (x * window) + w  # calculate the sample point
-                    yi = (y * window) + w
-                    if aggregate:
-                        lowx = int(xi - w)
-                        highx = int(xi + w)
-                        lowy = int(yi - w)
-                        highy = int(yi + w)
-                        # get the average x/y components in the output
-                        xderp = xf[lowy:highy, lowx:highx]
-                        yderp = yf[lowy:highy, lowx:highx]
-                        vx = np.average(xderp)
-                        vy = np.average(yderp)
-                    else:  # other wise just sample
-                        vx = xf[yi, xi]
-                        vy = yf[yi, xi]
-
-                    mag = (vx * vx) + (vy * vy)
-                    # calculate the max magnitude for normalizing our vectors
-                    if mag > max_mag:
-                        max_mag = mag
-                    # add the sample to the feature set
-                    fs.append(Motion(self, xi, yi, vx, vy, window))
-
-        elif method == "BM":
-            # In the interest of keep the parameter list short
-            # I am pegging these to the window size.
-            # For versions with OpenCV 2.4.0 and below.
-            if flag_ver == 0:
-                block = (window, window)  # block size
-                shift = (int(window * 1.2),
-                         int(window * 1.2))  # how far to shift the block
-                spread = (window * 2, window * 2)  # the search windows.
-                wv = (self.width - block[0]) / shift[
-                    0]  # the result image size
-                hv = (self.height - block[1]) / shift[1]
-                xf = cv.CreateMat(hv, wv, cv.CV_32FC1)
-                yf = cv.CreateMat(hv, wv, cv.CV_32FC1)
-                cv.CalcOpticalFlowBM(previous_frame._get_grayscale_bitmap(),
-                                     self._get_grayscale_bitmap(), block,
-                                     shift, spread, 0, xf, yf)
-
-            #For versions with OpenCV 2.4.0 and above.
-            elif flag_ver == 1:
-                block = (window, window)  # block size
-                shift = (int(window * 0.2),
-                         int(window * 0.2))  # how far to shift the block
-                spread = (window, window)  # the search windows.
-                wv = self.width - block[0] + shift[0]
-                hv = self.height - block[1] + shift[1]
-                xf = cv.CreateImage((wv, hv), cv.IPL_DEPTH_32F, 1)
-                yf = cv.CreateImage((wv, hv), cv.IPL_DEPTH_32F, 1)
-                cv.CalcOpticalFlowBM(previous_frame._get_grayscale_bitmap(),
-                                     self._get_grayscale_bitmap(), block,
-                                     shift, spread, 0, xf, yf)
-
-            for x in range(0, int(wv)):  # go through the sample grid
-                for y in range(0, int(hv)):
-                    # where on the input image the samples live
-                    xi = (shift[0] * x) + block[0]
-                    yi = (shift[1] * y) + block[1]
-                    vx = xf[y, x]  # the result image values
-                    vy = yf[y, x]
-                    fs.append(Motion(self, xi, yi, vx, vy,
-                                     window))  # add the feature
-                    mag = (vx * vx) + (vy * vy)  # same the magnitude
-                    if mag > max_mag:
-                        max_mag = mag
-        else:
-            logger.warning("ImageClass.find_motion: I don't know what "
-                           "algorithm you want to use. Valid method choices "
-                           "are Block Matching -> \"BM\" Horn-Schunck -> "
-                           "\"HS\" and Lucas-Kanade->\"LK\" ")
-            return None
-
-        max_mag = math.sqrt(max_mag)  # do the normalization
-        for f in fs:
-            f.normalize_to(max_mag)
-
+                mag = (vx * vx) + (vy * vy)
+                # calculate the max magnitude for normalizing our vectors
+                if mag > max_mag:
+                    max_mag = mag
+                # add the sample to the feature set
+                fs.append(Motion(self, xi, yi, vx, vy, window))
         return fs
 
     def _generate_palette(self, bins, hue, centroids=None):

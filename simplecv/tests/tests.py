@@ -1864,11 +1864,6 @@ def test_blob_isa_methods():
 
 
 def test_find_keypoints():
-    try:
-        import cv2
-    except:
-        pass
-        return
     img = Image(testimage2)
     if cv2.__version__.startswith('$Rev:'):
         flavors = ['SURF', 'STAR', 'SIFT']  # supported in 2.3.1
@@ -1910,8 +1905,6 @@ def test_find_keypoints():
     name_stem = "test_find_keypoints"
     #~ perform_diff(results,name_stem)
 
-    pass
-
 
 def test_movement_feature():
     current1 = Image("../data/sampleimages/flow_simple1.png")
@@ -1930,7 +1923,7 @@ def test_movement_feature():
         assert False
 
     current2 = Image("../data/sampleimages/flow_simple1.png")
-    fs = current2.find_motion(prev, window=7, method='HS')
+    fs = current2.find_motion(prev, window=7)
     if len(fs) > 0:
         fs.draw(color=Color.RED)
         img = fs[0].crop()
@@ -1943,7 +1936,7 @@ def test_movement_feature():
         assert False
 
     current3 = Image("../data/sampleimages/flow_simple1.png")
-    fs = current3.find_motion(prev, window=7, method='LK', aggregate=False)
+    fs = current3.find_motion(prev, window=7, aggregate=False)
     if len(fs) > 0:
         fs.draw(color=Color.RED)
         img = fs[0].crop()
@@ -1958,8 +1951,6 @@ def test_movement_feature():
     results = [current1, current2, current3]
     name_stem = "test_movement_feature"
     #~ perform_diff(results,name_stem,tolerance=4.0)
-
-    pass
 
 
 def test_keypoint_extraction():
