@@ -8645,31 +8645,29 @@ class Image(object):
             result = None
             if not hue:
                 # reshape our matrix to 1xN
-                pixels = np.array(self.get_numpy()).reshape(-1, 3)
+                pixels = np.array(self._ndarray).reshape(-1, 3)
                 if centroids is None:
                     result = scv.kmeans(pixels, bins)
                 else:
                     if isinstance(centroids, list):
-                        centroids = np.array(centroids, dtype='uint8')
+                        centroids = np.array(centroids, dtype=np.uint8)
                     result = scv.kmeans(pixels, centroids)
 
                 self._mPaletteMembers = scv.vq(pixels, result[0])[0]
 
             else:
                 hsv = self
-                if self._colorSpace != ColorSpace.HSV:
+                if not self.is_hsv():
                     hsv = self.to_hsv()
 
-                h = hsv.get_empty(1)
-                cv.Split(hsv.get_bitmap(), None, None, h, None)
-                mat = cv.GetMat(h)
-                pixels = np.array(mat).reshape(-1, 1)
+                h = hsv._ndarray[:, :, 0]
+                pixels = h.reshape(-1, 1)
 
                 if centroids is None:
                     result = scv.kmeans(pixels, bins)
                 else:
                     if isinstance(centroids, list):
-                        centroids = np.array(centroids, dtype='uint8')
+                        centroids = np.array(centroids, dtype=np.uint8)
                         centroids = centroids.reshape(centroids.shape[0], 1)
                     result = scv.kmeans(pixels, centroids)
 
@@ -8682,7 +8680,7 @@ class Image(object):
 
             self._mDoHuePalette = hue
             self._mPaletteBins = bins
-            self._mPalette = np.array(result[0], dtype='uint8')
+            self._mPalette = np.array(result[0], dtype=np.uint8)
             self._mPalettePercentages = percentages
 
     def get_palette(self, bins=10, hue=False, centroids=None):
@@ -8774,17 +8772,16 @@ class Image(object):
         """
         ret_val = None
         if hue:
-            hsv = self
-            if self._colorSpace != ColorSpace.HSV:
+            if not self.is_hsv():
                 hsv = self.to_hsv()
+            else:
+                hsv = self.copy()
 
-            h = hsv.get_empty(1)
-            cv.Split(hsv.get_bitmap(), None, None, h, None)
-            mat = cv.GetMat(h)
-            pixels = np.array(mat).reshape(-1, 1)
+            h = hsv.get_ndarray()[:, :, 0]
+            pixels = h.reshape(-1, 1)
             result = scv.vq(pixels, palette)
             derp = palette[result[0]]
-            ret_val = Image(derp[::-1].reshape(self.height, self.width)[::-1])
+            ret_val = Image(derp.reshape(self.height, self.width))
             ret_val = ret_val.rotate(-90, fixed=False)
             ret_val._mDoHuePalette = True
             ret_val._mPaletteBins = len(palette)
@@ -8792,13 +8789,13 @@ class Image(object):
             ret_val._mPaletteMembers = result[0]
 
         else:
-            result = scv.vq(self.get_numpy().reshape(-1, 3), palette)
+            result = scv.vq(self.get_ndarray().reshape(-1, 3), palette)
             ret_val = Image(
                 palette[result[0]].reshape(self.width, self.height, 3))
             ret_val._mDoHuePalette = False
             ret_val._mPaletteBins = len(palette)
             ret_val._mPalette = palette
-            pixels = np.array(self.get_numpy()).reshape(-1, 3)
+            pixels = np.array(self.get_ndarray()).reshape(-1, 3)
             ret_val._mPaletteMembers = scv.vq(pixels, palette)[0]
 
         percentages = []
@@ -8876,83 +8873,86 @@ class Image(object):
             if horizontal:
                 if size[0] == -1 or size[1] == -1:
                     size = (int(self.width), int(self.height * .1))
-                pal = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
-                cv.Zero(pal)
+                pal = np.zeros((size[1], size[0], 3), dtype=np.uint8)
                 idx_l = 0
                 idx_h = 0
-                for i in range(0, bins):
+                for i in range(0, min(bins, self._mPalette.shape[0])):
                     idx_h = np.clip(
                         idx_h +
                         (self._mPalettePercentages[i] * float(size[0])),
                         0, size[0] - 1)
                     roi = (int(idx_l), 0, int(idx_h - idx_l), size[1])
-                    cv.SetImageROI(pal, roi)
+                    roiimage = pal[roi[1]:roi[1] + roi[3],
+                                   roi[0]:roi[0] + roi[2]]
                     color = np.array((
                         float(self._mPalette[i][2]),
                         float(self._mPalette[i][1]),
                         float(self._mPalette[i][0])))
-                    cv.AddS(pal, color, pal)
-                    cv.ResetImageROI(pal)
+                    roiimage += color
+                    pal[roi[1]:roi[1] + roi[3],
+                        roi[0]:roi[0] + roi[2]] = roiimage
                     idx_l = idx_h
                 ret_val = Image(pal)
             else:
                 if size[0] == -1 or size[1] == -1:
                     size = (int(self.width * .1), int(self.height))
-                pal = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
-                cv.Zero(pal)
+                pal = np.zeros((size[1], size[0], 3), dtype=np.uint8)
                 idx_l = 0
                 idx_h = 0
-                for i in range(0, bins):
+                for i in range(0, min(bins, self._mPalette.shape[0])):
                     idx_h = np.clip(
                         idx_h + self._mPalettePercentages[i] * size[1], 0,
                         size[1] - 1)
                     roi = (0, int(idx_l), size[0], int(idx_h - idx_l))
-                    cv.SetImageROI(pal, roi)
+                    roiimage = pal[roi[1]:roi[1] + roi[3],
+                                   roi[0]:roi[0] + roi[2]]
                     color = np.array((
                         float(self._mPalette[i][2]),
                         float(self._mPalette[i][1]),
                         float(self._mPalette[i][0])))
-                    cv.AddS(pal, color, pal)
-                    cv.ResetImageROI(pal)
+                    roiimage += color
+                    pal[roi[1]:roi[1] + roi[3],
+                        roi[0]:roi[0] + roi[2]] = roiimage
                     idx_l = idx_h
                 ret_val = Image(pal)
         else:  # do hue
             if horizontal:
                 if size[0] == -1 or size[1] == -1:
                     size = (int(self.width), int(self.height * .1))
-                pal = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
-                cv.Zero(pal)
+                pal = np.zeros((size[1], size[0], 3), dtype=np.uint8)
                 idx_l = 0
                 idx_h = 0
-                for i in range(0, bins):
+                for i in range(0, min(bins, self._mPalette.shape[0])):
                     idx_h = np.clip(
                         idx_h +
                         (self._mPalettePercentages[i] * float(size[0])),
                         0, size[0] - 1)
                     roi = (int(idx_l), 0, int(idx_h - idx_l), size[1])
-                    cv.SetImageROI(pal, roi)
-                    cv.AddS(pal, float(self._mPalette[i]), pal)
-                    cv.ResetImageROI(pal)
+                    roiimage = pal[roi[1]:roi[1] + roi[3],
+                                   roi[0]:roi[0] + roi[2]]
+                    roiimage += self._mPalette[i]
+                    pal[roi[1]:roi[1] + roi[3],
+                        roi[0]:roi[0] + roi[2]] = roiimage
                     idx_l = idx_h
                 ret_val = Image(pal)
             else:
                 if size[0] == -1 or size[1] == -1:
                     size = (int(self.width * .1), int(self.height))
-                pal = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
-                cv.Zero(pal)
+                pal = np.zeros((size[1], size[0], 3), dtype=np.uint8)
                 idx_l = 0
                 idx_h = 0
-                for i in range(0, bins):
+                for i in range(0, min(bins, self._mPalette.shape[0])):
                     idx_h = np.clip(
                         idx_h + self._mPalettePercentages[i] * size[1], 0,
                         size[1] - 1)
                     roi = (0, int(idx_l), size[0], int(idx_h - idx_l))
-                    cv.SetImageROI(pal, roi)
-                    cv.AddS(pal, float(self._mPalette[i]), pal)
-                    cv.ResetImageROI(pal)
+                    roiimage = pal[roi[1]:roi[1] + roi[3],
+                                   roi[0]:roi[0] + roi[2]]
+                    roiimage += self._mPalette[i]
+                    pal[roi[1]:roi[1] + roi[3],
+                        roi[0]:roi[0] + roi[2]] = roiimage
                     idx_l = idx_h
                 ret_val = Image(pal)
-
         return ret_val
 
     def palettize(self, bins=10, hue=False, centroids=None):
@@ -9007,7 +9007,7 @@ class Image(object):
         self._generate_palette(bins, hue, centroids)
         if hue:
             derp = self._mPalette[self._mPaletteMembers]
-            ret_val = Image(derp[::-1].reshape(self.height, self.width)[::-1])
+            ret_val = Image(derp.reshape(self.height, self.width))
             ret_val = ret_val.rotate(-90, fixed=False)
         else:
             ret_val = Image(
@@ -9048,7 +9048,7 @@ class Image(object):
 
         >>> img = Image("lenna")
         >>> p = img.get_palette()
-        >>> blobs = img.find_blobs_from_palette( (p[0],p[1],[6]) )
+        >>> blobs = img.find_blobs_from_palette((p[0], p[1], p[6]))
         >>> blobs.draw()
         >>> img.show()
 
@@ -9130,7 +9130,7 @@ class Image(object):
         ret_val = None
         img = self.palettize(self._mPaletteBins, hue=self._mDoHuePalette)
         if not self._mDoHuePalette:
-            npimg = img.get_numpy()
+            npimg = img.get_ndarray()
             white = np.array([255, 255, 255])
             black = np.array([0, 0, 0])
 
@@ -9140,7 +9140,7 @@ class Image(object):
             npimg = np.where(npimg != white, black, white)
             ret_val = Image(npimg)
         else:
-            npimg = img.get_numpy()[:, :, 1]
+            npimg = img.get_ndarray()[:, :, 1]
             white = np.array([255])
             black = np.array([0])
 
@@ -9149,7 +9149,6 @@ class Image(object):
 
             npimg = np.where(npimg != white, black, white)
             ret_val = Image(npimg)
-
         return ret_val
 
     def skeletonize(self, radius=5):
@@ -9176,11 +9175,11 @@ class Image(object):
 
         >>> cam = Camera()
         >>> while True:
-            ... img = cam.getImage()
-            ... b = img.binarize().invert()
-            ... s = img.skeletonize()
-            ... r = b-s
-            ... r.show()
+        ...     img = cam.getImage()
+        ...     b = img.binarize().invert()
+        ...     s = img.skeletonize()
+        ...     r = b - s
+        ...     r.show()
 
 
         **NOTES**
@@ -9191,14 +9190,15 @@ class Image(object):
         http://alexbw.posterous.com/
 
         """
-        img = self.to_gray().get_numpy()[:, :, 0]
-        distance_img = ndimage.distance_transform_edt(img)
+        img_array = self.get_gray_ndarray()
+        distance_img = ndimage.distance_transform_edt(img_array)
         morph_laplace_img = ndimage.morphological_laplace(distance_img,
                                                           (radius, radius))
         skeleton = morph_laplace_img < morph_laplace_img.min() / 2
         ret_val = np.zeros([self.width, self.height])
         ret_val[skeleton] = 255
-        return Image(ret_val)
+        ret_val = ret_val.astype(self.dtype)
+        return Image(ret_val, color_space=ColorSpace.GRAY)
 
     def smart_threshold(self, mask=None, rect=None):
         """
@@ -9241,11 +9241,11 @@ class Image(object):
         >>> img = Image("RatTop.png")
         >>> mask = Image((img.width,img.height))
         >>> mask.dl().circle((100, 100), 80, color=Color.MAYBE_BACKGROUND,
-            ...              filled=True)
+        ...                  filled=True)
         >>> mask.dl().circle((100, 100), 60, color=Color.MAYBE_FOREGROUND,
-            ...              filled=True)
+        ...                  filled=True)
         >>> mask.dl().circle((100 ,100), 40, color=Color.FOREGROUND,
-            ...              filled=True)
+        ...                  filled=True)
         >>> mask = mask.apply_layers()
         >>> new_mask = img.smart_threshold(mask=mask)
         >>> new_mask.show()
@@ -9259,11 +9259,6 @@ class Image(object):
         :py:meth:`smart_find_blobs`
 
         """
-        try:
-            import cv2
-        except:
-            logger.warning("Can't Do GrabCut without OpenCV >= 2.3.0")
-            return
         ret_val = []
         if mask is not None:
             bmp = mask._get_grayscale_bitmap()
