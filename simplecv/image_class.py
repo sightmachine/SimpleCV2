@@ -1139,9 +1139,9 @@ class Image(object):
 
         elif type(source) == pg.Surface:
             self._pgsurface = source
-            pg.image.tostring(self._pgsurface, "RGB")
-            self._ndarray = pg.surfarray.array3d(self._pgsurface)
-            self._colorSpace = ColorSpace.BGR
+            self._ndarray = cv2.transpose(
+                pg.surfarray.array3d(self._pgsurface).copy())
+            self._colorSpace = ColorSpace.RGB
 
         elif PIL_ENABLED and \
                 ((len(source.__class__.__bases__)
@@ -1491,21 +1491,21 @@ class Image(object):
             ColorSpace.YCrCb: 'YCR_CB'
         }
 
-        converter_slr = 'COLOR_{}2{}'.format(
+        converter_str = 'COLOR_{}2{}'.format(
             color_space_to_string[from_color_space],
             color_space_to_string[to_color_space])
 
         try:
-            converter = getattr(cv2, converter_slr)
+            converter = getattr(cv2, converter_str)
         except AttributeError:
             # convert to BGR first
             converter_bgr_str = 'COLOR_{}2BGR'.format(
                 color_space_to_string[from_color_space])
-            converter_slr = 'COLOR_BGR2{}'.format(
+            converter_str = 'COLOR_BGR2{}'.format(
                 color_space_to_string[to_color_space])
 
             converter_bgr = getattr(cv2, converter_bgr_str)
-            converter = getattr(cv2, converter_slr)
+            converter = getattr(cv2, converter_str)
 
             new_ndarray = cv2.cvtColor(ndarray, converter_bgr)
             return cv2.cvtColor(new_ndarray, converter)
@@ -9259,58 +9259,46 @@ class Image(object):
         :py:meth:`smart_find_blobs`
 
         """
-        ret_val = []
+        ret_val = None
         if mask is not None:
-            bmp = mask._get_grayscale_bitmap()
+            gray_array = mask.get_gray_ndarray()
             # translate the human readable images to something
             # opencv wants using a lut
             lut = np.zeros((256, 1), dtype=uint8)
             lut[255] = 1
             lut[64] = 2
             lut[192] = 3
-            cv.LUT(bmp, bmp, cv.fromarray(lut))
-            mask_in = np.array(cv.GetMat(bmp))
+            gray_array = cv2.LUT(gray_array, lut)
+            mask_in = gray_array.copy()
             # get our image in a flavor grab cut likes
-            npimg = np.array(cv.GetMat(self.get_bitmap()))
+            npimg = self._ndarray
             # require by opencv
             tmp1 = np.zeros((1, 13 * 5))
             tmp2 = np.zeros((1, 13 * 5))
             # do the algorithm
             cv2.grabCut(npimg, mask_in, None, tmp1, tmp2, 10,
                         mode=cv2.GC_INIT_WITH_MASK)
-            # generate the output image
-            output = cv.CreateImageHeader((mask_in.shape[1], mask_in.shape[0]),
-                                          cv.IPL_DEPTH_8U, 1)
-            cv.SetData(output, mask_in.tostring(),
-                       mask_in.dtype.itemsize * mask_in.shape[1])
             # remap the color space
             lut = np.zeros((256, 1), dtype=uint8)
             lut[1] = 255
             lut[2] = 64
             lut[3] = 192
-            cv.LUT(output, output, cv.fromarray(lut))
-            # and create the return value
-            # don't ask me why... but this gets corrupted
-            mask._graybitmap = None
-            ret_val = Image(output)
+            output = cv2.LUT(mask_in, lut)
+            ret_val = Image(output, color_space=ColorSpace.GRAY)
 
         elif rect is not None:
-            npimg = np.array(cv.GetMat(self.get_bitmap()))
+            npimg = self._ndarray
             tmp1 = np.zeros((1, 13 * 5))
             tmp2 = np.zeros((1, 13 * 5))
-            mask = np.zeros((self.height, self.width), dtype='uint8')
+            mask = np.zeros((self.height, self.width), dtype=np.uint8)
             cv2.grabCut(npimg, mask, rect, tmp1, tmp2, 10,
                         mode=cv2.GC_INIT_WITH_RECT)
-            bmp = cv.CreateImageHeader((mask.shape[1], mask.shape[0]),
-                                       cv.IPL_DEPTH_8U, 1)
-            cv.SetData(bmp, mask.tostring(),
-                       mask.dtype.itemsize * mask.shape[1])
             lut = np.zeros((256, 1), dtype=uint8)
             lut[1] = 255
             lut[2] = 64
             lut[3] = 192
-            cv.LUT(bmp, bmp, cv.fromarray(lut))
-            ret_val = Image(bmp)
+            array = cv2.LUT(mask, lut)
+            ret_val = Image(array, color_space=ColorSpace.GRAY)
         else:
             logger.warning("ImageClass.findBlobsSmart requires either a mask "
                            "or a selection rectangle. Failure to provide one "
