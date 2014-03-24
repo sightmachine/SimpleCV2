@@ -3205,6 +3205,8 @@ class Image(object):
         """
         if color_space is None:
             array = self._ndarray
+            if len(self._ndarray.shape) == 2:
+                return np.average(array)
         elif color_space == 'BGR':
             array = self.to_bgr().get_ndarray()
         elif color_space == 'RGB':
@@ -3214,7 +3216,7 @@ class Image(object):
         elif color_space == 'XYZ':
             array = self.to_xyz().get_ndarray()
         elif color_space == 'Gray':
-            array = self.to_gray().get_gray_ndarray()
+            array = self.get_gray_ndarray()
             return np.average(array)
         elif color_space == 'YCrCb':
             array = self.to_ycrcb().get_ndarray()
@@ -4182,7 +4184,7 @@ class Image(object):
 
         """
         kern = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3), (1, 1))
-        array = cv2.dilate(self._ndarray, kern, iterations)
+        array = cv2.dilate(self._ndarray, kern, iterations=iterations)
         return Image(array, color_space=self._colorSpace)
 
     def morph_open(self):
@@ -8133,11 +8135,6 @@ class Image(object):
          ImageClass.find_keypoint_match(self, template, quality=500.00,
                                       minDist=0.2, minMatch=0.4)
         """
-        try:
-            import cv2
-        except:
-            logger.warning("Can't run FLANN Matches without OpenCV >= 2.3.0")
-            return
         flann_index_kdtree = 1  # bug: flann enums are missing
         flann_params = dict(algorithm=flann_index_kdtree, trees=4)
         flann = cv2.flann_Index(sd, flann_params)
@@ -9422,11 +9419,9 @@ class Image(object):
         :py:meth:`binarize`
 
         """
-        gray = self._get_grayscale_bitmap()
-        result = self.get_empty(1)
-        cv.Threshold(gray, result, value, 255, cv.CV_THRESH_BINARY)
-        ret_val = Image(result)
-        return ret_val
+        gray = self.get_gray_ndarray()
+        _, array = cv2.threshold(gray, value, 255, cv2.THRESH_BINARY)
+        return Image(array, color_space=ColorSpace.GRAY)
 
     def flood_fill(self, points, tolerance=None, color=Color.WHITE, lower=None,
                    upper=None, fixed_range=True):
@@ -9474,7 +9469,7 @@ class Image(object):
 
         >>> img = Image("lenna")
         >>> img2 = img.flood_fill(((10, 10), (54, 32)), tolerance=(10, 10, 10),
-            ...                  color=Color.RED)
+        ...                       color=Color.RED)
         >>> img2.show()
 
         **SEE ALSO**
@@ -9512,22 +9507,21 @@ class Image(object):
         if isinstance(points, tuple):
             points = np.array(points)
 
-        flags = 8
+        flags = cv2.FLOODFILL_MASK_ONLY
         if fixed_range:
-            flags = flags + cv.CV_FLOODFILL_FIXED_RANGE
+            flags |= cv2.FLOODFILL_FIXED_RANGE
 
-        bmp = self.get_empty()
-        cv.Copy(self.get_bitmap(), bmp)
+        mask = np.zeros((self.height + 2, self.width + 2), dtype=np.uint8)
+        array = self._ndarray.copy()
 
         if len(points.shape) != 1:
             for p in points:
-                cv.FloodFill(bmp, tuple(p), color, lower, upper, flags)
+                cv2.floodFill(array, mask, tuple(p),
+                              color, lower, upper, flags)
         else:
-            cv.FloodFill(bmp, tuple(points), color, lower, upper, flags)
-
-        ret_val = Image(bmp)
-
-        return ret_val
+            cv2.floodFill(array, mask, tuple(points),
+                          color, lower, upper, flags)
+        return Image(array)
 
     def flood_fill_to_mask(self, points, tolerance=None, color=Color.WHITE,
                            lower=None, upper=None, fixed_range=True,
@@ -9588,7 +9582,7 @@ class Image(object):
         >>> img = Image("lenna")
         >>> mask = img.edges()
         >>> mask= img.flood_fill_to_mask(((10, 10), (54, 32)),
-            ...                       tolerance=(10, 10, 10), mask=mask)
+        ...                              tolerance=(10, 10, 10), mask=mask)
         >>> mask.show
 
         **SEE ALSO**
@@ -9597,8 +9591,6 @@ class Image(object):
         :py:meth:`find_flood_fill_blobs`
 
         """
-        mask_flag = 255  # flag weirdness
-
         if isinstance(color, np.ndarray):
             color = color.tolist()
         elif isinstance(color, dict):
@@ -9629,29 +9621,26 @@ class Image(object):
         if isinstance(points, tuple):
             points = np.array(points)
 
-        flags = (mask_flag << 8) + 8
+        flags = cv2.FLOODFILL_MASK_ONLY
         if fixed_range:
-            flags = flags + cv.CV_FLOODFILL_FIXED_RANGE
+            flags |= cv2.FLOODFILL_FIXED_RANGE
 
-        local_mask = None
         #opencv wants a mask that is slightly larger
         if mask is None:
-            local_mask = cv.CreateImage((self.width + 2, self.height + 2),
-                                        cv.IPL_DEPTH_8U, 1)
-            cv.Zero(local_mask)
+            local_mask = np.zeros((self.height + 2, self.width + 2),
+                                  dtype=np.uint8)
         else:
-            local_mask = mask.embiggen(
-                size=(self.width + 2, self.height + 2))._get_grayscale_bitmap()
+            local_mask = mask.embiggen(size=(self.width + 2, self.height + 2))
+            local_mask = local_mask.get_gray_ndarray()
 
-        bmp = self.get_empty()
-        cv.Copy(self.get_bitmap(), bmp)
+        temp = self.get_gray_ndarray()
         if len(points.shape) != 1:
             for p in points:
-                cv.FloodFill(bmp, tuple(p), color, lower, upper, flags,
-                             local_mask)
+                cv2.floodFill(temp, local_mask, tuple(p), color,
+                              lower, upper, flags)
         else:
-            cv.FloodFill(bmp, tuple(points), color, lower, upper, flags,
-                         local_mask)
+            cv2.floodFill(temp, local_mask, tuple(points), color,
+                          lower, upper, flags)
 
         ret_val = Image(local_mask)
         ret_val = ret_val.crop(1, 1, self.width, self.height)
@@ -9704,22 +9693,19 @@ class Image(object):
         if maxsize == 0:
             maxsize = self.width * self.height
         #create a single channel image, thresholded to parameters
-        if mask.width != self.width or mask.height != self.height:
-            logger.warning("ImageClass.find_blobs_from_mask - your mask does "
+        if mask.size() != self.size():
+            logger.warning("Image.find_blobs_from_mask - your mask does "
                            "not match the size of your image")
             return None
 
         blobmaker = BlobMaker()
-        gray = mask._get_grayscale_bitmap()
-        result = mask.get_empty(1)
-        cv.Threshold(gray, result, threshold, 255, cv.CV_THRESH_BINARY)
-        blobs = blobmaker.extract_from_binary(Image(result), self,
-                                              minsize=minsize, maxsize=maxsize,
-                                              appx_level=appx_level)
-
+        gray = mask.get_gray_ndarray()
+        val, result = cv2.threshold(gray, threshold, 255, cv2.THRESH_BINARY)
+        blobs = blobmaker.extract_from_binary(
+            Image(result, color_space=ColorSpace.GRAY), self,
+            minsize=minsize, maxsize=maxsize, appx_level=appx_level)
         if not len(blobs):
             return None
-
         return FeatureSet(blobs).sort_area()
 
     def find_flood_fill_blobs(self, points, tolerance=None, lower=None,
@@ -11698,7 +11684,7 @@ class Image(object):
             ymin_w = np.clip(ymin - window, 0, self.height)
             ymax_w = np.clip(ymax + window, 0, self.height)
             temp = self.crop(xmin_w, ymin_w, xmax_w - xmin_w, ymax_w - ymin_w)
-            temp = temp.get_gray_numpy()
+            temp = temp.get_gray_ndarray()
 
             # pick the lines above our threshold
             x, y = np.where(temp > threshold)
@@ -11895,7 +11881,7 @@ class Image(object):
             return None
 
         if do_gray:
-            dst = cv2.Sobel(self.get_gray_numpy(), cv2.cv.CV_32F, xorder,
+            dst = cv2.Sobel(self.get_gray_ndarray(), cv2.cv.CV_32F, xorder,
                             yorder, ksize=aperture)
             minv = np.min(dst)
             maxv = np.max(dst)
@@ -12694,7 +12680,7 @@ class Image(object):
         """
         #retVal = self.to_gray()
         if channel == -1:
-            img = np.copy(self.get_gray_numpy())
+            img = np.copy(self.get_gray_ndarray())
         else:
             try:
                 img = np.copy(self.get_numpy()[:, :, channel])
@@ -12814,7 +12800,7 @@ class Image(object):
                 and pt1 is None and pt2 is None and channel is None:
 
             if linescan.channel == -1:
-                img = np.copy(self.get_gray_numpy())
+                img = np.copy(self.get_gray_ndarray())
             else:
                 try:
                     img = np.copy(self.get_numpy()[:, :, linescan.channel])
@@ -13122,19 +13108,15 @@ class Image(object):
         >>> img.logical_and(img1)
 
         """
-        if not self.size() == img.size():
-            print "Both images must have same sizes"
+        if self.size() != img.size():
+            logger.warning("Both images must have same sizes")
             return None
-        try:
-            import cv2
-        except ImportError:
-            print "This function is available for OpenCV >= 2.3"
         if grayscale:
-            retval = cv2.bitwise_and(self.get_gray_numpy_cv2(),
-                                     img.get_gray_numpy_cv2())
+            retval = cv2.bitwise_and(self.get_gray_ndarray(),
+                                     img.get_gray_ndarray())
         else:
-            retval = cv2.bitwise_and(self.get_numpy_cv2(), img.get_numpy_cv2())
-        return Image(retval, cv2image=True)
+            retval = cv2.bitwise_and(self.get_ndarray(), img.get_ndarray())
+        return Image(retval)
 
     def logical_nand(self, img, grayscale=True):
         """
@@ -13159,20 +13141,16 @@ class Image(object):
         >>> img.logical_nand(img1)
 
         """
-        if not self.size() == img.size():
-            print "Both images must have same sizes"
+        if self.size() != img.size():
+            logger.warning("Both images must have same sizes")
             return None
-        try:
-            import cv2
-        except ImportError:
-            print "This function is available for OpenCV >= 2.3"
         if grayscale:
-            retval = cv2.bitwise_and(self.get_gray_numpy_cv2(),
-                                     img.get_gray_numpy_cv2())
+            retval = cv2.bitwise_and(self.get_gray_ndarray(),
+                                     img.get_gray_ndarray())
         else:
-            retval = cv2.bitwise_and(self.get_numpy_cv2(), img.get_numpy_cv2())
+            retval = cv2.bitwise_and(self.get_ndarray(), img.get_ndarray())
         retval = cv2.bitwise_not(retval)
-        return Image(retval, cv2image=True)
+        return Image(retval)
 
     def logical_or(self, img, grayscale=True):
         """
@@ -13197,19 +13175,15 @@ class Image(object):
         >>> img.logical_or(img1)
 
         """
-        if not self.size() == img.size():
-            print "Both images must have same sizes"
+        if self.size() != img.size():
+            logger.warning("Both images must have same sizes")
             return None
-        try:
-            import cv2
-        except ImportError:
-            print "This function is available for OpenCV >= 2.3"
         if grayscale:
-            retval = cv2.bitwise_or(self.get_gray_numpy_cv2(),
-                                    img.get_gray_numpy_cv2())
+            retval = cv2.bitwise_or(self.get_gray_ndarray(),
+                                    img.get_gray_ndarray())
         else:
-            retval = cv2.bitwise_or(self.get_numpy_cv2(), img.get_numpy_cv2())
-        return Image(retval, cv2image=True)
+            retval = cv2.bitwise_or(self.get_ndarray(), img.get_ndarray())
+        return Image(retval)
 
     def logical_xor(self, img, grayscale=True):
         """
@@ -13234,20 +13208,15 @@ class Image(object):
         >>> img.logical_xor(img1)
 
         """
-        if not self.size() == img.size():
-            print "Both images must have same sizes"
+        if self.size() != img.size():
+            logger.warning("Both images must have same sizes")
             return None
-        try:
-            import cv2
-        except ImportError:
-            print "This function is available for OpenCV >= 2.3"
-            return
         if grayscale:
-            retval = cv2.bitwise_xor(self.get_gray_numpy_cv2(),
-                                     img.get_gray_numpy_cv2())
+            retval = cv2.bitwise_xor(self.get_gray_ndarray(),
+                                     img.get_gray_ndarray())
         else:
-            retval = cv2.bitwise_xor(self.get_numpy_cv2(), img.get_numpy_cv2())
-        return Image(retval, cv2image=True)
+            retval = cv2.bitwise_xor(self.get_ndarray(), img.get_ndarray())
+        return Image(retval)
 
     def match_sift_key_points(self, template, quality=200):
         """
@@ -13302,8 +13271,8 @@ class Image(object):
             return None
         detector = cv2.FeatureDetector_create("SIFT")
         descriptor = cv2.DescriptorExtractor_create("SIFT")
-        img = self.get_numpy_cv2()
-        template_img = template.get_numpy_cv2()
+        img = self.get_ndarray()
+        template_img = template.get_ndarray()
 
         skp = detector.detect(img)
         skp, sd = descriptor.compute(img, skp)
@@ -13526,12 +13495,7 @@ class Image(object):
         :py:meth:`find_keypoint_match`
 
         """
-        try:
-            import cv2
-        except ImportError:
-            logger.warning("OpenCV >= 2.3.0 required")
-            return None
-        img = self.get_gray_numpy_cv2()
+        img = self.get_gray_ndarray()
         blur = cv2.GaussianBlur(img, (3, 3), 0)
 
         ix = cv2.Sobel(blur, cv2.CV_32F, 1, 0)
@@ -13599,11 +13563,11 @@ class Image(object):
         # here is an example of how to create your own mask
 
         >>> img = Image('lenna')
-        >>> myMask = Image((img.width,img.height))
-        >>> myMask = myMask.flood_fill((0,0),color=Color.WATERSHED_BG)
+        >>> myMask = Image((img.width, img.height))
+        >>> myMask = myMask.flood_fill((0, 0), color=Color.WATERSHED_BG)
         >>> mask = img.threshold(128)
-        >>> myMask = (myMask-mask.dilate(2)+mask.erode(2))
-        >>> result = img.watershed(mask=myMask,use_my_mask=True)
+        >>> myMask = (myMask - mask.dilate(2) + mask.erode(2))
+        >>> result = img.watershed(mask=myMask, use_my_mask=True)
 
         **SEE ALSO**
         Color.WATERSHED_FG - The watershed foreground color
@@ -13614,11 +13578,6 @@ class Image(object):
         mask.
         """
 
-        try:
-            import cv2
-        except ImportError:
-            logger.warning("OpenCV >= 2.3.0 required")
-            return None
         output = self.get_empty(3)
         if mask is None:
             mask = self.binarize().invert()
@@ -13626,11 +13585,12 @@ class Image(object):
         if not use_my_mask:
             newmask = Image((self.width, self.height))
             newmask = newmask.flood_fill((0, 0), color=Color.WATERSHED_BG)
-            newmask = (newmask - mask.dilate(dilate) + mask.erode(erode))
+            dilate_erode_sum = mask.dilate(dilate) + mask.erode(erode)
+            newmask = (newmask - dilate_erode_sum.to_bgr())
         else:
             newmask = mask
-        m = np.int32(newmask.get_gray_numpy_cv2())
-        cv2.watershed(self.get_numpy_cv2(), m)
+        m = np.int32(newmask.get_gray_ndarray())
+        cv2.watershed(self._ndarray, m)
         m = cv2.convertScaleAbs(m)
         ret, thresh = cv2.threshold(m, 0, 255, cv2.cv.CV_THRESH_OTSU)
         ret_val = Image(thresh, cv2image=True)
@@ -13711,12 +13671,12 @@ class Image(object):
 
         """
         if locations:
-            val = np.max(self.get_gray_numpy())
-            x, y = np.where(self.get_gray_numpy() == val)
+            val = np.max(self.get_gray_ndarray())
+            x, y = np.where(self.get_gray_ndarray() == val)
             locs = zip(x.tolist(), y.tolist())
             return int(val), locs
         else:
-            val = np.max(self.get_gray_numpy())
+            val = np.max(self.get_gray_ndarray())
             return int(val)
 
     def min_value(self, locations=False):
@@ -13745,12 +13705,12 @@ class Image(object):
 
         """
         if locations:
-            val = np.min(self.get_gray_numpy())
-            x, y = np.where(self.get_gray_numpy() == val)
+            val = np.min(self.get_gray_ndarray())
+            x, y = np.where(self.get_gray_ndarray() == val)
             locs = zip(x.tolist(), y.tolist())
             return int(val), locs
         else:
-            val = np.min(self.get_gray_numpy())
+            val = np.min(self.get_gray_ndarray())
             return int(val)
 
     def find_keypoint_clusters(self, num_of_clusters=5, order='dsc',
@@ -13848,12 +13808,6 @@ class Image(object):
         >>> fs, des = img.get_freak_descriptor("ORB")
 
         """
-        try:
-            import cv2
-        except ImportError:
-            warnings.warn("OpenCV version >= 2.4.2 requierd")
-            return None
-
         if cv2.__version__.startswith('$Rev:'):
             warnings.warn("OpenCV version >= 2.4.2 requierd")
             return None
@@ -13869,9 +13823,9 @@ class Image(object):
             return None
         detector = cv2.FeatureDetector_create(flavor)
         extractor = cv2.DescriptorExtractor_create("FREAK")
-        self._mKeyPoints = detector.detect(self.get_gray_numpy_cv2())
+        self._mKeyPoints = detector.detect(self.get_gray_ndarray())
         self._mKeyPoints, self._mKPDescriptors = extractor.compute(
-            self.get_gray_numpy_cv2(),
+            self.get_gray_ndarray(),
             self._mKeyPoints)
         fs = FeatureSet()
         for i in range(len(self._mKeyPoints)):
@@ -14280,13 +14234,7 @@ class Image(object):
             ... i.draw_text(str(label))
             ... i.show()
         """
-        try:
-            import cv2
-
-            if not hasattr(cv2, "createFisherFaceRecognizer"):
-                warnings.warn("OpenCV >= 2.4.4 required to use this.")
-                return None
-        except ImportError:
+        if not hasattr(cv2, "createFisherFaceRecognizer"):
             warnings.warn("OpenCV >= 2.4.4 required to use this.")
             return None
 
@@ -14864,7 +14812,7 @@ class Image(object):
             roi = ROI(roi, self)
             hsv = roi.crop().to_hsv().get_numpy_cv2()
         else:
-            hsv = self.to_hsv().get_numpy_cv2()
+            hsv = self.to_hsv().get_ndarray()
         hist = cv2.calcHist([hsv], [0, 1], None, [180, 256], [0, 180, 0, 256])
         cv2.normalize(hist, hist, 0, 255, cv2.NORM_MINMAX)
         return hist
@@ -14933,7 +14881,7 @@ class Image(object):
         if not isinstance(model, np.ndarray) or model.shape != (180, 256):
             model = self.get_normalized_hue_histogram(model)
         if isinstance(model, np.ndarray) and model.shape == (180, 256):
-            hsv = self.to_hsv().get_numpy_cv2()
+            hsv = self.to_hsv().get_ndarray()
             dst = cv2.calcBackProject(
                 [hsv], [0, 1], model, [0, 180, 0, 256], 1)
             if smooth:

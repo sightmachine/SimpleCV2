@@ -3473,7 +3473,7 @@ def test_watershed():
     my_mask = Image((img.width, img.height))
     my_mask = my_mask.flood_fill((0, 0), color=Color.WATERSHED_BG)
     mask = img.threshold(128)
-    my_mask = (my_mask - mask.dilate(2) + mask.erode(2))
+    my_mask = (my_mask - (mask.dilate(2) + mask.erode(2)).to_bgr())
     img4 = img.watershed(mask=my_mask, use_my_mask=True)
     blobs = img.find_blobs_from_watershed(dilate=3, erode=2)
     blobs = img.find_blobs_from_watershed()
@@ -3493,7 +3493,6 @@ def test_minmax():
     min, pts = img.min_value(locations=True)
     max = img.max_value()
     max, pts = img.max_value(locations=True)
-    pass
 
 
 def test_roi_feature():
@@ -3589,8 +3588,6 @@ def test_find_keypoint_clusters():
     kpc = img.find_keypoint_clusters()
     if len(kpc) <= 0:
         assert False
-    else:
-        pass
 
 
 def test_replace_line_scan():
