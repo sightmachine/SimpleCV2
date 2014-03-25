@@ -2024,12 +2024,8 @@ class Image(object):
         if self._pgsurface:
             return self._pgsurface
         else:
-            if self.is_gray():
-                self._pgsurface = pg.image.fromstring(
-                    self._ndarray.tostring(), self.size(), "RGB")
-            else:
-                self._pgsurface = pg.image.fromstring(
-                    self.to_rgb().get_ndarray().tostring(), self.size(), "RGB")
+            self._pgsurface = pg.image.fromstring(
+                self.to_rgb().get_ndarray().tostring(), self.size(), "RGB")
             return self._pgsurface
 
     def to_string(self):
@@ -11095,40 +11091,6 @@ class Image(object):
 
         return img
 
-    def fill_holes(self):
-        """
-        **SUMMARY**
-
-        Fill holes on a binary image by closing the contours
-
-        **PARAMETERS**
-
-        * *img* - a binary image
-        **RETURNS**
-
-        The image with the holes filled
-        **EXAMPLE**
-
-        >>> img = Image("SimpleCV")
-        #todo Add noise and showcase the image
-
-        """
-        # kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(5,5))
-        # res = cv2.morphologyEx(self.get_gray_numpy(),cv2.MORPH_OPEN,kernel)
-        # return res
-        des = cv2.bitwise_not(self.get_gray_numpy())
-        return cv2.inPaint(des)
-
-        contour, hier = cv2.findContours(
-            des, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
-
-        for cnt in contour:
-            cv2.drawContours(des, [cnt], 0, 255, -1)
-            print 'yep'
-
-        gray = cv2.bitwise_not(des)
-        return gray
-
     def edge_intersections(self, pt0, pt1, width=1, canny1=0, canny2=100):
         """
         **SUMMARY**
@@ -11189,12 +11151,11 @@ class Image(object):
         p0p = np.array([(pt0[0] - x, pt0[1] - y)])
         p1p = np.array([(pt1[0] - x, pt1[1] - y)])
         edges = self.crop(x, y, w, h)._get_edge_map(canny1, canny2)
-        line = cv.CreateImage((w, h), cv.IPL_DEPTH_8U, 1)
-        cv.Zero(line)
-        cv.Line(line, ((pt0[0] - x), (pt0[1] - y)),
-                ((pt1[0] - x), (pt1[1] - y)), cv.Scalar(255.00), width, 8)
-        cv.Mul(line, edges, line)
-        intersections = uint8(np.array(cv.GetMat(line)).transpose())
+        line = np.zeros((h, w), np.uint8)
+        cv2.line(line, ((pt0[0] - x), (pt0[1] - y)),
+                ((pt1[0] - x), (pt1[1] - y)), 255.00, width, 8)
+        line = cv2.multiply(line, edges)
+        intersections = line.transpose()
         (xs, ys) = np.where(intersections == 255)
         points = zip(xs, ys)
         if len(points) == 0:
