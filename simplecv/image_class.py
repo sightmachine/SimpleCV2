@@ -10720,25 +10720,25 @@ class Image(object):
         **EXAMPLE**
 
         >>> im = Image("lenna")
-        >>> img = im.applyGaussianfilter(dia=400, highpass=True,
-            ...                          grayscale=False)
+        >>> img = im.apply_gaussian_filter(dia=400, highpass=True,
+        ...                                grayscale=False)
 
         Output image: http://i.imgur.com/DttJv.png
 
-        >>> img = im.applyGaussianfilter(dia=400, highpass=False,
-            ...                          grayscale=False)
+        >>> img = im.apply_gaussian_filter(dia=400, highpass=False,
+        ...                                grayscale=False)
 
         Output img: http://i.imgur.com/PWn4o.png
 
         >>> # take image from here: http://i.imgur.com/O0gZn.png
         >>> im = Image("grayscale_lenn.png")
-        >>> img = im.applyGaussianfilter(dia=400, highpass=True,
-            ...                          grayscale=True)
+        >>> img = im.apply_gaussian_filter(dia=400, highpass=True,
+        ...                                grayscale=True)
 
         Output img: http://i.imgur.com/9hX5J.png
 
-        >>> img = im.applyGaussianfilter(dia=400, highpass=False,
-            ...                          grayscale=True)
+        >>> img = im.apply_gaussian_filter(dia=400, highpass=False,
+        ...                                grayscale=True)
 
         Output img: http://i.imgur.com/MXI5T.png
 
@@ -10875,26 +10875,26 @@ class Image(object):
         and then set the output image roi to the value.
         '''
 
+        src_roi = src._ndarray[roi[1]:roi[1] + roi[3],
+                               roi[0]:roi[0] + roi[2]]
+        dst_roi = dst[roi[1]:roi[1] + roi[3],
+                      roi[0]:roi[0] + roi[2]]
         if mode:  # get the peak hue for an area
-            h = src[roi[0]:roi[0] + roi[2],
-                    roi[1]:roi[1] + roi[3]].hue_histogram()
+            h = Image(src_roi).hue_histogram()
             my_hue = np.argmax(h)
             c = (float(my_hue), float(255), float(255), float(0))
-            cv.SetImageROI(dst, roi)
-            cv.AddS(dst, c, dst)
-            cv.ResetImageROI(dst)
+            dst_roi += c
         else:  # get the average value for an area optionally set levels
-            cv.SetImageROI(src.get_bitmap(), roi)
-            cv.SetImageROI(dst, roi)
-            avg = cv.Avg(src.get_bitmap())
-            avg = (float(avg[0]), float(avg[1]), float(avg[2]), 0)
+            avg = cv2.mean(src_roi)
+            avg = (float(avg[0]), float(avg[1]), float(avg[2]))
             if levels is not None:
                 avg = (int(avg[0] / levels) * levels_f,
                        int(avg[1] / levels) * levels_f,
-                       int(avg[2] / levels) * levels_f, 0)
-            cv.AddS(dst, avg, dst)
-            cv.ResetImageROI(src.get_bitmap())
-            cv.ResetImageROI(dst)
+                       int(avg[2] / levels) * levels_f)
+            dst_roi += avg
+
+        dst[roi[1]:roi[1] + roi[3],
+            roi[0]:roi[0] + roi[2]] = dst_roi
 
     def pixelize(self, block_size=10, region=None, levels=None, do_hue=False):
         """
@@ -10939,14 +10939,12 @@ class Image(object):
             levels_f = float(levels)
 
         if region is not None:
-            cv.Copy(self.get_bitmap(), ret_val)
-            cv.SetImageROI(ret_val, region)
-            cv.Zero(ret_val)
-            cv.ResetImageROI(ret_val)
             xs = region[0]
             ys = region[1]
             w = region[2]
             h = region[3]
+            ret_val = self._ndarray.copy()
+            ret_val[ys:ys + w, xs:xs + h] = 0
         else:
             xs = 0
             ys = 0
@@ -11030,7 +11028,7 @@ class Image(object):
             self._copy_avg(self, ret_val, roi, levels, levels_f, do_hue)
 
         if do_hue:
-            cv.CvtColor(ret_val, ret_val, cv.CV_HSV2BGR)
+            ret_val = cv2.cvtColor(ret_val, cv2.COLOR_HSV2BGR)
 
         return Image(ret_val)
 
