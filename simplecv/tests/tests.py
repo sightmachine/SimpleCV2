@@ -2286,15 +2286,15 @@ def test_get_raw_dft():
     raw1 = img.raw_dft_image(grayscale=True)
 
     assert len(raw1) == 1
-    assert raw1[0].width == img.width
-    assert raw1[0].height == img.height
-    assert raw1[0].depth == 64L
+    assert raw1[0].shape[1] == img.width
+    assert raw1[0].shape[0] == img.height
+    assert raw1[0].dtype == np.float64
 
     assert len(raw3) == 3
-    assert raw3[0].width == img.width
-    assert raw3[0].height == img.height
-    assert raw3[0].depth == 64L
-    assert raw3[0].channels == 2
+    assert raw3[0].shape[1] == img.width
+    assert raw3[0].shape[0] == img.height
+    assert raw3[0].dtype == np.float64
+    assert raw3[0].shape[2] == 2
 
 
 def test_get_dft_log_magnitude():

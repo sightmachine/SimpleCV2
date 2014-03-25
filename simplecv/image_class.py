@@ -9820,39 +9820,28 @@ class Image(object):
         operations_on_arrays.html#getoptimaldftsize
 
         """
+        width, height = self.size()
         if grayscale and (len(self._DFT) == 0 or len(self._DFT) == 3):
             self._DFT = []
-            img = self._get_grayscale_bitmap()
-            width, height = cv.GetSize(img)
-            src = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 2)
-            dst = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 2)
-            data = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 1)
-            blank = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 1)
-            cv.ConvertScale(img, data, 1.0)
-            cv.Zero(blank)
-            cv.Merge(data, blank, None, None, src)
-            cv.Merge(data, blank, None, None, dst)
-            cv.DFT(src, dst, cv.CV_DXT_FORWARD)
+            img = self.get_gray_ndarray()
+            data = img.astype(np.float64)
+            blank = np.zeros((height, width))
+            src = np.dstack((data, blank))
+            dst = cv2.dft(src)
             self._DFT.append(dst)
         elif not grayscale and len(self._DFT) < 2:
+            width, height = self.size()
             self._DFT = []
-            r = self.get_empty(1)
-            g = self.get_empty(1)
-            b = self.get_empty(1)
-            cv.Split(self.get_bitmap(), b, g, r, None)
-            chans = [b, g, r]
-            width = self.width
-            height = self.height
-            data = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 1)
-            blank = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 1)
-            src = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 2)
-            for c in chans:
-                dst = cv.CreateImage((width, height), cv.IPL_DEPTH_64F, 2)
-                cv.ConvertScale(c, data, 1.0)
-                cv.Zero(blank)
-                cv.Merge(data, blank, None, None, src)
-                cv.Merge(data, blank, None, None, dst)
-                cv.DFT(src, dst, cv.CV_DXT_FORWARD)
+            img = self._ndarray.copy()
+            b = img[:, :, 0]
+            g = img[:, :, 1]
+            r = img[:, :, 2]
+            chanels = [b, g, r]
+            for c in chanels:
+                data = c.astype(np.float64)
+                blank = np.zeros((height, width))
+                src = np.dstack((data, blank))
+                dst = cv2.dft(src)
                 self._DFT.append(dst)
 
     def _get_dft_clone(self, grayscale=False):
@@ -9893,15 +9882,10 @@ class Image(object):
         self._do_dft(grayscale)
         ret_val = []
         if grayscale:
-            gs = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_64F, 2)
-            cv.Copy(self._DFT[0], gs)
-            ret_val.append(gs)
+            ret_val.append(self._DFT[0].copy())
         else:
             for img in self._DFT:
-                temp = cv.CreateImage((self.width, self.height),
-                                      cv.IPL_DEPTH_64F, 2)
-                cv.Copy(img, temp)
-                ret_val.append(temp)
+                ret_val.append(img.copy())
         return ret_val
 
     def raw_dft_image(self, grayscale=False):
@@ -10010,34 +9994,31 @@ class Image(object):
 
         """
         dft = self._get_dft_clone(grayscale)
-        chans = []
         if grayscale:
             chans = [self.get_empty(1)]
         else:
             chans = [self.get_empty(1), self.get_empty(1), self.get_empty(1)]
-        data = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_64F, 1)
-        blank = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_64F, 1)
 
         for i in range(0, len(chans)):
-            cv.Split(dft[i], data, blank, None, None)
-            cv.Pow(data, data, 2.0)
-            cv.Pow(blank, blank, 2.0)
-            cv.Add(data, blank, data, None)
-            cv.Pow(data, data, 0.5)
-            cv.AddS(data, cv.ScalarAll(1.0), data, None)  # 1 + Mag
-            cv.Log(data, data)  # log(1 + Mag
-            min, max, pt1, pt2 = cv.MinMaxLoc(data)
-            cv.Scale(data, data, 1.0 / (max - min), 1.0 * (-min) / (max - min))
-            cv.Mul(data, data, data, 255.0)
-            cv.Convert(data, chans[i])
-
-        ret_val = None
+            data = dft[i][:, :, 0]
+            blank = dft[i][:, :, 1]
+            data = cv2.pow(data, 2.0)
+            blank = cv2.pow(blank, 2.0)
+            data += blank
+            data = cv2.pow(data, 0.5)
+            data += 1  # 1 + Mag
+            data = cv2.log(data)  # log(1 + Mag)
+            min_val, max_val, pt1, pt2 = cv2.minMaxLoc(data)
+            denom = max_val - min_val
+            if denom == 0:
+                denom = 1
+            data = data / denom - min_val / denom  # scale
+            data = cv2.multiply(data, data, scale=255.0)
+            chans[i] = np.copy(data).astype(self.dtype)
         if grayscale:
-            ret_val = Image(chans[0])
+            ret_val = Image(chans[0], color_space=ColorSpace.GRAY)
         else:
-            ret_val = self.get_empty()
-            cv.Merge(chans[0], chans[1], chans[2], None, ret_val)
-            ret_val = Image(ret_val)
+            ret_val = Image(np.dstack(tuple(chans)))
         return ret_val
 
     def _bounds_from_percentage(self, float_val, bound):
