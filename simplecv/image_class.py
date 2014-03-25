@@ -860,15 +860,15 @@ class Image(object):
     **EXAMPLE**
 
     >>> i = Image("/path/to/image.png")
-    >>> i = Camera().get_image()
+    >>> c = Camera().get_image()
 
 
     You can also just load the SimpleCV logo using:
 
     >>> img = Image("simplecv")
-    >>> img = Image("logo")
-    >>> img = Image("logo_inverted")
-    >>> img = Image("logo_transparent")
+    >>> img2 = Image("logo")
+    >>> img3 = Image("logo_inverted")
+    >>> img4 = Image("logo_transparent")
 
     Or you can load an image from a URL:
 
@@ -985,8 +985,8 @@ class Image(object):
         **EXAMPLES**
 
         >>> img = Image('simplecv')
-        >>> img = Image('test.png')
-        >>> img = Image('http://www.website.com/my_image.jpg')
+        >>> img2 = Image('test.png')
+        >>> img3 = Image('http://www.website.com/my_image.jpg')
         >>> img.show()
 
         **NOTES**
@@ -3193,13 +3193,13 @@ class Image(object):
         >>> img = Image('lenna')
         >>> # returns tuple in Image's colorspace format.
         >>> colors = img.mean_color()
-        >>> colors = img.mean_color('BGR')   # returns tuple in (B,G,R) format
-        >>> colors = img.mean_color('RGB')   # returns tuple in (R,G,B) format
-        >>> colors = img.mean_color('HSV')   # returns tuple in (H,S,V) format
-        >>> colors = img.mean_color('XYZ')   # returns tuple in (X,Y,Z) format
-        >>> colors = img.mean_color('Gray')  # returns float of mean intensity
-        >>> colors = img.mean_color('YCrCb') # returns tuple in Y,Cr,Cb format
-        >>> colors = img.mean_color('HLS')   # returns tuple in (H,L,S) format
+        >>> colors1 = img.mean_color('BGR')   # returns tuple in (B,G,R) format
+        >>> colors2 = img.mean_color('RGB')   # returns tuple in (R,G,B) format
+        >>> colors3 = img.mean_color('HSV')   # returns tuple in (H,S,V) format
+        >>> colors4 = img.mean_color('XYZ')   # returns tuple in (X,Y,Z) format
+        >>> colors5 = img.mean_color('Gray')  # returns float of mean intensity
+        >>> colors6 = img.mean_color('YCrCb') # returns tuple in Y,Cr,Cb format
+        >>> colors7 = img.mean_color('HLS')   # returns tuple in (H,L,S) format
 
 
         """
@@ -10021,8 +10021,11 @@ class Image(object):
             ret_val = Image(np.dstack(tuple(chans)))
         return ret_val
 
-    def _bounds_from_percentage(self, float_val, bound):
+    def _bounds_from_percentage2(self, float_val, bound):
         return np.clip(int(float_val * bound), 0, bound)
+
+    def _bounds_from_percentage(self, float_val, bound):
+        return np.clip(int(float_val * (bound / 2.00)), 0, (bound / 2))
 
     def apply_dft_filter(self, flt, grayscale=False):
         """
@@ -10078,42 +10081,30 @@ class Image(object):
             filteredimage = flt.apply_filter(self, grayscale)
             return filteredimage
 
-        if flt.width != self.width and flt.height != self.height:
+        if flt.size() != self.size():
             logger.warning("Image.apply_dft_filter - Your filter must match "
                            "the size of the image")
         dft = []
         if grayscale:
             dft = self._get_dft_clone(grayscale)
-            flt = flt._get_grayscale_bitmap()
-            flt64f = cv.CreateImage((flt.width, flt.height), cv.IPL_DEPTH_64F,
-                                    1)
-            cv.ConvertScale(flt, flt64f, 1.0)
-            final_filt = cv.CreateImage((flt.width, flt.height),
-                                        cv.IPL_DEPTH_64F, 2)
-            cv.Merge(flt64f, flt64f, None, None, final_filt)
-            for d in dft:
-                cv.MulSpectrums(d, final_filt, d, 0)
+            flt64f = flt.get_gray_ndarray().astype(np.float64)
+            final_filt = np.dstack((flt64f, flt64f))
+            for i in range(len(dft)):
+                dft[i] = cv2.mulSpectrums(dft[i], final_filt, 0)
         else:  # break down the filter and then do each channel
             dft = self._get_dft_clone(grayscale)
-            flt = flt.get_bitmap()
-            b = cv.CreateImage((flt.width, flt.height), cv.IPL_DEPTH_8U, 1)
-            g = cv.CreateImage((flt.width, flt.height), cv.IPL_DEPTH_8U, 1)
-            r = cv.CreateImage((flt.width, flt.height), cv.IPL_DEPTH_8U, 1)
-            cv.Split(flt, b, g, r, None)
+            flt = flt.get_ndarray()
+            b = flt[:, :, 0]
+            g = flt[:, :, 1]
+            r = flt[:, :, 2]
             chans = [b, g, r]
-            for c in range(0, len(chans)):
-                flt64f = cv.CreateImage((chans[c].width, chans[c].height),
-                                        cv.IPL_DEPTH_64F, 1)
-                cv.ConvertScale(chans[c], flt64f, 1.0)
-                final_filt = cv.CreateImage((chans[c].width, chans[c].height),
-                                            cv.IPL_DEPTH_64F, 2)
-                cv.Merge(flt64f, flt64f, None, None, final_filt)
-                cv.MulSpectrums(dft[c], final_filt, dft[c], 0)
-
+            for i in range(0, len(chans)):
+                flt64f = np.copy(chans[i])
+                final_filt = np.dstack((flt64f, flt64f))
+                if dft[i].dtype != final_filt.dtype:
+                    final_filt = final_filt.astype(dft[i].dtype)
+                dft[i] = cv2.mulSpectrums(dft[i], final_filt, 0)
         return self._inverse_dft(dft)
-
-    def _bounds_from_percentage(self, float_val, bound):
-        return np.clip(int(float_val * (bound / 2.00)), 0, (bound / 2))
 
     def high_pass_filter(self, x_cutoff, y_cutoff=None, grayscale=False):
         """
@@ -10556,43 +10547,31 @@ class Image(object):
         SEE ALSO:
         """
         # a destructive IDFT operation for internal calls
-        w = input[0].width
-        h = input[0].height
         if len(input) == 1:
-            cv.DFT(input[0], input[0], cv.CV_DXT_INV_SCALE)
-            result = cv.CreateImage((w, h), cv.IPL_DEPTH_8U, 1)
-            data = cv.CreateImage((w, h), cv.IPL_DEPTH_64F, 1)
-            blank = cv.CreateImage((w, h), cv.IPL_DEPTH_64F, 1)
-            cv.Split(input[0], data, blank, None, None)
-            min, max, pt1, pt2 = cv.MinMaxLoc(data)
+            dftimg = cv2.dft(input[0], flags=cv2.DFT_INVERSE)
+            data = dftimg[:, :, 0].copy()
+            min, max, pt1, pt2 = cv2.minMaxLoc(data)
             denom = max - min
             if denom == 0:
                 denom = 1
-            cv.Scale(data, data, 1.0 / denom, 1.0 * (-min) / denom)
-            cv.Mul(data, data, data, 255.0)
-            cv.Convert(data, result)
+            data = data / denom - min / denom
+            data = cv2.multiply(data, data, scale=255.0)
+            result = np.copy(data).astype(np.uint8)  # convert
             ret_val = Image(result)
         else:  # DO RGB separately
             results = []
-            data = cv.CreateImage((w, h), cv.IPL_DEPTH_64F, 1)
-            blank = cv.CreateImage((w, h), cv.IPL_DEPTH_64F, 1)
             for i in range(0, len(input)):
-                cv.DFT(input[i], input[i], cv.CV_DXT_INV_SCALE)
-                result = cv.CreateImage((w, h), cv.IPL_DEPTH_8U, 1)
-                cv.Split(input[i], data, blank, None, None)
-                min, max, pt1, pt2 = cv.MinMaxLoc(data)
+                dftimg = cv2.dft(input[i], flags=cv2.DFT_INVERSE)
+                data = dftimg[:, :, 0].copy()
+                min, max, pt1, pt2 = cv2.minMaxLoc(data)
                 denom = max - min
                 if denom == 0:
                     denom = 1
-                cv.Scale(data, data, 1.0 / denom, 1.0 * (-min) / denom)
-                cv.Mul(data, data, data, 255.0)  # this may not be right
-                cv.Convert(data, result)
+                data = data / denom - min / denom  # scale
+                data = cv2.multiply(data, data, scale=255.0)
+                result = np.copy(data).astype(np.uint8)
                 results.append(result)
-
-            ret_val = cv.CreateImage((w, h), cv.IPL_DEPTH_8U, 3)
-            cv.Merge(results[0], results[1], results[2], None, ret_val)
-            ret_val = Image(ret_val)
-        del input
+            ret_val = Image(np.dstack((results[0], results[1], results[2])))
         return ret_val
 
     def inverse_dft(self, raw_dft_image):
@@ -10640,54 +10619,12 @@ class Image(object):
 
         """
         input = []
-        w = raw_dft_image[0].width
-        h = raw_dft_image[0].height
         if len(raw_dft_image) == 1:
-            gs = cv.CreateImage((w, h), cv.IPL_DEPTH_64F, 2)
-            cv.Copy(self._DFT[0], gs)
-            input.append(gs)
+            input.append(self._DFT[0].copy())
         else:
             for img in raw_dft_image:
-                temp = cv.CreateImage((w, h), cv.IPL_DEPTH_64F, 2)
-                cv.Copy(img, temp)
-                input.append(img)
-
-        if len(input) == 1:
-            cv.DFT(input[0], input[0], cv.CV_DXT_INV_SCALE)
-            result = cv.CreateImage((w, h), cv.IPL_DEPTH_8U, 1)
-            data = cv.CreateImage((w, h), cv.IPL_DEPTH_64F, 1)
-            blank = cv.CreateImage((w, h), cv.IPL_DEPTH_64F, 1)
-            cv.Split(input[0], data, blank, None, None)
-            min, max, pt1, pt2 = cv.MinMaxLoc(data)
-            denom = max - min
-            if denom == 0:
-                denom = 1
-            cv.Scale(data, data, 1.0 / denom, 1.0 * (-min) / denom)
-            cv.Mul(data, data, data, 255.0)
-            cv.Convert(data, result)
-            ret_val = Image(result)
-        else:  # DO RGB separately
-            results = []
-            data = cv.CreateImage((w, h), cv.IPL_DEPTH_64F, 1)
-            blank = cv.CreateImage((w, h), cv.IPL_DEPTH_64F, 1)
-            for i in range(0, len(raw_dft_image)):
-                cv.DFT(input[i], input[i], cv.CV_DXT_INV_SCALE)
-                result = cv.CreateImage((w, h), cv.IPL_DEPTH_8U, 1)
-                cv.Split(input[i], data, blank, None, None)
-                min, max, pt1, pt2 = cv.MinMaxLoc(data)
-                denom = max - min
-                if denom == 0:
-                    denom = 1
-                cv.Scale(data, data, 1.0 / denom, 1.0 * (-min) / denom)
-                cv.Mul(data, data, data, 255.0)  # this may not be right
-                cv.Convert(data, result)
-                results.append(result)
-
-            ret_val = cv.CreateImage((w, h), cv.IPL_DEPTH_8U, 3)
-            cv.Merge(results[0], results[1], results[2], None, ret_val)
-            ret_val = Image(ret_val)
-
-        return ret_val
+                input.append(img.copy())
+        return self._inverse_dft(input)
 
     def apply_butterworth_filter(self, dia=400, order=2, highpass=False,
                                  grayscale=False):
@@ -10708,25 +10645,25 @@ class Image(object):
         **EXAMPLE**
 
         >>> im = Image("lenna")
-        >>> img = im.applyButterworth(dia=400, order=2,
-            ...                       highpass=True, grayscale=False)
+        >>> img = im.apply_butterworth_filter(dia=400, order=2,
+        ...                                   highpass=True, grayscale=False)
 
         Output image: http://i.imgur.com/5LS3e.png
 
-        >>> img = im.applyButterworth(dia=400, order=2,
-            ...                       highpass=False, grayscale=False)
+        >>> img = im.apply_butterworth_filter(dia=400, order=2,
+        ...                                   highpass=False, grayscale=False)
 
         Output img: http://i.imgur.com/QlCAY.png
 
         >>> # take image from here: http://i.imgur.com/O0gZn.png
         >>> im = Image("grayscale_lenn.png")
-        >>> img = im.applyButterworth(dia=400, order=2,
-            ...                       highpass=True, grayscale=True)
+        >>> img = im.apply_butterworth_filter(dia=400, order=2,
+        ...                                   highpass=True, grayscale=True)
 
         Output img: http://i.imgur.com/BYYnp.png
 
-        >>> img = im.applyButterworth(dia=400, order=2,
-            ...                       highpass=False, grayscale=True)
+        >>> img = im.apply_butterworth_filter(dia=400, order=2,
+        ...                           highpass=False, grayscale=True)
 
         Output img: http://i.imgur.com/BYYnp.png
 

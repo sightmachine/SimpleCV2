@@ -920,21 +920,22 @@ def test_image_perspective():
            (img.width * 0.9, img.height * 0.1),
            (img.width * 0.8, img.height * 0.7),
            (img.width * 0.2, img.height * 0.9))
-    p_warp = cv.CreateMat(3, 3, cv.CV_32FC1)
-    cv.GetPerspectiveTransform(src, dst, p_warp)
+    src = np.array(src).astype(np.float32)
+    dst = np.array(dst).astype(np.float32)
+
+    p_warp = cv2.getPerspectiveTransform(src, dst)
     ptrans = img.transform_perspective(p_warp)
+
     p_warp2 = np.array(p_warp)
     ptrans2 = img.transform_perspective(p_warp2)
+
     test = ptrans - ptrans2
-    np_test = test.get_numpy()
-    mc = test.mean_color()
+    c = test.mean_color()
+
     results = [ptrans, ptrans2]
     name_stem = "test_image_perspective"
-    # Threshold kept high, otherwise test will fail
-    # difference between original image warped image will be always huge
-    perform_diff(results, name_stem, 100)
-
-    if mc[0] > 100 or mc[1] > 100 or mc[2] > 100:
+    perform_diff(results, name_stem)
+    if c[0] > 1 or c[1] > 1 or c[2] > 1:
         assert False
 
 
