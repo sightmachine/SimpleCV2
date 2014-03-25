@@ -3580,12 +3580,13 @@ class Image(object):
         elif isinstance(cascade, HaarCascade):
             pass
         else:
-            logger.warning(
-                'Could not initialize HaarCascade. Enter Valid cascade value.')
+            logger.warning('Could not initialize HaarCascade. '
+                           'Enter Valid cascade value.')
+            return None
 
         haar_classify = cv2.CascadeClassifier(cascade.get_fhandle())
         objects = haar_classify.detectMultiScale(
-            self.get_gray_numpy(), scaleFactor=scale_factor,
+            self.get_gray_ndarray(), scaleFactor=scale_factor,
             minNeighbors=min_neighbors, minSize=min_size,
             flags=use_canny)
 
@@ -11234,38 +11235,33 @@ class Image(object):
         >>> img.show()
 
         """
-        alpha = [params[0]]
-        beta = [params[1]]
-        gamma = [params[2]]
-        if window[0] % 2 == 0:
-            window = (window[0] + 1, window[1])
-            logger.warn("Yo dawg, just a heads up, snakeFitPoints wants an "
-                        "odd window size. I fixed it for you, but you may "
-                        "want to take a look at your code.")
-        if window[1] % 2 == 0:
-            window = (window[0], window[1] + 1)
-            logger.warn("Yo dawg, just a heads up, snakeFitPoints wants an "
-                        "odd window size. I fixed it for you, but you may "
-                        "want to take a look at your code.")
-        raw = cv.SnakeImage(self._get_grayscale_bitmap(), initial_curve, alpha,
-                            beta, gamma, window,
-                            (cv.CV_TERMCRIT_ITER, 10, 0.01))
-        if do_appx:
-            try:
-                import cv2
-            except:
-                logger.warning(
-                    "Can't Do snakeFitPoints without OpenCV >= 2.3.0")
-                return
-            appx = cv2.approxPolyDP(np.array([raw], 'float32'), appx_level,
-                                    True)
-            ret_val = []
-            for p in appx:
-                ret_val.append((int(p[0][0]), int(p[0][1])))
-        else:
-            ret_val = raw
-
-        return ret_val
+        raise Exception('deprecated. cv2 has no SnakeImage')
+        # alpha = [params[0]]
+        # beta = [params[1]]
+        # gamma = [params[2]]
+        # if window[0] % 2 == 0:
+        #     window = (window[0] + 1, window[1])
+        #     logger.warn("Yo dawg, just a heads up, snakeFitPoints wants an "
+        #                 "odd window size. I fixed it for you, but you may "
+        #                 "want to take a look at your code.")
+        # if window[1] % 2 == 0:
+        #     window = (window[0], window[1] + 1)
+        #     logger.warn("Yo dawg, just a heads up, snakeFitPoints wants an "
+        #                 "odd window size. I fixed it for you, but you may "
+        #                 "want to take a look at your code.")
+        # raw = cv.SnakeImage(self._get_grayscale_bitmap(), initial_curve,
+        #                     alpha, beta, gamma, window,
+        #                     (cv.CV_TERMCRIT_ITER, 10, 0.01))
+        # if do_appx:
+        #     appx = cv2.approxPolyDP(np.array([raw], 'float32'), appx_level,
+        #                             True)
+        #     ret_val = []
+        #     for p in appx:
+        #         ret_val.append((int(p[0][0]), int(p[0][1])))
+        # else:
+        #     ret_val = raw
+        #
+        # return ret_val
 
     def fit_edge(self, guess, window=10, threshold=128, measurements=5,
                  darktolight=True, lighttodark=True, departurethreshold=1):
@@ -11500,8 +11496,10 @@ class Image(object):
 
         """
         if not self.is_gray():
-            self = self.to_gray()
-        #self = self._get_grayscale_bitmap()
+            img = self.to_gray()
+        else:
+            img = self
+
         width = round(math.sqrt(
             math.pow(pt2[0] - pt1[0], 2) + math.pow(pt2[1] - pt1[1], 2)))
         ret_val = np.zeros(width)
@@ -11509,7 +11507,7 @@ class Image(object):
         for x in range(0, ret_val.size):
             xind = pt1[0] + int(round((pt2[0] - pt1[0]) * x / ret_val.size))
             yind = pt1[1] + int(round((pt2[1] - pt1[1]) * x / ret_val.size))
-            current_pixel = self.get_pixel(xind, yind)
+            current_pixel = img.get_pixel(xind, yind)
             ret_val[x] = current_pixel[0]
         return ret_val
 
@@ -11536,8 +11534,8 @@ class Image(object):
 
         >>> img = Image("lsq.png")
         >>> guesses = [((313, 150), (312, 332)), ((62, 172), (252, 52)),
-            ...        ((102, 372), (182, 182)), ((372, 62),(572, 162)),
-            ...        ((542, 362), (462, 182)), ((232, 412), (462, 423))]
+        ...            ((102, 372), (182, 182)), ((372, 62), (572, 162)),
+        ...            ((542, 362), (462, 182)), ((232, 412), (462, 423))]
         >>> l = img.fit_lines(guesses, window=10)
         >>> l.draw(color=Color.RED, width=3)
         >>> for g in guesses:
@@ -11657,8 +11655,8 @@ class Image(object):
 
         >>> img = Image("lsq.png")
         >>> guesses = [((313, 150), (312, 332)), ((62, 172), (252, 52)),
-            ...        ((102, 372), (182, 182)), ((372, 62), (572, 162)),
-            ...        ((542, 362), (462, 182)), ((232, 412), (462, 423))]
+        ...            ((102, 372), (182, 182)), ((372, 62), (572, 162)),
+        ...            ((542, 362), (462, 182)), ((232, 412), (462, 423))]
         >>> r = img.fit_line_points(guesses)
         >>> for rr in r:
         >>>    img.draw_line(rr[0], rr[1], color=Color.RED, width=3)
@@ -11720,8 +11718,7 @@ class Image(object):
             self.draw_circle(p, sz, color, width)
         return None
 
-    def sobel(self, xorder=1, yorder=1, do_gray=True, aperture=5,
-              aperature=None):
+    def sobel(self, xorder=1, yorder=1, do_gray=True, aperture=5):
         """
         **DESCRIPTION**
 
@@ -11745,27 +11742,20 @@ class Image(object):
         >>> s = img.sobel()
         >>> s.show()
         """
-        aperture = aperature if aperature else aperture
         ret_val = None
-        try:
-            import cv2
-        except:
-            logger.warning("Can't do Sobel without OpenCV >= 2.3.0")
-            return None
-
         if aperture != 1 and aperture != 3 and aperture != 5 and aperture != 7:
             logger.warning("Bad Sobel Aperture, values are [1,3,5,7].")
             return None
 
         if do_gray:
-            dst = cv2.Sobel(self.get_gray_ndarray(), cv2.cv.CV_32F, xorder,
+            dst = cv2.Sobel(self.get_gray_ndarray(), cv2.CV_32F, xorder,
                             yorder, ksize=aperture)
             minv = np.min(dst)
             maxv = np.max(dst)
             cscale = 255 / (maxv - minv)
             shift = -1 * minv
 
-            t = np.zeros(self.size(), dtype='uint8')
+            t = np.zeros(self.size(), dtype=np.uint8)
             t = cv2.convertScaleAbs(dst, t, cscale, shift / 255.0)
             ret_val = Image(t)
 
@@ -11773,7 +11763,7 @@ class Image(object):
             layers = self.split_channels(grayscale=False)
             sobel_layers = []
             for layer in layers:
-                dst = cv2.Sobel(layer.get_gray_numpy(), cv2.cv.CV_32F, xorder,
+                dst = cv2.Sobel(layer.get_gray_numpy(), cv2.CV_32F, xorder,
                                 yorder, ksize=aperture)
 
                 minv = np.min(dst)
@@ -11781,7 +11771,7 @@ class Image(object):
                 cscale = 255 / (maxv - minv)
                 shift = -1 * minv
 
-                t = np.zeros(self.size(), dtype='uint8')
+                t = np.zeros(self.size(), dtype=np.uint8)
                 t = cv2.convertScaleAbs(dst, t, cscale, shift / 255.0)
                 sobel_layers.append(Image(t))
             b, g, r = sobel_layers
@@ -12096,11 +12086,6 @@ class Image(object):
         else:
             img = ts[-1].image
             bb = ts[-1].bb
-        try:
-            import cv2
-        except ImportError:
-            print "Tracking is available for OpenCV >= 2.3"
-            return None
 
         if type(img) == list:
             ts = self.track(method, ts, img[0], bb, **kwargs)
@@ -12151,10 +12136,7 @@ class Image(object):
         Convert this image to a 32bit floating point image.
 
         """
-        ret_val = cv.CreateImage((self.width, self.height),
-                                 cv.IPL_DEPTH_32F, 3)
-        cv.Convert(self.get_bitmap(), ret_val)
-        return ret_val
+        return self._ndarray.astype(np.float32)
 
     def __getstate__(self):
         return dict(colorspace=self._colorSpace,
@@ -12171,7 +12153,6 @@ class Image(object):
         '''
         Returns the area of the Image.
         '''
-
         return self.width * self.height
 
     def _get_header_anim(self):
@@ -12199,10 +12180,9 @@ class Image(object):
         >>>> img.rotate270().show()
 
         """
-        ret_val = cv.CreateImage((self.height, self.width), cv.IPL_DEPTH_8U, 3)
-        cv.Transpose(self.get_bitmap(), ret_val)
-        cv.Flip(ret_val, ret_val, 1)
-        return Image(ret_val, color_space=self._colorSpace)
+        array = cv2.flip(self._ndarray, 0)  # vertical
+        array = cv2.transpose(array)
+        return Image(array, color_space=self._colorSpace)
 
     def rotate90(self):
         """
@@ -12222,10 +12202,9 @@ class Image(object):
 
         """
 
-        ret_val = cv.CreateImage((self.height, self.width), cv.IPL_DEPTH_8U, 3)
-        cv.Transpose(self.get_bitmap(), ret_val)
-        cv.Flip(ret_val, ret_val, 0)  # vertical
-        return Image(ret_val, color_space=self._colorSpace)
+        array = cv2.transpose(self._ndarray)
+        array = cv2.flip(array, 0)  # vertical
+        return Image(array, color_space=self._colorSpace)
 
     def rotate_left(self):  # same as 90
         """
@@ -12283,10 +12262,9 @@ class Image(object):
         >>>> img = Image('lenna')
         >>>> img.rotate180().show()
         """
-        ret_val = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_8U, 3)
-        cv.Flip(self.get_bitmap(), ret_val, 0)  # vertical
-        cv.Flip(ret_val, ret_val, 1)  # horizontal
-        return Image(ret_val, color_space=self._colorSpace)
+        array = cv2.flip(self._ndarray, 0)  # vertical
+        array = cv2.flip(array, 1)  # horizontal
+        return Image(array, color_space=self._colorSpace)
 
     def vertical_histogram(self, bins=10, threshold=128, normalize=False,
                            for_plot=False):
