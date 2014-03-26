@@ -2,13 +2,13 @@ import glob
 import os
 import warnings
 
-from cv2 import cv
+import cv2
 import numpy as np
 import scipy.cluster.vq as cluster
 import scipy.spatial.distance as spsd
 
 from simplecv.base import IMAGE_FORMATS
-from simplecv.image_class import Image
+from simplecv.image_class import Image, ColorSpace
 
 
 class BOFFeatureExtractor(object):
@@ -138,20 +138,16 @@ class BOFFeatureExtractor(object):
         spacersz = the number of pixels between patches
         """
         img = img.to_hls()
-        lmat = cv.CreateImage((img.width, img.height), cv.IPL_DEPTH_8U, 1)
-        patch = cv.CreateImage(patchsize, cv.IPL_DEPTH_8U, 1)
-        cv.Split(img.get_bitmap(), None, lmat, None, None)
         width = patchsize[0]
         height = patchsize[1]
+        lmat = img.get_ndarray()[:, :, 1]
         length = width * height
         ret_value = np.zeros(length)
         for widx in range(patch_arrangement[0]):
             for hidx in range(patch_arrangement[1]):
                 x = (widx * patchsize[0]) + ((widx + 1) * spacersz)
                 y = (hidx * patchsize[1]) + ((hidx + 1) * spacersz)
-                cv.SetImageROI(lmat, (x, y, width, height))
-                cv.Copy(lmat, patch)
-                cv.ResetImageROI(lmat)
+                patch = lmat[y:y + height, x:x + width]
                 ret_value = np.vstack(
                     (ret_value, np.array(patch[:, :]).reshape(length)))
         ret_value = ret_value[1:, :]
@@ -172,9 +168,8 @@ class BOFFeatureExtractor(object):
             (patch_arrangement[0] + 1) * spacersz)
         height = (patchsize[1] * patch_arrangement[1]) + (
             (patch_arrangement[1] + 1) * spacersz)
-        bm = cv.CreateImage((width, height), cv.IPL_DEPTH_8U, 1)
-        cv.Zero(bm)
-        img = Image(bm)
+        bm = np.zeros((height, width), np.uint8)
+        img = Image(bm, color_space=ColorSpace.GRAY)
         count = 0
         for widx in range(patch_arrangement[0]):
             for hidx in range(patch_arrangement[1]):
@@ -187,13 +182,10 @@ class BOFFeatureExtractor(object):
         return img
 
     def _get_patches(self, img, size=None):
-        #ret_value = [] # may need to go to np.array
         if size is None:
             size = self.patch_size
         img2 = img.to_hls()
-        lmat = cv.CreateImage((img.width, img.height), cv.IPL_DEPTH_8U, 1)
-        patch = cv.CreateImage(self.patch_size, cv.IPL_DEPTH_8U, 1)
-        cv.Split(img2.get_bitmap(), None, lmat, None, None)
+        lmat = img2.get_ndarray()[:, :, 1]
         wsteps = img2.width / size[0]
         hsteps = img2.height / size[1]
         width = size[0]
@@ -204,14 +196,9 @@ class BOFFeatureExtractor(object):
             for hidx in range(hsteps):
                 x = (widx * size[0])
                 y = (hidx * size[1])
-                cv.SetImageROI(lmat, (x, y, width, height))
-                cv.EqualizeHist(lmat, patch)
-                #cv.Copy(lmat,patch)
-                cv.ResetImageROI(lmat)
-
+                patch = cv2.equalizeHist(lmat[y:y + height, x:x + width])
                 ret_value = np.vstack(
                     (ret_value, np.array(patch[:, :]).reshape(length)))
-                #ret_value.append()
         # pop the fake value we put on top of the stack
         ret_value = ret_value[1:, :]
         return ret_value
@@ -289,7 +276,7 @@ class BOFFeatureExtractor(object):
         The method takes in an image, extracts each codebook code, and replaces
         the image at the position with the code.
         """
-        ret_value = cv.CreateImage((img.width, img.height), cv.IPL_DEPTH_8U, 1)
+        ret_value = img.get_empty(1)
         data = self._get_patches(img)
         p = spsd.cdist(data, self.codebook)
         codes = np.argmin(p, axis=1)
@@ -297,7 +284,7 @@ class BOFFeatureExtractor(object):
         wsteps = img.width / self.patch_size[0]
         hsteps = img.height / self.patch_size[1]
 
-        ret_value = Image(ret_value)
+        ret_value = Image(ret_value, color_space=ColorSpace.GRAY)
         for widx in range(wsteps):
             for hidx in range(hsteps):
                 x = (widx * self.patch_size[0])
