@@ -5614,6 +5614,11 @@ class Image(object):
             ret_val = self.get_gray_ndarray()[row]
         return ret_val
 
+    @staticmethod
+    def roi_to_slice(roi):
+        x, y, w, h = roi
+        return slice(y, y + h), slice(x, x + w)
+
     def crop(self, x, y=None, w=None, h=None, centered=False, smart=False):
         """
 

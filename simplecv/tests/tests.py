@@ -19,7 +19,7 @@ from nose.tools import nottest
 import cv2
 import numpy as np
 
-from simplecv.base import logger, nparray_to_cvmat
+from simplecv.base import logger
 from simplecv.camera import FrameSource
 from simplecv.color import Color, ColorCurve, ColorMap
 from simplecv.color_model import ColorModel
