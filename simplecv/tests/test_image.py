@@ -5,6 +5,7 @@ import numpy as np
 from simplecv.image_class import Image, ColorSpace
 
 LENNA_PATH = '../data/sampleimages/lenna.png'
+WEBP_IMAGE_PATH = '../data/sampleimages/simplecv.webp'
 
 
 @nottest
@@ -42,6 +43,22 @@ def test_image_init_path_to_png():
     assert not img1.is_ycrcb()
     assert not img1.is_xyz()
     assert not img1.is_gray()
+
+
+def test_image_init_path_to_webp():
+    img = Image(WEBP_IMAGE_PATH)
+
+    assert_equals((250, 250), img.size())
+    assert img.is_rgb()
+    img_ndarray = img.get_ndarray()
+    assert isinstance(img_ndarray, np.ndarray)
+    assert_equals(3, len(img_ndarray.shape))
+    assert_equals(np.uint8, img.dtype)
+
+
+@raises(Exception)
+def test_image_init_bad_path():
+    Image('/bad/path/to/image.png')
 
 
 def test_image_init_ndarray_color():

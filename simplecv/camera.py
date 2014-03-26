@@ -3051,6 +3051,7 @@ class AVTCamera(FrameSource):
             #self.hasImage = False
             self.frame = None
 
+    # FIXME: __del__ prevents garbage collection of AVTCamera objects
     def __del__(self):
         #This function should disconnect from the AVT Camera
         pverr(self.dll.PvCameraClose(self.handle))

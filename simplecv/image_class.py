@@ -24,7 +24,7 @@ import scipy.ndimage as ndimage
 import scipy.spatial.distance as spsd
 import scipy.stats.stats as sss  # for auto white balance
 
-from simplecv.base import (init_options_handler, logger, nparray_to_cvmat,
+from simplecv.base import (init_options_handler, logger,
                            is_number, is_tuple, int_to_bin,
                            IMAGE_FORMATS, LAUNCH_PATH, MAX_DIMENSION)
 from simplecv.color import Color, ColorCurve
@@ -47,8 +47,6 @@ if not init_options_handler.headless:
 PIL_ENABLED = True
 try:
     from PIL import Image as PilImage
-    from PIL import ImageFont as pilImageFont
-    from PIL import ImageDraw as pilImageDraw
     from PIL.GifImagePlugin import getheader, getdata
 except ImportError:
     try:
@@ -70,7 +68,7 @@ except ImportError:
     ZXING_ENABLED = False
 
 
-class ColorSpace:
+class ColorSpace(object):
     """
     **SUMMARY**
 
@@ -958,7 +956,7 @@ class Image(object):
     #todo: handle camera/capture from file cases (detect on file extension)
     def __init__(self, source=None, camera=None,
                  color_space=ColorSpace.UNKNOWN, verbose=True, sample=False,
-                 cv2image=False, webp=False):
+                 webp=False):
         """
         **SUMMARY**
 
@@ -1095,7 +1093,7 @@ class Image(object):
                 raise IOError('Cant create image from ndarray with '
                               'shape {}.'.format(source.shape))
 
-        elif isinstance(source, (str, cStringIO.InputType)):
+        elif isinstance(source, str):
             if source == '':
                 raise IOError("No filename provided to Image constructor")
             elif not os.path.exists(source):
@@ -1103,76 +1101,60 @@ class Image(object):
 
             if webp or source.split('.')[-1] == 'webp':
                 try:
-                    if source.__class__.__name__ == 'StringIO':
-                        source.seek(0)  # set the stringIO to the begining
-                    self._pil = PilImage.open(source)
-                    self._bitmap = cv.CreateImageHeader(self._pil.size,
-                                                        cv.IPL_DEPTH_8U, 3)
-                except:
-                    try:
-                        from webm import decode as webm_decode
-                    except ImportError:
-                        logger.warning(
-                            'The webm module or latest PIL / PILLOW module '
-                            'needs to be installed to load webp files: '
-                            'https://github.com/sightmachine/python-webm')
-                        return
-
-                    webp_image_data = bytearray(file(source, "rb").read())
-                    result = webm_decode.DecodeRGB(webp_image_data)
-                    webp_image = PilImage.frombuffer(
-                        "RGB", (result.width, result.height),
-                        str(result.bitmap),
-                        "raw", "RGB", 0, 1
-                    )
-                    self._pil = webp_image.convert("RGB")
-                    self._bitmap = cv.CreateImageHeader(self._pil.size,
-                                                        cv.IPL_DEPTH_8U, 3)
-                    self.filename = source
-                cv.SetData(self._bitmap, self._pil.tostring())
-                cv.CvtColor(self._bitmap, self._bitmap, cv.CV_RGB2BGR)
-
+                    from webm import decode as webm_decode
+                except ImportError:
+                    logger.warning(
+                        'The webm module or latest PIL / PILLOW module '
+                        'needs to be installed to load webp files: '
+                        'https://github.com/sightmachine/python-webm')
+                    return
+                with open(source, "rb") as f:
+                    webp_image_data = bytearray(f.read())
+                result = webm_decode.DecodeRGB(webp_image_data)
+                self._pil = PilImage.frombuffer(
+                    "RGB", (result.width, result.height),
+                    str(result.bitmap), "raw", "RGB", 0, 1
+                )
+                self.filename = source
+                self._ndarray = np.asarray(self._pil, dtype=np.uint8)
+                self._colorSpace = ColorSpace.RGB
             else:
                 self.filename = source
                 self._ndarray = cv2.imread(self.filename)
+                if self._ndarray is None:
+                    raise Exception('Failed to create an image array')
                 self._colorSpace = ColorSpace.BGR
 
-        elif type(source) == pg.Surface:
+        elif webp and isinstance(source, cStringIO.InputType):
+            source.seek(0)  # set the stringIO to the begining
+            try:
+                self._pil = PilImage.open(source)
+            except:
+                raise Exception('Failed to load webp image using PIL')
+            self._ndarray = np.asarray(self._pil, dtype=np.uint8)
+            self._colorSpace = ColorSpace.RGB
+
+        elif isinstance(source, pg.Surface):
             self._pgsurface = source
             self._ndarray = cv2.transpose(
                 pg.surfarray.array3d(self._pgsurface).copy())
             self._colorSpace = ColorSpace.RGB
 
-        elif PIL_ENABLED and \
-                ((len(source.__class__.__bases__)
-                 and source.__class__.__bases__[0].__name__ == "ImageFile")
-                 or source.__class__.__name__ == "JpegImageFile"
-                 or source.__class__.__name__ == "WebPPImageFile"
-                 or source.__class__.__name__ == "Image"):
-
+        elif PIL_ENABLED and isinstance(source, PilImage.Image):
             if source.mode != 'RGB':
                 source = source.convert('RGB')
             self._pil = source
-            #from the opencv cookbook
-            #http://opencv.willowgarage.com/documentation/python/cookbook.html
-            self._bitmap = cv.CreateImageHeader(self._pil.size,
-                                                cv.IPL_DEPTH_8U, 3)
-            cv.SetData(self._bitmap, self._pil.tostring())
-            self._colorSpace = ColorSpace.BGR
-            cv.CvtColor(self._bitmap, self._bitmap, cv.CV_RGB2BGR)
-            #self._bitmap = cv.iplimage(self._bitmap)
+            self._ndarray = np.asarray(self._pil, dtype=np.uint8)
+            self._colorSpace = ColorSpace.RGB
 
         else:
-            return
-
-        # #if the caller passes in a colorspace we overide it
-        # if color_space != ColorSpace.UNKNOWN:
-        #     self._colorSpace = color_space
+            raise Exception('Unsupported source type')
 
         self.height = self._ndarray.shape[0]
         self.width = self._ndarray.shape[1]
         self.dtype = self._ndarray.dtype
 
+    # FIXME: __del__ prevents garbage collection of Image objects
     def __del__(self):
         """
         This is called when the instance is about to be destroyed also called
@@ -2761,12 +2743,12 @@ class Image(object):
         **NOTE**
         For OpenCV versions <= 2.3.0
         -- this acts as Convience function derived from the :py:meth:`smooth`
-           method. Which internally calls cv.Smooth.
+           method.
         -- where aperture(window) is (diameter,diameter)
         -- sigma_color and sigmanSpace become obsolete
 
         For OpenCV versions higher than 2.3.0. i.e >= 2.3.0
-        -- cv.bilateral_filter function is called
+        -- cv2.bilateralFilter function is called
         -- If the sigma_color and sigma_space values are small (< 10),
            the filter will not have much effect, whereas if they are large
            (> 150), they will have a very strong effect, making the image look
@@ -2818,10 +2800,10 @@ class Image(object):
         **NOTE**
         For OpenCV versions <= 2.3.0
         -- this acts as Convience function derived from the :py:meth:`smooth`
-           method. Which internally calls cv.Smooth
+           method.
 
         For OpenCV versions higher than 2.3.0. i.e >= 2.3.0
-        -- cv.blur function is called
+        -- cv2.blur function is called
         """
         if is_tuple(window):
             win_x, win_y = window
@@ -2865,10 +2847,10 @@ class Image(object):
         **NOTE**
         For OpenCV versions <= 2.3.0
         -- this acts as Convience function derived from the :py:meth:`smooth`
-           method. Which internally calls cv.Smooth
+           method.
 
         For OpenCV versions higher than 2.3.0. i.e >= 2.3.0
-        -- cv.GaussianBlur function is called
+        -- cv2.GaussianBlur function is called
         """
         if is_tuple(window):
             win_x, win_y = window
@@ -3502,7 +3484,7 @@ class Image(object):
         detection among other purposes) this will return Haar feature objects
         in a FeatureSet.
 
-        For more information, consult the cv.HaarDetectObjects documentation.
+        For more information, consult the cv2.CascadeClassifier documentation.
 
         To see what features are available run img.list_haar_features() or you
         can provide your own haarcascade file if you have one available.
@@ -12371,8 +12353,8 @@ class Image(object):
         >>>> import matplotlib.pyplot as plt
         >>>> img = Image('lenna')
         >>>> plt.bar(img.horizontal_histogram(threshold=128, bins=10,
-             ...                             normalize=False, for_plot=True),
-             ...     color='y')
+        ...                                   normalize=False, for_plot=True),
+        ...          color='y')
         >>>> plt.show())
 
         **NOTES**
@@ -12476,8 +12458,8 @@ class Image(object):
                 ret_val.point_loc = pts
 
             else:
-                warnings.warn(
-                    "ImageClass.get_line_scan - that is not valid scanline.")
+                warnings.warn("ImageClass.get_line_scan - "
+                              "that is not valid scanline.")
                 return None
 
         elif isinstance(pt1, (tuple, list)) and isinstance(pt2, (tuple, list))\
@@ -12540,7 +12522,7 @@ class Image(object):
             try:
                 img = np.copy(self.get_numpy()[:, :, channel])
             except IndexError:
-                print 'Channel missing!'
+                warnings.warn('Channel missing!')
                 return None
 
         if x is None and y is None and pt1 is None and pt2 is None:
@@ -13114,11 +13096,6 @@ class Image(object):
         :py:meth:`find_keypoints`
 
         """
-        try:
-            import cv2
-        except ImportError:
-            warnings.warn("OpenCV >= 2.4.3 required")
-            return None
         if not hasattr(cv2, "FeatureDetector_create"):
             warnings.warn("OpenCV >= 2.4.3 required")
             return None
@@ -14046,13 +14023,7 @@ class Image(object):
         >>> recognizer.load("training.xml")
         >>> print img.recognize_face(recognizer)
         """
-        try:
-            import cv2
-
-            if not hasattr(cv2, "createFisherFaceRecognizer"):
-                warnings.warn("OpenCV >= 2.4.4 required to use this.")
-                return None
-        except ImportError:
+        if not hasattr(cv2, "createFisherFaceRecognizer"):
             warnings.warn("OpenCV >= 2.4.4 required to use this.")
             return None
 
@@ -14655,17 +14626,11 @@ class Image(object):
         ImageClass.find_blobs_from_hue_histogram()
 
         """
-        try:
-            import cv2
-        except ImportError:
-            warnings.warn("OpenCV >= 2.3 required to use this.")
-            return None
-
         from simplecv.features.detection import ROI
 
         if roi:  # roi is anything that can be taken to be an roi
             roi = ROI(roi, self)
-            hsv = roi.crop().to_hsv().get_numpy_cv2()
+            hsv = roi.crop().to_hsv().get_ndarray()
         else:
             hsv = self.to_hsv().get_ndarray()
         hist = cv2.calcHist([hsv], [0, 1], None, [180, 256], [0, 180, 0, 256])
@@ -14721,12 +14686,6 @@ class Image(object):
         ImageClass.find_blobs_from_hue_histogram()
 
         """
-        try:
-            import cv2
-        except ImportError:
-            warnings.warn("OpenCV >= 2.3 required to use this.")
-            return None
-
         if model is None:
             warnings.warn('Backproject requires a model')
             return None
