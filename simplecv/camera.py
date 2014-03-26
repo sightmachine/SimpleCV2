@@ -18,6 +18,7 @@ import warnings
 import ctypes as ct
 import cv2
 from cv2 import cv
+from pickle import dump, load
 import numpy as np
 import pygame as pg
 
@@ -238,9 +239,9 @@ class FrameSource(object):
             cv.Set2D(point_counts2, i, 0, cv.Get2D(point_counts, i, 0))
 
         # camera calibration
-        cam_matrix, dist_cft, _, _, _ = cv2.calibrateCamera(object_points2,
-                                                            image_points2,
-                                                            img.size())
+        _, cam_matrix, dist_cft, _, _, _ = cv2.calibrateCamera(object_points2,
+                                                               image_points2,
+                                                               img.size())
 
         self._calib_matrix = cam_matrix
         self._dist_coeff = dist_cft
@@ -365,13 +366,17 @@ class FrameSource(object):
             logger.warning("FrameSource.save_calibration: \
                             No calibration matrix present, can't save.")
         else:
-            cv.Save(filename + "Intrinsic.xml", self._calib_matrix)
+            output = open(filename + "Intrinsic.xml", 'wb')
+            dump(self._calib_matrix, output)
+            output.close()
 
         if type(self._dist_coeff) != cv.cvmat:
             logger.warning("FrameSource.save_calibration: \
                             No calibration distortion present, can't save.")
         else:
-            cv.Save(filename + "Distortion.xml", self._dist_coeff)
+            output = open(filename + "Distortion.xml", 'wb')
+            dump(self._dist_coeff, output)
+            output.close()
 
         return None
 
@@ -399,8 +404,8 @@ class FrameSource(object):
         See :py:module:calibrate.py
 
         """
-        self._calib_matrix = cv.Load(filename + "Intrinsic.xml")
-        self._dist_coeff = cv.Load(filename + "Distortion.xml")
+        self._calib_matrix = load(filename + "Intrinsic.xml")
+        self._dist_coeff = load(filename + "Distortion.xml")
         return True if type(self._dist_coeff) == cv.cvmat and \
                        type(self._calib_matrix) == cv.cvmat else False
 
