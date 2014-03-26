@@ -3366,7 +3366,7 @@ def test_find_grid_lines():
 def test_logical_and():
     img = Image("lenna")
     img1 = img.logical_and(img.invert())
-    if not img1.get_numpy().all():
+    if not img1.get_ndarray().all():
         pass
     else:
         assert False
@@ -3375,7 +3375,7 @@ def test_logical_and():
 def test_logical_or():
     img = Image("lenna")
     img1 = img.logical_or(img.invert())
-    if img1.get_numpy().all():
+    if img1.get_ndarray().all():
         pass
     else:
         assert False
@@ -3384,7 +3384,7 @@ def test_logical_or():
 def test_logical_nand():
     img = Image("lenna")
     img1 = img.logical_nand(img.invert())
-    if img1.get_numpy().all():
+    if img1.get_ndarray().all():
         pass
     else:
         assert False
@@ -3393,7 +3393,7 @@ def test_logical_nand():
 def test_logical_xor():
     img = Image("lenna")
     img1 = img.logical_xor(img.invert())
-    if img1.get_numpy().all():
+    if img1.get_ndarray().all():
         pass
     else:
         assert False
@@ -3485,7 +3485,7 @@ def test_roi_feature():
     img = Image(testimageclr)
     mask = img.threshold(248).dilate(5)
     blobs = img.find_blobs_from_mask(mask, minsize=1)
-    x, y = np.where(mask.get_gray_numpy() > 0)
+    x, y = np.where(mask.get_gray_ndarray() > 0)
     xmin = np.min(x)
     xmax = np.max(x)
     ymin = np.min(y)
@@ -3581,14 +3581,14 @@ def test_replace_line_scan():
     ls = img.get_line_scan(x=100)
     ls[50] = 0
     newimg = img.replace_line_scan(ls)
-    if newimg[100, 50][0] == 0:
+    if newimg[100, 50] == 0:
         pass
     else:
         assert False
     ls = img.get_line_scan(x=100, channel=1)
     ls[50] = 0
     new_img = img.replace_line_scan(ls)
-    if new_img[100, 50][1] == 0:
+    if new_img[100, 50] == 0:
         pass
     else:
         assert False
@@ -3969,18 +3969,18 @@ def test_edge_snap():
 
 def test_grayscalmatrix():
     img = Image("lenna")
-    graymat = img.get_grayscale_matrix()
+    graymat = img.get_gray_ndarray()
     newimg = Image(graymat, color_space=ColorSpace.GRAY)
     from numpy import array_equal
 
-    if not array_equal(img.get_gray_numpy(), newimg.get_gray_numpy()):
+    if not array_equal(img.get_gray_ndarray(), newimg.get_gray_ndarray()):
         assert False
 
 
 def test_get_lightness():
     img = Image('lenna')
     i = img.get_lightness()
-    if int(i[27, 42][0]) == int((max(img[27, 42]) + min(img[27, 42])) / 2):
+    if int(i[27, 42]) == int((max(img[27, 42]) + min(img[27, 42])) / 2):
         pass
     else:
         assert False
@@ -3990,7 +3990,7 @@ def test_get_luminosity():
     img = Image('lenna')
     i = img.get_luminosity()
     a = np.array(img[27, 42], dtype=np.int)
-    if int(i[27, 42][0]) == int(np.average(a, 0, (0.21, 0.71, 0.07))):
+    if int(i[27, 42]) == int(np.average(a, 0, (0.21, 0.71, 0.07))):
         pass
     else:
         assert False
@@ -3999,9 +3999,9 @@ def test_get_luminosity():
 def test_get_average():
     img = Image('lenna')
     i = img.get_average()
-    if int(i[0, 0][0]) == int((img[0, 0][0]
-                               + img[0, 0][1]
-                               + img[0, 0][2]) / 3):
+    if int(i[0, 0]) == int((img[0, 0][0]
+                            + img[0, 0][1]
+                            + img[0, 0][2]) / 3):
         pass
     else:
         assert False
@@ -4012,7 +4012,7 @@ def test_smart_rotate():
 
     st1 = img.smart_rotate(auto=False, fixed=False).resize(500, 500)
     st2 = img.rotate(27, fixed=False).resize(500, 500)
-    diff = np.average((st1 - st2).get_numpy())
+    diff = np.average((st1 - st2).get_ndarray())
     if diff > 1.7:
         print diff
         assert False

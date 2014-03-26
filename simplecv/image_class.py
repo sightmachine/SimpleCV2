@@ -12611,7 +12611,7 @@ class Image(object):
                 img = np.copy(self.get_gray_ndarray())
             else:
                 try:
-                    img = np.copy(self.get_numpy()[:, :, linescan.channel])
+                    img = np.copy(self.get_ndarray()[:, :, linescan.channel])
                 except IndexError:
                     print 'Channel missing!'
                     return None
@@ -13712,7 +13712,7 @@ class Image(object):
         # As range() function is exclusive,
         # hence bins+2 is passed as parameter.
 
-        y_axis, x_axis = np.histogram(self.get_gray_numpy(),
+        y_axis, x_axis = np.histogram(self.get_gray_ndarray(),
                                       bins=range(bins + 2))
         x_axis = x_axis[0:bins + 1]
         maxtab = []
@@ -14142,13 +14142,13 @@ class Image(object):
 
         """
         img = self.copy()
-        grayimg = img.grayscale()
+        grayimg = img.to_gray()
         gx = [[1, 1, 1], [0, 0, 0], [-1, -1, -1]]
         gy = [[-1, 0, 1], [-1, 0, 1], [-1, 0, 1]]
         grayx = grayimg.convolve(gx)
         grayy = grayimg.convolve(gy)
-        grayxnp = np.uint64(grayx.get_gray_numpy())
-        grayynp = np.uint64(grayy.get_gray_numpy())
+        grayxnp = np.uint64(grayx.get_gray_ndarray())
+        grayynp = np.uint64(grayy.get_gray_ndarray())
         ret_val = Image(np.sqrt(grayxnp ** 2 + grayynp ** 2))
         return ret_val
 

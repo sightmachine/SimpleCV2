@@ -92,9 +92,17 @@ class BlobMaker(object):
             maxsize = color_img.width * color_img.height
 
         ret_value = []
+        ptest = (4 * 255.0) / (binary_img.width * binary_img.height)
         test = binary_img.mean_color()
-        if test[0] == 0.00 and test[1] == 0.00 and test[2] == 0.00:
-            return FeatureSet(ret_value)
+        if not test:
+            return FeatureSet([])
+        if type(test) == tuple and len(test) == 3:
+            if (test[0] == 0.00 and test[1] == 0.00 and test[2] == 0.00) or \
+               (test[0] <= ptest and test[1] <= ptest and test[2] <= ptest):
+                return FeatureSet([])
+        else:
+            if test == 0.00 or test <= ptest:
+                return FeatureSet([])
 
         # There are a couple of weird corner cases with the opencv
         # connect components libraries - when you try to find contours
@@ -105,9 +113,9 @@ class BlobMaker(object):
         # us.
 
         # val if two pixels are white
-        ptest = (4 * 255.0) / (binary_img.width * binary_img.height)
-        if test[0] <= ptest and test[1] <= ptest and test[2] <= ptest:
-            return ret_value
+        #ptest = (4 * 255.0) / (binary_img.width * binary_img.height)
+        #if test[0] <= ptest and test[1] <= ptest and test[2] <= ptest:
+        #    return ret_value
 
         seq, _ = cv2.findContours(binary_img.get_gray_ndarray(),
                                   cv2.RETR_TREE,

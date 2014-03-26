@@ -184,15 +184,19 @@ class FrameSource(object):
         # capturing required number of views
         while successes < n_boards:
             img = image_list[img_idx]
-            _, corners = cv2.findChessboardCorners(
-                img.get_grayscale_matrix(),
-                board_sz,
-                cv2.CALIB_CB_ADAPTIVE_THRESH |
+            retval, corners = cv2.findChessboardCorners(
+                image=img.get_gray_ndarray(),
+                patternSize=board_sz,
+                flags=cv2.CALIB_CB_ADAPTIVE_THRESH |
                 cv2.CALIB_CB_FILTER_QUADS)
-            corners = cv2.cornerSubPix(img.get_grayscale_matrix(),
-                                       corners, (11, 11), (-1, -1),
-                                       (cv2.cv.CV_TERMCRIT_EPS +
-                                        cv2.cv.CV_TERMCRIT_ITER, 30, 0.1))
+
+            #if not retval:
+            #FIXME: check retval should be implemented
+
+            cv2.cornerSubPix(img.get_gray_ndarray(),
+                             corners, (11, 11), (-1, -1),
+                             (cv2.cv.CV_TERMCRIT_EPS +
+                              cv2.cv.CV_TERMCRIT_ITER, 30, 0.1))
             # if got a good image, draw chess board
             #if found == 1:
             #    corner_count = len(corners)
