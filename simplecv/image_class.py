@@ -14,7 +14,6 @@ import urllib2
 import warnings
 
 from numpy import int32
-from cv2 import cv
 from numpy import uint8
 import cv2
 import numpy as np
@@ -10166,56 +10165,45 @@ class Image(object):
         w = self.width
 
         if grayscale:
-            filter = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_8U,
-                                    1)
-            cv.Zero(filter)
-            cv.AddS(filter, 255, filter)  # make everything white
-            # now make all of the corners black
-            cv.Rectangle(filter, (0, 0), (x_cutoff[0], y_cutoff[0]), (0, 0, 0),
-                         thickness=-1)  # TL
-            cv.Rectangle(filter, (0, h - y_cutoff[0]), (x_cutoff[0], h),
-                         (0, 0, 0), thickness=-1)  # BL
-            cv.Rectangle(filter, (w - x_cutoff[0], 0), (w, y_cutoff[0]),
-                         (0, 0, 0), thickness=-1)  # TR
-            cv.Rectangle(filter, (w - x_cutoff[0], h - y_cutoff[0]), (w, h),
-                         (0, 0, 0), thickness=-1)  # BR
+            filter = self.get_empty(1)
+            filter += 255  # make everything white
 
+            # now make all of the corners black
+            cv2.rectangle(filter, (0, 0), (x_cutoff[0], y_cutoff[0]),
+                          0, thickness=-1)  # TL
+            cv2.rectangle(filter, (0, h - y_cutoff[0]), (x_cutoff[0], h),
+                          0, thickness=-1)  # BL
+            cv2.rectangle(filter, (w - x_cutoff[0], 0), (w, y_cutoff[0]),
+                          0, thickness=-1)  # TR
+            cv2.rectangle(filter, (w - x_cutoff[0], h - y_cutoff[0]), (w, h),
+                          0, thickness=-1)  # BR
+
+            scv_filt = Image(filter, color_space=ColorSpace.GRAY)
         else:
             # I need to looking into CVMERGE/SPLIT... I would really
             # need to know how much memory we're allocating here
-            filter_b = cv.CreateImage((self.width, self.height),
-                                      cv.IPL_DEPTH_8U, 1)
-            filter_g = cv.CreateImage((self.width, self.height),
-                                      cv.IPL_DEPTH_8U, 1)
-            filter_r = cv.CreateImage((self.width, self.height),
-                                      cv.IPL_DEPTH_8U, 1)
-            cv.Zero(filter_b)
-            cv.Zero(filter_g)
-            cv.Zero(filter_r)
-            cv.AddS(filter_b, 255, filter_b)  # make everything white
-            cv.AddS(filter_g, 255, filter_g)  # make everything whit
-            cv.AddS(filter_r, 255, filter_r)  # make everything white
-            #now make all of the corners black
+            filter_b = self.get_empty(1) + 255  # make everything white
+            filter_g = self.get_empty(1) + 255  # make everything white
+            filter_r = self.get_empty(1) + 255  # make everything white
+
+            # now make all of the corners black
             temp = [filter_b, filter_g, filter_r]
             i = 0
             for f in temp:
-                cv.Rectangle(f, (0, 0), (x_cutoff[i], y_cutoff[i]), 0,
-                             thickness=-1)
-                cv.Rectangle(f, (0, h - y_cutoff[i]), (x_cutoff[i], h), 0,
-                             thickness=-1)
-                cv.Rectangle(f, (w - x_cutoff[i], 0), (w, y_cutoff[i]), 0,
-                             thickness=-1)
-                cv.Rectangle(f, (w - x_cutoff[i], h - y_cutoff[i]), (w, h), 0,
-                             thickness=-1)
+                cv2.rectangle(f, (0, 0), (x_cutoff[i], y_cutoff[i]), 0,
+                              thickness=-1)
+                cv2.rectangle(f, (0, h - y_cutoff[i]), (x_cutoff[i], h), 0,
+                              thickness=-1)
+                cv2.rectangle(f, (w - x_cutoff[i], 0), (w, y_cutoff[i]), 0,
+                              thickness=-1)
+                cv2.rectangle(f, (w - x_cutoff[i], h - y_cutoff[i]), (w, h), 0,
+                              thickness=-1)
                 i = i + 1
 
-            filter = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_8U,
-                                    3)
-            cv.Merge(filter_b, filter_g, filter_r, None, filter)
+            filter = np.dstack(tuple(temp))
+            scv_filt = Image(filter, color_space=ColorSpace.BGR)
 
-        scv_filt = Image(filter)
-        ret_val = self.apply_dft_filter(scv_filt, grayscale)
-        return ret_val
+        return self.apply_dft_filter(scv_filt, grayscale)
 
     def low_pass_filter(self, x_cutoff, y_cutoff=None, grayscale=False):
         """
@@ -10298,53 +10286,44 @@ class Image(object):
         w = self.width
 
         if grayscale:
-            filter = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_8U,
-                                    1)
-            cv.Zero(filter)
-            #now make all of the corners black
+            filter = self.get_empty(1)
 
-            cv.Rectangle(filter, (0, 0), (x_cutoff[0], y_cutoff[0]), 255,
-                         thickness=-1)  # TL
-            cv.Rectangle(filter, (0, h - y_cutoff[0]), (x_cutoff[0], h), 255,
-                         thickness=-1)  # BL
-            cv.Rectangle(filter, (w - x_cutoff[0], 0), (w, y_cutoff[0]), 255,
-                         thickness=-1)  # TR
-            cv.Rectangle(filter, (w - x_cutoff[0], h - y_cutoff[0]), (w, h),
-                         255, thickness=-1)  # BR
+            #now make all of the corners white
+            cv2.rectangle(filter, (0, 0), (x_cutoff[0], y_cutoff[0]), 255,
+                          thickness=-1)  # TL
+            cv2.rectangle(filter, (0, h - y_cutoff[0]), (x_cutoff[0], h), 255,
+                          thickness=-1)  # BL
+            cv2.rectangle(filter, (w - x_cutoff[0], 0), (w, y_cutoff[0]), 255,
+                          thickness=-1)  # TR
+            cv2.rectangle(filter, (w - x_cutoff[0], h - y_cutoff[0]), (w, h),
+                          255, thickness=-1)  # BR
+            scv_filt = Image(filter, color_space=ColorSpace.GRAY)
 
         else:
             # I need to looking into CVMERGE/SPLIT... I would really need
             # to know how much memory we're allocating here
-            filter_b = cv.CreateImage((self.width, self.height),
-                                      cv.IPL_DEPTH_8U, 1)
-            filter_g = cv.CreateImage((self.width, self.height),
-                                      cv.IPL_DEPTH_8U, 1)
-            filter_r = cv.CreateImage((self.width, self.height),
-                                      cv.IPL_DEPTH_8U, 1)
-            cv.Zero(filter_b)
-            cv.Zero(filter_g)
-            cv.Zero(filter_r)
-            # now make all of the corners black
+            filter_b = self.get_empty(1)
+            filter_g = self.get_empty(1)
+            filter_r = self.get_empty(1)
+
+            # now make all of the corners white
             temp = [filter_b, filter_g, filter_r]
             i = 0
             for f in temp:
-                cv.Rectangle(f, (0, 0), (x_cutoff[i], y_cutoff[i]), 255,
-                             thickness=-1)
-                cv.Rectangle(f, (0, h - y_cutoff[i]), (x_cutoff[i], h), 255,
-                             thickness=-1)
-                cv.Rectangle(f, (w - x_cutoff[i], 0), (w, y_cutoff[i]), 255,
-                             thickness=-1)
-                cv.Rectangle(f, (w - x_cutoff[i], h - y_cutoff[i]), (w, h),
-                             255, thickness=-1)
+                cv2.rectangle(f, (0, 0), (x_cutoff[i], y_cutoff[i]), 255,
+                              thickness=-1)
+                cv2.rectangle(f, (0, h - y_cutoff[i]), (x_cutoff[i], h), 255,
+                              thickness=-1)
+                cv2.rectangle(f, (w - x_cutoff[i], 0), (w, y_cutoff[i]), 255,
+                              thickness=-1)
+                cv2.rectangle(f, (w - x_cutoff[i], h - y_cutoff[i]), (w, h),
+                              255, thickness=-1)
                 i = i + 1
 
-            filter = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_8U,
-                                    3)
-            cv.Merge(filter_b, filter_g, filter_r, None, filter)
+            filter = np.dstack(tuple(temp))
+            scv_filt = Image(filter, color_space=ColorSpace.BGR)
 
-        scv_filt = Image(filter)
-        ret_val = self.apply_dft_filter(scv_filt, grayscale)
-        return ret_val
+        return self.apply_dft_filter(scv_filt, grayscale)
 
     #FIXME: need to decide BGR or RGB
     # ((rx_begin,ry_begin)(gx_begin,gy_begin)(bx_begin,by_begin))
@@ -10453,68 +10432,60 @@ class Image(object):
         h = self.height
         w = self.width
         if grayscale:
-            filter = cv.CreateImage(
-                (self.width, self.height), cv.IPL_DEPTH_8U, 1)
-            cv.Zero(filter)
-            # now make all of the corners black
-            cv.Rectangle(filter, (0, 0), (x_cutoff_high[0], y_cutoff_high[0]),
-                         255, thickness=-1)  # TL
-            cv.Rectangle(filter, (0, h - y_cutoff_high[0]),
-                         (x_cutoff_high[0], h), 255, thickness=-1)  # BL
-            cv.Rectangle(filter, (w - x_cutoff_high[0], 0),
-                         (w, y_cutoff_high[0]), 255, thickness=-1)  # TR
-            cv.Rectangle(filter, (w - x_cutoff_high[0], h - y_cutoff_high[0]),
-                         (w, h), 255, thickness=-1)  # BR
-            cv.Rectangle(filter, (0, 0), (x_cutoff_low[0], y_cutoff_low[0]), 0,
-                         thickness=-1)  # TL
-            cv.Rectangle(filter, (0, h - y_cutoff_low[0]),
-                         (x_cutoff_low[0], h), 0, thickness=-1)  # BL
-            cv.Rectangle(filter, (w - x_cutoff_low[0], 0),
-                         (w, y_cutoff_low[0]), 0, thickness=-1)  # TR
-            cv.Rectangle(filter, (w - x_cutoff_low[0], h - y_cutoff_low[0]),
-                         (w, h), 0, thickness=-1)  # BR
+            filter = self.get_empty(1)
+
+            # now make all of the corners white
+            cv2.rectangle(filter, (0, 0), (x_cutoff_high[0], y_cutoff_high[0]),
+                          255, thickness=-1)  # TL
+            cv2.rectangle(filter, (0, h - y_cutoff_high[0]),
+                          (x_cutoff_high[0], h), 255, thickness=-1)  # BL
+            cv2.rectangle(filter, (w - x_cutoff_high[0], 0),
+                          (w, y_cutoff_high[0]), 255, thickness=-1)  # TR
+            cv2.rectangle(filter, (w - x_cutoff_high[0], h - y_cutoff_high[0]),
+                          (w, h), 255, thickness=-1)  # BR
+            cv2.rectangle(filter, (0, 0), (x_cutoff_low[0], y_cutoff_low[0]),
+                          0, thickness=-1)  # TL
+            cv2.rectangle(filter, (0, h - y_cutoff_low[0]),
+                          (x_cutoff_low[0], h), 0, thickness=-1)  # BL
+            cv2.rectangle(filter, (w - x_cutoff_low[0], 0),
+                          (w, y_cutoff_low[0]), 0, thickness=-1)  # TR
+            cv2.rectangle(filter, (w - x_cutoff_low[0], h - y_cutoff_low[0]),
+                          (w, h), 0, thickness=-1)  # BR
+            scv_filt = Image(filter, color_space=ColorSpace.GRAY)
 
         else:
             # I need to looking into CVMERGE/SPLIT... I would really need
             # to know how much memory we're allocating here
-            filter_b = cv.CreateImage((self.width, self.height),
-                                      cv.IPL_DEPTH_8U, 1)
-            filter_g = cv.CreateImage((self.width, self.height),
-                                      cv.IPL_DEPTH_8U, 1)
-            filter_r = cv.CreateImage((self.width, self.height),
-                                      cv.IPL_DEPTH_8U, 1)
-            cv.Zero(filter_b)
-            cv.Zero(filter_g)
-            cv.Zero(filter_r)
+            filter_b = self.get_empty(1)
+            filter_g = self.get_empty(1)
+            filter_r = self.get_empty(1)
+
             #now make all of the corners black
             temp = [filter_b, filter_g, filter_r]
             i = 0
             for f in temp:
-                cv.Rectangle(f, (0, 0), (x_cutoff_high[i], y_cutoff_high[i]),
-                             255, thickness=-1)  # TL
-                cv.Rectangle(f, (0, h - y_cutoff_high[i]),
-                             (x_cutoff_high[i], h), 255, thickness=-1)  # BL
-                cv.Rectangle(f, (w - x_cutoff_high[i], 0),
-                             (w, y_cutoff_high[i]), 255, thickness=-1)  # TR
-                cv.Rectangle(f, (w - x_cutoff_high[i], h - y_cutoff_high[i]),
-                             (w, h), 255, thickness=-1)  # BR
-                cv.Rectangle(f, (0, 0), (x_cutoff_low[i], y_cutoff_low[i]), 0,
-                             thickness=-1)  # TL
-                cv.Rectangle(f, (0, h - y_cutoff_low[i]), (x_cutoff_low[i], h),
-                             0, thickness=-1)  # BL
-                cv.Rectangle(f, (w - x_cutoff_low[i], 0), (w, y_cutoff_low[i]),
-                             0, thickness=-1)  # TR
-                cv.Rectangle(f, (w - x_cutoff_low[i], h - y_cutoff_low[i]),
-                             (w, h), 0, thickness=-1)  # BR
+                cv2.rectangle(f, (0, 0), (x_cutoff_high[i], y_cutoff_high[i]),
+                              255, thickness=-1)  # TL
+                cv2.rectangle(f, (0, h - y_cutoff_high[i]),
+                              (x_cutoff_high[i], h), 255, thickness=-1)  # BL
+                cv2.rectangle(f, (w - x_cutoff_high[i], 0),
+                              (w, y_cutoff_high[i]), 255, thickness=-1)  # TR
+                cv2.rectangle(f, (w - x_cutoff_high[i], h - y_cutoff_high[i]),
+                              (w, h), 255, thickness=-1)  # BR
+                cv2.rectangle(f, (0, 0), (x_cutoff_low[i], y_cutoff_low[i]), 0,
+                              thickness=-1)  # TL
+                cv2.rectangle(f, (0, h - y_cutoff_low[i]),
+                              (x_cutoff_low[i], h), 0, thickness=-1)  # BL
+                cv2.rectangle(f, (w - x_cutoff_low[i], 0),
+                              (w, y_cutoff_low[i]), 0, thickness=-1)  # TR
+                cv2.rectangle(f, (w - x_cutoff_low[i], h - y_cutoff_low[i]),
+                              (w, h), 0, thickness=-1)  # BR
                 i = i + 1
 
-            filter = cv.CreateImage((self.width, self.height), cv.IPL_DEPTH_8U,
-                                    3)
-            cv.Merge(filter_b, filter_g, filter_r, None, filter)
+            filter = np.dstack(tuple(temp))
+            scv_filt = Image(filter, color_space=ColorSpace.BGR)
 
-        scv_filt = Image(filter)
-        ret_val = self.apply_dft_filter(scv_filt, grayscale)
-        return ret_val
+        return self.apply_dft_filter(scv_filt, grayscale)
 
     def _inverse_dft(self, input):
         """
@@ -10578,7 +10549,7 @@ class Image(object):
         know what you are doing.
 
         >>> raw = img.getRawDFT()
-        >>> cv.SomeOperation(raw)
+        >>> cv2.SomeOperation(raw)
         >>> result = img.inverse_dft(raw)
         >>> result.show()
 
@@ -13425,7 +13396,7 @@ class Image(object):
         cv2.watershed(self._ndarray, m)
         m = cv2.convertScaleAbs(m)
         ret, thresh = cv2.threshold(m, 0, 255, cv2.cv.CV_THRESH_OTSU)
-        ret_val = Image(thresh, cv2image=True)
+        ret_val = Image(thresh)
         return ret_val
 
     def find_blobs_from_watershed(self, mask=None, erode=2, dilate=2,
@@ -14366,7 +14337,7 @@ class Image(object):
             logger.warnings('Input a RGB image')
             return None
 
-        return Image(ret_val, cv2image=True)
+        return Image(ret_val)
 
     def get_luminosity(self):
         """
@@ -14401,7 +14372,7 @@ class Image(object):
             logger.warnings('Input a RGB image')
             return None
 
-        return Image(ret_val, cv2image=True)
+        return Image(ret_val)
 
     def get_average(self):
         """
@@ -14435,7 +14406,7 @@ class Image(object):
             logger.warnings('Input a RGB image')
             return None
 
-        return Image(ret_val, cv2image=True)
+        return Image(ret_val)
 
     def smart_rotate(self, bins=18, point=[-1, -1], auto=True, threshold=80,
                      min_length=30, max_gap=10, t1=150, t2=200, fixed=True):
@@ -14701,7 +14672,7 @@ class Image(object):
             if smooth:
                 disc = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
                 cv2.filter2D(dst, -1, disc, dst)
-            result = Image(dst, cv2image=True)
+            result = Image(dst)
             result = result.to_bgr()
             if threshold:
                 result = result.threshold(threshold)

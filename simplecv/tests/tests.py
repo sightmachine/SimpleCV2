@@ -2733,21 +2733,6 @@ def test_feature_angles_rotate():
     perform_diff(results, name_stem, tolerance=7.0)
 
 
-def test_nparray2cvmat():
-    img = Image('logo')
-    gray = img.get_gray_numpy()
-    gf32 = np.array(gray, dtype='float32')
-    gf64 = np.array(gray, dtype='float64')
-
-    a = nparray_to_cvmat(gray)
-    b = nparray_to_cvmat(gf32)
-    c = nparray_to_cvmat(gf64)
-
-    a = nparray_to_cvmat(gray, cv.CV_8UC1)
-    b = nparray_to_cvmat(gf32, cv.CV_8UC1)
-    c = nparray_to_cvmat(gf64, cv.CV_8UC1)
-
-
 def test_minrect_blobs():
     img = Image("../data/sampleimages/bolt.png")
     img = img.invert()
