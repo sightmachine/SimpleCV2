@@ -2,7 +2,6 @@ import sys
 import warnings
 
 import cv2
-from cv2 import cv
 import numpy as np
 
 from simplecv.base import logger
@@ -133,10 +132,6 @@ class BlobMaker(object):
                 "morphological operations (erode/dilate) to reduce the number "
                 "of blobs in your image. This function was designed to max out"
                 " at about 5000 blobs per image.")
-        except Exception:
-            logger.warning(
-                "SimpleCV Find Blobs Failed - This could be an OpenCV python "
-                "binding issue")
         del seq
         return FeatureSet(ret_value)
 
@@ -245,23 +240,13 @@ class BlobMaker(object):
         #This is a hack for a python wrapper bug that was missing
         #the constants required from the ctype
         ret_value.m00 = area
-        try:
-            ret_value.m10 = moments.get('m10')
-            ret_value.m01 = moments.get('m01')
-            ret_value.m11 = moments.get('m11')
-            ret_value.m20 = moments.get('m20')
-            ret_value.m02 = moments.get('m02')
-            ret_value.m21 = moments.get('m21')
-            ret_value.m12 = moments.get('m12')
-        except:
-            #FIXME: can't find this
-            ret_value.m10 = cv.GetSpatialMoment(moments, 1, 0)
-            ret_value.m01 = cv.GetSpatialMoment(moments, 0, 1)
-            ret_value.m11 = cv.GetSpatialMoment(moments, 1, 1)
-            ret_value.m20 = cv.GetSpatialMoment(moments, 2, 0)
-            ret_value.m02 = cv.GetSpatialMoment(moments, 0, 2)
-            ret_value.m21 = cv.GetSpatialMoment(moments, 2, 1)
-            ret_value.m12 = cv.GetSpatialMoment(moments, 1, 2)
+        ret_value.m10 = moments.get('m10')
+        ret_value.m01 = moments.get('m01')
+        ret_value.m11 = moments.get('m11')
+        ret_value.m20 = moments.get('m20')
+        ret_value.m02 = moments.get('m02')
+        ret_value.m21 = moments.get('m21')
+        ret_value.m12 = moments.get('m12')
 
         ret_value.hu = cv2.HuMoments(moments)
 
@@ -314,7 +299,7 @@ class BlobMaker(object):
         holes = seq.v_next()
         if holes is not None:
             cv2.drawContours(mask, holes, 0, 255, thickness=-1, maxLevel=0,
-                            offset=(-1 * bbr[0], -1 * bbr[1]))
+                             offset=(-1 * bbr[0], -1 * bbr[1]))
             while holes.h_next() is not None:
                 holes = holes.h_next()
                 if holes is not None:
@@ -331,7 +316,7 @@ class BlobMaker(object):
         bbr = cv2.boundingRect(hull)
         mask = np.zeros((bbr[2], bbr[3]), dtype='uint8')
         cv2.drawContours(mask, hull, 255, 0, thickness=-1, maxLevel=0,
-                        offset=(-1 * bbr[0], -1 * bbr[1]))
+                         offset=(-1 * bbr[0], -1 * bbr[1]))
         return mask
 
     @staticmethod

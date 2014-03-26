@@ -7,16 +7,11 @@ import tempfile
 import urllib2
 import zipfile
 
-import numpy as np
-
 try:
-    import cv2.cv as cv
+    import cv2
 except ImportError:
-    try:
-        import cv
-    except ImportError:
-        raise ImportError("Cannot load OpenCV library which is required by "
-                          "simplecv")
+    raise ImportError("Cannot load OpenCV(cv2) library which is required by "
+                      "simplecv")
 
 
 # optional libraries
@@ -173,44 +168,6 @@ def int_to_bin(i):
     i2 = int(i / 256)
     return chr(i1) + chr(i2)
 
-
-def nparray_to_cvmat(input_mat, data_type=cv.CV_32FC1):
-    """
-    This function is a utility for converting numpy arrays to
-    the cv.cvMat format.
-
-    Returns: cvMatrix
-    """
-    if isinstance(input_mat, np.ndarray):
-        sz = len(input_mat.shape)
-        temp_mat = None
-        if data_type == cv.CV_32FC1 or data_type == cv.CV_32FC2 \
-                or data_type == cv.CV_32FC3 or data_type == cv.CV_32FC4:
-            temp_mat = np.array(input_mat, dtype='float32')
-        elif data_type == cv.CV_8UC1 or data_type == cv.CV_8UC2 \
-                or data_type == cv.CV_8UC3 or data_type == cv.CV_8UC3:
-            temp_mat = np.array(input_mat, dtype='uint8')
-        else:
-            logger.warning("MatrixConversionUtil: the input matrix type is "
-                           "not supported")
-            return None
-        if sz == 1:  # this needs to be changed so we can do row/col vectors
-            ret_val = cv.CreateMat(input_mat.shape[0], 1, data_type)
-            cv.SetData(ret_val, temp_mat.tostring(),
-                       temp_mat.dtype.itemsize * temp_mat.shape[0])
-        elif sz == 2:
-            ret_val = cv.CreateMat(temp_mat.shape[0], temp_mat.shape[1],
-                                   data_type)
-            cv.SetData(ret_val, temp_mat.tostring(),
-                       temp_mat.dtype.itemsize * temp_mat.shape[1])
-        elif sz > 2:
-            logger.warning("MatrixConversionUtil: the input matrix type is "
-                           "not supported")
-            return None
-        return ret_val
-    else:
-        logger.warning("MatrixConversionUtil: the input matrix type is "
-                       "not supported")
 
 #Logging system - Global elements
 

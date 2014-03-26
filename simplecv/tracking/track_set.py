@@ -1,15 +1,11 @@
 import warnings
 
 import numpy as np
+import cv2
+from cv2 import cv
 
-from simplecv.base import cv
 from simplecv.color import Color
 from simplecv.features.features import FeatureSet
-
-try:
-    import cv2
-except ImportError:
-    pass
 
 
 class TrackSet(FeatureSet):

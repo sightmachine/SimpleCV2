@@ -60,7 +60,7 @@ except ImportError:
     except ImportError:
         PIL_ENABLED = False
 
-from simplecv.base import logger, SYSTEM, nparray_to_cvmat
+from simplecv.base import logger, SYSTEM
 from simplecv.color import Color
 from simplecv.display import Display
 from simplecv.image_class import Image, ImageSet, ColorSpace
