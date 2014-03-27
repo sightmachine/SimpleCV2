@@ -1844,7 +1844,7 @@ class StereoImage(object):
         if num_pts1 > num_pts2:
             magic_ratio = float(num_pts1) / float(num_pts2)
 
-        (idx, dist) = Image()._get_flann_matches(desc1, desc2)
+        (idx, dist) = Image._get_flann_matches(desc1, desc2)
         result = dist.squeeze() * magic_ratio < min_dist
 
         pts1 = np.array([kpt.pt for kpt in kpts1])
@@ -1911,7 +1911,7 @@ class StereoImage(object):
         if num_pts1 > num_pts2:
             magic_ratio = float(num_pts1) / float(num_pts2)
 
-        (idx, dist) = Image()._get_flann_matches(desc1, desc2)
+        (idx, dist) = Image._get_flann_matches(desc1, desc2)
         result = dist.squeeze() * magic_ratio < min_dist
 
         pts1 = np.array([kpt.pt for kpt in kpts1])

@@ -8068,7 +8068,8 @@ class Image(object):
             return None, None
         return self._mKeyPoints, self._mKPDescriptors
 
-    def _get_flann_matches(self, sd, td):
+    @staticmethod
+    def _get_flann_matches(sd, td):
         """
         Summary:
         This method does a fast local approximate nearest neighbors (FLANN)
