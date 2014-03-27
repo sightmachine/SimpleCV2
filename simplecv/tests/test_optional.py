@@ -60,16 +60,6 @@ alphaSrcImg = "../data/sampleimages/GreenMaskSource.png"
 standard_path = "../data/test/standard/"
 
 
-#These function names are required by nose test, please leave them as is
-def setup_context():
-    img = Image(testimage)
-
-
-def destroy_context():
-    img = ""
-
-
-@with_setup(setup_context, destroy_context)
 def test_detection_barcode():
     try:
         import zbar
