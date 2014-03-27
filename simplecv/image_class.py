@@ -2821,7 +2821,8 @@ class Image(object):
             img_blur = cv2.blur(self._ndarray, window)
             return Image(img_blur, color_space=self._colorSpace)
 
-    def gaussian_blur(self, window=None, sigma_x=0, sigma_y=0, grayscale=False):
+    def gaussian_blur(self, window=None, sigma_x=0, sigma_y=0,
+                      grayscale=False):
         """
         **SUMMARY**
 
@@ -4490,17 +4491,18 @@ class Image(object):
         return huetab
 
     def __getitem__(self, coord):
-        if not isinstance(coord, (list, tuple)) and len(coord) == 2:
-            raise Exception('Not implemented for {}'.fromat(coord))
-        if isinstance(coord[0], types.SliceType):
-            return Image(self._ndarray[coord[1], coord[0]],
+        if not (isinstance(coord, (list, tuple)) and len(coord) == 2):
+            raise Exception('Not implemented for {}'.format(coord))
+        if isinstance(coord[0], types.SliceType) \
+                or isinstance(coord[1], types.SliceType):
+            return Image(self._ndarray[coord],
                          color_space=self._colorSpace)
         else:
-            return self._ndarray[coord]
+            return self._ndarray[coord].tolist()
 
     def __setitem__(self, coord, value):
-        if not isinstance(coord, (list, tuple)) and len(coord) == 2:
-            raise Exception('Not implemented for {}'.fromat(coord))
+        if not (isinstance(coord, (list, tuple)) and len(coord) == 2):
+            raise Exception('Not implemented for {}'.format(coord))
         self._ndarray[coord] = value
 
     def __sub__(self, other):

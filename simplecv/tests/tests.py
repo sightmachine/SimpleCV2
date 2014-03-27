@@ -91,44 +91,6 @@ def test_image_stretch():
     perform_diff(result, name_stem)
 
 
-def test_image_loadsave():
-    img = Image(testimage)
-    img.save(testoutput)
-    if os.path.isfile(testoutput):
-        os.remove(testoutput)
-        pass
-    else:
-        assert False
-
-
-def test_image_numpy_constructor():
-    img = Image(testimage)
-    grayimg = img.to_gray()
-
-    chan3_array = np.array(img.get_ndarray())
-    chan1_array = np.array(img.get_gray_ndarray())
-
-    img2 = Image(chan3_array)
-    grayimg2 = Image(chan1_array)
-
-    if (img2[0, 0] == img[0, 0]).all() \
-            and (grayimg2[0, 0] == grayimg[0, 0]).all():
-        pass
-    else:
-        assert False
-
-
-def test_image_bitmap():
-    img1 = Image("lenna")
-    img2 = Image("lenna")
-    img2 = img2.smooth()
-    result = [img1, img2]
-    name_stem = "test_image_bitmap"
-    perform_diff(result, name_stem)
-
-
-# # Image Class Test
-
 def test_image_scale():
     img = Image(testimage)
     thumb = img.scale(30, 30)
@@ -136,63 +98,6 @@ def test_image_scale():
         assert False
     result = [thumb]
     name_stem = "test_image_scale"
-    perform_diff(result, name_stem)
-
-
-def test_image_copy():
-    img = Image(testimage2)
-    copy = img.copy()
-
-    assert (img[1, 1] == copy[1, 1]).all()
-    assert img.size() == copy.size()
-
-    result = [copy]
-    name_stem = "test_image_copy"
-    perform_diff(result, name_stem)
-
-
-def test_image_getitem():
-    img = Image(testimage)
-    colors = img[1, 1]
-    if colors[0] == 255 and colors[1] == 255 and colors[2] == 255:
-        pass
-    else:
-        assert False
-
-
-def test_image_getslice():
-    img = Image(testimage)
-    section = img[1:10, 1:10]
-    if section is None:
-        assert False
-
-
-def test_image_setitem():
-    img = Image(testimage)
-    img[1, 1] = (0, 0, 0)
-    newimg = Image(img.get_ndarray())
-    colors = newimg[1, 1]
-    if colors[0] == 0 and colors[1] == 0 and colors[2] == 0:
-        pass
-    else:
-        assert False
-
-    result = [newimg]
-    name_stem = "test_image_setitem"
-    perform_diff(result, name_stem)
-
-
-def test_image_setslice():
-    img = Image(testimage)
-    img[1:10, 1:10] = (0, 0, 0)  # make a black box
-    newimg = Image(img.get_ndarray())
-    section = newimg[1:10, 1:10]
-    for i in range(5):
-        colors = section[i, 0]
-        if colors[0] != 0 or colors[1] != 0 or colors[2] != 0:
-            assert False
-    result = [newimg]
-    name_stem = "test_image_setslice"
     perform_diff(result, name_stem)
 
 

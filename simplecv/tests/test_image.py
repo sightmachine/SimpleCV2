@@ -90,6 +90,29 @@ def test_image_init_ndarray_grayscale():
     assert_equals(2, len(img_ndarray.shape))
 
 
+def test_image_numpy_constructor():
+    img = Image(LENNA_PATH)
+    grayimg = img.to_gray()
+
+    chan3_array = np.array(img.get_ndarray())
+    chan1_array = np.array(img.get_gray_ndarray())
+
+    img2 = Image(chan3_array)
+    grayimg2 = Image(chan1_array)
+
+    assert img2[0, 0] == img[0, 0]
+    assert grayimg2[0, 0] == grayimg[0, 0]
+
+
+def test_image_loadsave():
+    img = Image(testimage)
+    img.save(testoutput)
+    if os.path.isfile(testoutput):
+        os.remove(testoutput)
+    else:
+        assert False
+
+
 def test_image_init_tuple_bgr():
     img1 = Image([5, 10], color_space=ColorSpace.BGR)
     assert img1.is_bgr()
@@ -447,3 +470,29 @@ def test_image_gray_clear():
     clear_array = np.zeros((gray_img.width, gray_img.height), dtype=np.uint8)
 
     assert_equals(clear_array.data, gray_img.get_ndarray().data)
+
+
+def test_image_getitem():
+    array = np.arange(27, dtype=np.uint8).reshape((3, 3, 3))
+    img = Image(array)
+
+    assert_equals([0, 1, 2], img[0, 0])
+    assert_equals([3, 4, 5], img[0, 1])
+    assert_equals([9, 10, 11], img[1, 0])
+    assert_equals([12, 13, 14], img[1, 1])
+
+    assert_equals(array[:, :].tolist(), img[:, :].get_ndarray().tolist())
+    assert_equals(array[1:2, 1:2].tolist(),
+                  img[1:2, 1:2].get_ndarray().tolist())
+
+
+def test_image_setitem():
+    array = np.arange(27, dtype=np.uint8).reshape((3, 3, 3))
+    img = Image(array)
+
+    img[1, 2] = [255, 255, 255]
+    assert_equals([255, 255, 255], img[1, 2])
+
+    img[0:2, 0:2] = [50, 50, 50]
+    array = np.ones((2, 2, 3), dtype=np.uint8) * 50
+    assert_equals(array.tolist(), img[0:2, 0:2].get_ndarray().tolist())
