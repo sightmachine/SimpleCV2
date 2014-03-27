@@ -14,8 +14,6 @@ import os
 import pickle
 import tempfile
 
-from cv2 import cv
-from nose.tools import nottest
 import cv2
 import numpy as np
 
@@ -36,8 +34,8 @@ from simplecv.segmentation.color_segmentation import ColorSegmentation
 from simplecv.segmentation.diff_segmentation import DiffSegmentation
 from simplecv.segmentation.running_segmentation import RunningSegmentation
 
-VISUAL_TEST = False  # if TRUE we save the images - otherwise we DIFF against
-                     # them - the default is False
+from simplecv.tests.utils import perform_diff
+
 SHOW_WARNING_TESTS = False  # show that warnings are working - tests will pass
                             #  but warnings are generated.
 
@@ -80,53 +78,6 @@ bottomImg = "../data/sampleimages/RatBottom.png"
 maskImg = "../data/sampleimages/RatMask.png"
 alphaMaskImg = "../data/sampleimages/RatAlphaMask.png"
 alphaSrcImg = "../data/sampleimages/GreenMaskSource.png"
-
-#standards path
-standard_path = "../data/test/standard/"
-
-
-#Given a set of images, a path, and a tolerance do the image diff.
-@nottest
-def img_diffs(test_imgs, name_stem, tolerance, path):
-    count = len(test_imgs)
-    ret_val = False
-    for idx in range(0, count):
-        lhs = test_imgs[idx].apply_layers()  # this catches drawing methods
-        if lhs.is_gray():
-            lhs = lhs.to_bgr()
-        fname = standard_path + name_stem + str(idx) + ".jpg"
-        rhs = Image(fname)
-        if lhs.size() == rhs.size():
-            num_img_pixels = lhs.width * lhs.height * 3
-            diff = cv2.absdiff(lhs.get_ndarray(), rhs.get_ndarray())
-            diff_pixels = (diff > 0).astype(np.uint8)
-            diff_pixels_sum = diff_pixels.sum()
-            if diff_pixels_sum > 0:
-                percent_diff_pixels = diff_pixels_sum / num_img_pixels
-                print "{0:.2f}% difference".format(percent_diff_pixels * 100)
-                lhs = Image((diff_pixels * (0, 0, 255)).astype(np.uint8))
-                lhs.save(fname[:-4] + "_DIFF.png")
-                rhs.save(fname[:-4] + "_RESULT.png")
-                ret_val = True
-    return ret_val
-
-
-#Save a list of images to a standard path.
-@nottest
-def img_saves(test_imgs, name_stem, path=standard_path):
-    count = len(test_imgs)
-    for idx in range(0, count):
-        fname = standard_path + name_stem + str(idx) + ".png"
-        test_imgs[idx].save(fname)
-
-
-#perform the actual image save and image diffs.
-@nottest
-def perform_diff(result, name_stem, tolerance=0.03, path=standard_path):
-    if VISUAL_TEST:  # save the correct images for a visual test
-        img_saves(result, name_stem, path)
-    else:  # otherwise we test our output against the visual test
-        assert not img_diffs(result, name_stem, tolerance, path)
 
 
 def test_image_stretch():
@@ -997,8 +948,8 @@ def test_camera_calibration():
     fake_camera.calibrate(imgs)
     #we're just going to check that the function doesn't puke
     mat = fake_camera.get_camera_matrix()
-    if not isinstance(mat, cv.cvmat):
-        assert False
+    assert isinstance(mat, np.ndarray)
+
     #we're also going to test load in save in the same pass
     matname = "TestCalibration"
     if False == fake_camera.save_calibration(matname):
@@ -1955,12 +1906,6 @@ def test_movement_feature():
 
 
 def test_keypoint_extraction():
-    try:
-        import cv2
-    except:
-        pass
-        return
-
     img1 = Image("../data/sampleimages/KeypointTemplate2.png")
     img2 = Image("../data/sampleimages/KeypointTemplate2.png")
     img3 = Image("../data/sampleimages/KeypointTemplate2.png")

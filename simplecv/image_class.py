@@ -2662,7 +2662,7 @@ class Image(object):
         else:
             return self.gaussian_blur(window, sigma, spatial_sigma, grayscale)
 
-    def median_filter(self, window, grayscale=False):
+    def median_filter(self, window=None, grayscale=False):
         """
         **SUMMARY**
 
@@ -2782,7 +2782,7 @@ class Image(object):
                                                 sigma_color, sigma_space)
             return Image(img_bilateral, color_space=self._colorSpace)
 
-    def blur(self, window, grayscale=False):
+    def blur(self, window=None, grayscale=False):
         """
         **SUMMARY**
 
@@ -2821,7 +2821,7 @@ class Image(object):
             img_blur = cv2.blur(self._ndarray, window)
             return Image(img_blur, color_space=self._colorSpace)
 
-    def gaussian_blur(self, window, sigma_x=0, sigma_y=0, grayscale=False):
+    def gaussian_blur(self, window=None, sigma_x=0, sigma_y=0, grayscale=False):
         """
         **SUMMARY**
 

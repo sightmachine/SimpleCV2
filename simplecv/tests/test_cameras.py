@@ -1,7 +1,3 @@
-#!/usr/bin/python
-
-from nose.tools import with_setup
-
 from simplecv.camera import Camera, VirtualCamera
 
 
