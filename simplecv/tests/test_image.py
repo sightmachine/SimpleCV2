@@ -1,3 +1,6 @@
+import os
+import tempfile
+
 import cv2
 from nose.tools import assert_equals, nottest, raises
 import numpy as np
@@ -104,13 +107,12 @@ def test_image_numpy_constructor():
     assert grayimg2[0, 0] == grayimg[0, 0]
 
 
-def test_image_loadsave():
-    img = Image(testimage)
-    img.save(testoutput)
-    if os.path.isfile(testoutput):
-        os.remove(testoutput)
-    else:
-        assert False
+def test_image_save():
+    temp_file = os.path.join(tempfile.gettempdir(), 'temp_image.png')
+    img = create_test_image()
+    img.save(temp_file)
+    assert os.path.isfile(temp_file)
+    os.remove(temp_file)
 
 
 def test_image_init_tuple_bgr():

@@ -3126,15 +3126,15 @@ class Image(object):
 
         """
         if is_tuple(thresh):
-            b = self._ndarray[:, :, 0]
-            g = self._ndarray[:, :, 1]
-            r = self._ndarray[:, :, 2]
+            b = self._ndarray[:, :, 0].copy()
+            g = self._ndarray[:, :, 1].copy()
+            r = self._ndarray[:, :, 2].copy()
 
-            _, r = cv2.threshold(r, thresh[2], maxv, cv2.THRESH_BINARY_INV)
-            _, g = cv2.threshold(g, thresh[1], maxv, cv2.THRESH_BINARY_INV)
-            _, b = cv2.threshold(b, thresh[0], maxv, cv2.THRESH_BINARY_INV)
+            r = cv2.threshold(r, thresh[0], maxv, cv2.THRESH_BINARY_INV)[1]
+            g = cv2.threshold(g, thresh[1], maxv, cv2.THRESH_BINARY_INV)[1]
+            b = cv2.threshold(b, thresh[2], maxv, cv2.THRESH_BINARY_INV)[1]
             array = r + g + b
-            return Image(array, color_space=self._colorSpace)
+            return Image(array, color_space=ColorSpace.GRAY)
 
         elif thresh is None:
             if blocksize:
@@ -3143,15 +3143,15 @@ class Image(object):
                                               cv2.THRESH_BINARY_INV,
                                               blocksize, p)
             else:
-                _, array = cv2.threshold(
+                array = cv2.threshold(
                     self.get_gray_ndarray(), -1, float(maxv),
-                    cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-            return Image(array, color_space=self._colorSpace)
+                    cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
+            return Image(array, color_space=ColorSpace.GRAY)
         else:
             # desaturate the image, and apply the new threshold
-            _, array = cv2.threshold(self.get_gray_ndarray(), thresh,
-                                     float(maxv), cv2.THRESH_BINARY_INV)
-            return Image(array, color_space=self._colorSpace)
+            array = cv2.threshold(self.get_gray_ndarray(), thresh,
+                                  maxv, cv2.THRESH_BINARY_INV)[1]
+            return Image(array, color_space=ColorSpace.GRAY)
 
     def mean_color(self, color_space=None):
         """
@@ -4938,11 +4938,9 @@ class Image(object):
             lines = cv2.HoughLinesP(em, 1.0, math.pi/180.0, threshold,
                                     minLineLength=minlinelength,
                                     maxLineGap=maxlinegap)
-            if nlines == -1:
-                nlines = len(lines)
 
-            for l in lines[:nlines]:
-                lines_fs.append(Line(self, l))
+            for l in lines[0, :]:
+                lines_fs.append(Line(self, ((l[0], l[1]), (l[2], l[3]))))
 
         return lines_fs
 
@@ -5951,7 +5949,7 @@ class Image(object):
         """
         if isinstance(features, Image):
             warnings.warn("You need to pass drawable features.")
-            return None
+            return
         if hasattr(features, 'draw'):
             from copy import deepcopy
 
@@ -5966,7 +5964,6 @@ class Image(object):
                 cfeatures.draw(color, width)
         else:
             warnings.warn("You need to pass drawable features.")
-        return None
 
     def draw_text(self, text="", x=None, y=None, color=Color.BLUE,
                   fontsize=16):
@@ -12101,7 +12098,7 @@ class Image(object):
 
     def __getstate__(self):
         return dict(colorspace=self._colorSpace,
-                    image=self.apply_layers().get_ndarray().tostring())
+                    image=self.apply_layers().get_ndarray())
 
     def __setstate__(self, mydict):
         self._ndarray = mydict['image']

@@ -176,13 +176,12 @@ def test_image_gamma_correct():
     result = []
     result.append(img3)
     result.append(img4)
-    name_stem = "test_image_gammaCorrect"
+
+    assert img3.mean_color() >= img2.mean_color()
+    assert img4.mean_color() <= img2.mean_color()
+
+    name_stem = "test_image_gamma_correct"
     perform_diff(result, name_stem)
-    if img3.mean_color() >= img2.mean_color() \
-            and img4.mean_color() <= img2.mean_color():
-        pass
-    else:
-        assert False
 
 
 def test_image_binarize():
@@ -196,50 +195,20 @@ def test_image_binarize():
     name_stem = "test_image_binarize"
     perform_diff(result, name_stem)
 
-    if (hist[0] + hist[-1] == np.sum(hist) and hist2[0] + hist2[-1] == np.sum(
-            hist2)):
-        pass
-    else:
-        assert False
+    assert hist[0] + hist[-1] == np.sum(hist)
+    assert hist2[0] + hist2[-1] == np.sum(hist2)
 
 
 def test_image_binarize_adaptive():
     img = Image(testimage2)
-    binary = img.binarize(-1)
+    binary = img.binarize()
     hist = binary.histogram(20)
 
     result = [binary]
     name_stem = "test_image_binarize_adaptive"
     perform_diff(result, name_stem)
 
-    if hist[0] + hist[-1] == np.sum(hist):
-        pass
-    else:
-        assert False
-
-
-def test_image_invert():
-    img = Image(testimage2)
-    clr = img[1, 1]
-    img = img.invert()
-
-    result = [img]
-    name_stem = "test_image_invert"
-    perform_diff(result, name_stem)
-
-    if clr[0] == (255 - img[1, 1][0]):
-        pass
-    else:
-        assert False
-
-
-def test_image_size():
-    img = Image(testimage2)
-    (width, height) = img.size()
-    if type(width) == int and type(height) == int and width > 0 and height > 0:
-        pass
-    else:
-        assert False
+    assert hist[0] + hist[-1] == np.sum(hist)
 
 
 def test_image_drawing():
