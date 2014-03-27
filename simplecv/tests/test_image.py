@@ -498,3 +498,14 @@ def test_image_setitem():
     img[0:2, 0:2] = [50, 50, 50]
     array = np.ones((2, 2, 3), dtype=np.uint8) * 50
     assert_equals(array.tolist(), img[0:2, 0:2].get_ndarray().tolist())
+
+
+def test_image_split_merge_channels():
+    img = create_test_image()
+    b, g, r = img.split_channels()
+    assert_equals([[0, 0], [255, 255]], b.get_ndarray().tolist())
+    assert_equals([[0, 255], [0, 255]], g.get_ndarray().tolist())
+    assert_equals([[255, 0], [0, 255]], r.get_ndarray().tolist())
+
+    img1 = img.merge_channels(b, g, r)
+    assert_equals(img1.get_ndarray().tolist(), img.get_ndarray().tolist())

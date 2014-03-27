@@ -3745,7 +3745,7 @@ class Image(object):
 
         return crops
 
-    def split_channels(self, grayscale=True):
+    def split_channels(self):
         """
         **SUMMARY**
 
@@ -3825,7 +3825,7 @@ class Image(object):
         array = np.dstack((r.get_ndarray(),
                            g.get_ndarray(),
                            b.get_ndarray()))
-        return Image(array)
+        return Image(array, color_space=color_space)
 
     def apply_hls_curve(self, hcurve, lcurve, scurve):
         """
