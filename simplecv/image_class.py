@@ -7316,6 +7316,8 @@ class Image(object):
             kernel = np.array(((1, 0, 0), (0, 1, 0), (0, 0, 1)))
         elif isinstance(kernel, (list, set)):
             kernel = np.array(kernel)
+        elif isinstance(kernel, np.ndarray):
+            pass
         else:
             logger.warning("Image.convolve: kernel should be numpy array.")
             return None
@@ -12498,7 +12500,7 @@ class Image(object):
             img = np.copy(self.get_gray_ndarray())
         else:
             try:
-                img = np.copy(self.get_numpy()[:, :, channel])
+                img = np.copy(self.get_ndarray()[:, :, channel])
             except IndexError:
                 warnings.warn('Channel missing!')
                 return None
@@ -12565,7 +12567,7 @@ class Image(object):
         if channel == -1:
             ret_val = Image(img)
         else:
-            temp = np.copy(self.get_numpy())
+            temp = np.copy(self.get_ndarray())
             temp[:, :, channel] = img
             ret_val = Image(temp)
         return ret_val
@@ -12651,7 +12653,7 @@ class Image(object):
             if linescan.channel == -1:
                 ret_val = Image(img)
             else:
-                temp = np.copy(self.get_numpy())
+                temp = np.copy(self.get_ndarray())
                 temp[:, :, linescan.channel] = img
                 ret_val = Image(temp)
 
@@ -13840,7 +13842,7 @@ class Image(object):
             img = img.get_gray_numpy()
             multichannel = False
         elif gray is False:
-            img = img.get_numpy()
+            img = img.get_ndarray()
             multichannel = True
         else:
             warnings.warn('gray value not valid')
