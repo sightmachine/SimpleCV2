@@ -34,9 +34,9 @@ def img_diffs(test_imgs, name_stem, tolerance, path):
                 num_img_pixels = lhs.size
                 percent_diff_pixels = diff_pixels_sum / num_img_pixels
                 print "{0:.2f}% difference".format(percent_diff_pixels * 100)
-                cv2.imwrite(fname + ".png", lhs)  # TEMP
-                cv2.imwrite(fname + "_DIFF.png",
-                            (diff_pixels * (0, 0, 255)).astype(np.uint8))
+                # cv2.imwrite(fname + ".png", lhs)
+                # cv2.imwrite(fname + "_DIFF.png",
+                #             (diff_pixels * (0, 0, 255)).astype(np.uint8))
                 ret_val = True
     return ret_val
 

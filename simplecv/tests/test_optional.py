@@ -5,13 +5,11 @@
 #
 import tempfile
 
-from nose.tools import with_setup, nottest
-
 from simplecv.base import logger
 from simplecv.color import Color
 from simplecv.image_class import Image
 from simplecv.camera import ScreenCamera
-
+from simplecv.tests.utils import perform_diff
 
 SHOW_WARNING_TESTS = False  # show that warnings are working
                             # tests will pass but warnings are generated.
@@ -56,9 +54,6 @@ maskImg = "../data/sampleimages/RatMask.png"
 alphaMaskImg = "../data/sampleimages/RatAlphaMask.png"
 alphaSrcImg = "../data/sampleimages/GreenMaskSource.png"
 
-#standards path
-standard_path = "../data/test/standard/"
-
 
 def test_detection_barcode():
     try:
@@ -79,7 +74,6 @@ def test_detection_barcode():
             pass
         result = [img1, img2]
         name_stem = "test_detection_barcode"
-        # FIXME: no function perform_diff
         perform_diff(result, name_stem)
     else:
         pass
@@ -155,3 +149,20 @@ def test_screenshot():
             assert True
         else:
             assert False
+
+
+def test_tv_denoising():
+    try:
+        from skimage.filter import denoise_tv_chambolle
+
+        img = Image('lenna')
+        img1 = img.tv_denoising(gray=False, weight=20)
+        img2 = img.tv_denoising(weight=50, max_iter=250)
+        img3 = img.to_gray()
+        img3 = img3.tv_denoising(gray=True, weight=20)
+        img4 = img.tv_denoising(resize=0.5)
+        result = [img1, img2, img3, img4]
+        name_stem = "test_tvDenoising"
+        perform_diff(result, name_stem, 3)
+    except ImportError:
+        pass
