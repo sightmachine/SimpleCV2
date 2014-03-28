@@ -4850,11 +4850,11 @@ class Image(object):
         if use_standard:
             lines = cv2.HoughLines(em, 1.0, math.pi/180.0, threshold,
                                    srn=minlinelength,
-                                   stn=maxlinegap)
+                                   stn=maxlinegap)[0]
             if nlines == -1:
-                nlines = len(lines)
+                nlines = lines.shape[0]
             # All white points (edges) in Canny edge image
-            x, y = np.where(em > 128)
+            y, x = np.where(em > 128)  #
             # Put points in dictionary for fast checkout if point is white
             pts = dict((p, 1) for p in zip(x, y))
 
@@ -4939,9 +4939,11 @@ class Image(object):
         else:
             lines = cv2.HoughLinesP(em, 1.0, math.pi/180.0, threshold,
                                     minLineLength=minlinelength,
-                                    maxLineGap=maxlinegap)
+                                    maxLineGap=maxlinegap)[0]
+            if nlines == -1:
+                nlines = lines.shape[0]
 
-            for l in lines[0, :]:
+            for l in lines[:nlines]:
                 lines_fs.append(Line(self, ((l[0], l[1]), (l[2], l[3]))))
 
         return lines_fs

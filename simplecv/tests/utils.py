@@ -4,8 +4,6 @@ from nose.tools import nottest
 import cv2
 import numpy as np
 
-from simplecv.image_class import Image
-
 VISUAL_TEST = False  # if TRUE we save the images - otherwise we DIFF against
                      # them - the default is False
 
@@ -20,26 +18,25 @@ def img_diffs(test_imgs, name_stem, tolerance, path):
     ret_val = False
     for idx in range(0, count):
         lhs = test_imgs[idx].apply_layers()  # this catches drawing methods
-        if lhs.is_gray():
-            lhs = lhs.to_bgr()
+        lhs = lhs.to_bgr().get_ndarray()
         fname = standard_path + name_stem + str(idx)
         fname_jpg = fname + ".jpg"
         fname_png = fname + ".png"
         if os.path.exists(fname_png):
-            rhs = Image(fname_png)
+            rhs = cv2.imread(fname_png)
         else:
-            rhs = Image(fname_jpg)
-        if lhs.size() == rhs.size():
-            num_img_pixels = lhs.width * lhs.height * 3
-            diff = cv2.absdiff(lhs.get_ndarray(), rhs.get_ndarray())
+            rhs = cv2.imread(fname_jpg)
+        if lhs.shape == rhs.shape:
+            diff = cv2.absdiff(lhs, rhs)
             diff_pixels = (diff > 0).astype(np.uint8)
             diff_pixels_sum = diff_pixels.sum()
             if diff_pixels_sum > 0:
+                num_img_pixels = lhs.size
                 percent_diff_pixels = diff_pixels_sum / num_img_pixels
                 print "{0:.2f}% difference".format(percent_diff_pixels * 100)
-                lhs.save(fname_png)  # lhs.save(fname + "_RESULT.png")
-                lhs = Image((diff_pixels * (0, 0, 255)).astype(np.uint8))
-                lhs.save(fname + "_DIFF.png")
+                cv2.imwrite(fname + ".png", lhs)  # TEMP
+                cv2.imwrite(fname + "_DIFF.png",
+                            (diff_pixels * (0, 0, 255)).astype(np.uint8))
                 ret_val = True
     return ret_val
 

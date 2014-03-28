@@ -105,8 +105,7 @@ def test_detection_find_corners():
     img = Image(testimage2)
     corners = img.find_corners(25)
     corners.draw()
-    if len(corners) == 0:
-        assert False
+    assert len(corners)
     result = [img]
     name_stem = "test_detection_find_corners"
     perform_diff(result, name_stem)
@@ -274,6 +273,7 @@ def test_detection_lines_standard():
         assert False
 
 
+# FIXME: Test should have assertions
 def test_detection_feature_measures():
     img = Image(testimage2)
 

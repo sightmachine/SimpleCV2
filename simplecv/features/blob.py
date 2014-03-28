@@ -596,9 +596,9 @@ class Blob(Feature):
             # copy the mask into 3 channels and
             # multiply by the appropriate color
             gs_bitmap = self.mask.get_gray_ndarray()
-            maskred = cv2.convertScaleAbs(gs_bitmap, color[0] / 255.0)
-            maskgrn = cv2.convertScaleAbs(gs_bitmap, color[1] / 255.0)
-            maskblu = cv2.convertScaleAbs(gs_bitmap, color[2] / 255.0)
+            maskred = cv2.convertScaleAbs(gs_bitmap, alpha=color[0] / 255.0)
+            maskgrn = cv2.convertScaleAbs(gs_bitmap, alpha=color[1] / 255.0)
+            maskblu = cv2.convertScaleAbs(gs_bitmap, alpha=color[2] / 255.0)
             maskbit = np.dstack((maskblu, maskgrn, maskred))
 
             masksurface = Image(maskbit).get_pg_surface()
@@ -968,11 +968,12 @@ class Blob(Feature):
     def mask(self):
         # TODO: FIX THIS SO THAT THE INTERIOR CONTOURS GET SHIFTED AND DRAWN
 
-        ret_value = np.zeros((self.height(), self.width()), np.uint8)
+        ret_value = np.zeros((self.height, self.width), np.uint8)
         l, t = self.top_left_corner()
 
         # construct the exterior get_contour - these are tuples
-        array = np.array([[(p[0] - l, p[1] - t) for p in self.contour]])
+        array = np.array([[(p[0] - l, p[1] - t) for p in self.contour]],
+                         dtype=np.int32)
 
         cv2.fillPoly(ret_value, array, (255, 255, 255), 8)
 
