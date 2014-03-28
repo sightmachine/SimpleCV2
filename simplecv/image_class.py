@@ -1567,9 +1567,9 @@ class Image(object):
         :py:meth:`is_hls`
 
         """
-        hsl_array = Image.convert(self._ndarray, self._colorSpace,
+        hls_array = Image.convert(self._ndarray, self._colorSpace,
                                   ColorSpace.HLS)
-        return Image(hsl_array, color_space=ColorSpace.HLS)
+        return Image(hls_array, color_space=ColorSpace.HLS)
 
     def to_hsv(self):
         """
@@ -4207,7 +4207,8 @@ class Image(object):
 
         """
         kern = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3), (1, 1))
-        array = cv2.morphologyEx(self._ndarray, cv2.MORPH_OPEN, kern, 1)
+        array = cv2.morphologyEx(src=self._ndarray, op=cv2.MORPH_OPEN,
+                                 kernel=kern, anchor=(1, 1), iterations=1)
         return Image(array, color_space=self._colorSpace)
 
     def morph_close(self):
@@ -4251,7 +4252,8 @@ class Image(object):
 
         """
         kern = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3), (1, 1))
-        array = cv2.morphologyEx(self._ndarray, cv2.MORPH_CLOSE, kern, 1)
+        array = cv2.morphologyEx(src=self._ndarray, op=cv2.MORPH_CLOSE,
+                                 kernel=kern, anchor=(1, 1), iterations=1)
         return Image(array, color_space=self._colorSpace)
 
     def morph_gradient(self):
@@ -7419,7 +7421,7 @@ class Image(object):
                                         template_image.get_gray_ndarray(),
                                         method)
         else:
-            matches = cv2.matchTemplate(self._ndarray(),
+            matches = cv2.matchTemplate(self._ndarray,
                                         template_image.get_ndarray(),
                                         method)
         mean = np.mean(matches)

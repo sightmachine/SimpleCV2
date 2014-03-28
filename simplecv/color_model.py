@@ -47,7 +47,7 @@ class ColorModel(object):
 
         #first cast everything to a numpy array
         if data.__class__.__name__ == 'Image':
-            ret = data.get_numpy().reshape(-1, 3)
+            ret = data.get_ndarray().reshape(-1, 3)
         elif data.__class__.__name__ == 'cvmat':
             ret = array(data).reshape(-1, 3)
         elif data.__class__.__name__ == 'list':
@@ -175,7 +175,7 @@ class ColorModel(object):
             a, b = b, a
 
         # bitshift down and reshape to Nx3
-        rshft = right_shift(img.get_numpy(), self.bits).reshape(-1, 3)
+        rshft = right_shift(img.get_ndarray(), self.bits).reshape(-1, 3)
         # map to True/False based on the model
         mapped = array(map(self.data.has_key, map(ndarray.tostring, rshft)))
         # replace True and False with fg and bg
