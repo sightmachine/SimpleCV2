@@ -849,14 +849,14 @@ def test_image_crop():
     w = 10
     h = 20
     crop = img.crop(x, y, w, h)
-    crop2 = img[x:(x + w), y:(y + h)]
+    crop2 = img[y:(y + h), x:(x + w)]
     crop6 = img.crop(0, 0, 10, 10)
-    # if( SHOW_WARNING_TESTS ):
-    #     crop7 = img.crop(0,0,-10,10)
-    #     crop8 = img.crop(-50,-50,10,10)
-    #     crop3 = img.crop(-3,-3,10,20)
-    #     crop4 = img.crop(-10,10,20,20,centered=True)
-    #     crop5 = img.crop(-10,-10,20,20)
+
+    crop7 = img.crop(0, 0, -10, 10)
+    crop8 = img.crop(-50, -50, 10, 10)
+    crop3 = img.crop(-3, -3, 10, 20)
+    crop4 = img.crop(-10, 10, 20, 20, centered=True)
+    crop5 = img.crop(-10, -10, 20, 20)
 
     tests = []
     tests.append(img.crop((50, 50), (10, 10)))  # 0
@@ -893,9 +893,8 @@ def test_image_crop():
             print "FAILED CROP TEST " + str(i) + " " + str(img)
             failed = True
         i = i + 1
+    assert not failed
 
-    if failed:
-        assert False
     results = [crop, crop2, crop6]
     name_stem = "test_image_crop"
     perform_diff(results, name_stem)
