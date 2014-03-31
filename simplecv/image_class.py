@@ -5107,7 +5107,7 @@ class Image(object):
         """
         if point is None:
             point = [-1, -1]
-        elif point[0] == -1 or point[1] == -1:
+        if point[0] == -1 or point[1] == -1:
             point[0] = (self.width - 1) / 2
             point[1] = (self.height - 1) / 2
 

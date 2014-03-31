@@ -665,7 +665,7 @@ def test_image_rotate_fixed():
 
     test = img4 - img2
     c = test.mean_color()
-    print(c)
+
     if c[0] > 5 or c[1] > 5 or c[2] > 5:
         assert False
 
