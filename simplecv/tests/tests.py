@@ -1064,7 +1064,7 @@ def test_color_conversion_func_bgr():
     results.append(bgr.to_xyz())
 
     name_stem = "test_color_conversion_func_bgr"
-    perform_diff(results, name_stem, tolerance=4.0)
+    perform_diff(results, name_stem)
 
 
 def test_color_conversion_func_rgb():
@@ -1104,7 +1104,7 @@ def test_color_conversion_func_hsv():
     results.append(hsv.to_hsv())
     results.append(hsv.to_xyz())
     name_stem = "test_color_conversion_func_hsv"
-    perform_diff(results, name_stem, tolerance=4.0)
+    perform_diff(results, name_stem)
 
 
 def test_color_conversion_func_hls():
@@ -1120,7 +1120,7 @@ def test_color_conversion_func_hls():
     results.append(hls.to_xyz())
 
     name_stem = "test_color_conversion_func_hls"
-    perform_diff(results, name_stem, tolerance=4.0)
+    perform_diff(results, name_stem)
 
 
 def test_color_conversion_func_xyz():
@@ -1135,7 +1135,7 @@ def test_color_conversion_func_xyz():
     results.append(xyz.to_xyz())
 
     name_stem = "test_color_conversion_func_xyz"
-    perform_diff(results, name_stem, tolerance=8.0)
+    perform_diff(results, name_stem)
 
 
 def test_blob_maker():
@@ -1155,24 +1155,13 @@ def test_blob_holes():
     blobs.draw()
     results = [img]
     name_stem = "test_blob_holes"
-    perform_diff(results, name_stem, tolerance=3.0)
+    perform_diff(results, name_stem)
 
     for b in blobs:
         if b.hole_contour is not None:
             count += len(b.hole_contour)
     if count != 7:
         assert False
-
-
-def test_blob_hull():
-    img = Image("../data/sampleimages/blockhead.png")
-    blobber = BlobMaker()
-    blobs = blobber.extract(img)
-    blobs.draw()
-
-    results = [img]
-    name_stem = "test_blob_holes"
-    perform_diff(results, name_stem, tolerance=3.0)
 
     for b in blobs:
         if len(b.convex_hull) < 3:
