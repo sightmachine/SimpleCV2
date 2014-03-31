@@ -111,15 +111,45 @@ class BlobMaker(object):
             warnings.warn("Unable to find Blobs. Retuning Empty FeatureSet.")
             return FeatureSet([])
 
+        all_blobs = []
+        roots = []
+        for index, node in enumerate(hierarchy[0].tolist()):
+            if node[3] == -1:  # has no parent
+                roots.append(index)
+
+        while len(roots):
+            blobs = []
+            for root_index in roots:
+                blob = []
+                blob.append(root_index)  # append blob index
+                if hierarchy[0][root_index][2] != -1:  # blob has children
+                    child_index = hierarchy[0][root_index][2]
+                    blob.append(child_index)  # append blob hole
+                    while hierarchy[0][child_index][0] != -1:  # has next child
+                        child_index = hierarchy[0][child_index][0]
+                        blob.append(child_index)  # append blob hole
+                blobs.append(blob)
+            all_blobs += blobs
+            roots = []
+            for blob in blobs:
+                for index in blob[1:]:
+                    if hierarchy[0][index][2] != -1:
+                        child_index = hierarchy[0][index][2]
+                        roots.append(child_index)  # append blob hole
+                        while hierarchy[0][child_index][0] != -1:
+                            child_index = hierarchy[0][child_index][0]
+                            roots.append(child_index)  # append blob hole
+
         ret_value = []
-        for i, contour in enumerate(contours):
-            if hierarchy[0][i][-1] == -1:
-                hole_contour = self._get_holes(i, contours, hierarchy)
-                temp = self._extract_data(contour, hole_contour,
-                                          color_img, minsize, maxsize,
-                                          appx_level)
-                if temp is not None:
-                    ret_value.append(temp)
+        for blob in all_blobs:
+            blob_id = blob[0]
+            hole_ids = blob[1:]
+            hole_contours = [contours[id][:, 0, :].tolist() for id in hole_ids]
+            temp = self._extract_data(contours[blob_id], hole_contours,
+                                      color_img, minsize, maxsize,
+                                      appx_level)
+            if temp is not None:
+                ret_value.append(temp)
         return FeatureSet(ret_value)
 
     def _extract_data(self, contour, hole_contour, color_img, minsize,
@@ -218,7 +248,7 @@ class BlobMaker(object):
         for i, contour in enumerate(contours):
             if hierarchy[0][i][-1] == contour_num:
                 if len(contour) >= 3:  # exclude single pixel holes
-                        ret_value.append(contour)
+                        ret_value.append(contour[:, 0, :].tolist())
         return ret_value
 
     @staticmethod

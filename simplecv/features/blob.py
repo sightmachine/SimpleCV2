@@ -651,7 +651,7 @@ class Blob(Feature):
             layer.polygon(self.contour, color, filled=True, alpha=alpha)
         else:
             lastp = self.contour[0]  # this may work better.... than the other
-            for nextp in self.contour[1::]:
+            for nextp in self.contour[1:]:
                 layer.line(lastp, nextp, color, width=width, alpha=alpha,
                            antialias=False)
                 lastp = nextp
@@ -699,7 +699,7 @@ class Blob(Feature):
         else:
             for h in self.hole_contour:
                 lastp = h[0]  # this may work better.... than the other
-                for nextp in h[1::]:
+                for nextp in h[1:]:
                     layer.line((int(lastp[0]), int(lastp[1])),
                                (int(nextp[0]), int(nextp[1])), color,
                                width=width, alpha=alpha, antialias=False)
@@ -981,8 +981,10 @@ class Blob(Feature):
         holes = []
         if self.hole_contour is not None:
             for h in self.hole_contour:  # -- these are lists
-                holes.append([(h2[0] - l, h2[1] - t) for h2 in h])
-            cv2.fillPoly(ret_value, np.array(holes), (0, 0, 0), 8)
+                holes.append(np.array([(h2[0] - l, h2[1] - t) for h2 in h],
+                                      dtype=np.int32))
+            if holes:
+                cv2.fillPoly(ret_value, holes, (0, 0, 0), 8)
         return Image(ret_value)
 
     @LazyProperty

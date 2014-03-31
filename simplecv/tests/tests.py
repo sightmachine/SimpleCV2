@@ -57,6 +57,7 @@ blue = Color.BLUE
 
 #images
 barcode = "../data/sampleimages/barcode.png"
+contour_hiearachy = "../data/sampleimages/contour_hiearachy.png"
 testimage = "../data/sampleimages/9dots4lines.png"
 testimage2 = "../data/sampleimages/aerospace.jpg"
 whiteimage = "../data/sampleimages/white.png"
@@ -314,22 +315,28 @@ def test_detection_blobs_appx():
     result.append(img2)
 
     name_stem = "test_detection_blobs_appx"
-    perform_diff(result, name_stem, 5.00)
-    if blobs is None:
-        assert False
+    perform_diff(result, name_stem)
+    assert blobs is not None
 
 
 def test_detection_blobs():
+    result = []
     img = Image(testbarcode)
     blobs = img.find_blobs()
     blobs.draw(color=Color.RED)
-    result = [img]
+    assert len(blobs) == 5
+    result.append(img)
+
+    img = Image(contour_hiearachy)
+    blobs = img.find_blobs()
+    assert len(blobs) == 10
+    blobs.draw(color=Color.RED)
+    result.append(img)
+
     #TODO - WE NEED BETTER COVERAGE HERE
     name_stem = "test_detection_blobs"
-    perform_diff(result, name_stem, 5.00)
-
-    if blobs is None:
-        assert False
+    perform_diff(result, name_stem)
+    assert blobs is not None
 
 
 def test_detection_blobs_lazy():
@@ -352,7 +359,7 @@ def test_detection_blobs_lazy():
 
     #TODO - WE NEED BETTER COVERAGE HERE
     name_stem = "test_detection_blobs_lazy"
-    perform_diff(result, name_stem, 6.00)
+    perform_diff(result, name_stem)
 
 
 def test_detection_blobs_adaptive():
@@ -361,10 +368,8 @@ def test_detection_blobs_adaptive():
     blobs.draw(color=Color.RED)
     result = [img]
     name_stem = "test_detection_blobs_adaptive"
-    perform_diff(result, name_stem, 5.00)
-
-    if blobs is None:
-        assert False
+    perform_diff(result, name_stem)
+    assert blobs is not None
 
 
 def test_detection_blobs_smallimages():

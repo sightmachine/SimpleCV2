@@ -3269,7 +3269,7 @@ class Image(object):
 
         return FeatureSet(corner_features)
 
-    def find_blobs(self, threshval=-1, minsize=10, maxsize=0,
+    def find_blobs(self, threshval=None, minsize=10, maxsize=0,
                    threshblocksize=0, threshconstant=5, appx_level=3):
         """
 
