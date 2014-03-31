@@ -366,7 +366,7 @@ def test_detection_blobs_lazy():
 
 def test_detection_blobs_adaptive():
     img = Image(testimage)
-    blobs = img.find_blobs(-1, threshblocksize=99)
+    blobs = img.find_blobs(threshblocksize=99)
     blobs.draw(color=Color.RED)
     result = [img]
     name_stem = "test_detection_blobs_adaptive"
