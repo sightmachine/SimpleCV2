@@ -983,12 +983,9 @@ def test_image_edgemap():
 
 def test_color_colormap_build():
     cm = ColorModel()
-    #cm.add(Image(logo))
     cm.add((127, 127, 127))
-    if cm.contains((127, 127, 127)):
-        cm.remove((127, 127, 127))
-    else:
-        assert False
+    assert cm.contains((127, 127, 127))
+    cm.remove((127, 127, 127))
 
     cm.remove((0, 0, 0))
     cm.remove((255, 255, 255))
@@ -996,14 +993,13 @@ def test_color_colormap_build():
     cm.add([(0, 0, 0), (255, 255, 255)])
     cm.add([(255, 0, 0), (0, 255, 0)])
     img = cm.threshold(Image(testimage))
-    c = img.mean_color()
 
-    #if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
-    #  assert False
+    tmp_dir = tempfile.gettempdir()
+    tmp_txt = os.path.join(tmp_dir, 'temp.txt')
+    cm.save(tmp_txt)
 
-    cm.save("temp.txt")
     cm2 = ColorModel()
-    cm2.load("temp.txt")
+    cm2.load(tmp_txt)
     img = Image("logo")
     img2 = cm2.threshold(img)
     cm2.add((0, 0, 255))
@@ -1018,10 +1014,6 @@ def test_color_colormap_build():
     results = [img, img2, img3, img4, img5]
     name_stem = "test_color_colormap_build"
     perform_diff(results, name_stem)
-
-    #c=img.mean_color()
-    #if( c[0] > 1 or c[1] > 1 or c[2] > 1 ):
-    #  assert False
 
 
 def test_feature_get_height():
