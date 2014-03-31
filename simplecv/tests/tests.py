@@ -304,12 +304,14 @@ def test_detection_feature_measures():
 def test_detection_blobs_appx():
     img = Image("lenna")
     blobs = img.find_blobs()
+    assert len(blobs) == 29
     blobs[-1].draw(color=Color.RED)
     blobs[-1].draw_appx(color=Color.BLUE)
     result = [img]
 
     img2 = Image("lenna")
     blobs = img2.find_blobs(appx_level=11)
+    assert len(blobs) == 29
     blobs[-1].draw(color=Color.RED)
     blobs[-1].draw_appx(color=Color.BLUE)
     result.append(img2)

@@ -960,15 +960,15 @@ class Blob(Feature):
         roi = (tlc[0], tlc[1], self.get_width(), self.get_height())
         roi_img = self.image.crop(*roi)
         mask = self.mask.get_gray_ndarray() != 0  # binary mask
-        array = np.zeros((self.height(), self.width(), 3), dtype=np.uint8)
-        array[mask] = roi_img[mask]
+        array = np.zeros((self.height, self.width, 3), dtype=np.uint8)
+        array[mask] = roi_img.get_ndarray()[mask]
         return Image(array)
 
     @LazyProperty
     def mask(self):
         # TODO: FIX THIS SO THAT THE INTERIOR CONTOURS GET SHIFTED AND DRAWN
 
-        ret_value = np.zeros((self.height, self.width), np.uint8)
+        ret_value = np.zeros((self.get_height(), self.get_width()), np.uint8)
         l, t = self.top_left_corner()
 
         # construct the exterior get_contour - these are tuples
@@ -993,17 +993,19 @@ class Blob(Feature):
         roi = (tlc[0], tlc[1], self.get_width(), self.get_height())
         roi_img = self.image.crop(*roi).get_ndarray()
         mask = self.hull_mask.get_gray_ndarray() != 0  # binary mask
-        array = np.zeros((self.height(), self.width(), 3), np.uint8)
+        array = np.zeros((self.get_height(), self.get_width(), 3), np.uint8)
         array[mask] = roi_img[mask]
         return Image(array)
 
     @LazyProperty
     def hull_mask(self):
-        ret_value = np.zeros((self.height(), self.width(), 3), np.uint8)
+        ret_value = np.zeros((self.get_height(), self.get_width(), 3),
+                             dtype=np.uint8)
         l, t = self.top_left_corner()
-        cv2.fillPoly(ret_value,
-                     [[(p[0] - l, p[1] - t) for p in self.convex_hull]],
-                     (255, 255, 255), 8)
+
+        array = np.array([[(p[0] - l, p[1] - t) for p in self.convex_hull]],
+                         dtype=np.int32)
+        cv2.fillPoly(ret_value, array, (255, 255, 255), 8)
         return Image(ret_value)
 
     def get_hull_img(self):

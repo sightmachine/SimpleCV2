@@ -194,7 +194,7 @@ class BlobMaker(object):
                             (xx, yy + hh)]
         ret_value._update_extents()
         chull = cv2.convexHull(contour, returnPoints=1)
-        ret_value.convex_hull = list(chull)
+        ret_value.convex_hull = chull[:, 0, :].tolist()
         # KAS -- FLAG FOR REPLACE 6/6/2012
         #get_hull_mask = self._get_mask(chull)
 
