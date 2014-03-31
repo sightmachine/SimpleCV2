@@ -382,6 +382,9 @@ def test_detection_blobs_smallimages():
 
 
 def test_detection_blobs_convexity_defects():
+    if not hasattr(cv2, 'convexityDefects'):
+        return
+
     img = Image('lenna')
     blobs = img.find_blobs()
     b = blobs[-1]
@@ -389,7 +392,6 @@ def test_detection_blobs_convexity_defects():
     points = b.get_convexity_defects(return_points=True)
     if len(feat) <= 0 or len(points) <= 0:
         assert False
-    pass
 
 
 def test_detection_barcode():

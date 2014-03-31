@@ -1450,12 +1450,18 @@ class Blob(Feature):
         >>> farpoints = zip(*points)[0]
         >>> print startpoints, endpoints, farpoints
         """
+
+        if not hasattr(cv2, 'convexityDefects'):
+            warnings.warn('cv2.convexityDefects is available since '
+                          'OpenCV 2.4')
+            return FeatureSet([])
+
         hull = [self.contour.index(x) for x in self.convex_hull]
         hull = np.array(hull).reshape(len(hull), 1)
         defects = cv2.convexityDefects(np.array(self.contour), hull)
         if isinstance(defects, type(None)):
-            warnings.warn(
-                "Unable to find defects. Returning Empty FeatureSet.")
+            warnings.warn("Unable to find defects. "
+                          "Returning Empty FeatureSet.")
             defects = []
         points = [(self.contour[defect[0][0]],
                    self.contour[defect[0][1]],
