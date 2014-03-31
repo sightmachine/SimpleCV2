@@ -3858,7 +3858,6 @@ class Image(object):
         :py:class:`ColorCurve`
         :py:meth:`apply_rgb_curve`
         """
-
         #TODO CHECK ROI
         #TODO CHECK CURVE SIZE
         #TODO CHECK CURVE SIZE
@@ -3868,12 +3867,11 @@ class Image(object):
 
         # now apply the color curve correction
         array[:, :, 0] = np.take(hcurve.curve, array[:, :, 0])
-        array[:, :, 1] = np.take(scurve.curve, array[:, :, 1])
-        array[:, :, 2] = np.take(lcurve.curve, array[:, :, 2])
+        array[:, :, 1] = np.take(lcurve.curve, array[:, :, 1])
+        array[:, :, 2] = np.take(scurve.curve, array[:, :, 2])
 
         # Move back to original color space
         array = Image.convert(array, ColorSpace.HLS, self._colorSpace)
-
         return Image(array, color_space=self._colorSpace)
 
     def apply_rgb_curve(self, rcurve, gcurve, bcurve):
