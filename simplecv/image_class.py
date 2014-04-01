@@ -6874,7 +6874,7 @@ class Image(object):
                 topimage = self.resize(w=image.width) if scale else self
                 resized = image
                 w = image.width
-            h = topimage.height + image.height
+            h = topimage.height + resized.height
             xc = (topimage.width - resized.width) / 2
             array = np.zeros((h, w, 3), dtype=self.dtype)
             if xc > 0:
@@ -7634,7 +7634,7 @@ class Image(object):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> circs = img.findCircles()
+        >>> circs = img.find_circle()
         >>> for c in circs:
         >>>    print c
 
@@ -7651,7 +7651,6 @@ class Image(object):
                                  2, distance, param1=canny, param2=thresh)
         if circs is None:
             return None
-        sz = circs.shape
         circle_fs = FeatureSet()
         for circ in circs[0]:
             circle_fs.append(Circle(self, int(circ[0]), int(circ[1]),
@@ -7738,8 +7737,8 @@ class Image(object):
             r = self._ndarray[:, :, 2]
 
             bfloat = cv2.convertScaleAbs(b.astype(np.float32), alpha=b_factor)
-            gfloat = cv2.convertScaleAbs(g.astype(np.float32), alpha=r_factor)
-            rfloat = cv2.convertScaleAbs(r.astype(np.float32), alpha=g_factor)
+            gfloat = cv2.convertScaleAbs(g.astype(np.float32), alpha=g_factor)
+            rfloat = cv2.convertScaleAbs(r.astype(np.float32), alpha=r_factor)
 
             (min_b, max_b, min_b_loc, max_b_loc) = cv2.minMaxLoc(bfloat)
             (min_g, max_g, min_g_loc, max_g_loc) = cv2.minMaxLoc(gfloat)
@@ -7758,7 +7757,6 @@ class Image(object):
         elif method == "Simple":
             thresh = 0.003
             sz = self.width * self.height
-            temp_mat = self._ndarray
             bcf = sss.cumfreq(self._ndarray[:, :, 0], numbins=256)
             # get our cumulative histogram of values for this color
             bcf = bcf[0]
@@ -7835,7 +7833,7 @@ class Image(object):
                 else:
                     bf = ((float(i) - blbf) * 255.00 / (bubf - blbf))
                     b_lut[i][0] = int(bf)
-            return self.apply_lut(b_lut, r_lut, g_lut)
+            return self.apply_lut(r_lut, g_lut, b_lut)
 
     def apply_lut(self, r_lut=None, b_lut=None, g_lut=None):
         """

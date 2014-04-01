@@ -45,8 +45,9 @@ class RunningSegmentation(SegmentationBase):
 
         else:
             # do the difference
-            self.diff_img._ndarray = cv2.absdiff(self.model_img.get_ndarray(),
-                                                 img.get_fp_ndarray())
+            diff = cv2.absdiff(self.model_img.get_ndarray(),
+                               img.get_fp_ndarray())
+            self.diff_img = Image(diff)
 
             #update the model
             cv2.accumulateWeighted(img.get_fp_ndarray(),
@@ -117,7 +118,7 @@ class RunningSegmentation(SegmentationBase):
         convert a 32bit floating point cv array to an int array
         """
 
-        return Image(np.int8(img.get_ndarray()))
+        return Image(np.uint8(img.get_ndarray()))
 
     def __getstate__(self):
         mydict = self.__dict__.copy()

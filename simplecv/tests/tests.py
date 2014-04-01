@@ -16,7 +16,7 @@ import tempfile
 
 import cv2
 import numpy as np
-from nose.tools import assert_list_equal
+from nose.tools import assert_equals, assert_list_equal
 
 from simplecv.base import logger
 from simplecv.camera import FrameSource
@@ -678,13 +678,6 @@ def test_image_rotate_full():
     results = [img2]
     name_stem = "test_image_rotate_full"
     perform_diff(results, name_stem)
-
-    c1 = img.mean_color()
-    c2 = img2.mean_color()
-    if abs(c1[0] - c2[0]) > 5 \
-            or abs(c1[1] - c2[1]) > 5 \
-            or abs(c1[2] - c2[2]) > 5:
-        assert False
 
 
 def test_image_shear_warp():
@@ -1450,25 +1443,24 @@ def test_apply_side_by_side():
 
 
 def test_resize():
-    img = Image(logo)
+    img = Image(topImg)
     w = img.width
     h = img.height
+
     img2 = img.resize(w * 2, None)
-    if img2.width != w * 2 or img2.height != h * 2:
-        assert False
+    assert_equals(w * 2, img2.width)
+    assert_equals(h * 2, img2.height)
 
     img3 = img.resize(h=h * 2)
-
-    if img3.width != w * 2 or img3.height != h * 2:
-        assert False
+    assert_equals(w * 2, img3.width)
+    assert_equals(h * 2, img3.height)
 
     img4 = img.resize(h=h * 2, w=w * 2)
-
-    if img4.width != w * 2 or img4.height != h * 2:
-        assert False
+    assert_equals(w * 2, img4.width)
+    assert_equals(h * 2, img4.height)
 
     results = [img2, img3, img4]
-    name_stem = "test_resize"
+    name_stem = "test_image_resize"
     perform_diff(results, name_stem)
 
 
@@ -1560,10 +1552,9 @@ def test_hsv_conversion():
 
 def test_white_balance():
     img = Image("../data/sampleimages/BadWB2.jpg")
-    #output = img.white_balance()
-    #output2 = img.white_balance(method="GrayWorld")
-    #results = [output, output2]
-    results = [img]
+    output = img.white_balance()
+    output2 = img.white_balance(method="GrayWorld")
+    results = [output, output2]
     name_stem = "test_white_balance"
     perform_diff(results, name_stem)
 
@@ -1628,7 +1619,6 @@ def test_blob_rect():
     blobs = img.find_blobs()
     for b in blobs:
         b.draw_rect(color=Color.BLUE, width=3, alpha=123)
-
     results = [img]
     name_stem = "test_blob_rect"
     perform_diff(results, name_stem)

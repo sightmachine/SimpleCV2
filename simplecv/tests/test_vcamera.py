@@ -1,3 +1,6 @@
+import os
+import tempfile
+
 from nose.tools import nottest
 
 from simplecv.camera import VirtualCamera
@@ -6,7 +9,7 @@ from simplecv.image_class import ImageSet
 
 testimage = "../data/sampleimages/9dots4lines.png"
 testvideo = "../data/sampleimages/ball.mov"
-testoutput = "../data/test/standard/vc.jpg"
+testoutput = os.path.join(tempfile.gettempdir(), 'vc.jpg')
 
 
 @nottest
