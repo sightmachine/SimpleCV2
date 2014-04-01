@@ -1,7 +1,10 @@
+import os
+import tempfile
+
 from simplecv.camera import Camera, VirtualCamera
 
 
-testoutput = "../data/sampleimages/cam.jpg"
+testoutput = os.path.join(tempfile.gettempdir(), 'cam.jpg')
 
 
 def test_virtual_camera_constructor():

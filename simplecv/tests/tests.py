@@ -673,7 +673,7 @@ def test_image_rotate_fixed():
 
 def test_image_rotate_full():
     img = Image(testimage2)
-    img2 = img.rotate(180, False, scale=1)
+    img2 = img.rotate(135, False, scale=1)
 
     results = [img2]
     name_stem = "test_image_rotate_full"
