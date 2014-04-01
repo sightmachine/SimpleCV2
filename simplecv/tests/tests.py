@@ -16,6 +16,7 @@ import tempfile
 
 import cv2
 import numpy as np
+from nose.tools import assert_list_equal
 
 from simplecv.base import logger
 from simplecv.camera import FrameSource
@@ -1217,6 +1218,7 @@ def test_blob_render():
 
 
 def test_blob_methods():
+    # FIXME: Test should have assertion
     img = Image("../data/sampleimages/blockhead.png")
     blobber = BlobMaker()
     blobs = blobber.extract(img)
@@ -1282,12 +1284,19 @@ def test_detection_ocr():
 
 
 def test_template_match():
+    results = []
     source = Image("../data/sampleimages/templatetest.png")
+    source2 = source.copy()
     template = Image("../data/sampleimages/template.png")
-    t = 2
-    fs = source.find_template(template, threshold=t)
+
+    fs = source.find_template(template, threshold=2)
     fs.draw()
-    results = [source]
+    results.append(source)
+
+    fs = source2.find_template(template, threshold=2, grayscale=False)
+    fs.draw()
+    results.append(source2)
+
     name_stem = "test_template_match"
     perform_diff(results, name_stem)
 
@@ -1304,17 +1313,6 @@ def test_template_match_once():
 
     fs = source.find_template_once(template, method='CCORR_NORM')
     assert len(fs) != 0
-
-
-def test_template_match_rgb():
-    source = Image("../data/sampleimages/templatetest.png")
-    template = Image("../data/sampleimages/template.png")
-    t = 2
-    fs = source.find_template(template, threshold=t, grayscale=False)
-    fs.draw()
-    results = [source]
-    name_stem = "test_template_match"
-    perform_diff(results, name_stem)
 
 
 def test_image_intergralimage():
@@ -1391,8 +1389,7 @@ def test_create_binary_mask():
         img2.create_binary_mask(color1=(0, 0, 0), color2=(128, 128, 128)))
     results.append(
         img2.create_binary_mask(color1=(0, 0, 128), color2=(255, 255, 255)))
-
-    name_stem = "test_createBinaryMask"
+    name_stem = "test_create_binary_mask"
     perform_diff(results, name_stem)
 
 
@@ -1402,8 +1399,7 @@ def test_apply_binary_mask():
     results = []
     results.append(img.apply_binary_mask(mask))
     results.append(img.apply_binary_mask(mask, bg_color=Color.RED))
-
-    name_stem = "test_applyBinaryMask"
+    name_stem = "test_apply_binary_mask"
     perform_diff(results, name_stem, tolerance=3.0)
 
 
@@ -1559,10 +1555,7 @@ def test_imageset():
 def test_hsv_conversion():
     px = Image((1, 1))
     px[0, 0] = Color.GREEN
-    if Color.hsv(Color.GREEN) == px.to_hsv()[0, 0]:
-        pass
-    else:
-        assert False
+    assert_list_equal(Color.hsv(Color.GREEN), px.to_hsv()[0, 0])
 
 
 def test_white_balance():

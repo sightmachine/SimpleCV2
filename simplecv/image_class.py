@@ -6812,17 +6812,12 @@ class Image(object):
             top_img = img.copy().crop(*top_roi)
             mask_img = mask.crop(*top_roi)
             # Apply mask to img
-            top_array = top_img.get_ndarray().astype(np.float32)
+            top_array = top_img.get_ndarray()
             gray_mask_array = mask_img.get_gray_ndarray()
-            gray_mask_array = gray_mask_array.astype(np.float32) / 255.0
-            gray_mask_array = np.dstack((gray_mask_array, gray_mask_array,
-                                         gray_mask_array))
-            masked_top_array = cv2.multiply(top_array, gray_mask_array)
-
+            binary_mask = gray_mask_array != 0
             array = self._ndarray.copy()
-            array[bottom_roi[1]:bottom_roi[1] + bottom_roi[3],
-                  bottom_roi[0]:bottom_roi[0] + bottom_roi[2]] = \
-                masked_top_array
+            array[Image.roi_to_slice(bottom_roi)][binary_mask] = \
+                top_array[binary_mask]
             return Image(array, color_space=self._colorSpace)
 
         else:  # vanilla blit
@@ -7072,7 +7067,6 @@ class Image(object):
         if not self.is_bgr():
             logger.warning("create_binary_mask works only with BGR image")
             return None
-
         if color1[0] - color2[0] == 0 \
                 or color1[1] - color2[1] == 0 \
                 or color1[2] - color2[2] == 0:
@@ -7088,18 +7082,16 @@ class Image(object):
             logger.warning("One of the tuple values falls "
                            "outside of the range of 0 to 255")
             return None
-
         # converting to BGR
         color1 = tuple(reversed(color1))
         color2 = tuple(reversed(color2))
 
         results = []
         for index, color in enumerate(zip(color1, color2)):
-            chanel = (min(color) <= self._ndarray[:, :, index]) \
-                & (self._ndarray[:, :, index] <= max(color))
-            chanel = cv2.multiply(chanel.astype(np.uint8), np.array(255))
+            chanel = cv2.inRange(self._ndarray[:, :, index],
+                                 np.array(min(color)),
+                                 np.array(max(color)))
             results.append(chanel)
-
         array = cv2.bitwise_and(results[0], results[1])
         array = cv2.bitwise_and(array, results[2]).astype(self.dtype)
         return Image(array, color_space=ColorSpace.GRAY)
@@ -7148,7 +7140,9 @@ class Image(object):
         array = np.zeros((self.height, self.width, 3), self.dtype)
         array = cv2.add(array, np.array(tuple(reversed(bg_color)),
                                         dtype=self.dtype))
-        array = cv2.bitwise_and(self._ndarray, array, mask=mask.get_ndarray())
+        binary_mask = mask.get_gray_ndarray() != 0
+
+        array[binary_mask] = self._ndarray[binary_mask]
         return Image(array, color_space=self._colorSpace)
 
     def create_alpha_mask(self, hue=60, hue_lb=None, hue_ub=None):

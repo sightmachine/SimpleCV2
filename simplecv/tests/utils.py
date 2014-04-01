@@ -38,6 +38,11 @@ def img_diffs(test_imgs, name_stem, tolerance, path):
                 # cv2.imwrite(fname + "_DIFF.png",
                 #             (diff_pixels * (0, 0, 255)).astype(np.uint8))
                 ret_val = True
+        else:
+            print "images have different size {} and {}".format(lhs.shape,
+                                                                rhs.shape)
+            cv2.imwrite(fname + "_WRONG_SIZE.png", lhs)
+            ret_val = True
     return ret_val
 
 

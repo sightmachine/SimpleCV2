@@ -160,7 +160,7 @@ class Color(object):
 
         """
         hsv_float = rgb_to_hsv(*color_tuple)
-        return hsv_float[0] * 180, hsv_float[1] * 255, hsv_float[2]
+        return [hsv_float[0] * 180, hsv_float[1] * 255, hsv_float[2]]
 
     @staticmethod
     def get_hue_from_rgb(color_tuple):
