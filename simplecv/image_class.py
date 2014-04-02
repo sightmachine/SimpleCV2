@@ -9116,7 +9116,7 @@ class Image(object):
             npimg = np.where(npimg != white, black, white)
             ret_val = Image(npimg)
         else:
-            npimg = img.get_ndarray()[:, :, 1]
+            npimg = img.get_ndarray()
             white = np.array([255])
             black = np.array([0])
 
