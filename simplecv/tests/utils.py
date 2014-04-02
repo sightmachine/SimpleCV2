@@ -24,8 +24,10 @@ def img_diffs(test_imgs, name_stem, tolerance, path):
         fname_png = fname + ".png"
         if os.path.exists(fname_png):
             rhs = cv2.imread(fname_png)
-        else:
+        elif os.path.exists(fname_jpg):
             rhs = cv2.imread(fname_jpg)
+        else:
+            raise Exception('Cannot load standard image')
         if lhs.shape == rhs.shape:
             diff = cv2.absdiff(lhs, rhs)
             diff_pixels = (diff > 0).astype(np.uint8)

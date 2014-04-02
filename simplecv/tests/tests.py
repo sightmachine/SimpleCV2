@@ -2181,7 +2181,6 @@ def test_find_haar_features():
         f[0].draw()
         f[0].length()
         f[0].get_area()
-        pass
     else:
         assert False
 
@@ -2240,10 +2239,7 @@ def test_find_blobs_from_mask():
     name_stem = "test_find_blobs_from_mask"
     perform_diff(results, name_stem)
 
-    if len(b1) == len(b2):
-        pass
-    else:
-        assert False
+    assert len(b1) == len(b2)
 
 
 def test_band_pass_filter():
@@ -2347,7 +2343,7 @@ def test_line_crop():
     results = []
     for ls in l:
         results.append(ls.crop())
-    name_stem = "test_lineCrop"
+    name_stem = "test_line_crop"
     perform_diff(results, name_stem, tolerance=3.0)
 
 
