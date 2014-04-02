@@ -1767,36 +1767,29 @@ def test_keypoint_match():
     template = Image("../data/sampleimages/KeypointTemplate2.png")
     match0 = Image("../data/sampleimages/kptest0.png")
     match1 = Image("../data/sampleimages/kptest1.png")
-    match3 = Image("../data/sampleimages/kptest2.png")
-    match2 = Image("../data/sampleimages/aerospace.jpg")  # should be none
+    match2 = Image("../data/sampleimages/kptest2.png")
 
     fs0 = match0.find_keypoint_match(template)  # test zero
     fs1 = match1.find_keypoint_match(template, quality=300.00, min_dist=0.5,
                                      min_match=0.2)
-    fs3 = match3.find_keypoint_match(template, quality=300.00, min_dist=0.5,
+    fs2 = match2.find_keypoint_match(template, quality=300.00, min_dist=0.5,
                                      min_match=0.2)
-    print "This should fail"
-    fs2 = match2.find_keypoint_match(template, quality=500.00, min_dist=0.2,
-                                     min_match=0.1)
-    if fs0 is not None and fs1 is not None and fs2 is None and fs3 is not None:
-        fs0.draw()
-        fs1.draw()
-        fs3.draw()
-        f = fs0[0]
+
+    for fs in [fs0, fs1, fs2]:
+        assert fs is not None
+        assert_equals(1, len(fs))
+        fs.draw()
+        f = fs[0]
         f.draw_rect()
         f.draw()
         f.get_homography()
         f.get_min_rect()
-        f.x
-        f.y
         f.coordinates()
-    else:
-        assert False
 
-    results = [match0, match1, match2, match3]
-    name_stem = "test_find_keypoint_match"
-    perform_diff(results, name_stem)
-
+    match3 = Image("../data/sampleimages/aerospace.jpg")
+    fs3 = match3.find_keypoint_match(template, quality=500.00, min_dist=0.2,
+                                     min_match=0.1)
+    assert fs3 is None
 
 def test_draw_keypoint_matches():
     template = Image("../data/sampleimages/KeypointTemplate2.png")

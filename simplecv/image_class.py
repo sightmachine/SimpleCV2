@@ -8313,14 +8313,14 @@ class Image(object):
             w = template.width
             h = template.height
 
-            pts = np.array([[0, 0], [0, h], [w, h], [w, 0]], dtype="float32")
+            pts = np.array([[0, 0], [0, h], [w, h], [w, 0]], dtype=np.float32)
 
             ppts = cv2.perspectiveTransform(np.array([pts]), homography)
 
-            pt0i = (ppts[0][0][1], ppts[0][0][0])
-            pt1i = (ppts[0][1][1], ppts[0][1][0])
-            pt2i = (ppts[0][2][1], ppts[0][2][0])
-            pt3i = (ppts[0][3][1], ppts[0][3][0])
+            pt0i = (ppts[0][0][0], ppts[0][0][1])
+            pt1i = (ppts[0][1][0], ppts[0][1][1])
+            pt2i = (ppts[0][2][0], ppts[0][2][1])
+            pt3i = (ppts[0][3][0], ppts[0][3][1])
 
             #construct the feature set and return it.
             fs = FeatureSet()
