@@ -8981,14 +8981,11 @@ class Image(object):
         """
         ret_val = None
         self._generate_palette(bins, hue, centroids)
+        derp = self._mPalette[self._mPaletteMembers]
         if hue:
-            derp = self._mPalette[self._mPaletteMembers]
             ret_val = Image(derp.reshape(self.height, self.width))
-            ret_val = ret_val.rotate(-90, fixed=False)
         else:
-            ret_val = Image(
-                self._mPalette[self._mPaletteMembers].reshape(self.width,
-                                                              self.height, 3))
+            ret_val = Image(derp.reshape(self.height, self.width, 3))
         return ret_val
 
     def find_blobs_from_palette(self, palette_selection, dilate=0, minsize=5,
@@ -9114,7 +9111,7 @@ class Image(object):
                 npimg = np.where(npimg != p, npimg, white)
 
             npimg = np.where(npimg != white, black, white)
-            ret_val = Image(npimg)
+            ret_val = Image(npimg.astype(np.uint8))
         else:
             npimg = img.get_ndarray()
             white = np.array([255])
@@ -9124,7 +9121,7 @@ class Image(object):
                 npimg = np.where(npimg != p, npimg, white)
 
             npimg = np.where(npimg != white, black, white)
-            ret_val = Image(npimg)
+            ret_val = Image(npimg.astype(np.uint8))
         return ret_val
 
     def skeletonize(self, radius=5):

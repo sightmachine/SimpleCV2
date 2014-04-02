@@ -1881,15 +1881,12 @@ def test_palette_blobs():
     p = img.get_palette()
     b1 = img.find_blobs_from_palette(p[0:5])
     b1.draw()
+    assert len(b1) > 0
 
     p = img.get_palette(hue=True)
     b2 = img.find_blobs_from_palette(p[0:5])
     b2.draw()
-
-    if len(b1) > 0 and len(b2) > 0:
-        pass
-    else:
-        assert False
+    assert len(b2) > 0
 
 
 def test_skeletonize():
