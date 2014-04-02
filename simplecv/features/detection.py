@@ -1309,8 +1309,8 @@ class KeyPoint(Feature):
 
     def __init__(self, i, keypoint, descriptor=None, flavor="SURF"):
         self.key_point = keypoint
-        x = keypoint.pt[1]  # KAT
-        y = keypoint.pt[0]
+        x = keypoint.pt[0]
+        y = keypoint.pt[1]
         self._r = keypoint.size / 2.0
         self._avgColor = None
         self.image = i
@@ -1544,7 +1544,7 @@ class KeyPoint(Feature):
             return self.image.crop(self.x, self.y, self.get_width(),
                                    self.get_height(), centered=True)
         else:
-            mask = self.image.get_empty(1)
+            mask = self.image.get_empty()
             result = self.image.get_empty()
 
             # if you want to shave a bit of time we go do

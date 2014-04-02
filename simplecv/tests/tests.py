@@ -1537,11 +1537,7 @@ def test_blit_alpha_mask():
 
 def test_imageset():
     imgs = ImageSet()
-
-    if isinstance(imgs, ImageSet):
-        pass
-    else:
-        assert False
+    assert isinstance(imgs, ImageSet)
 
 
 def test_hsv_conversion():
@@ -1583,10 +1579,8 @@ def test_hough_circles():
     name_stem = "test_hough_circle"
     perform_diff(results, name_stem)
 
-    if img2 is not None and img3 is not None:
-        pass
-    else:
-        assert False
+    assert img2 is not None
+    assert img3 is not None
 
 
 def test_draw_rectangle():
@@ -1630,8 +1624,7 @@ def test_blob_pickle():
     for b in blobs:
         p = pickle.dumps(b)
         ub = pickle.loads(p)
-        if (ub.mask - b.mask).mean_color() != Color.BLACK:
-            assert False
+        assert (ub.mask - b.mask).mean_color() == 0
 
 
 def test_blob_isa_methods():
@@ -1689,7 +1682,7 @@ def test_find_keypoints():
             print "Found None."
     results = [img]
     name_stem = "test_find_keypoints"
-    #~ perform_diff(results,name_stem)
+    perform_diff(results, name_stem)
 
 
 def test_movement_feature():
