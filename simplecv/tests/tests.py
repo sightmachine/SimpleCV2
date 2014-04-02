@@ -2475,20 +2475,16 @@ def test_feature_angles():
 
 def test_feature_angles_rotate():
     img = Image("../data/sampleimages/rotation2.png")
-    b = img.find_blobs()
-    results = []
+    blobs = img.find_blobs()
+    assert_equals(13, len(blobs))
 
-    for bs in b:
-        temp = bs.crop()
-        derp = temp.rotate(bs.get_angle(), fixed=False)
-        derp.draw_text(str(bs.get_angle()), 10, 10, color=Color.RED)
-        results.append(derp)
-        bs.rectify_major_axis()
-        results.append(bs.blob_image())
-
-    name_stem = "test_feature_angles_rotate"
-    perform_diff(results, name_stem, tolerance=7.0)
-
+    for b in blobs:
+        temp = b.crop()
+        assert isinstance(temp, Image)
+        derp = temp.rotate(b.get_angle(), fixed=False)
+        derp.draw_text(str(b.get_angle()), 10, 10, color=Color.RED)
+        b.rectify_major_axis()
+        assert isinstance(b.blob_image(), Image)
 
 def test_minrect_blobs():
     img = Image("../data/sampleimages/bolt.png")
