@@ -872,83 +872,24 @@ class Image(object):
     >>> img = Image("http://www.simplecv.org/image.png")
 
     """
-
-    width = 0  # width and height in px
-    height = 0
-    depth = 0
-    filename = ""  # source filename
-    filehandle = ""  # filehandle if used
-    camera = ""
-    _mLayers = []
-
-    _mDoHuePalette = False
-    _mPaletteBins = None
-    _mPalette = None
-    _mPaletteMembers = None
-    _mPalettePercentages = None
-
-    _barcodeReader = ""  # property for the ZXing barcode reader
-
-    # these are buffer frames for various operations on the image
-    _bitmap = ""  # the bitmap (iplimage)  representation of the image
-    _matrix = ""  # the matrix (cvmat) representation
-    _grayMatrix = ""  # the gray scale (cvmat) representation -KAS
-    _graybitmap = ""  # a reusable 8-bit grayscale bitmap
-    _equalizedgraybitmap = ""  # the above bitmap, normalized
-    _blobLabel = ""  # the label image for blobbing
-    _edgeMap = ""  # holding reference for edge map
-    _cannyparam = (0, 0)  # parameters that created _edgeMap
-    _pil = ""  # holds a PIL object in buffer
-    _numpy = ""  # numpy form buffer
-    _grayNumpy = ""  # grayscale numpy for keypoint stuff
-    _colorSpace = ColorSpace.UNKNOWN  # Colorspace Object
-    _pgsurface = ""
-    _cv2Numpy = None  # numpy array for OpenCV >= 2.3
-    _cv2GrayNumpy = None  # grayscale numpy array for OpenCV >= 2.3
-    # to store grid details | Format -> [gridIndex, gridDimensions]
-    _gridLayer = [None, [0, 0]]
-
-    #For DFT Caching
-    _DFT = []  # an array of 2 channel (real,imaginary) 64F images
-
-    #Keypoint caching values
-    _mKeyPoints = None
-    _mKPDescriptors = None
-    _mKPFlavor = "NONE"
-
-    #temp files
-    _tempFiles = []
-
     #when we empty the buffers, populate with this:
     _initialized_buffers = {
-        "_bitmap": "",
-        "_matrix": "",
-        "_grayMatrix": "",
-        "_graybitmap": "",
-        "_equalizedgraybitmap": "",
-        "_blobLabel": "",
-        "_edgeMap": "",
+        "_edgeMap": None,
         "_cannyparam": (0, 0),
-        "_pil": "",
-        "_numpy": "",
-        "_grayNumpy": "",
-        "_pgsurface": "",
-        "_cv2GrayNumpy": "",
-        "_cv2Numpy": ""}
-
-    # The variables _uncroppedX and _uncroppedY are used to buffer the points
-    # when we crop the image.
-    _uncroppedX = 0
-    _uncroppedY = 0
+        "_pil": None,
+        "_pgsurface": None,
+    }
 
     def __repr__(self):
         if len(self.filename) == 0:
             fn = "None"
         else:
             fn = self.filename
-        return "<SimpleCV.Image Object size:(%d, %d), filename: (%s), " \
+        c = self._ndarray.shape[2] if len(self._ndarray.shape) > 2 else 1
+        return "<simplecv.Image Object size:(%d, %d), dtype: %s, " \
+               "channels: %d, filename: (%s), " \
                "at memory location: (%s)>" \
-               % (self.width, self.height, fn, hex(id(self)))
+               % (self.width, self.height, self.dtype, c, fn, hex(id(self)))
 
     #initialize the frame
     #parameters: source designation (filename)
@@ -998,6 +939,24 @@ class Image(object):
         self._mLayers = []
         self.camera = camera
         self._colorSpace = color_space
+
+        # Other
+        self.filename = ''
+        self.filehandle = ''
+        self._barcodeReader = ''  # property for the ZXing barcode reader
+        self._pgsurface = None
+        self._edgeMap = None  # holding reference for edge map
+        self._cannyparam = (0, 0)  # parameters that created _edgeMap
+        self._pil = None  # holds a PIL object in buffer
+        # to store grid details | Format -> [gridIndex, gridDimensions]
+        self._gridLayer = [None, [0, 0]]
+        #For DFT Caching
+        self._DFT = []  # an array of 2 channel (real,imaginary) 64F images
+        # The variables _uncroppedX and _uncroppedY are used to buffer the
+        # points when we crop the image.
+        self._uncroppedX = 0
+        self._uncroppedY = 0
+
         #Keypoint Descriptors
         self._mKeyPoints = []
         self._mKPDescriptors = []
