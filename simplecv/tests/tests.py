@@ -1791,14 +1791,13 @@ def test_keypoint_match():
                                      min_match=0.1)
     assert fs3 is None
 
+
 def test_draw_keypoint_matches():
     template = Image("../data/sampleimages/KeypointTemplate2.png")
     match0 = Image("../data/sampleimages/kptest0.png")
     result = match0.draw_keypoint_matches(template, thresh=500.00,
                                           min_dist=0.15, width=1)
-    results = [result]
-    name_stem = "test_draw_keypoint_matches"
-    perform_diff(results, name_stem, tolerance=4.0)
+    assert_equals(template.width + match0.width, result.width)
 
 
 def test_basic_palette():
@@ -1806,7 +1805,7 @@ def test_basic_palette():
     img = Image(testimageclr)
     img = img.scale(0.1)  # scale down the image to reduce test time
     img._generate_palette(10, False)
-    if img._mPalette is not None\
+    if img._mPalette is not None \
             and img._mPaletteMembers is not None \
             and img._mPalettePercentages is not None \
             and img._mPaletteBins == 10:

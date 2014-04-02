@@ -8196,8 +8196,8 @@ class Image(object):
         result = p * magic_ratio < min_dist
         for i in range(0, len(idx)):
             if result[i]:
-                pt_a = (tkp[i].pt[1], tkp[i].pt[0] + hdif)
-                pt_b = (skp[idx[i]].pt[1] + template.width, skp[idx[i]].pt[0])
+                pt_a = (tkp[i].pt[0], tkp[i].pt[1] + hdif)
+                pt_b = (skp[idx[i]].pt[0] + template.width, skp[idx[i]].pt[1])
                 result_img.draw_line(pt_a, pt_b, color=Color.get_random(),
                                      thickness=width)
         return result_img
