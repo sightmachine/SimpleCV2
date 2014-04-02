@@ -13474,13 +13474,12 @@ class Image(object):
         >>> img2 = img.stretch(min,max)
 
         """
+        val = np.max(self.get_gray_ndarray())
         if locations:
-            val = np.max(self.get_gray_ndarray())
-            x, y = np.where(self.get_gray_ndarray() == val)
-            locs = zip(x.tolist(), y.tolist())
+            y, x = np.where(self.get_gray_ndarray() == val)
+            locs = zip(y.tolist(), x.tolist())
             return int(val), locs
         else:
-            val = np.max(self.get_gray_ndarray())
             return int(val)
 
     def min_value(self, locations=False):
@@ -13508,13 +13507,12 @@ class Image(object):
         >>> img2 = img.stretch(min,max)
 
         """
+        val = np.min(self.get_gray_ndarray())
         if locations:
-            val = np.min(self.get_gray_ndarray())
-            x, y = np.where(self.get_gray_ndarray() == val)
-            locs = zip(x.tolist(), y.tolist())
+            y, x = np.where(self.get_gray_ndarray() == val)
+            locs = zip(y.tolist(), x.tolist())
             return int(val), locs
         else:
-            val = np.min(self.get_gray_ndarray())
             return int(val)
 
     def find_keypoint_clusters(self, num_of_clusters=5, order='dsc',

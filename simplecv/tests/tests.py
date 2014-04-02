@@ -2526,158 +2526,6 @@ def test_pixelize():
     name_stem = "test_pixelize"
     perform_diff(results, name_stem, tolerance=6.0)
 
-
-def test_hue_from_rgb():
-    img = Image("lenna")
-    img_hsv = img.to_hsv()
-    h, s, r = img_hsv[100, 300]
-    err = 2
-    hue = Color.get_hue_from_rgb(img[100, 300])
-    if hue > h - err and hue < h + err:
-        pass
-    else:
-        assert False
-
-
-def test_hue_from_bgr():
-    img = Image("lenna")
-    img_hsv = img.to_hsv()
-    h, s, r = img_hsv[150, 400]
-    err = 2
-    color_tuple = tuple(reversed(img[150, 400]))
-    hue = Color.get_hue_from_bgr(color_tuple)
-    if hue > h - err and hue < h + err:
-        pass
-    else:
-        assert False
-
-
-def test_hue_to_rgb():
-    r, g, b = Color.hue_to_rgb(0)
-    if (r, g, b) == (255, 0, 0):
-        pass
-    else:
-        assert False
-    r, g, b = Color.hue_to_rgb(15)
-    if (r, g, b) == (255, 128, 0):
-        pass
-    else:
-        assert False
-    r, g, b = Color.hue_to_rgb(30)
-    if (r, g, b) == (255, 255, 0):
-        pass
-    else:
-        assert False
-    r, g, b = Color.hue_to_rgb(45)
-    if (r, g, b) == (128, 255, 0):
-        pass
-    else:
-        assert False
-    r, g, b = Color.hue_to_rgb(60)
-    if (r, g, b) == (0, 255, 0):
-        pass
-    else:
-        assert False
-    r, g, b = Color.hue_to_rgb(75)
-    if (r, g, b) == (0, 255, 128):
-        pass
-    else:
-        assert False
-    r, g, b = Color.hue_to_rgb(90)
-    if (r, g, b) == (0, 255, 255):
-        pass
-    else:
-        assert False
-    r, g, b = Color.hue_to_rgb(105)
-    if (r, g, b) == (0, 128, 255):
-        pass
-    else:
-        assert False
-    r, g, b = Color.hue_to_rgb(120)
-    if (r, g, b) == (0, 0, 255):
-        pass
-    else:
-        assert False
-    r, g, b = Color.hue_to_rgb(135)
-    if (r, g, b) == (128, 0, 255):
-        pass
-    else:
-        assert False
-    r, g, b = Color.hue_to_rgb(150)
-    if (r, g, b) == (255, 0, 255):
-        pass
-    else:
-        assert False
-    r, g, b = Color.hue_to_rgb(165)
-    if (r, g, b) == (255, 0, 128):
-        pass
-    else:
-        assert False
-
-
-def test_hue_to_bgr():
-    b, g, r = Color.hue_to_bgr(0)
-    if (r, g, b) == (255, 0, 0):
-        pass
-    else:
-        assert False
-    b, g, r = Color.hue_to_bgr(15)
-    if (r, g, b) == (255, 128, 0):
-        pass
-    else:
-        assert False
-    b, g, r = Color.hue_to_bgr(30)
-    if (r, g, b) == (255, 255, 0):
-        pass
-    else:
-        assert False
-    b, g, r = Color.hue_to_bgr(45)
-    if (r, g, b) == (128, 255, 0):
-        pass
-    else:
-        assert False
-    b, g, r = Color.hue_to_bgr(60)
-    if (r, g, b) == (0, 255, 0):
-        pass
-    else:
-        assert False
-    b, g, r = Color.hue_to_bgr(75)
-    if (r, g, b) == (0, 255, 128):
-        pass
-    else:
-        assert False
-    b, g, r = Color.hue_to_bgr(90)
-    if (r, g, b) == (0, 255, 255):
-        pass
-    else:
-        assert False
-    b, g, r = Color.hue_to_bgr(105)
-    if (r, g, b) == (0, 128, 255):
-        pass
-    else:
-        assert False
-    b, g, r = Color.hue_to_bgr(120)
-    if (r, g, b) == (0, 0, 255):
-        pass
-    else:
-        assert False
-    b, g, r = Color.hue_to_bgr(135)
-    if (r, g, b) == (128, 0, 255):
-        pass
-    else:
-        assert False
-    b, g, r = Color.hue_to_bgr(150)
-    if (r, g, b) == (255, 0, 255):
-        pass
-    else:
-        assert False
-    b, g, r = Color.hue_to_bgr(165)
-    if (r, g, b) == (255, 0, 128):
-        pass
-    else:
-        assert False
-
-
 def test_point_intersection():
     img = Image("simplecv")
     e = img.edges(0, 100)
@@ -3226,12 +3074,19 @@ def test_watershed():
 
 
 def test_minmax():
-    img = Image('../data/sampleimages/wshed.jpg')
-    min = img.min_value()
-    min, pts = img.min_value(locations=True)
-    max = img.max_value()
-    max, pts = img.max_value(locations=True)
+    img = Image('lenna')
+    gray_img = img.to_gray()
+    assert_equals(25, img.min_value())
+    min, points = img.min_value(locations=True)
+    assert_equals(25, min)
+    for p in points:
+        assert_equals(25, gray_img[p])
 
+    assert_equals(245, img.max_value())
+    max, points = img.max_value(locations=True)
+    assert_equals(245, max)
+    for p in points:
+        assert_equals(245, gray_img[p])
 
 def test_roi_feature():
     img = Image(testimageclr)
@@ -3761,7 +3616,6 @@ def test_normalize():
     result = [img1, img2]
     name_stem = "test_image_normalize"
     perform_diff(result, name_stem, 5)
-    pass
 
 
 def test_get_normalized_hue_histogram():
