@@ -1860,7 +1860,7 @@ class Image(object):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> rawImg  = img.get_gray_numpy()
+        >>> rawImg  = img.get_gray_ndarray()
 
         **SEE ALSO**
 
@@ -14541,7 +14541,8 @@ class Image(object):
         if min_cut > 100 or max_cut > 100:
             warnings.warn("min_cut and max_cut")
             return None
-        #avoiding the effect of odd pixels
+
+        # avoiding the effect of odd pixels
         try:
             hist = self.get_gray_histogram_counts()
             freq, val = zip(*hist)
@@ -14550,21 +14551,26 @@ class Image(object):
             closest_match = lambda a, l: min(l, key=lambda x: abs(x - a))
             maxval = closest_match(maxfreq, val)
             minval = closest_match(minfreq, val)
-            ret_val = (self.grayscale() - minval) \
-                * ((new_max - new_min) / float(maxval - minval)) + new_min
+            array = self.get_gray_ndarray()
+            array = cv2.subtract(array,
+                                 minval * np.ones(array.shape, np.uint8))
+            n = ((new_max - new_min) / float(maxval - minval)) \
+                * np.ones(array.shape, np.float64)
+            array = cv2.multiply(array, n, dtype=cv2.CV_8U)
+            array = cv2.add(array, new_min * np.ones(array.shape, np.uint8))
         #catching zero division in case there are very less intensities present
         #Normalizing based on absolute max and min intensities present
         except ZeroDivisionError:
             maxval = self.max_value()
             minval = self.min_value()
-            ret_val = (self.grayscale() - minval) \
-                * ((new_max - new_min) / float(maxval - minval)) + new_min
-        #catching the case where there is only one intensity throughout
-        except:
-            warnings.warn(
-                "All pixels of the image have only one intensity value")
-            return None
-        return ret_val
+            array = self.get_gray_ndarray()
+            array = cv2.subtract(array,
+                                 minval * np.ones(array.shape, np.uint8))
+            n = ((new_max - new_min) / float(maxval - minval)) \
+                * np.ones(array.shape, np.float64)
+            array = cv2.multiply(array, n, dtype=cv2.CV_8U)
+            array = cv2.add(array, new_min * np.ones(array.shape, np.uint8))
+        return Image(array.astype(np.uint8), color_space=ColorSpace.GRAY)
 
     def get_normalized_hue_histogram(self, roi=None):
         """

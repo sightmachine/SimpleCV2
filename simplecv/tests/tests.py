@@ -3578,11 +3578,7 @@ def test_get_lightness():
 def test_get_luminosity():
     img = Image('lenna')
     i = img.get_luminosity()
-    a = np.array(img[27, 42], dtype=np.int)
-    if int(i[27, 42]) == int(np.average(a, 0, (0.21, 0.71, 0.07))):
-        pass
-    else:
-        assert False
+    assert_equals(150, i[27, 42])
 
 
 def test_get_average():
