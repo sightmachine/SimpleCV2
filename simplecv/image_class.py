@@ -6943,8 +6943,9 @@ class Image(object):
         >>> img.show()
 
         """
-        if not self.is_bgr():
-            logger.warning("Image.embiggen works only with bgr image")
+        if not (self.is_bgr() or self.is_gray()):
+            logger.warning("Image.embiggen works only with "
+                           "bgr and gray images")
             return None
 
         if not isinstance(size, tuple) and size > 1:
@@ -6953,8 +6954,12 @@ class Image(object):
         if size is None or size[0] < self.width or size[1] < self.height:
             logger.warning("Image.embiggen: the size provided is invalid")
             return None
-        array = np.zeros((size[1], size[0], 3), dtype=self.dtype)
-        array[:, :, :] = color[::-1]  # RBG to BGR
+        if self.is_gray():
+            array = np.zeros((size[1], size[0]), dtype=self.dtype)
+            array[:, :] = Color.get_average_rgb(color)
+        else:
+            array = np.zeros((size[1], size[0], 3), dtype=self.dtype)
+            array[:, :, :] = color[::-1]  # RBG to BGR
         if pos is None:
             pos = (((size[0] - self.width) / 2), ((size[1] - self.height) / 2))
         (top_roi, bottom_roi) = self._rect_overlap_rois(
@@ -6963,10 +6968,8 @@ class Image(object):
             logger.warning("Image.embiggen: the position of the old image "
                            "doesn't make sense, there is no overlap")
             return None
-        blit_array = self._ndarray[top_roi[1]:top_roi[1] + top_roi[3],
-                                   top_roi[0]:top_roi[0] + top_roi[2]]
-        array[bottom_roi[1]:bottom_roi[1] + bottom_roi[3],
-              bottom_roi[0]:bottom_roi[0] + bottom_roi[2]] = blit_array
+        blit_array = self._ndarray[Image.roi_to_slice(top_roi)]
+        array[Image.roi_to_slice(bottom_roi)] = blit_array
         return Image(array, color_space=self._colorSpace)
 
     def _rect_overlap_rois(self, top, bottom, pos):
@@ -9483,7 +9486,7 @@ class Image(object):
         if isinstance(points, tuple):
             points = np.array(points)
 
-        flags = cv2.FLOODFILL_MASK_ONLY
+        flags = 8
         if fixed_range:
             flags |= cv2.FLOODFILL_FIXED_RANGE
 
@@ -9597,7 +9600,7 @@ class Image(object):
         if isinstance(points, tuple):
             points = np.array(points)
 
-        flags = cv2.FLOODFILL_MASK_ONLY
+        flags = (255 << 8) + 8
         if fixed_range:
             flags |= cv2.FLOODFILL_FIXED_RANGE
 
@@ -9609,7 +9612,7 @@ class Image(object):
             local_mask = mask.embiggen(size=(self.width + 2, self.height + 2))
             local_mask = local_mask.get_gray_ndarray()
 
-        temp = self.get_gray_ndarray()
+        temp = self.get_ndarray().copy()
         if len(points.shape) != 1:
             for p in points:
                 cv2.floodFill(temp, local_mask, tuple(p), color,

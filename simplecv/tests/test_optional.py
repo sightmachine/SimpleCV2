@@ -11,7 +11,7 @@ from simplecv.image_class import Image
 from simplecv.camera import ScreenCamera
 from simplecv.tests.utils import perform_diff
 
-SHOW_WARNING_TESTS = False  # show that warnings are working
+SHOW_WARNING_TESTS = True   # show that warnings are working
                             # tests will pass but warnings are generated.
 
 #colors

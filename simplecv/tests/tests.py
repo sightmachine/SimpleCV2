@@ -37,7 +37,7 @@ from simplecv.segmentation.running_segmentation import RunningSegmentation
 
 from simplecv.tests.utils import perform_diff
 
-SHOW_WARNING_TESTS = False  # show that warnings are working - tests will pass
+SHOW_WARNING_TESTS = True   # show that warnings are working - tests will pass
                             #  but warnings are generated.
 
 #colors
@@ -2179,8 +2179,6 @@ def test_find_haar_features():
         f[0].get_width()
         f[0].get_height()
         f[0].draw()
-        f[0].x
-        f[0].y
         f[0].length()
         f[0].get_area()
         pass
@@ -2193,12 +2191,15 @@ def test_find_haar_features():
 
 
 def test_biblical_flood_fill():
+    results = []
     img = Image(testimage2)
     b = img.find_blobs()
-    img.flood_fill(b.coordinates(), tolerance=3, color=Color.RED)
-    img.flood_fill(b.coordinates(), tolerance=(3, 3, 3), color=Color.BLUE)
-    img.flood_fill(b.coordinates(), tolerance=(3, 3, 3), color=Color.GREEN,
-                   fixed_range=False)
+    results.append(img.flood_fill(b.coordinates(), tolerance=3,
+                                  color=Color.RED))
+    results.append(img.flood_fill(b.coordinates(), tolerance=(3, 3, 3),
+                                  color=Color.BLUE))
+    results.append(img.flood_fill(b.coordinates(), tolerance=(3, 3, 3),
+                                  color=Color.GREEN, fixed_range=False))
     img.flood_fill((30, 30), lower=3, upper=5, color=Color.ORANGE)
     img.flood_fill((30, 30), lower=3, upper=(5, 5, 5), color=Color.ORANGE)
     img.flood_fill((30, 30), lower=(3, 3, 3), upper=5, color=Color.ORANGE)
@@ -2208,7 +2209,6 @@ def test_biblical_flood_fill():
     img.flood_fill((30, 30), lower=(3, 3, 3), upper=(5, 5, 5),
                    color=[255, 0, 0])
 
-    results = [img]
     name_stem = "test_biblical_flood_fill"
     perform_diff(results, name_stem)
 
@@ -2751,7 +2751,6 @@ def test_get_skintone_mask():
     img_set.append(Image('../data/sampleimages/040006.jpg'))
     img_set.append(Image('../data/sampleimages/040007.jpg'))
     masks = [img.get_skintone_mask() for img in img_set]
-    visual_test = True
     name_stem = 'test_skintone'
     perform_diff(masks, name_stem, tolerance=17)
 

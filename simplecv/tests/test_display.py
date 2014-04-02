@@ -6,9 +6,6 @@ from simplecv.color import Color
 from simplecv.image_class import Image
 from simplecv.tests.utils import perform_diff
 
-SHOW_WARNING_TESTS = False  # show that warnings are working
-                            # tests will pass but warnings are generated.
-
 #colors
 black = Color.BLACK
 white = Color.WHITE

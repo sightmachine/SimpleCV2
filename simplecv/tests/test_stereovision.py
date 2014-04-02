@@ -9,9 +9,6 @@ from simplecv.camera import Camera, StereoImage, StereoCamera
 from simplecv.image_class import Image
 from simplecv.tests.utils import perform_diff
 
-SHOW_WARNING_TESTS = False  # show that warnings are working
-                            # tests will pass but warnings are generated.
-
 # Colors
 black = Color.BLACK
 white = Color.WHITE
