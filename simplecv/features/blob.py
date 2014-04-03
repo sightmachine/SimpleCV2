@@ -1175,7 +1175,7 @@ class Blob(Feature):
         """
         Get the full sized image mask
         """
-        ret_value = np.zeros((self.image.height, self.image.width, 3),
+        ret_value = np.zeros((self.image.height, self.image.width),
                              dtype=np.uint8)
         tlc = self.top_left_corner()
         roi = (tlc[0], tlc[1], self.get_width(), self.get_height())
@@ -1187,7 +1187,7 @@ class Blob(Feature):
         """
         Get the full sized image hull mask
         """
-        ret_value = np.zeros((self.image.height, self.image.width, 3),
+        ret_value = np.zeros((self.image.height, self.image.width),
                              dtype=np.uint8)
         tlc = self.top_left_corner()
         roi = (tlc[0], tlc[1], self.get_width(), self.get_height())
@@ -1202,13 +1202,13 @@ class Blob(Feature):
         translate = [(cs[0] - tlc[0], cs[1] - tlc[1])
                      for cs in self.convex_hull]
 
-        cv2.polylines(ret_value, np.array(translate), 1, (255, 255, 255))
+        cv2.polylines(ret_value, [np.int32(translate)], 1, (255, 255, 255))
         return Image(ret_value)
 
     def get_full_hull_edge_image(self):
         ret_value = np.zeros((self.image.height, self.image.width, 3),
                              dtype=np.uint8)
-        cv2.polylines(ret_value, np.array(self.convex_hull), 1,
+        cv2.polylines(ret_value, [np.int32(self.convex_hull)], 1,
                       (255, 255, 255))
         return Image(ret_value)
 
@@ -1219,8 +1219,8 @@ class Blob(Feature):
         ret_value = np.zeros((self.image.height, self.image.width, 3),
                              dtype=np.uint8)
         tlc = self.top_left_corner()
-        translate = [(cs[0] - tlc[0], cs[1] - tlc[1]) for cs in self.contour]
-        cv2.polylines(ret_value, np.array(translate), 1, (255, 255, 255))
+        translate = [[cs[0] - tlc[0], cs[1] - tlc[1]] for cs in self.contour]
+        cv2.polylines(ret_value, [np.int32(translate)], 1, (255, 255, 255))
         return Image(ret_value)
 
     def get_full_edge_image(self):
@@ -1230,7 +1230,7 @@ class Blob(Feature):
         ret_value = np.zeros((self.image.height, self.image.width, 3),
                              dtype=np.uint8)
 
-        cv2.polylines(ret_value, np.array(self.contour), 1, (255, 255, 255))
+        cv2.polylines(ret_value, [np.int32(self.contour)], 1, (255, 255, 255))
         return Image(ret_value)
 
     def __repr__(self):

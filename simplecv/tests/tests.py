@@ -2695,8 +2695,6 @@ def test_image_temp_save():
         if i is None:
             assert False
 
-    assert True
-
 
 def test_image_set_average():
     iset = ImageSet()
@@ -2821,13 +2819,20 @@ def test_blob_full_masks():
 
 
 def test_blob_edge_images():
-    # FIXME: Test should have assertion
     img = Image('lenna')
     b = img.find_blobs()
     m1 = b[-1].get_edge_image()
+    assert isinstance(m1, Image)
+    assert_equals(m1.size(), img.size())
     m2 = b[-1].get_hull_edge_image()
+    assert isinstance(m2, Image)
+    assert_equals(m1.size(), img.size())
     m3 = b[-1].get_full_edge_image()
+    assert isinstance(m3, Image)
+    assert_equals(m3.size(), img.size())
     m4 = b[-1].get_full_hull_edge_image()
+    assert isinstance(m4, Image)
+    assert_equals(m4.size(), img.size())
 
 
 def test_line_scan():

@@ -810,12 +810,12 @@ class ImageSet(list):
         else:
             resized = self
         # Now do the average calculation
-        accumulator = np.zeros((fw, fh, 3), dtype=np.uint8)
+        accumulator = np.zeros((fh, fw, 3), dtype=np.uint8)
         alpha = float(1.0 / len(resized))
         beta = float((len(resized) - 1.0) / len(resized))
         for i in resized:
-            cv2.addWeighted(i.get_ndarray(), alpha,
-                            accumulator, beta, 0, accumulator)
+            accumulator = cv2.addWeighted(i.get_ndarray(), alpha,
+                                          accumulator, beta, 0)
         ret_val = Image(accumulator)
         return ret_val
 
