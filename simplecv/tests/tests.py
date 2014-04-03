@@ -2116,7 +2116,7 @@ def test_dft_gaussian():
     fltimg1 = img.filter(flt)
     fltimggray1 = img.filter(flt, grayscale=True)
     results = [fltimg, fltimggray, fltimg1, fltimggray1]
-    name_stem = "test_DFT_gaussian"
+    name_stem = "test_dft_gaussian"
     perform_diff(results, name_stem)
 
 
@@ -2131,7 +2131,7 @@ def test_dft_butterworth():
     fltimg1 = img.filter(flt)
     fltimggray1 = img.filter(flt, grayscale=True)
     results = [fltimg, fltimggray, fltimg1, fltimggray1]
-    name_stem = "test_DFT_butterworth"
+    name_stem = "test_dft_butterworth"
     perform_diff(results, name_stem)
 
 
@@ -2141,8 +2141,8 @@ def test_dft_lowpass():
     fltimg = img.filter(flt)
     fltimggray = img.filter(flt, grayscale=True)
     results = [fltimg, fltimggray]
-    name_stem = "test_DFT_lowpass"
-    perform_diff(results, name_stem, 20)
+    name_stem = "test_dft_lowpass"
+    perform_diff(results, name_stem)
 
 
 def test_dft_highpass():
@@ -2151,8 +2151,8 @@ def test_dft_highpass():
     fltimg = img.filter(flt)
     fltimggray = img.filter(flt, grayscale=True)
     results = [fltimg, fltimggray]
-    name_stem = "test_DFT_highpass"
-    perform_diff(results, name_stem, 20)
+    name_stem = "test_dft_highpass"
+    perform_diff(results, name_stem)
 
 
 def test_dft_notch():
@@ -2164,8 +2164,8 @@ def test_dft_notch():
     fltimg1 = img.filter(flt)
     fltimggray1 = img.filter(flt, grayscale=True)
     results = [fltimg, fltimggray, fltimg1, fltimggray1]
-    name_stem = "test_DFT_notch"
-    perform_diff(results, name_stem, 20)
+    name_stem = "test_dft_notch"
+    perform_diff(results, name_stem)
 
 
 def test_find_haar_features():
@@ -2484,6 +2484,7 @@ def test_feature_angles_rotate():
         derp.draw_text(str(b.get_angle()), 10, 10, color=Color.RED)
         b.rectify_major_axis()
         assert isinstance(b.blob_image(), Image)
+
 
 def test_minrect_blobs():
     img = Image("../data/sampleimages/bolt.png")

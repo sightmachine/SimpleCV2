@@ -9620,10 +9620,13 @@ class Image(object):
             width, height = self.size()
             self._dft = []
             img = self._ndarray.copy()
-            b = img[:, :, 0]
-            g = img[:, :, 1]
-            r = img[:, :, 2]
-            chanels = [b, g, r]
+            if len(img.shape) == 3:
+                b = img[:, :, 0]
+                g = img[:, :, 1]
+                r = img[:, :, 2]
+                chanels = [b, g, r]
+            else:
+                chanels = [img, img, img]
             for c in chanels:
                 data = c.astype(np.float64)
                 blank = np.zeros((height, width))
@@ -9881,10 +9884,13 @@ class Image(object):
         else:  # break down the filter and then do each channel
             dft = self._get_dft_clone(grayscale)
             flt = flt.get_ndarray()
-            b = flt[:, :, 0]
-            g = flt[:, :, 1]
-            r = flt[:, :, 2]
-            chans = [b, g, r]
+            if len(flt.shape) == 3:
+                b = flt[:, :, 0]
+                g = flt[:, :, 1]
+                r = flt[:, :, 2]
+                chans = [b, g, r]
+            else:
+                chans = [flt, flt, flt]
             for i in range(0, len(chans)):
                 flt64f = np.copy(chans[i])
                 final_filt = np.dstack((flt64f, flt64f))
