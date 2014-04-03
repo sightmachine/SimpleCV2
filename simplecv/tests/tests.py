@@ -2089,7 +2089,7 @@ def test_high_pass_filter():
     f = img.high_pass_filter([0.5, 0.4, 0.3], y_cutoff=[0.5, 0.4, 0.3])
 
     results = [a, b, c, d, e, f]
-    name_stem = "test_HighPassFilter"
+    name_stem = "test_high_pass_filter"
     perform_diff(results, name_stem)
 
 
@@ -2103,7 +2103,7 @@ def test_low_pass_filter():
     f = img.low_pass_filter([0.5, 0.4, 0.3], y_cutoff=[0.5, 0.4, 0.3])
 
     results = [a, b, c, d, e, f]
-    name_stem = "test_LowPassFilter"
+    name_stem = "test_low_pass_filter"
     perform_diff(results, name_stem)
 
 
