@@ -1675,67 +1675,6 @@ class Image(object):
             shape.append(channels)
         return np.zeros(shape, dtype=self.dtype)
 
-    def get_bitmap(self):
-        """
-        **SUMMARY**
-
-        Retrieve the bitmap (iplImage) of the Image.  This is useful if you
-        want to use functions from OpenCV with SimpleCV's image class
-
-        **RETURNS**
-
-        Returns black OpenCV IplImage from this image.
-
-        **EXAMPLE**
-
-        >>> img = Image("lenna")
-        >>> rawImg  = img.get_bitmap()
-        >>> rawOut  = img.get_empty()
-        >>> cv2.SomeOpenCVFunc(rawImg,rawOut)
-
-        **SEE ALSO**
-
-        :py:meth:`get_empty`
-        :py:meth:`get_fp_matrix`
-        :py:meth:`get_pil`
-        :py:meth:`get_numpy`
-        :py:meth:`get_gray_numpy`
-        :py:meth:`get_grayscale_matrix`
-
-        """
-        raise Exception('Deprecated. use get_ndarray()')
-
-    def get_matrix(self):
-        """
-        **SUMMARY**
-
-        Get the matrix (cvMat) version of the image, required for some OpenCV
-        algorithms.
-
-        **RETURNS**
-
-        Returns the OpenCV CvMat version of this image.
-
-        **EXAMPLE**
-
-        >>> img = Image("lenna")
-        >>> rawImg  = img.get_matrix()
-        >>> rawOut  = img.get_empty()
-        >>> cv2.SomeOpenCVFunc(rawImg,rawOut)
-
-        **SEE ALSO**
-
-        :py:meth:`get_empty`
-        :py:meth:`get_bitmap`
-        :py:meth:`get_fp_matrix`
-        :py:meth:`get_pil`
-        :py:meth:`get_numpy`
-        :py:meth:`get_gray_numpy`
-        :py:meth:`get_grayscale_matrix`
-
-        """
-        raise Exception('Deprecated use get_ndarray()')
-
     def get_fp_ndarray(self):
         """
         **SUMMARY**
@@ -1751,7 +1690,7 @@ class Image(object):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> rawImg  = img.get_fp_matrix()
+        >>> rawImg  = img.get_fp_ndarray()
         >>> rawOut  = img.get_empty()
         >>> cv2.SomeOpenCVFunc(rawImg,rawOut)
 
@@ -1834,34 +1773,6 @@ class Image(object):
         """
         return Image.convert(self._ndarray, self._color_space, ColorSpace.GRAY)
 
-    def get_numpy(self):
-        """
-        **SUMMARY**
-
-        Get a Numpy array of the image in width x height x RGB dimensions
-
-        **RETURNS**
-
-        Returns the image, converted first to grayscale and then converted to
-        a 3D numpy array.
-
-        **EXAMPLE**
-
-        >>> img = Image("lenna")
-        >>> rawImg  = img.get_numpy()
-
-        **SEE ALSO**
-
-        :py:meth:`get_empty`
-        :py:meth:`get_bitmap`
-        :py:meth:`get_matrix`
-        :py:meth:`get_pil`
-        :py:meth:`get_gray_numpy`
-        :py:meth:`get_grayscale_matrix`
-
-        """
-        raise Exception('Deprecated. use get_ndarray()')
-
     def get_ndarray(self):
         """
         **SUMMARY**
@@ -1891,43 +1802,6 @@ class Image(object):
 
         """
         return self._ndarray
-
-    def _get_grayscale_bitmap(self):
-        raise Exception('Deprecated use get_gray_ndarray()')
-
-    def get_grayscale_matrix(self):
-        """
-        **SUMMARY**
-
-        Get the grayscale matrix (cvMat) version of the image, required for
-        some OpenCV algorithms.
-
-        **RETURNS**
-
-        Returns the OpenCV CvMat version of this image.
-
-        **EXAMPLE**
-
-        >>> img = Image("lenna")
-        >>> rawImg  = img.get_grayscale_matrix()
-        >>> rawOut  = img.get_empty()
-        >>> cv2.SomeOpenCVFunc(rawImg,rawOut)
-
-        **SEE ALSO**
-
-        :py:meth:`get_empty`
-        :py:meth:`get_bitmap`
-        :py:meth:`get_fp_matrix`
-        :py:meth:`get_pil`
-        :py:meth:`get_numpy`
-        :py:meth:`get_gray_numpy`
-        :py:meth:`get_matrix`
-
-        """
-        raise Exception('Deprecated use get_gray_ndarray()')
-
-    def _get_equalized_grayscale_bitmap(self):
-        raise Exception('Deprecated use cv2.equalizeHist(gray_array)')
 
     def equalize(self):
         """
