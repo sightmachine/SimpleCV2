@@ -2698,10 +2698,6 @@ class Image(object):
             window = (window, window)
         else:
             window = (3, 3)  # set the default aperture window size (3x3)
-
-        image_gauss = cv2.GaussianBlur(self._ndarray, window, sigma_x,
-                                       None, sigma_y)
-
         if grayscale:
             image_gauss = cv2.GaussianBlur(self.get_gray_ndarray(), window,
                                            sigma_x, None, sigma_y)
@@ -2734,28 +2730,6 @@ class Image(object):
 
         """
         return -self
-
-    def grayscale(self):
-        """
-        **SUMMARY**
-
-        This method returns a gray scale version of the image. It makes
-        everything look like an old movie.
-
-        **RETURNS**
-
-        A grayscale SimpleCV image.
-
-        **EXAMPLE**
-
-        >>> img = Image("lenna")
-        >>> img.grayscale().binarize().show()
-
-        **SEE ALSO**
-
-        :py:meth:`binarize`
-        """
-        raise Exception('Deprecated! use to_gray()')
 
     def flip_horizontal(self):
         """
@@ -7151,6 +7125,7 @@ class Image(object):
         else:
             logger.warning("Image.convolve: kernel should be numpy array.")
             return None
+        kernel = kernel.astype(np.float32)
 
         if center is None:
             array = cv2.filter2D(self._ndarray, -1, kernel)
@@ -14012,7 +13987,7 @@ class Image(object):
         >>> edgeLines = image.edge_snap([(50, 50), (230, 200)])
         >>> edgeLines.draw(color=Color.YELLOW, width=3)
         """
-        img_array = self.get_gray_ndarray()
+        img_array = self.get_gray_ndarray().transpose()
         c1 = np.count_nonzero(img_array)
         c2 = np.count_nonzero(img_array - 255)
 
@@ -14060,7 +14035,7 @@ class Image(object):
 
         """
 
-        edge_map = np.copy(self.get_gray_ndarray())
+        edge_map = np.copy(self.get_gray_ndarray().transpose())
 
         #Size of the box around a point which is checked for edges.
         box = step * 4

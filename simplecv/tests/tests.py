@@ -2170,21 +2170,20 @@ def test_dft_notch():
 
 def test_find_haar_features():
     img = Image("../data/sampleimages/orson_welles.jpg")
+    img1 = img.copy()
     face = HaarCascade("face.xml")  # old HaarCascade
     f = img.find_haar_features(face)
-    f2 = img.find_haar_features("face_cv2.xml")  # new cv2 HaarCascade
-    if len(f) > 0 and len(f2) > 0:
-        f.draw()
-        f2.draw()
-        f[0].get_width()
-        f[0].get_height()
-        f[0].draw()
-        f[0].length()
-        f[0].get_area()
-    else:
-        assert False
+    f2 = img1.find_haar_features("face_cv2.xml")  # new cv2 HaarCascade
+    assert len(f) > 0
+    assert len(f2) > 0
+    f.draw()
+    f2.draw()
+    f[0].get_width()
+    f[0].get_height()
+    f[0].length()
+    f[0].get_area()
 
-    results = [img]
+    results = [img, img1]
     name_stem = "test_find_haar_features"
     perform_diff(results, name_stem)
 
@@ -3547,13 +3546,13 @@ def test_edge_snap():
     list2 = [(484, 294), (297, 437)]
     list3 = [(158, 357), (339, 82)]
 
-    for list_ in list1, list2, list3:
-        edge_lines = img.edge_snap(list_)
+    for l in list1, list2, list3:
+        edge_lines = img.edge_snap(l)
         edge_lines.draw(color=Color.YELLOW, width=4)
 
-    name_stem = "test_edgeSnap"
+    name_stem = "test_edge_snap"
     result = [img]
-    perform_diff(result, name_stem, 0.7)
+    perform_diff(result, name_stem)
 
 
 def test_grayscalmatrix():
@@ -3637,7 +3636,7 @@ def test_back_project_hue_histogram():
                                            full_color=True)
     img_c = img.back_project_hue_histogram(img2, threshold=1)
     result = [img_a, img_b, img_c]
-    name_stem = "test_image_histBackProj"
+    name_stem = "test_image_hist_back_proj"
     perform_diff(result, name_stem, 5)
 
 
