@@ -12215,7 +12215,7 @@ class Image(object):
         ret_val = None
         if x is not None and y is None and pt1 is None and pt2 is None:
             if x >= 0 and x < self.width:
-                ret_val = LineScan(img[x, :])
+                ret_val = LineScan(img[:, x])
                 ret_val.image = self
                 ret_val.pt1 = (x, 0)
                 ret_val.pt2 = (x, self.height)
@@ -12231,7 +12231,7 @@ class Image(object):
 
         elif x is None and y is not None and pt1 is None and pt2 is None:
             if y >= 0 and y < self.height:
-                ret_val = LineScan(img[:, y])
+                ret_val = LineScan(img[y, :])
                 ret_val.image = self
                 ret_val.pt1 = (0, y)
                 ret_val.pt2 = (self.width, y)
@@ -12251,7 +12251,7 @@ class Image(object):
                 and x is None and y is None:
 
             pts = self.bresenham_line(pt1, pt2)
-            ret_val = LineScan([img[p[0], p[1]] for p in pts])
+            ret_val = LineScan([img[p[1], p[0]] for p in pts])
             ret_val.point_loc = pts
             ret_val.image = self
             ret_val.pt1 = pt1
@@ -12432,7 +12432,7 @@ class Image(object):
             if linescan.row is not None:
                 if len(linescan) == self.width:
                     ls = np.clip(linescan, 0, 255)
-                    img[:, linescan.row] = ls[:]
+                    img[linescan.row, :] = ls[:]
                 else:
                     warnings.warn("LineScan Size and Image size do not match")
                     return None
@@ -12440,7 +12440,7 @@ class Image(object):
             elif linescan.col is not None:
                 if len(linescan) == self.height:
                     ls = np.clip(linescan, 0, 255)
-                    img[linescan.col, :] = ls[:]
+                    img[:, linescan.col] = ls[:]
                 else:
                     warnings.warn("LineScan Size and Image size do not match")
                     return None
@@ -13193,24 +13193,20 @@ class Image(object):
         TODO: Allow the user to pass in a function that defines the watershed
         mask.
         """
-
-        output = self.get_empty(3)
         if mask is None:
             mask = self.binarize().invert()
-        newmask = None
         if not use_my_mask:
             newmask = Image((self.width, self.height))
             newmask = newmask.flood_fill((0, 0), color=Color.WATERSHED_BG)
-            dilate_erode_sum = mask.dilate(dilate) + mask.erode(erode)
-            newmask = (newmask - dilate_erode_sum.to_bgr())
+            newmask = newmask - mask.dilate(dilate).to_bgr()
+            newmask = newmask + mask.erode(erode).to_bgr()
         else:
             newmask = mask
         m = np.int32(newmask.get_gray_ndarray())
         cv2.watershed(self._ndarray, m)
         m = cv2.convertScaleAbs(m)
-        ret, thresh = cv2.threshold(m, 0, 255, cv2.cv.CV_THRESH_OTSU)
-        ret_val = Image(thresh)
-        return ret_val
+        ret, thresh = cv2.threshold(m, 0, 255, cv2.THRESH_OTSU)
+        return Image(thresh)
 
     def find_blobs_from_watershed(self, mask=None, erode=2, dilate=2,
                                   use_my_mask=False, invert=False, minsize=20,

@@ -3037,7 +3037,7 @@ def test_color_map():
         b.draw(cm[b.get_area()])
     result = [img]
     name_stem = "test_color_map"
-    perform_diff(result, name_stem, 1.0)
+    perform_diff(result, name_stem)
 
 
 def test_steganograpy():
@@ -3057,7 +3057,8 @@ def test_watershed():
     my_mask = Image((img.width, img.height))
     my_mask = my_mask.flood_fill((0, 0), color=Color.WATERSHED_BG)
     mask = img.threshold(128)
-    my_mask = (my_mask - (mask.dilate(2) + mask.erode(2)).to_bgr())
+    my_mask = my_mask - mask.dilate(2).to_bgr()
+    my_mask = my_mask + mask.erode(2).to_bgr()
     img4 = img.watershed(mask=my_mask, use_my_mask=True)
     blobs = img.find_blobs_from_watershed(dilate=3, erode=2)
     blobs = img.find_blobs_from_watershed()
@@ -3085,6 +3086,7 @@ def test_minmax():
     assert_equals(245, max)
     for p in points:
         assert_equals(245, gray_img[p])
+
 
 def test_roi_feature():
     img = Image(testimageclr)
@@ -3186,17 +3188,11 @@ def test_replace_line_scan():
     ls = img.get_line_scan(x=100)
     ls[50] = 0
     newimg = img.replace_line_scan(ls)
-    if newimg[100, 50] == 0:
-        pass
-    else:
-        assert False
+    assert_equals(0, newimg[50, 100])
     ls = img.get_line_scan(x=100, channel=1)
     ls[50] = 0
     new_img = img.replace_line_scan(ls)
-    if new_img[100, 50] == 0:
-        pass
-    else:
-        assert False
+    assert_equals(0, new_img[50, 100][1])
 
 
 def test_running_average():
