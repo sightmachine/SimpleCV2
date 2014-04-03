@@ -395,7 +395,7 @@ class Line(Feature):
         pixels = list(set(pixels))
         matched_pixels = []
         for pixel in pixels:
-            if img[pixel[0], pixel[1]] == (255.0, 255.0, 255.0):
+            if img[pixel[1], pixel[0]] == [255.0, 255.0, 255.0]:
                 matched_pixels.append(pixel)
         matched_pixels.sort()
 

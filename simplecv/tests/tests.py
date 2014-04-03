@@ -2891,7 +2891,6 @@ def test_remove_grid():
     dlayer1 = grid_image.remove_grid()
     if dlayer1 is not None:
         assert False
-    pass
 
 
 def test_cluster():
@@ -2926,12 +2925,9 @@ def test_line_perp():
 def test_line_img_intersection():
     img = Image((512, 512))
     for x in range(200, 400):
-        img[x, 200] = (255.0, 255.0, 255.0)
+        img[200, x] = (255.0, 255.0, 255.0)
     l = Line(img, ((300, 100), (300, 500)))
-    if l.img_intersections(img) == [(300, 200)]:
-        pass
-    else:
-        assert False
+    assert_equals([(300, 200)], l.img_intersections(img))
 
 
 def test_line_crop_to_edges():
@@ -2958,13 +2954,11 @@ def test_find_grid_lines():
     img = Image("simplecv")
     img = img.grid((10, 10), (0, 255, 255))
     lines = img.find_grid_lines()
+    assert lines
     lines.draw()
     result = [img]
-    name_stem = "test_image_gridLines"
+    name_stem = "test_image_grid_lines"
     perform_diff(result, name_stem, 5)
-
-    if lines == 0 or lines is None:
-        assert False
 
 
 def test_logical_and():
