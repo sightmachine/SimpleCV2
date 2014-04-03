@@ -1299,7 +1299,6 @@ class KeyPoint(Feature):
     r = 0.00
     image = ""  # parent image
     points = []
-    __avgColor = None
     angle = 0
     octave = 0
     response = 0.00
@@ -1312,7 +1311,7 @@ class KeyPoint(Feature):
         x = keypoint.pt[0]
         y = keypoint.pt[1]
         self._r = keypoint.size / 2.0
-        self._avgColor = None
+        self._avg_color = None
         self.image = i
         self.angle = keypoint.angle
         self.octave = keypoint.octave
@@ -1465,13 +1464,13 @@ class KeyPoint(Feature):
 
         """
         #generate the mask
-        if self._avgColor is None:
+        if self._avg_color is None:
             mask = self.image.get_empty(1)
             cv2.circle(mask, (int(self.x), int(self.y)), int(self._r),
                        color=(255, 255, 255), thickness=-1)
             temp = cv2.mean(self.image.get_ndarray(), mask)
-            self._avgColor = (temp[0], temp[1], temp[2])
-        return self._avgColor
+            self._avg_color = (temp[0], temp[1], temp[2])
+        return self._avg_color
 
     def color_distance(self, color=(0, 0, 0)):
         """

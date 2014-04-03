@@ -874,7 +874,7 @@ class Image(object):
     """
     #when we empty the buffers, populate with this:
     _initialized_buffers = {
-        "_edgeMap": None,
+        "_edge_map": None,
         "_cannyparam": (0, 0),
         "_pil": None,
         "_pgsurface": None,
@@ -936,39 +936,39 @@ class Image(object):
 
         """
         self._ndarray = None  # contains image data as numpy.ndarray
-        self._mLayers = []
+        self._layers = []
         self.camera = camera
-        self._colorSpace = color_space
+        self._color_space = color_space
 
         # Other
         self.filename = ''
         self.filehandle = ''
-        self._barcodeReader = ''  # property for the ZXing barcode reader
+        self._barcode_reader = ''  # property for the ZXing barcode reader
         self._pgsurface = None
-        self._edgeMap = None  # holding reference for edge map
-        self._cannyparam = (0, 0)  # parameters that created _edgeMap
+        self._edge_map = None  # holding reference for edge map
+        self._cannyparam = (0, 0)  # parameters that created _edge_map
         self._pil = None  # holds a PIL object in buffer
         # to store grid details | Format -> [gridIndex, gridDimensions]
-        self._gridLayer = [None, [0, 0]]
+        self._grid_layer = [None, [0, 0]]
         #For DFT Caching
-        self._DFT = []  # an array of 2 channel (real,imaginary) 64F images
-        # The variables _uncroppedX and _uncroppedY are used to buffer the
+        self._dft = []  # an array of 2 channel (real,imaginary) 64F images
+        # The variables _uncropped_x and _uncropped_y are used to buffer the
         # points when we crop the image.
-        self._uncroppedX = 0
-        self._uncroppedY = 0
+        self._uncropped_x = 0
+        self._uncropped_y = 0
 
         #Keypoint Descriptors
-        self._mKeyPoints = []
-        self._mKPDescriptors = []
-        self._mKPFlavor = "NONE"
+        self._key_points = []
+        self._kp_descriptors = []
+        self._kp_flavor = "NONE"
         #Pallete Stuff
-        self._mDoHuePalette = False
-        self._mPaletteBins = None
-        self._mPalette = None
-        self._mPaletteMembers = None
-        self._mPalettePercentages = None
+        self._do_hue_palette = False
+        self._palette_bins = None
+        self._palette = None
+        self._palette_members = None
+        self._palette_percentages = None
         #Temp files
-        self._tempFiles = []
+        self._temp_files = []
 
         #Check if need to load from URL
         if isinstance(source, basestring) \
@@ -1042,11 +1042,11 @@ class Image(object):
             if len(source.shape) == 3 and source.shape[2] == 3:
                 # we have a three channel array
                 self._ndarray = source
-                self._colorSpace = color_space
+                self._color_space = color_space
             elif len(source.shape) == 2:
                 # we have a single channel array
                 self._ndarray = source
-                self._colorSpace = ColorSpace.GRAY
+                self._color_space = ColorSpace.GRAY
             else:
                 raise IOError('Cant create image from ndarray with '
                               'shape {}.'.format(source.shape))
@@ -1075,13 +1075,13 @@ class Image(object):
                 )
                 self.filename = source
                 self._ndarray = np.asarray(self._pil, dtype=np.uint8)
-                self._colorSpace = ColorSpace.RGB
+                self._color_space = ColorSpace.RGB
             else:
                 self.filename = source
                 self._ndarray = cv2.imread(self.filename)
                 if self._ndarray is None:
                     raise Exception('Failed to create an image array')
-                self._colorSpace = ColorSpace.BGR
+                self._color_space = ColorSpace.BGR
 
         elif webp and isinstance(source, cStringIO.InputType):
             source.seek(0)  # set the stringIO to the begining
@@ -1090,20 +1090,20 @@ class Image(object):
             except:
                 raise Exception('Failed to load webp image using PIL')
             self._ndarray = np.asarray(self._pil, dtype=np.uint8)
-            self._colorSpace = ColorSpace.RGB
+            self._color_space = ColorSpace.RGB
 
         elif isinstance(source, pg.Surface):
             self._pgsurface = source
             self._ndarray = cv2.transpose(
                 pg.surfarray.array3d(self._pgsurface).copy())
-            self._colorSpace = ColorSpace.RGB
+            self._color_space = ColorSpace.RGB
 
         elif PIL_ENABLED and isinstance(source, PilImage.Image):
             if source.mode != 'RGB':
                 source = source.convert('RGB')
             self._pil = source
             self._ndarray = np.asarray(self._pil, dtype=np.uint8)
-            self._colorSpace = ColorSpace.RGB
+            self._color_space = ColorSpace.RGB
 
         else:
             raise Exception('Unsupported source type')
@@ -1119,7 +1119,7 @@ class Image(object):
          a destructor.
         """
         try:
-            for i in self._tempFiles:
+            for i in self._temp_files:
                 if i[1]:
                     os.remove(i[0])
         except:
@@ -1246,7 +1246,7 @@ class Image(object):
         :py:class:`ColorSpace`
 
         """
-        return self._colorSpace
+        return self._color_space
 
     def is_rgb(self):
         """
@@ -1269,7 +1269,7 @@ class Image(object):
 
 
         """
-        return self._colorSpace == ColorSpace.RGB
+        return self._color_space == ColorSpace.RGB
 
     def is_bgr(self):
         """
@@ -1291,7 +1291,7 @@ class Image(object):
         :py:meth:`to_bgr`
 
         """
-        return self._colorSpace == ColorSpace.BGR
+        return self._color_space == ColorSpace.BGR
 
     def is_hsv(self):
         """
@@ -1313,7 +1313,7 @@ class Image(object):
         :py:meth:`to_hsv`
 
         """
-        return self._colorSpace == ColorSpace.HSV
+        return self._color_space == ColorSpace.HSV
 
     def is_hls(self):
         """
@@ -1335,7 +1335,7 @@ class Image(object):
         :py:meth:`to_hls`
 
         """
-        return self._colorSpace == ColorSpace.HLS
+        return self._color_space == ColorSpace.HLS
 
     def is_xyz(self):
         """
@@ -1357,7 +1357,7 @@ class Image(object):
         :py:meth:`to_xyz`
 
         """
-        return self._colorSpace == ColorSpace.XYZ
+        return self._color_space == ColorSpace.XYZ
 
     def is_gray(self):
         """
@@ -1379,7 +1379,7 @@ class Image(object):
         :py:meth:`to_gray`
 
         """
-        return self._colorSpace == ColorSpace.GRAY
+        return self._color_space == ColorSpace.GRAY
 
     def is_ycrcb(self):
         """
@@ -1401,7 +1401,7 @@ class Image(object):
         :py:meth:`to_ycrcb`
 
         """
-        return self._colorSpace == ColorSpace.YCrCb
+        return self._color_space == ColorSpace.YCrCb
 
     @staticmethod
     def convert(ndarray, from_color_space, to_color_space):
@@ -1474,7 +1474,7 @@ class Image(object):
         :py:meth:`is_rgb`
 
         """
-        rgb_array = Image.convert(self._ndarray, self._colorSpace,
+        rgb_array = Image.convert(self._ndarray, self._color_space,
                                   ColorSpace.RGB)
         return Image(rgb_array, color_space=ColorSpace.RGB)
 
@@ -1500,7 +1500,7 @@ class Image(object):
         :py:meth:`is_bgr`
 
         """
-        bgr_array = Image.convert(self._ndarray, self._colorSpace,
+        bgr_array = Image.convert(self._ndarray, self._color_space,
                                   ColorSpace.BGR)
         return Image(bgr_array, color_space=ColorSpace.BGR)
 
@@ -1526,7 +1526,7 @@ class Image(object):
         :py:meth:`is_hls`
 
         """
-        hls_array = Image.convert(self._ndarray, self._colorSpace,
+        hls_array = Image.convert(self._ndarray, self._color_space,
                                   ColorSpace.HLS)
         return Image(hls_array, color_space=ColorSpace.HLS)
 
@@ -1552,7 +1552,7 @@ class Image(object):
         :py:meth:`is_hsv`
 
         """
-        hsv_array = Image.convert(self._ndarray, self._colorSpace,
+        hsv_array = Image.convert(self._ndarray, self._color_space,
                                   ColorSpace.HSV)
         return Image(hsv_array, color_space=ColorSpace.HSV)
 
@@ -1578,7 +1578,7 @@ class Image(object):
         :py:meth:`is_xyz`
 
         """
-        xyz_array = Image.convert(self._ndarray, self._colorSpace,
+        xyz_array = Image.convert(self._ndarray, self._color_space,
                                   ColorSpace.XYZ)
         return Image(xyz_array, color_space=ColorSpace.XYZ)
 
@@ -1605,7 +1605,7 @@ class Image(object):
         :py:meth:`binarize`
 
         """
-        gray_array = Image.convert(self._ndarray, self._colorSpace,
+        gray_array = Image.convert(self._ndarray, self._color_space,
                                    ColorSpace.GRAY)
         return Image(gray_array, color_space=ColorSpace.GRAY)
 
@@ -1632,7 +1632,7 @@ class Image(object):
 
         """
 
-        ycrcb_array = Image.convert(self._ndarray, self._colorSpace,
+        ycrcb_array = Image.convert(self._ndarray, self._color_space,
                                     ColorSpace.YCrCb)
         return Image(ycrcb_array, color_space=ColorSpace.YCrCb)
 
@@ -1832,7 +1832,7 @@ class Image(object):
         :py:meth:`get_grayscale_matrix`
 
         """
-        return Image.convert(self._ndarray, self._colorSpace, ColorSpace.GRAY)
+        return Image.convert(self._ndarray, self._color_space, ColorSpace.GRAY)
 
     def get_numpy(self):
         """
@@ -2070,9 +2070,9 @@ class Image(object):
                 fnum = num[-1] + 1
                 filename = glob.os.path.join(
                     path, filename + ("%07d" % fnum) + ".png")
-                self._tempFiles.append((filename, clean_temp))
-                self.save(self._tempFiles[-1][0])
-                return self._tempFiles[-1][0]
+                self._temp_files.append((filename, clean_temp))
+                self.save(self._temp_files[-1][0])
+                return self._temp_files[-1][0]
             else:
                 print "Path does not exist!"
 
@@ -2086,13 +2086,13 @@ class Image(object):
             else:
                 filehandle_or_filename = self.filehandle
 
-        if len(self._mLayers):
+        if len(self._layers):
             saveimg = self.apply_layers()
         else:
             saveimg = self
 
-        if self._colorSpace != ColorSpace.BGR \
-                and self._colorSpace != ColorSpace.GRAY:
+        if self._color_space != ColorSpace.BGR \
+                and self._color_space != ColorSpace.GRAY:
             saveimg = saveimg.to_bgr()
 
         if not isinstance(filehandle_or_filename, basestring):
@@ -2255,7 +2255,7 @@ class Image(object):
         >>> img2 = img.copy()
 
         """
-        return Image(self._ndarray.copy(), color_space=self._colorSpace)
+        return Image(self._ndarray.copy(), color_space=self._color_space)
 
     def upload(self, dest, api_key=None, api_secret=None, verbose=True):
         """
@@ -2490,7 +2490,7 @@ class Image(object):
 
         scaled_array = cv2.resize(self.get_ndarray(), (w, h),
                                   interpolation=interpolation)
-        return Image(scaled_array, color_space=self._colorSpace)
+        return Image(scaled_array, color_space=self._color_space)
 
     def resize(self, w=None, h=None):
         """
@@ -2538,7 +2538,7 @@ class Image(object):
             return ret_val
 
         saceld_array = cv2.resize(self._ndarray, (w, h))
-        return Image(saceld_array, color_space=self._colorSpace)
+        return Image(saceld_array, color_space=self._color_space)
 
     def smooth(self, algorithm_name='gaussian', aperture=(3, 3), sigma=0,
                spatial_sigma=0, grayscale=False):
@@ -2664,7 +2664,7 @@ class Image(object):
             return Image(img_medianblur, color_space=ColorSpace.GRAY)
         else:
             img_medianblur = cv2.medianBlur(self._ndarray, win_x)
-            return Image(img_medianblur, color_space=self._colorSpace)
+            return Image(img_medianblur, color_space=self._color_space)
 
     def bilateral_filter(self, diameter=5, sigma_color=10, sigma_space=10,
                          grayscale=False):
@@ -2739,7 +2739,7 @@ class Image(object):
         else:
             img_bilateral = cv2.bilateralFilter(self._ndarray, diameter,
                                                 sigma_color, sigma_space)
-            return Image(img_bilateral, color_space=self._colorSpace)
+            return Image(img_bilateral, color_space=self._color_space)
 
     def blur(self, window=None, grayscale=False):
         """
@@ -2778,7 +2778,7 @@ class Image(object):
             return Image(img_blur, color_space=ColorSpace.GRAY)
         else:
             img_blur = cv2.blur(self._ndarray, window)
-            return Image(img_blur, color_space=self._colorSpace)
+            return Image(img_blur, color_space=self._color_space)
 
     def gaussian_blur(self, window=None, sigma_x=0, sigma_y=0,
                       grayscale=False):
@@ -2835,7 +2835,7 @@ class Image(object):
         else:
             image_gauss = cv2.GaussianBlur(self._ndarray, window, sigma_x,
                                            None, sigma_y)
-            return Image(image_gauss, color_space=self._colorSpace)
+            return Image(image_gauss, color_space=self._color_space)
 
     def invert(self):
         """
@@ -2911,7 +2911,7 @@ class Image(object):
 
         """
         flip_array = cv2.flip(self._ndarray, 1)
-        return Image(flip_array, color_space=self._colorSpace)
+        return Image(flip_array, color_space=self._color_space)
 
     def flip_vertical(self):
         """
@@ -2941,7 +2941,7 @@ class Image(object):
 
         """
         flip_array = cv2.flip(self._ndarray, 0)
-        return Image(flip_array, color_space=self._colorSpace)
+        return Image(flip_array, color_space=self._color_space)
 
     def stretch(self, thresh_low=0, thresh_high=255):
         """
@@ -3019,7 +3019,7 @@ class Image(object):
             return "Gamma should be a non-negative real number"
         scale = 255.0
         dst = (((1.0 / scale) * self._ndarray) ** gamma) * scale
-        return Image(dst.astype(self.dtype), color_space=self._colorSpace)
+        return Image(dst.astype(self.dtype), color_space=self._color_space)
 
     def binarize(self, thresh=None, maxv=255, blocksize=0, p=5):
         """
@@ -3830,8 +3830,8 @@ class Image(object):
         array[:, :, 2] = np.take(scurve.curve, array[:, :, 2])
 
         # Move back to original color space
-        array = Image.convert(array, ColorSpace.HLS, self._colorSpace)
-        return Image(array, color_space=self._colorSpace)
+        array = Image.convert(array, ColorSpace.HLS, self._color_space)
+        return Image(array, color_space=self._color_space)
 
     def apply_rgb_curve(self, rcurve, gcurve, bcurve):
         """
@@ -3879,7 +3879,7 @@ class Image(object):
         array[:, :, 0] = np.take(bcurve.curve, array[:, :, 0])
         array[:, :, 1] = np.take(gcurve.curve, array[:, :, 1])
         array[:, :, 2] = np.take(rcurve.curve, array[:, :, 2])
-        return Image(array, color_space=self._colorSpace)
+        return Image(array, color_space=self._color_space)
 
     def apply_intensity_curve(self, curve):
         """
@@ -4074,7 +4074,7 @@ class Image(object):
         kern = cv2.getStructuringElement(cv2.MORPH_RECT,
                                          (kernelsize, kernelsize), (1, 1))
         array = cv2.erode(self._ndarray, kern, iterations=iterations)
-        return Image(array, color_space=self._colorSpace)
+        return Image(array, color_space=self._color_space)
 
     def dilate(self, iterations=1):
         """
@@ -4121,7 +4121,7 @@ class Image(object):
         """
         kern = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3), (1, 1))
         array = cv2.dilate(self._ndarray, kern, iterations=iterations)
-        return Image(array, color_space=self._colorSpace)
+        return Image(array, color_space=self._color_space)
 
     def morph_open(self):
         """
@@ -4166,7 +4166,7 @@ class Image(object):
         kern = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3), (1, 1))
         array = cv2.morphologyEx(src=self._ndarray, op=cv2.MORPH_OPEN,
                                  kernel=kern, anchor=(1, 1), iterations=1)
-        return Image(array, color_space=self._colorSpace)
+        return Image(array, color_space=self._color_space)
 
     def morph_close(self):
         """
@@ -4211,7 +4211,7 @@ class Image(object):
         kern = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3), (1, 1))
         array = cv2.morphologyEx(src=self._ndarray, op=cv2.MORPH_CLOSE,
                                  kernel=kern, anchor=(1, 1), iterations=1)
-        return Image(array, color_space=self._colorSpace)
+        return Image(array, color_space=self._color_space)
 
     def morph_gradient(self):
         """
@@ -4256,7 +4256,7 @@ class Image(object):
         """
         kern = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3), (1, 1))
         array = cv2.morphologyEx(self._ndarray, cv2.MORPH_GRADIENT, kern)
-        return Image(array, color_space=self._colorSpace)
+        return Image(array, color_space=self._color_space)
 
     def histogram(self, numbins=50):
         """
@@ -4455,7 +4455,7 @@ class Image(object):
         if isinstance(coord[0], types.SliceType) \
                 or isinstance(coord[1], types.SliceType):
             return Image(self._ndarray[coord],
-                         color_space=self._colorSpace)
+                         color_space=self._color_space)
         else:
             return self._ndarray[coord].tolist()
 
@@ -4471,10 +4471,10 @@ class Image(object):
                               "Returning None.")
                 return None
             array = cv2.subtract(self._ndarray, other.get_ndarray())
-            return Image(array, color_space=self._colorSpace)
+            return Image(array, color_space=self._color_space)
         else:
             array = (self._ndarray - other).astype(self.dtype)
-            return Image(array, color_space=self._colorSpace)
+            return Image(array, color_space=self._color_space)
 
     def __add__(self, other):
         if isinstance(other, Image):
@@ -4483,10 +4483,10 @@ class Image(object):
                               "Returning None.")
                 return None
             array = cv2.add(self._ndarray, other.get_ndarray())
-            return Image(array, color_space=self._colorSpace)
+            return Image(array, color_space=self._color_space)
         else:
             array = self._ndarray + other
-            return Image(array, color_space=self._colorSpace)
+            return Image(array, color_space=self._color_space)
 
     def __and__(self, other):
         if isinstance(other, Image):
@@ -4495,10 +4495,10 @@ class Image(object):
                               "Returning None.")
                 return None
             array = self._ndarray & other.get_ndarray()
-            return Image(array, color_space=self._colorSpace)
+            return Image(array, color_space=self._color_space)
         else:
             array = self._ndarray & other
-            return Image(array, color_space=self._colorSpace)
+            return Image(array, color_space=self._color_space)
 
     def __or__(self, other):
         if isinstance(other, Image):
@@ -4507,10 +4507,10 @@ class Image(object):
                               "Returning None.")
                 return None
             array = self._ndarray | other.get_ndarray()
-            return Image(array, color_space=self._colorSpace)
+            return Image(array, color_space=self._color_space)
         else:
             array = self._ndarray | other
-            return Image(array, color_space=self._colorSpace)
+            return Image(array, color_space=self._color_space)
 
     def __div__(self, other):
         if isinstance(other, Image):
@@ -4519,10 +4519,10 @@ class Image(object):
                               "Returning None.")
                 return None
             array = cv2.divide(self._ndarray, other.get_ndarray())
-            return Image(array, color_space=self._colorSpace)
+            return Image(array, color_space=self._color_space)
         else:
             array = (self._ndarray / other).astype(self.dtype)
-            return Image(array, color_space=self._colorSpace)
+            return Image(array, color_space=self._color_space)
 
     def __mul__(self, other):
         if isinstance(other, Image):
@@ -4531,21 +4531,21 @@ class Image(object):
                               "Returning None.")
                 return None
             array = cv2.multiply(self._ndarray, other.get_ndarray())
-            return Image(array, color_space=self._colorSpace)
+            return Image(array, color_space=self._color_space)
         else:
             array = (self._ndarray * other).astype(self.dtype)
-            return Image(array, color_space=self._colorSpace)
+            return Image(array, color_space=self._color_space)
 
     def __pow__(self, power):
         if isinstance(power, int):
             array = cv2.pow(self._ndarray, power)
-            return Image(array, color_space=self._colorSpace)
+            return Image(array, color_space=self._color_space)
         else:
             raise ValueError('Cant make exponentiation with this type')
 
     def __neg__(self):
         array = ~self._ndarray
-        return Image(array, color_space=self._colorSpace)
+        return Image(array, color_space=self._color_space)
 
     def __invert__(self):
         return self.__neg__()
@@ -4572,10 +4572,10 @@ class Image(object):
                               "Returning None.")
                 return None
             array = cv2.max(self._ndarray, other.get_ndarray())
-            return Image(array, color_space=self._colorSpace)
+            return Image(array, color_space=self._color_space)
         else:
             array = np.maximum(self._ndarray, other)
-            return Image(array, color_space=self._colorSpace)
+            return Image(array, color_space=self._color_space)
 
     def min(self, other):
         """
@@ -4599,10 +4599,10 @@ class Image(object):
                               "Returning None.")
                 return None
             array = cv2.min(self._ndarray, other.get_ndarray())
-            return Image(array, color_space=self._colorSpace)
+            return Image(array, color_space=self._color_space)
         else:
             array = np.minimum(self._ndarray, other)
-            return Image(array, color_space=self._colorSpace)
+            return Image(array, color_space=self._color_space)
 
     def _clear_buffers(self, clearexcept="_bitmap"):
         for k, v in self._initialized_buffers.items():
@@ -4736,15 +4736,15 @@ class Image(object):
                               "Please see the release notes.")
                 return None
 
-            if not self._barcodeReader:
+            if not self._barcode_reader:
                 if not zxing_path:
-                    self._barcodeReader = zxing.BarCodeReader()
+                    self._barcode_reader = zxing.BarCodeReader()
                 else:
-                    self._barcodeReader = zxing.BarCodeReader(zxing_path)
+                    self._barcode_reader = zxing.BarCodeReader(zxing_path)
 
             tmp_filename = os.tmpnam() + ".png"
             self.save(tmp_filename)
-            barcode = self._barcodeReader.decode(tmp_filename)
+            barcode = self._barcode_reader.decode(tmp_filename)
             os.unlink(tmp_filename)
 
         if barcode:
@@ -4997,7 +4997,7 @@ class Image(object):
         :py:meth:`find_lines`
 
         """
-        return Image(self._get_edge_map(t1, t2), color_space=self._colorSpace)
+        return Image(self._get_edge_map(t1, t2), color_space=self._color_space)
 
     def _get_edge_map(self, t1=50, t2=100):
         """
@@ -5011,14 +5011,14 @@ class Image(object):
         imgproc_feature_detection.html?highlight=canny#Canny
         """
 
-        if self._edgeMap and self._cannyparam[0] == t1 \
+        if self._edge_map and self._cannyparam[0] == t1 \
                 and self._cannyparam[1] == t2:
-            return self._edgeMap
+            return self._edge_map
 
-        self._edgeMap = cv2.Canny(self.get_gray_ndarray(), t1, t2)
+        self._edge_map = cv2.Canny(self.get_gray_ndarray(), t1, t2)
         self._cannyparam = (t1, t2)
 
-        return self._edgeMap
+        return self._edge_map
 
     def rotate(self, angle, fixed=True, point=None, scale=1.0):
         """
@@ -5076,7 +5076,7 @@ class Image(object):
                                           float(angle), float(scale))
         if fixed:
             array = cv2.warpAffine(self._ndarray, rot_mat, self.size())
-            return Image(array, color_space=self._colorSpace)
+            return Image(array, color_space=self._color_space)
 
         # otherwise, we're expanding the matrix to
         # fit the image at original size
@@ -5128,7 +5128,7 @@ class Image(object):
             np.array(dst).astype(np.float32))
         array = cv2.warpAffine(self._ndarray, rot_mat,
                                (int(new_width), int(new_height)))
-        return Image(array, color_space=self._colorSpace)
+        return Image(array, color_space=self._color_space)
 
     def transpose(self):
         """
@@ -5159,7 +5159,7 @@ class Image(object):
 
         """
         array = cv2.transpose(self._ndarray)
-        return Image(array, color_space=self._colorSpace)
+        return Image(array, color_space=self._color_space)
 
     def shear(self, cornerpoints):
         """
@@ -5238,7 +5238,7 @@ class Image(object):
 
         """
         array = cv2.warpAffine(self._ndarray, rot_matrix, self.size())
-        return Image(array, color_space=self._colorSpace)
+        return Image(array, color_space=self._color_space)
 
     def warp(self, cornerpoints):
         """
@@ -5331,7 +5331,7 @@ class Image(object):
         """
         array = cv2.warpPerspective(src=self._ndarray, dsize=self.size(),
                                     M=rot_matrix, flags=cv2.INTER_CUBIC)
-        return Image(array, color_space=self._colorSpace)
+        return Image(array, color_space=self._color_space)
 
     def get_pixel(self, x, y):
         """
@@ -5807,11 +5807,11 @@ class Image(object):
             bottom_roi[1]:bottom_roi[1] + bottom_roi[3],
             bottom_roi[0]:bottom_roi[0] + bottom_roi[2]]
 
-        img = Image(array, color_space=self._colorSpace)
+        img = Image(array, color_space=self._color_space)
 
         #Buffering the top left point (x, y) in a image.
-        img._uncroppedX = self._uncroppedX + int(x)
-        img._uncroppedY = self._uncroppedY + int(y)
+        img._uncropped_x = self._uncropped_x + int(x)
+        img._uncropped_y = self._uncropped_y + int(y)
         return img
 
     def region_select(self, x1, y1, x2, y2):
@@ -6090,7 +6090,7 @@ class Image(object):
     def _surface_to_image(self, surface):
         imgarray = pg.surfarray.array3d(surface)
         ret_val = Image(imgarray)
-        ret_val._colorSpace = ColorSpace.RGB
+        ret_val._color_space = ColorSpace.RGB
         return ret_val.to_bgr().transpose()
 
     def _image_to_surface(self, img):
@@ -6181,8 +6181,8 @@ class Image(object):
 
         if not layer:
             layer = DrawingLayer(self.size())
-        self._mLayers.append(layer)
-        return len(self._mLayers) - 1
+        self._layers.append(layer)
+        return len(self._layers) - 1
 
     def insert_drawing_layer(self, layer, index):
         """
@@ -6227,7 +6227,7 @@ class Image(object):
         :py:meth:`blit`
 
         """
-        self._mLayers.insert(index, layer)
+        self._layers.insert(index, layer)
 
     def remove_drawing_layer(self, index=-1):
         """
@@ -6270,7 +6270,7 @@ class Image(object):
 
         """
         try:
-            return self._mLayers.pop(index)
+            return self._layers.pop(index)
         except IndexError:
             print 'Not a valid index or No layers to remove!'
 
@@ -6317,11 +6317,11 @@ class Image(object):
         :py:meth:`blit`
 
         """
-        if not len(self._mLayers):
+        if not len(self._layers):
             layer = DrawingLayer(self.size())
             self.add_drawing_layer(layer)
         try:
-            return self._mLayers[index]
+            return self._layers[index]
         except IndexError:
             print 'Not a valid index'
 
@@ -6369,8 +6369,8 @@ class Image(object):
         :py:meth:`blit`
 
         """
-        for i in self._mLayers:
-            self._mLayers.remove(i)
+        for i in self._layers:
+            self._layers.remove(i)
 
         return None
 
@@ -6400,7 +6400,7 @@ class Image(object):
         :py:meth:`blit`
 
         """
-        return self._mLayers
+        return self._layers
 
         #render the image.
 
@@ -6446,7 +6446,7 @@ class Image(object):
 
         """
         final = DrawingLayer(self.size())
-        for layers in self._mLayers:  # compose all the layers
+        for layers in self._layers:  # compose all the layers
             layers.render_to_other_layer(final)
         return final
 
@@ -6490,10 +6490,10 @@ class Image(object):
         :py:meth:`blit`
 
         """
-        if not len(self._mLayers):
+        if not len(self._layers):
             return self
 
-        if indicies == -1 and len(self._mLayers) > 0:
+        if indicies == -1 and len(self._layers) > 0:
             final = self.merged_layers()
             img_surf = self.get_pg_surface().copy()
             img_surf.blit(final.surface, (0, 0))
@@ -6503,7 +6503,7 @@ class Image(object):
             ret_val = self
             indicies.reverse()
             for idx in indicies:
-                ret_val = self._mLayers[idx].render_to_other_layer(final)
+                ret_val = self._layers[idx].render_to_other_layer(final)
             img_surf = self.get_pg_surface().copy()
             img_surf.blit(final.surface, (0, 0))
             indicies.reverse()
@@ -6659,7 +6659,7 @@ class Image(object):
 
         ret_val[targety:targety + targeth,
                 targetx:targetx + targetw] = img._ndarray
-        ret_val = Image(ret_val, color_space=self._colorSpace)
+        ret_val = Image(ret_val, color_space=self._color_space)
         return ret_val
 
     def blit(self, img, pos=None, alpha=None, mask=None, alpha_mask=None):
@@ -6727,7 +6727,7 @@ class Image(object):
             array = self._ndarray.copy()
             array[bottom_roi[1]:bottom_roi[1] + bottom_roi[3],
                   bottom_roi[0]:bottom_roi[0] + bottom_roi[2]] = blit_array
-            return Image(array, color_space=self._colorSpace)
+            return Image(array, color_space=self._color_space)
         elif alpha_mask:
             if alpha_mask.size() != img.size():
                 logger.warning("Image.blit: your mask and image don't match "
@@ -6760,7 +6760,7 @@ class Image(object):
             array = self._ndarray.copy()
             array[bottom_roi[1]:bottom_roi[1] + bottom_roi[3],
                   bottom_roi[0]:bottom_roi[0] + bottom_roi[2]] = blit_array
-            return Image(array, color_space=self._colorSpace)
+            return Image(array, color_space=self._color_space)
 
         elif mask:
             if mask.size() != img.size():
@@ -6777,7 +6777,7 @@ class Image(object):
             array = self._ndarray.copy()
             array[Image.roi_to_slice(bottom_roi)][binary_mask] = \
                 top_array[binary_mask]
-            return Image(array, color_space=self._colorSpace)
+            return Image(array, color_space=self._color_space)
 
         else:  # vanilla blit
             top_img = img.copy().crop(*top_roi)
@@ -6785,7 +6785,7 @@ class Image(object):
             array[bottom_roi[1]:bottom_roi[1] + bottom_roi[3],
                   bottom_roi[0]:bottom_roi[0] + bottom_roi[2]] = \
                 top_img.get_ndarray()
-            return Image(array, color_space=self._colorSpace)
+            return Image(array, color_space=self._color_space)
 
     def side_by_side(self, image, side="right", scale=True):
         """
@@ -6846,7 +6846,7 @@ class Image(object):
                     topimage.get_ndarray()
                 array[h - resized.height:, :resized.width] = \
                     resized.get_ndarray()
-            return Image(array, color_space=self._colorSpace)
+            return Image(array, color_space=self._color_space)
         elif side == "right":
             return image.side_by_side(self, "left", scale)
         else:  # default to left
@@ -6872,7 +6872,7 @@ class Image(object):
                 array[abs(yc):abs(yc) + rightimage.height,
                       w - rightimage.width:] = rightimage.get_ndarray()
                 array[:resized.height, :resized.width] = resized.get_ndarray()
-            return Image(array, color_space=self._colorSpace)
+            return Image(array, color_space=self._color_space)
 
     def embiggen(self, size=None, color=Color.BLACK, pos=None):
         """
@@ -6929,7 +6929,7 @@ class Image(object):
             return None
         blit_array = self._ndarray[Image.roi_to_slice(top_roi)]
         array[Image.roi_to_slice(bottom_roi)] = blit_array
-        return Image(array, color_space=self._colorSpace)
+        return Image(array, color_space=self._color_space)
 
     def _rect_overlap_rois(self, top, bottom, pos):
         """
@@ -7105,7 +7105,7 @@ class Image(object):
         binary_mask = mask.get_gray_ndarray() != 0
 
         array[binary_mask] = self._ndarray[binary_mask]
-        return Image(array, color_space=self._colorSpace)
+        return Image(array, color_space=self._color_space)
 
     def create_alpha_mask(self, hue=60, hue_lb=None, hue_ub=None):
         """
@@ -7282,7 +7282,7 @@ class Image(object):
             array = cv2.filter2D(self._ndarray, -1, kernel)
         else:
             array = cv2.filter2D(self._ndarray, -1, kernel, anchor=center)
-        return Image(array, color_space=self._colorSpace)
+        return Image(array, color_space=self._color_space)
 
     def find_template(self, template_image=None, threshold=5,
                       method="SQR_DIFF_NORM", grayscale=True,
@@ -7849,7 +7849,7 @@ class Image(object):
         if b_lut is not None:
             b = cv2.LUT(b, b_lut)
         array = np.dstack((b, g, r))
-        return Image(array, color_space=self._colorSpace)
+        return Image(array, color_space=self._color_space)
 
     def _get_raw_keypoints(self, thresh=500.00, flavor="SURF", highquality=1,
                            force_reset=False):
@@ -7939,11 +7939,11 @@ class Image(object):
         If you would prefer to work with the raw keypoints and descriptors each
         image keeps a local cache of the raw values. These are named:
 
-        self._mKeyPoints # A tuple of keypoint objects
+        self._key_points # A tuple of keypoint objects
         See: http://opencv.itseez.com/modules/features2d/doc/
         common_interfaces_of_feature_detectors.html#keypoint-keypoint
-        self._mKPDescriptors # The descriptor as a floating point numpy array
-        self._mKPFlavor = "NONE" # The flavor of the keypoints as a string.
+        self._kp_descriptors # The descriptor as a floating point numpy array
+        self._kp_flavor = "NONE" # The flavor of the keypoints as a string.
 
         See Also:
          ImageClass._get_raw_keypoints(self, thresh=500.00,
@@ -7957,8 +7957,8 @@ class Image(object):
 
         """
         if force_reset:
-            self._mKeyPoints = None
-            self._mKPDescriptors = None
+            self._key_points = None
+            self._kp_descriptors = None
 
         _detectors = ["SIFT", "SURF", "FAST", "STAR", "FREAK", "ORB", "BRISK",
                       "MSER", "Dense"]
@@ -7967,8 +7967,8 @@ class Image(object):
             warnings.warn("Invalid choice of keypoint detector.")
             return None, None
 
-        if self._mKeyPoints is not None and self._mKPFlavor == flavor:
-            return self._mKeyPoints, self._mKPDescriptors
+        if self._key_points is not None and self._kp_flavor == flavor:
+            return self._key_points, self._kp_descriptors
 
         if hasattr(cv2, flavor):
 
@@ -7976,52 +7976,52 @@ class Image(object):
                 # cv2.SURF(hessianThreshold, nOctaves,
                 #          nOctaveLayers, extended, upright)
                 detector = cv2.SURF(thresh, 4, 2, highquality, 1)
-                self._mKeyPoints, self._mKPDescriptors = \
+                self._key_points, self._kp_descriptors = \
                     detector.detect(self.get_gray_ndarray(), None, False)
-                if len(self._mKeyPoints) == 0:
+                if len(self._key_points) == 0:
                     return None, None
                 if highquality == 1:
-                    self._mKPDescriptors = self._mKPDescriptors.reshape(
+                    self._kp_descriptors = self._kp_descriptors.reshape(
                         (-1, 128))
                 else:
-                    self._mKPDescriptors = self._mKPDescriptors.reshape(
+                    self._kp_descriptors = self._kp_descriptors.reshape(
                         (-1, 64))
 
             elif flavor in _descriptors:
                 detector = getattr(cv2, flavor)()
-                self._mKeyPoints, self._mKPDescriptors = \
+                self._key_points, self._kp_descriptors = \
                     detector.detectAndCompute(self.get_gray_ndarray(), None,
                                               False)
             elif flavor == "MSER":
                 if hasattr(cv2, "FeatureDetector_create"):
                     detector = cv2.FeatureDetector_create("MSER")
-                    self._mKeyPoints = detector.detect(self.get_gray_ndarray())
+                    self._key_points = detector.detect(self.get_gray_ndarray())
         elif flavor == "STAR":
             detector = cv2.StarDetector()
-            self._mKeyPoints = detector.detect(self.get_gray_ndarray())
+            self._key_points = detector.detect(self.get_gray_ndarray())
         elif flavor == "FAST":
             if not hasattr(cv2, "FastFeatureDetector"):
                 warnings.warn("You need OpenCV >= 2.4.0 to support FAST")
                 return None, None
             detector = cv2.FastFeatureDetector(int(thresh), True)
-            self._mKeyPoints = detector.detect(self.get_gray_ndarray(), None)
+            self._key_points = detector.detect(self.get_gray_ndarray(), None)
         elif hasattr(cv2, "FeatureDetector_create"):
             if flavor in _descriptors:
                 extractor = cv2.DescriptorExtractor_create(flavor)
                 if flavor == "FREAK":
                     flavor = "SIFT"
                 detector = cv2.FeatureDetector_create(flavor)
-                self._mKeyPoints = detector.detect(self.get_gray_ndarray())
-                self._mKeyPoints, self._mKPDescriptors = extractor.compute(
-                    self.get_gray_ndarray(), self._mKeyPoints)
+                self._key_points = detector.detect(self.get_gray_ndarray())
+                self._key_points, self._kp_descriptors = extractor.compute(
+                    self.get_gray_ndarray(), self._key_points)
             else:
                 detector = cv2.FeatureDetector_create(flavor)
-                self._mKeyPoints = detector.detect(self.get_gray_ndarray())
+                self._key_points = detector.detect(self.get_gray_ndarray())
         else:
             warnings.warn("simplecv can't seem to find appropriate function "
                           "with your OpenCV version.")
             return None, None
-        return self._mKeyPoints, self._mKPDescriptors
+        return self._key_points, self._kp_descriptors
 
     @staticmethod
     def _get_flann_matches(sd, td):
@@ -8059,11 +8059,11 @@ class Image(object):
         If you would prefer to work with the raw keypoints and descriptors each
         image keeps a local cache of the raw values. These are named:
 
-        self._mKeyPoints # A tuple of keypoint objects
+        self._key_points # A tuple of keypoint objects
         See: http://opencv.itseez.com/modules/features2d/doc/
         common_interfaces_of_feature_detectors.html#keypoint-keypoint
-        self._mKPDescriptors # The descriptor as a floating point numpy array
-        self._mKPFlavor = "NONE" # The flavor of the keypoints as a string.
+        self._kp_descriptors # The descriptor as a floating point numpy array
+        self._kp_flavor = "NONE" # The flavor of the keypoints as a string.
 
         See:
          ImageClass._get_raw_keypoints(self, thresh=500.00, forceReset=False,
@@ -8123,11 +8123,11 @@ class Image(object):
         If you would prefer to work with the raw keypoints and descriptors each
         image keeps a local cache of the raw values. These are named:
 
-        self._mKeyPoints # A tuple of keypoint objects
+        self._key_points # A tuple of keypoint objects
         See: http://opencv.itseez.com/modules/features2d/doc/
         common_interfaces_of_feature_detectors.html#keypoint-keypoint
-        self._mKPDescriptors # The descriptor as a floating point numpy array
-        self._mKPFlavor = "NONE" # The flavor of the keypoints as a string.
+        self._kp_descriptors # The descriptor as a floating point numpy array
+        self._kp_flavor = "NONE" # The flavor of the keypoints as a string.
 
         **SEE ALSO**
 
@@ -8221,9 +8221,9 @@ class Image(object):
         If you would prefer to work with the raw keypoints and descriptors each
         image keeps a local cache of the raw values. These are named:
 
-        | self._mKeyPoints # A Tuple of keypoint objects
-        | self._mKPDescriptors # The descriptor as a floating point numpy array
-        | self._mKPFlavor = "NONE" # The flavor of the keypoints as a string.
+        | self._key_points # A Tuple of keypoint objects
+        | self._kp_descriptors # The descriptor as a floating point numpy array
+        | self._kp_flavor = "NONE" # The flavor of the keypoints as a string.
         | `See Documentation <http://opencv.itseez.com/modules/features2d/doc/
         | common_interfaces_of_feature_detectors.html#keypoint-keypoint>`_
 
@@ -8541,11 +8541,11 @@ class Image(object):
 
         Nothing, but creates the image's cached values for:
 
-        self._mDoHuePalette
-        self._mPaletteBins
-        self._mPalette
-        self._mPaletteMembers
-        self._mPalettePercentages
+        self._do_hue_palette
+        self._palette_bins
+        self._palette
+        self._palette_members
+        self._palette_percentages
 
 
         **EXAMPLE**
@@ -8577,7 +8577,7 @@ class Image(object):
         """
         # FIXME: There is a performance issue
 
-        if self._mPaletteBins != bins or self._mDoHuePalette != hue:
+        if self._palette_bins != bins or self._do_hue_palette != hue:
             total = float(self.width * self.height)
             percentages = []
             result = None
@@ -8591,7 +8591,7 @@ class Image(object):
                         centroids = np.array(centroids, dtype=np.uint8)
                     result = scv.kmeans(pixels, centroids)
 
-                self._mPaletteMembers = scv.vq(pixels, result[0])[0]
+                self._palette_members = scv.vq(pixels, result[0])[0]
 
             else:
                 hsv = self
@@ -8609,17 +8609,17 @@ class Image(object):
                         centroids = centroids.reshape(centroids.shape[0], 1)
                     result = scv.kmeans(pixels, centroids)
 
-                self._mPaletteMembers = scv.vq(pixels, result[0])[0]
+                self._palette_members = scv.vq(pixels, result[0])[0]
 
             for i in range(0, bins):
-                count = np.where(self._mPaletteMembers == i)
+                count = np.where(self._palette_members == i)
                 v = float(count[0].shape[0]) / total
                 percentages.append(v)
 
-            self._mDoHuePalette = hue
-            self._mPaletteBins = bins
-            self._mPalette = np.array(result[0], dtype=np.uint8)
-            self._mPalettePercentages = percentages
+            self._do_hue_palette = hue
+            self._palette_bins = bins
+            self._palette = np.array(result[0], dtype=np.uint8)
+            self._palette_percentages = percentages
 
     def get_palette(self, bins=10, hue=False, centroids=None):
         """
@@ -8669,7 +8669,7 @@ class Image(object):
 
         """
         self._generate_palette(bins, hue, centroids)
-        return self._mPalette
+        return self._palette
 
     def re_palette(self, palette, hue=False):
         """
@@ -8721,28 +8721,28 @@ class Image(object):
             derp = palette[result[0]]
             ret_val = Image(derp.reshape(self.height, self.width))
             ret_val = ret_val.rotate(-90, fixed=False)
-            ret_val._mDoHuePalette = True
-            ret_val._mPaletteBins = len(palette)
-            ret_val._mPalette = palette
-            ret_val._mPaletteMembers = result[0]
+            ret_val._do_hue_palette = True
+            ret_val._palette_bins = len(palette)
+            ret_val._palette = palette
+            ret_val._palette_members = result[0]
 
         else:
             result = scv.vq(self.get_ndarray().reshape(-1, 3), palette)
             ret_val = Image(
                 palette[result[0]].reshape(self.width, self.height, 3))
-            ret_val._mDoHuePalette = False
-            ret_val._mPaletteBins = len(palette)
-            ret_val._mPalette = palette
+            ret_val._do_hue_palette = False
+            ret_val._palette_bins = len(palette)
+            ret_val._palette = palette
             pixels = np.array(self.get_ndarray()).reshape(-1, 3)
-            ret_val._mPaletteMembers = scv.vq(pixels, palette)[0]
+            ret_val._palette_members = scv.vq(pixels, palette)[0]
 
         percentages = []
         total = self.width * self.height
         for i in range(0, len(palette)):
-            count = np.where(self._mPaletteMembers == i)
+            count = np.where(self._palette_members == i)
             v = float(count[0].shape[0]) / total
             percentages.append(v)
-        self._mPalettePercentages = percentages
+        self._palette_percentages = percentages
         return ret_val
 
     def draw_palette_colors(self, size=(-1, -1), horizontal=True, bins=10,
@@ -8814,18 +8814,18 @@ class Image(object):
                 pal = np.zeros((size[1], size[0], 3), dtype=np.uint8)
                 idx_l = 0
                 idx_h = 0
-                for i in range(0, min(bins, self._mPalette.shape[0])):
+                for i in range(0, min(bins, self._palette.shape[0])):
                     idx_h = np.clip(
                         idx_h +
-                        (self._mPalettePercentages[i] * float(size[0])),
+                        (self._palette_percentages[i] * float(size[0])),
                         0, size[0] - 1)
                     roi = (int(idx_l), 0, int(idx_h - idx_l), size[1])
                     roiimage = pal[roi[1]:roi[1] + roi[3],
                                    roi[0]:roi[0] + roi[2]]
                     color = np.array((
-                        float(self._mPalette[i][2]),
-                        float(self._mPalette[i][1]),
-                        float(self._mPalette[i][0])))
+                        float(self._palette[i][2]),
+                        float(self._palette[i][1]),
+                        float(self._palette[i][0])))
                     roiimage += color
                     pal[roi[1]:roi[1] + roi[3],
                         roi[0]:roi[0] + roi[2]] = roiimage
@@ -8837,17 +8837,17 @@ class Image(object):
                 pal = np.zeros((size[1], size[0], 3), dtype=np.uint8)
                 idx_l = 0
                 idx_h = 0
-                for i in range(0, min(bins, self._mPalette.shape[0])):
+                for i in range(0, min(bins, self._palette.shape[0])):
                     idx_h = np.clip(
-                        idx_h + self._mPalettePercentages[i] * size[1], 0,
+                        idx_h + self._palette_percentages[i] * size[1], 0,
                         size[1] - 1)
                     roi = (0, int(idx_l), size[0], int(idx_h - idx_l))
                     roiimage = pal[roi[1]:roi[1] + roi[3],
                                    roi[0]:roi[0] + roi[2]]
                     color = np.array((
-                        float(self._mPalette[i][2]),
-                        float(self._mPalette[i][1]),
-                        float(self._mPalette[i][0])))
+                        float(self._palette[i][2]),
+                        float(self._palette[i][1]),
+                        float(self._palette[i][0])))
                     roiimage += color
                     pal[roi[1]:roi[1] + roi[3],
                         roi[0]:roi[0] + roi[2]] = roiimage
@@ -8860,15 +8860,15 @@ class Image(object):
                 pal = np.zeros((size[1], size[0], 3), dtype=np.uint8)
                 idx_l = 0
                 idx_h = 0
-                for i in range(0, min(bins, self._mPalette.shape[0])):
+                for i in range(0, min(bins, self._palette.shape[0])):
                     idx_h = np.clip(
                         idx_h +
-                        (self._mPalettePercentages[i] * float(size[0])),
+                        (self._palette_percentages[i] * float(size[0])),
                         0, size[0] - 1)
                     roi = (int(idx_l), 0, int(idx_h - idx_l), size[1])
                     roiimage = pal[roi[1]:roi[1] + roi[3],
                                    roi[0]:roi[0] + roi[2]]
-                    roiimage += self._mPalette[i]
+                    roiimage += self._palette[i]
                     pal[roi[1]:roi[1] + roi[3],
                         roi[0]:roi[0] + roi[2]] = roiimage
                     idx_l = idx_h
@@ -8879,14 +8879,14 @@ class Image(object):
                 pal = np.zeros((size[1], size[0], 3), dtype=np.uint8)
                 idx_l = 0
                 idx_h = 0
-                for i in range(0, min(bins, self._mPalette.shape[0])):
+                for i in range(0, min(bins, self._palette.shape[0])):
                     idx_h = np.clip(
-                        idx_h + self._mPalettePercentages[i] * size[1], 0,
+                        idx_h + self._palette_percentages[i] * size[1], 0,
                         size[1] - 1)
                     roi = (0, int(idx_l), size[0], int(idx_h - idx_l))
                     roiimage = pal[roi[1]:roi[1] + roi[3],
                                    roi[0]:roi[0] + roi[2]]
-                    roiimage += self._mPalette[i]
+                    roiimage += self._palette[i]
                     pal[roi[1]:roi[1] + roi[3],
                         roi[0]:roi[0] + roi[2]] = roiimage
                     idx_l = idx_h
@@ -8943,7 +8943,7 @@ class Image(object):
         """
         ret_val = None
         self._generate_palette(bins, hue, centroids)
-        derp = self._mPalette[self._mPaletteMembers]
+        derp = self._palette[self._palette_members]
         if hue:
             ret_val = Image(derp.reshape(self.height, self.width))
         else:
@@ -9058,13 +9058,13 @@ class Image(object):
 
         #we get the palette from find palete
         #ASSUME: GET PALLETE WAS CALLED!
-        if self._mPalette is None:
+        if self._palette is None:
             logger.warning("Image.binarize_from_palette: No palette exists, "
                            "call get_palette())")
             return None
         ret_val = None
-        img = self.palettize(self._mPaletteBins, hue=self._mDoHuePalette)
-        if not self._mDoHuePalette:
+        img = self.palettize(self._palette_bins, hue=self._do_hue_palette)
+        if not self._do_hue_palette:
             npimg = img.get_ndarray()
             white = np.array([255, 255, 255])
             black = np.array([0, 0, 0])
@@ -9726,7 +9726,7 @@ class Image(object):
         to each channel of the image. Each channel generates a 64F 2 channel
         IPL image corresponding to the real and imaginary components of the
         DFT. A list of these IPL images are then cached in the private member
-        variable _DFT.
+        variable _dft.
 
 
         **PARAMETERS**
@@ -9743,7 +9743,7 @@ class Image(object):
 
         >>> img = Image('logo.png')
         >>> img._do_dft()
-        >>> img._DFT[0] # get the b channel Re/Im components
+        >>> img._dft[0] # get the b channel Re/Im components
 
         **NOTES**
 
@@ -9759,17 +9759,17 @@ class Image(object):
 
         """
         width, height = self.size()
-        if grayscale and (len(self._DFT) == 0 or len(self._DFT) == 3):
-            self._DFT = []
+        if grayscale and (len(self._dft) == 0 or len(self._dft) == 3):
+            self._dft = []
             img = self.get_gray_ndarray()
             data = img.astype(np.float64)
             blank = np.zeros((height, width))
             src = np.dstack((data, blank))
             dst = cv2.dft(src)
-            self._DFT.append(dst)
-        elif not grayscale and len(self._DFT) < 2:
+            self._dft.append(dst)
+        elif not grayscale and len(self._dft) < 2:
             width, height = self.size()
-            self._DFT = []
+            self._dft = []
             img = self._ndarray.copy()
             b = img[:, :, 0]
             g = img[:, :, 1]
@@ -9780,7 +9780,7 @@ class Image(object):
                 blank = np.zeros((height, width))
                 src = np.dstack((data, blank))
                 dst = cv2.dft(src)
-                self._DFT.append(dst)
+                self._dft.append(dst)
 
     def _get_dft_clone(self, grayscale=False):
         """
@@ -9820,9 +9820,9 @@ class Image(object):
         self._do_dft(grayscale)
         ret_val = []
         if grayscale:
-            ret_val.append(self._DFT[0].copy())
+            ret_val.append(self._dft[0].copy())
         else:
-            for img in self._DFT:
+            for img in self._dft:
                 ret_val.append(img.copy())
         return ret_val
 
@@ -9876,7 +9876,7 @@ class Image(object):
 
         """
         self._do_dft(grayscale)
-        return self._DFT
+        return self._dft
 
     def get_dft_log_magnitude(self, grayscale=False):
         """
@@ -10530,7 +10530,7 @@ class Image(object):
         """
         input = []
         if len(raw_dft_image) == 1:
-            input.append(self._DFT[0].copy())
+            input.append(self._dft[0].copy())
         else:
             for img in raw_dft_image:
                 input.append(img.copy())
@@ -12052,12 +12052,12 @@ class Image(object):
         return self._ndarray.astype(np.float32)
 
     def __getstate__(self):
-        return dict(colorspace=self._colorSpace,
+        return dict(colorspace=self._color_space,
                     image=self.apply_layers().get_ndarray())
 
     def __setstate__(self, mydict):
         self._ndarray = mydict['image']
-        self._colorSpace = mydict['colorspace']
+        self._color_space = mydict['colorspace']
         self.height = self._ndarray.shape[0]
         self.width = self._ndarray.shape[1]
         self.dtype = self._ndarray.dtype
@@ -12095,7 +12095,7 @@ class Image(object):
         """
         array = cv2.flip(self._ndarray, 0)  # vertical
         array = cv2.transpose(array)
-        return Image(array, color_space=self._colorSpace)
+        return Image(array, color_space=self._color_space)
 
     def rotate90(self):
         """
@@ -12117,7 +12117,7 @@ class Image(object):
 
         array = cv2.transpose(self._ndarray)
         array = cv2.flip(array, 0)  # vertical
-        return Image(array, color_space=self._colorSpace)
+        return Image(array, color_space=self._color_space)
 
     def rotate_left(self):  # same as 90
         """
@@ -12177,7 +12177,7 @@ class Image(object):
         """
         array = cv2.flip(self._ndarray, 0)  # vertical
         array = cv2.flip(array, 1)  # horizontal
-        return Image(array, color_space=self._colorSpace)
+        return Image(array, color_space=self._color_space)
 
     def vertical_histogram(self, bins=10, threshold=128, normalize=False,
                            for_plot=False):
@@ -12720,7 +12720,7 @@ class Image(object):
         >> croppedImg = img.crop(10,20,250,500)
         >> sourcePts = croppedImg.uncrop([(2,3),(56,23),(24,87)])
         """
-        return [(i[0] + self._uncroppedX, i[1] + self._uncroppedY) for i in
+        return [(i[0] + self._uncropped_x, i[1] + self._uncropped_y) for i in
                 list_of_pts]
 
     def grid(self, dimensions=(10, 10), color=(0, 0, 0), width=1,
@@ -12771,8 +12771,8 @@ class Image(object):
                           color, width, antialias, alpha)
                 j = j + 1
         # store grid layer index
-        ret_val._gridLayer[0] = ret_val.add_drawing_layer(grid)
-        ret_val._gridLayer[1] = dimensions
+        ret_val._grid_layer[0] = ret_val.add_drawing_layer(grid)
+        ret_val._grid_layer[1] = dimensions
         return ret_val
 
     def remove_grid(self):
@@ -12798,9 +12798,9 @@ class Image(object):
 
         """
 
-        if self._gridLayer[0] is not None:
-            grid = self.remove_drawing_layer(self._gridLayer[0])
-            self._gridLayer = [None, [0, 0]]
+        if self._grid_layer[0] is not None:
+            grid = self.remove_drawing_layer(self._grid_layer[0])
+            self._grid_layer = [None, [0, 0]]
             return grid
         else:
             return None
@@ -12828,25 +12828,25 @@ class Image(object):
 
         """
 
-        grid_index = self.get_drawing_layer(self._gridLayer[0])
-        if self._gridLayer[0] == -1:
+        grid_index = self.get_drawing_layer(self._grid_layer[0])
+        if self._grid_layer[0] == -1:
             print "Cannot find grid on the image, Try adding a grid first"
 
         line_fs = FeatureSet()
         try:
-            step_row = self.size()[1] / self._gridLayer[1][0]
-            step_col = self.size()[0] / self._gridLayer[1][1]
+            step_row = self.size()[1] / self._grid_layer[1][0]
+            step_col = self.size()[0] / self._grid_layer[1][1]
         except ZeroDivisionError:
             return None
 
         i = 1
         j = 1
 
-        while i < self._gridLayer[1][0]:
+        while i < self._grid_layer[1][0]:
             line_fs.append(Line(self, ((0, step_row * i),
                                       (self.size()[0], step_row * i))))
             i = i + 1
-        while j < self._gridLayer[1][1]:
+        while j < self._grid_layer[1][1]:
             line_fs.append(Line(self, ((step_col * j, 0),
                                       (step_col * j, self.size()[1]))))
             j = j + 1
@@ -13584,16 +13584,16 @@ class Image(object):
             return None
         detector = cv2.FeatureDetector_create(flavor)
         extractor = cv2.DescriptorExtractor_create("FREAK")
-        self._mKeyPoints = detector.detect(self.get_gray_ndarray())
-        self._mKeyPoints, self._mKPDescriptors = extractor.compute(
+        self._key_points = detector.detect(self.get_gray_ndarray())
+        self._key_points, self._kp_descriptors = extractor.compute(
             self.get_gray_ndarray(),
-            self._mKeyPoints)
+            self._key_points)
         fs = FeatureSet()
-        for i in range(len(self._mKeyPoints)):
-            fs.append(KeyPoint(self, self._mKeyPoints[i],
-                               self._mKPDescriptors[i], flavor))
+        for i in range(len(self._key_points)):
+            fs.append(KeyPoint(self, self._key_points[i],
+                               self._kp_descriptors[i], flavor))
 
-        return fs, self._mKPDescriptors
+        return fs, self._kp_descriptors
 
     def get_gray_histogram_counts(self, bins=255, limit=-1):
         '''
@@ -14287,7 +14287,7 @@ class Image(object):
         Algorithm used: value = (MAX(R,G,B) + MIN(R,G,B))/2
 
         """
-        if self.is_bgr() or self._colorSpace == ColorSpace.UNKNOWN:
+        if self.is_bgr() or self._color_space == ColorSpace.UNKNOWN:
             img_mat = np.array(self._ndarray, dtype=np.int)
             ret_val = np.array((np.max(img_mat, 2) + np.min(img_mat, 2)) / 2,
                                dtype=np.uint8)
@@ -14322,7 +14322,7 @@ class Image(object):
         Algorithm used: value =  0.21 R + 0.71 G + 0.07 B
 
         """
-        if self.is_bgr() or self._colorSpace == ColorSpace.UNKNOWN:
+        if self.is_bgr() or self._color_space == ColorSpace.UNKNOWN:
             img_mat = np.array(self._ndarray, dtype=np.int)
             ret_val = np.array(np.average(img_mat, 2, (0.07, 0.71, 0.21)),
                                dtype=np.uint8)
@@ -14357,7 +14357,7 @@ class Image(object):
         Algorithm used: value =  (R+G+B)/3
 
         """
-        if self.is_bgr() or self._colorSpace == ColorSpace.UNKNOWN:
+        if self.is_bgr() or self._color_space == ColorSpace.UNKNOWN:
             img_mat = np.array(self._ndarray, dtype=np.int)
             ret_val = np.array(img_mat.mean(2), dtype=np.uint8)
         else:
