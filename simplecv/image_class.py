@@ -5600,7 +5600,7 @@ class Image(object):
                 and y is None and w is None and h is None:
             if len(x[0]) == 2 and len(x[1]) == 2:
                 xt = np.min([x[0][0], x[1][0]])
-                yt = np.min([x[0][0], x[1][0]])
+                yt = np.min([x[0][1], x[1][1]])
                 w = np.abs(x[0][0] - x[1][0])
                 h = np.abs(x[0][1] - x[1][1])
                 x = xt
@@ -5651,9 +5651,7 @@ class Image(object):
                            "image. I have no choice but to return None.")
             return None
 
-        array = self._ndarray[
-            bottom_roi[1]:bottom_roi[1] + bottom_roi[3],
-            bottom_roi[0]:bottom_roi[0] + bottom_roi[2]]
+        array = self._ndarray[Image.roi_to_slice(bottom_roi)].copy()
 
         img = Image(array, color_space=self._color_space)
 

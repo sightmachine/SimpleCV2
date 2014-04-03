@@ -2526,6 +2526,7 @@ def test_pixelize():
     name_stem = "test_pixelize"
     perform_diff(results, name_stem, tolerance=6.0)
 
+
 def test_point_intersection():
     img = Image("simplecv")
     e = img.edges(0, 100)
@@ -2672,18 +2673,16 @@ def test_image_new_crop():
     if SHOW_WARNING_TESTS:
         crop7 = img.crop((0, 0, -10, 10))
         crop8 = img.crop((-50, -50), (10, 10))
-        crop3 = img.crop([(-3, -3), (10, 20)])
-        crop4 = img.crop((-10, 10, 20, 20), centered=True)
-        crop5 = img.crop([-10, -10, 20, 20])
+        crop9 = img.crop([(-3, -3), (10, 20)])
+        crop10 = img.crop((-10, 10, 20, 20), centered=True)
+        crop11 = img.crop([-10, -10, 20, 20])
 
     results = [crop, crop1, crop2, crop3]
     name_stem = "test_image_new_crop"
     perform_diff(results, name_stem)
 
     diff = crop - crop1
-    c = diff.mean_color()
-    if c[0] > 0 or c[1] > 0 or c[2] > 0:
-        assert False
+    assert_equals((0, 0, 0), diff.mean_color())
 
 
 def test_image_temp_save():
