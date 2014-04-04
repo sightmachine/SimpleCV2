@@ -7,12 +7,7 @@ import numpy as np
 from simplecv.color import Color
 from simplecv.camera import Camera, StereoImage, StereoCamera
 from simplecv.image_class import Image
-
-
-VISUAL_TEST = True  # if TRUE we save the images
-                    # otherwise we DIFF against them - the default is False
-SHOW_WARNING_TESTS = False  # show that warnings are working
-                            # tests will pass but warnings are generated.
+from simplecv.tests.utils import perform_diff
 
 # Colors
 black = Color.BLACK
@@ -43,44 +38,6 @@ pair5 = ("../data/sampleimages/stereo3_real_left.png",
          "../data/sampleimages/stereo3_real_right.png")
 
 correct_pairs = [pair1, pair2, pair3, pair4, pair5]
-
-#standards path
-standard_path = "../data/test/standard/"
-
-
-#Given a set of images, a path, and a tolerance do the image diff.
-def img_diffs(test_imgs, name_stem, tolerance, path):
-    count = len(test_imgs)
-    for idx in range(0, count):
-        lhs = test_imgs[idx].apply_layers()  # this catches drawing methods
-        fname = standard_path + name_stem + str(idx) + ".jpg"
-        rhs = Image(fname)
-        if lhs.width == rhs.width and lhs.height == rhs.height:
-            diff = (lhs - rhs)
-            val = np.average(diff.get_numpy())
-            if val > tolerance:
-                print val
-                return True
-    return False
-
-
-#Save a list of images to a standard path.
-def img_saves(test_imgs, name_stem, path=standard_path):
-    count = len(test_imgs)
-    for idx in range(0, count):
-        fname = standard_path + name_stem + str(idx) + ".jpg"
-        test_imgs[idx].save(fname)  # ,quality=95)
-
-
-#perform the actual image save and image diffs.
-def perform_diff(result, name_stem, tolerance=2.0, path=standard_path):
-    if VISUAL_TEST:  # save the correct images for a visual test
-        img_saves(result, name_stem, path)
-    else:  # otherwise we test our output against the visual test
-        if img_diffs(result, name_stem, tolerance, path):
-            assert False
-        else:
-            pass
 
 
 def test_find_fundamental_mat():
@@ -147,41 +104,25 @@ def test_project_point():
 
 def test_stereo_calibration():
     cam = StereoCamera()
-    try:
-        cam1 = Camera(0)
-        cam2 = Camera(1)
-        cam1.get_image()
-        cam2.get_image()
-        try:
-            cam = StereoCamera()
-            calib = cam.stereo_calibration(0, 1, nboards=1)
-            if calib:
-                assert True
-            else:
-                assert False
-        except:
-            assert False
-    except:
-        assert True
+
+    cam1 = Camera(0)
+    cam2 = Camera(1)
+    cam1.get_image()
+    cam2.get_image()
+
+    cam = StereoCamera()
+    assert cam.stereo_calibration(0, 1, nboards=1)
 
 
 def test_load_calibration():
     cam = StereoCamera()
-    calbib = cam.load_calibration("Stereo", "../data/test/StereoVision/")
-    if calbib:
-        assert True
-    else:
-        assert False
+    assert cam.load_calibration("Stereo", "../data/test/StereoVision/")
 
 
 def test_stereo_rectify():
     cam = StereoCamera()
     calib = cam.load_calibration("Stereo", "../data/test/StereoVision/")
-    rectify = cam.stereo_rectify(calib)
-    if rectify:
-        assert True
-    else:
-        assert False
+    assert cam.stereo_rectify(calib)
 
 
 def test_get_images_undistort():
@@ -192,7 +133,4 @@ def test_get_images_undistort():
     rectify = cam.stereo_rectify(calib)
     rect_left, rect_right = cam.get_images_undistort(img1, img2,
                                                      calib, rectify)
-    if rect_left and rect_right:
-        assert True
-    else:
-        assert False
+    assert rect_left and rect_right

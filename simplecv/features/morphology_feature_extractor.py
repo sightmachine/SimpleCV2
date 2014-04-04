@@ -9,9 +9,6 @@ class MorphologyFeatureExtractor(FeatureExtractorBase):
     object in the image. The user must provide a segmented white on black blob
     image.This operation then straightens the image and collects the data.
     """
-    nbins = 9
-    blobmaker = None
-    threshold_operation = None
 
     def __init__(self, threshold_operation=None):
         """

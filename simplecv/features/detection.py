@@ -11,11 +11,12 @@
 from copy import copy
 from math import atan2, sqrt, pi, sin, cos, radians
 
+import cv2
 import numpy as np
 import pickle
 import scipy.spatial.distance as spsd
 
-from simplecv.base import cv, logger
+from simplecv.base import logger
 from simplecv.color import Color
 from simplecv.features.features import Feature, FeatureSet
 from simplecv.image_class import Image
@@ -168,7 +169,7 @@ class Line(Feature):
 
         """
         tlc = self.top_left_corner()
-        return self.image.crop(tlc[0], tlc[1], self.get_width(), 
+        return self.image.crop(tlc[0], tlc[1], self.get_width(),
                                self.get_height())
 
     def mean_color(self):
@@ -394,7 +395,7 @@ class Line(Feature):
         pixels = list(set(pixels))
         matched_pixels = []
         for pixel in pixels:
-            if img[pixel[0], pixel[1]] == (255.0, 255.0, 255.0):
+            if img[pixel[1], pixel[0]] == [255.0, 255.0, 255.0]:
                 matched_pixels.append(pixel)
         matched_pixels.sort()
 
@@ -913,7 +914,7 @@ class Chessboard(Feature):
         drawing layer.
 
         """
-        cv.DrawChessboardCorners(self.image.get_bitmap(), self.dimensions,
+        cv2.drawChessboardCorners(self.image.get_ndarray(), self.dimensions,
                                  self.sp_corners, 1)
 
     def get_area(self):
@@ -1178,10 +1179,9 @@ class Circle(Feature):
         #generate the mask
         if self.avg_color is None:
             mask = self.image.get_empty(1)
-            cv.Zero(mask)
-            cv.Circle(mask, (self.x, self.y), self.r, color=(255, 255, 255),
-                      thickness=-1)
-            temp = cv.Avg(self.image.get_bitmap(), mask)
+            cv2.circle(mask, (self.x, self.y), self.r, color=(255, 255, 255),
+                       thickness=-1)
+            temp = cv2.mean(self.image.get_ndarray(), mask)
             self.avg_color = (temp[0], temp[1], temp[2])
         return self.avg_color
 
@@ -1260,8 +1260,8 @@ class Circle(Feature):
         **PARAMETERS**
 
         * *no_mask* - if no_mask=True we return the bounding box image of the
-         circle. if no_mask=False (default) we return the masked circle with the
-         rest of the area set to black
+         circle. if no_mask=False (default) we return the masked circle with
+         the rest of the area set to black
 
         **RETURNS**
 
@@ -1272,15 +1272,14 @@ class Circle(Feature):
             return self.image.crop(self.x, self.y, self.get_width(),
                                    self.get_height(), centered=True)
         else:
-            mask = self.image.get_empty(1)
+            mask = self.image.get_empty()
             result = self.image.get_empty()
-            cv.Zero(mask)
-            cv.Zero(result)
+
             # if you want to shave a bit of time we go do
             # the crop before the blit
-            cv.Circle(mask, (self.x, self.y), self.r, color=(255, 255, 255),
-                      thickness=-1)
-            cv.Copy(self.image.get_bitmap(), result, mask)
+            cv2.circle(mask, (self.x, self.y), self.r, color=(255, 255, 255),
+                       thickness=-1)
+            np.where(mask, self.image.get_ndarray(), result)
             ret_value = Image(result)
             ret_value = ret_value.crop(self.x, self.y, self.get_width(),
                                        self.get_height(), centered=True)
@@ -1300,7 +1299,6 @@ class KeyPoint(Feature):
     r = 0.00
     image = ""  # parent image
     points = []
-    __avgColor = None
     angle = 0
     octave = 0
     response = 0.00
@@ -1310,10 +1308,10 @@ class KeyPoint(Feature):
 
     def __init__(self, i, keypoint, descriptor=None, flavor="SURF"):
         self.key_point = keypoint
-        x = keypoint.pt[1]  # KAT
-        y = keypoint.pt[0]
+        x = keypoint.pt[0]
+        y = keypoint.pt[1]
         self._r = keypoint.size / 2.0
-        self._avgColor = None
+        self._avg_color = None
         self.image = i
         self.angle = keypoint.angle
         self.octave = keypoint.octave
@@ -1466,14 +1464,13 @@ class KeyPoint(Feature):
 
         """
         #generate the mask
-        if self._avgColor is None:
+        if self._avg_color is None:
             mask = self.image.get_empty(1)
-            cv.Zero(mask)
-            cv.Circle(mask, (int(self.x), int(self.y)), int(self._r),
-                      color=(255, 255, 255), thickness=-1)
-            temp = cv.Avg(self.image.get_bitmap(), mask)
-            self._avgColor = (temp[0], temp[1], temp[2])
-        return self._avgColor
+            cv2.circle(mask, (int(self.x), int(self.y)), int(self._r),
+                       color=(255, 255, 255), thickness=-1)
+            temp = cv2.mean(self.image.get_ndarray(), mask)
+            self._avg_color = (temp[0], temp[1], temp[2])
+        return self._avg_color
 
     def color_distance(self, color=(0, 0, 0)):
         """
@@ -1546,15 +1543,14 @@ class KeyPoint(Feature):
             return self.image.crop(self.x, self.y, self.get_width(),
                                    self.get_height(), centered=True)
         else:
-            mask = self.image.get_empty(1)
+            mask = self.image.get_empty()
             result = self.image.get_empty()
-            cv.Zero(mask)
-            cv.Zero(result)
+
             # if you want to shave a bit of time we go do
             # the crop before the blit
-            cv.Circle(mask, (int(self.x), int(self.y)), int(self._r),
-                      color=(255, 255, 255), thickness=-1)
-            cv.Copy(self.image.get_bitmap(), result, mask)
+            cv2.circle(mask, (int(self.x), int(self.y)), int(self._r),
+                       color=(255, 255, 255), thickness=-1)
+            np.where(mask, self.image.get_ndarray(), result)
             ret_value = Image(result)
             ret_value = ret_value.crop(self.x, self.y, self.get_width(),
                                        self.get_height(), centered=True)
@@ -1782,10 +1778,14 @@ class KeypointMatch(Feature):
 
 
         """
-        self.image.dl().line(self._min_rect[0], self._min_rect[1], color, width)
-        self.image.dl().line(self._min_rect[1], self._min_rect[2], color, width)
-        self.image.dl().line(self._min_rect[2], self._min_rect[3], color, width)
-        self.image.dl().line(self._min_rect[3], self._min_rect[0], color, width)
+        self.image.dl().line(self._min_rect[0],
+                             self._min_rect[1], color, width)
+        self.image.dl().line(self._min_rect[1],
+                             self._min_rect[2], color, width)
+        self.image.dl().line(self._min_rect[2],
+                             self._min_rect[3], color, width)
+        self.image.dl().line(self._min_rect[3],
+                             self._min_rect[0], color, width)
 
     def draw_rect(self, color=Color.GREEN, width=1):
         """
@@ -1832,13 +1832,14 @@ class KeypointMatch(Feature):
         """
         if self._avg_color is None:
             tlc = self.top_left_corner()
-            raw = self.image.crop(tlc[0], tlc[0], self.get_width(),
-                                  self.get_height())  # crop the minbouding rect
+            # crop the minbouding rect
+            raw = self.image.crop(tlc[0], tlc[0],
+                                  self.get_width(), self.get_height())
             mask = Image((self.get_width(), self.get_height()))
             mask.dl().polygon(self._min_rect, color=Color.WHITE,
                               filled=pickle.TRUE)
             mask = mask.apply_layers()
-            ret_value = cv.Avg(raw.get_bitmap(), mask._get_grayscale_bitmap())
+            ret_value = cv2.mean(raw.get_ndarray(), mask._get_grayscale_bitmap())
             self._avg_color = ret_value
         else:
             ret_value = self._avg_color

@@ -13,16 +13,20 @@ class ColorSegmentation(SegmentationBase):
     def __init__(self):
         self.color_model = ColorModel()
         self.error = False
-        self.cur_img = Image()
-        self.truth_img = Image()
+        self.cur_img = None
+        self.truth_img = None
         self.blobmaker = BlobMaker()
 
     def add_image(self, img):
         """
         Add a single image to the segmentation algorithm
         """
-        self.truth_img = img
-        self.cur_img = self.color_model.threshold(img)
+        if isinstance(img, str):
+            img = Image(img)
+
+        if isinstance(img, Image):
+            self.truth_img = img
+            self.cur_img = self.color_model.threshold(img)
 
     def is_ready(self):
         """

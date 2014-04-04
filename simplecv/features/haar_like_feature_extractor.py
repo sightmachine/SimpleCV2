@@ -13,9 +13,6 @@ class HaarLikeFeatureExtractor(FeatureExtractorBase):
     http://en.wikipedia.org/wiki/Haar-like_features
     """
 
-    featureset = None
-    do45 = True
-
     def __init__(self, fname=None, do45=True):
         """
         fname - The feature file name

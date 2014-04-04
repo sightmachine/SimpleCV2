@@ -49,7 +49,7 @@ class Track(Feature):
         self.rt_vel = (0, 0)
         self.area = self.get_area()
         self.time = time.time()
-        self.cv2numpy = self.image.get_numpy_cv2()
+        self.cv2numpy = self.image.get_ndarray()
         return self
 
     def getCenter(self):

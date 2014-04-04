@@ -1,9 +1,10 @@
 import sys
 import warnings
 
+import cv2
 import numpy as np
 
-from simplecv.base import cv, logger
+from simplecv.base import logger
 from simplecv.features.blob import Blob
 from simplecv.features.features import FeatureSet
 from simplecv.image_class import Image
@@ -17,10 +18,9 @@ class BlobMaker(object):
     that one would use for blob extraction. Later implementations may include
     tracking and other features.
     """
-    mem_storage = None
 
     def __init__(self):
-        self.mem_storage = cv.CreateMemStorage()
+        pass
 
     def extract_using_model(self, img, colormodel, minsize=10, maxsize=0):
         """
@@ -81,19 +81,20 @@ class BlobMaker(object):
         maximum distance between the true edge and the approximation edge -
         lower numbers yield better approximation.
         """
-        #If you hit this recursion limit may god have mercy on your soul.
-        #If you really are having problems set the value higher, but this means
-        # you have over 10,000,000 blobs in your image.
-        sys.setrecursionlimit(5000)
-        #h_next moves to the next external get_contour
-        #v_next() moves to the next internal get_contour
         if maxsize <= 0:
             maxsize = color_img.width * color_img.height
 
-        ret_value = []
+        ptest = (4 * 255.0) / (binary_img.width * binary_img.height)
         test = binary_img.mean_color()
-        if test[0] == 0.00 and test[1] == 0.00 and test[2] == 0.00:
-            return FeatureSet(ret_value)
+        if not test:
+            return FeatureSet([])
+        if type(test) == tuple and len(test) == 3:
+            if (test[0] == 0.00 and test[1] == 0.00 and test[2] == 0.00) or \
+               (test[0] <= ptest and test[1] <= ptest and test[2] <= ptest):
+                return FeatureSet([])
+        else:
+            if test == 0.00 or test <= ptest:
+                return FeatureSet([])
 
         # There are a couple of weird corner cases with the opencv
         # connect components libraries - when you try to find contours
@@ -102,107 +103,80 @@ class BlobMaker(object):
         # this check catches those bugs. -KAS
         # Also I am submitting a bug report to Willow Garage - please bare with
         # us.
-        ptest = (4 * 255.0) / (
-            binary_img.width * binary_img.height)  # val if two pixels are white
-        if test[0] <= ptest and test[1] <= ptest and test[2] <= ptest:
-            return ret_value
 
-        seq = cv.FindContours(binary_img._get_grayscale_bitmap(),
-                              self.mem_storage, cv.CV_RETR_TREE,
-                              cv.CV_CHAIN_APPROX_SIMPLE)
-        if not list(seq):
+        contours, hierarchy = cv2.findContours(binary_img.get_gray_ndarray(),
+                                               cv2.RETR_TREE,
+                                               cv2.CHAIN_APPROX_SIMPLE)
+        if not list(contours):
             warnings.warn("Unable to find Blobs. Retuning Empty FeatureSet.")
             return FeatureSet([])
-        try:
-            ret_value = self._extract_from_binary(seq, False, color_img,
-                                                  minsize, maxsize, appx_level)
-        except RuntimeError:
-            logger.warning(
-                "You exceeded the recursion limit. This means you probably "
-                "have too many blobs in your image. We suggest you do some "
-                "morphological operations (erode/dilate) to reduce the number "
-                "of blobs in your image. This function was designed to max out"
-                " at about 5000 blobs per image.")
-        except Exception:
-            logger.warning(
-                "SimpleCV Find Blobs Failed - This could be an OpenCV python "
-                "binding issue")
-        del seq
+
+        all_blobs = []
+        roots = []
+        for index, node in enumerate(hierarchy[0].tolist()):
+            if node[3] == -1:  # has no parent
+                roots.append(index)
+
+        while len(roots):
+            blobs = []
+            for root_index in roots:
+                blob = []
+                blob.append(root_index)  # append blob index
+                if hierarchy[0][root_index][2] != -1:  # blob has children
+                    child_index = hierarchy[0][root_index][2]
+                    blob.append(child_index)  # append blob hole
+                    while hierarchy[0][child_index][0] != -1:  # has next child
+                        child_index = hierarchy[0][child_index][0]
+                        blob.append(child_index)  # append blob hole
+                blobs.append(blob)
+            all_blobs += blobs
+            roots = []
+            for blob in blobs:
+                for index in blob[1:]:
+                    if hierarchy[0][index][2] != -1:
+                        child_index = hierarchy[0][index][2]
+                        roots.append(child_index)  # append blob hole
+                        while hierarchy[0][child_index][0] != -1:
+                            child_index = hierarchy[0][child_index][0]
+                            roots.append(child_index)  # append blob hole
+
+        ret_value = []
+        for blob in all_blobs:
+            blob_id = blob[0]
+            hole_ids = blob[1:]
+            hole_contours = [contours[id][:, 0, :].tolist() for id in hole_ids]
+            temp = self._extract_data(contours[blob_id], hole_contours,
+                                      color_img, minsize, maxsize,
+                                      appx_level)
+            if temp is not None:
+                ret_value.append(temp)
         return FeatureSet(ret_value)
 
-    def _extract_from_binary(self, seq, isa_hole, color_img, minsize, maxsize,
-                             appx_level):
-        """
-        The recursive entry point for the blob extraction. The blobs and holes
-        are presented as a tree and we traverse up and across the tree.
-        """
-        ret_value = []
-
-        if seq is None:
-            return ret_value
-
-        next_layer_down = []
-        while True:
-            # if we aren't a hole then we are an object,
-            # so get and return our features
-            if not isa_hole:
-                temp = self._extract_data(seq, color_img, minsize, maxsize,
-                                          appx_level)
-                if temp is not None:
-                    ret_value.append(temp)
-
-            next_layer = seq.v_next()
-
-            if next_layer is not None:
-                next_layer_down.append(next_layer)
-
-            seq = seq.h_next()
-
-            if seq is None:
-                break
-
-        for next_layer in next_layer_down:
-            ret_value += self._extract_from_binary(next_layer, not isa_hole,
-                                                   color_img, minsize, maxsize,
-                                                   appx_level)
-
-        return ret_value
-
-    def _extract_data(self, seq, color, minsize, maxsize, appx_level):
+    def _extract_data(self, contour, hole_contour, color_img, minsize,
+                      maxsize, appx_level):
         """
         Extract the bulk of the data from a give blob. If the blob's are is too
         large or too small the method returns none.
         """
-        if seq is None or not len(seq):
+        if contour is None or not contour.shape[0]:
             return None
-        area = cv.ContourArea(seq)
+        area = cv2.contourArea(contour)
         if area < minsize or area > maxsize:
             return None
 
         ret_value = Blob()
-        ret_value.image = color
+        ret_value.image = color_img
         ret_value.area = area
 
-        ret_value.min_rectangle = cv.MinAreaRect2(seq)
-        bbr = cv.BoundingRect(seq)
+        ret_value.min_rectangle = cv2.minAreaRect(contour)
+        bbr = cv2.boundingRect(contour)
         ret_value.x = bbr[0] + (bbr[2] / 2)
         ret_value.y = bbr[1] + (bbr[3] / 2)
-        ret_value.perimeter = cv.ArcLength(seq)
-        if seq is not None:  # KAS
-            ret_value.contour = list(seq)
-            try:
-                import cv2
-
-                if ret_value.contour is not None:
-                    ret_value.contour_appx = []
-                    appx = cv2.approxPolyDP(
-                        np.array([ret_value.contour], 'float32'), appx_level,
-                        True)
-                    for p in appx:
-                        ret_value.contour_appx.append(
-                            (int(p[0][0]), int(p[0][1])))
-            except:
-                pass
+        ret_value.perimeter = cv2.arcLength(contour, True)
+        ret_value.contour = contour[:, 0, :].tolist()
+        appx = cv2.approxPolyDP(np.array(contour, np.float32),
+                                appx_level, True)
+        ret_value.contour_appx = appx[:, 0, :].astype(int).tolist()
 
         # so this is a bit hacky....
 
@@ -219,10 +193,10 @@ class BlobMaker(object):
         ret_value.points = [(xx, yy), (xx + ww, yy), (xx + ww, yy + hh),
                             (xx, yy + hh)]
         ret_value._update_extents()
-        chull = cv.ConvexHull2(seq, cv.CreateMemStorage(), return_points=1)
-        ret_value.convex_hull = list(chull)
+        chull = cv2.convexHull(contour, returnPoints=1)
+        ret_value.convex_hull = chull[:, 0, :].tolist()
         # KAS -- FLAG FOR REPLACE 6/6/2012
-        #get_hull_mask = self._get_hull_mask(chull,bb)
+        #get_hull_mask = self._get_mask(chull)
 
         # KAS -- FLAG FOR REPLACE 6/6/2012
         # ret_value.hull_img = self._get_blob_as_image(chull,bb,
@@ -232,123 +206,76 @@ class BlobMaker(object):
         # KAS -- FLAG FOR REPLACE 6/6/2012
         #ret_value.hull_mask = Image(get_hull_mask)
 
-        del chull
-
-        moments = cv.Moments(seq)
+        moments = cv2.moments(contour)
 
         #This is a hack for a python wrapper bug that was missing
         #the constants required from the ctype
         ret_value.m00 = area
-        try:
-            ret_value.m10 = moments.m10
-            ret_value.m01 = moments.m01
-            ret_value.m11 = moments.m11
-            ret_value.m20 = moments.m20
-            ret_value.m02 = moments.m02
-            ret_value.m21 = moments.m21
-            ret_value.m12 = moments.m12
-        except:
-            ret_value.m10 = cv.GetSpatialMoment(moments, 1, 0)
-            ret_value.m01 = cv.GetSpatialMoment(moments, 0, 1)
-            ret_value.m11 = cv.GetSpatialMoment(moments, 1, 1)
-            ret_value.m20 = cv.GetSpatialMoment(moments, 2, 0)
-            ret_value.m02 = cv.GetSpatialMoment(moments, 0, 2)
-            ret_value.m21 = cv.GetSpatialMoment(moments, 2, 1)
-            ret_value.m12 = cv.GetSpatialMoment(moments, 1, 2)
+        ret_value.m10 = moments.get('m10')
+        ret_value.m01 = moments.get('m01')
+        ret_value.m11 = moments.get('m11')
+        ret_value.m20 = moments.get('m20')
+        ret_value.m02 = moments.get('m02')
+        ret_value.m21 = moments.get('m21')
+        ret_value.m12 = moments.get('m12')
 
-        ret_value.hu = cv.GetHuMoments(moments)
+        ret_value.hu = cv2.HuMoments(moments)
 
         # KAS -- FLAG FOR REPLACE 6/6/2012
-        mask = self._get_mask(seq, bbr)
         #ret_value.mask = Image(mask)
 
-        ret_value.avg_color = self._get_avg(color.get_bitmap(), bbr, mask)
-        ret_value.avg_color = ret_value.avg_color[0:3]
-        #ret_value.avg_color = self._get_avg(color.get_bitmap(),
-        #                                    ret_value.bounding_box, mask)
-        #ret_value.avg_color = ret_value.avg_color[0:3]
+        mask = self._get_mask(contour)
+        ret_value.avg_color = self._get_avg(color_img.get_ndarray(),
+                                            bbr, mask)[0:3]
 
         # KAS -- FLAG FOR REPLACE 6/6/2012
-        #ret_value.img = self._get_blob_as_image(seq,bb,color.get_bitmap(),
-        #                                        mask)
+        #ret_value.img = self._get_blob_as_image(color_img.get_ndarray(),
+        #                                        bbr, mask)
 
-        ret_value.hole_contour = self._get_holes(seq)
+        ret_value.hole_contour = hole_contour
         ret_value.aspect_ratio = ret_value.min_rectangle[1][0] / \
             ret_value.min_rectangle[1][1]
 
         return ret_value
 
     @staticmethod
-    def _get_holes(seq):
+    def _get_holes(contour_num, contours, hierarchy):
         """
         This method returns the holes associated with a blob as a list of
         tuples.
         """
-        ret_value = None
-        holes = seq.v_next()
-        if holes is not None:
-            ret_value = [list(holes)]
-            while holes.h_next() is not None:
-                holes = holes.h_next()
-                temp = list(holes)
-                if len(temp) >= 3:  # exclude single pixel holes
-                    ret_value.append(temp)
+        ret_value = []
+        for i, contour in enumerate(contours):
+            if hierarchy[0][i][-1] == contour_num:
+                if len(contour) >= 3:  # exclude single pixel holes
+                        ret_value.append(contour[:, 0, :].tolist())
         return ret_value
 
     @staticmethod
-    def _get_mask(seq, bb):
+    def _get_mask(contour):
         """
         Return a binary image of a particular get_contour sequence.
         """
-        #bb = cv.BoundingRect(seq)
-        mask = cv.CreateImage((bb[2], bb[3]), cv.IPL_DEPTH_8U, 1)
-        cv.Zero(mask)
-        cv.DrawContours(mask, seq, 255, 0, 0, thickness=-1,
-                        offset=(-1 * bb[0], -1 * bb[1]))
-        holes = seq.v_next()
-        if holes is not None:
-            cv.DrawContours(mask, holes, 0, 255, 0, thickness=-1,
-                            offset=(-1 * bb[0], -1 * bb[1]))
-            while holes.h_next() is not None:
-                holes = holes.h_next()
-                if holes is not None:
-                    cv.DrawContours(mask, holes, 0, 255, 0, thickness=-1,
-                                    offset=(-1 * bb[0], -1 * bb[1]))
+        bbr = cv2.boundingRect(contour)
+        mask = np.zeros((bbr[3], bbr[2]), dtype=np.uint8)
+        cv2.drawContours(mask, [contour], 0, 255, thickness=-1, maxLevel=0,
+                         offset=(-1 * bbr[0], -1 * bbr[1]))
         return mask
 
     @staticmethod
-    def _get_hull_mask(hull, bb):
-        """
-        Return a mask of the convex hull of a blob.
-        """
-        # FIXME: argument bb conflicts with bb = cv.BoundingRect(hull)
-        bb = cv.BoundingRect(hull)
-        mask = cv.CreateImage((bb[2], bb[3]), cv.IPL_DEPTH_8U, 1)
-        cv.Zero(mask)
-        cv.DrawContours(mask, hull, 255, 0, 0, thickness=-1,
-                        offset=(-1 * bb[0], -1 * bb[1]))
-        return mask
-
-    @staticmethod
-    def _get_avg(colorbitmap, bb, mask):
+    def _get_avg(color_array, bb, mask):
         """
         Calculate the average color of a blob given the mask.
         """
-        cv.SetImageROI(colorbitmap, bb)
-        #may need the offset parameter
-        avg = cv.Avg(colorbitmap, mask)
-        cv.ResetImageROI(colorbitmap)
-        return avg
+        img = color_array[Image.roi_to_slice(bb)]
+        return cv2.mean(img, mask)
 
     @staticmethod
-    def _get_blob_as_image(seq, bb, colorbitmap, mask):
+    def _get_blob_as_image(bbr, color_array, mask):
         """
         Return an image that contains just pixels defined by the blob sequence.
         """
-        # FIXME: unused argument 'seq'
-        cv.SetImageROI(colorbitmap, bb)
-        output_img = cv.CreateImage((bb[2], bb[3]), cv.IPL_DEPTH_8U, 3)
-        cv.Zero(output_img)
-        cv.Copy(colorbitmap, output_img, mask)
-        cv.ResetImageROI(colorbitmap)
+        img = color_array[Image.roi_to_slice(bbr)]
+        output_img = np.zeros((bbr[3], bbr[2], 3), dtype=np.uint8)
+        output_img[mask] = img[mask]
         return Image(output_img)

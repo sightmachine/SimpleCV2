@@ -3,7 +3,7 @@
 # This library is used to model the color of foreground and background objects
 from pickle import load, dump
 
-from numpy import array, cast, ndarray, right_shift, unique, where
+import numpy as np
 
 from simplecv.base import logger
 from simplecv.image_class import Image
@@ -24,9 +24,6 @@ class ColorModel(object):
     #TODO: Discretize the colorspace into smaller intervals,eg r=[0-7][8-15]
     # etc
     #TODO: Work in HSV space
-    is_background = True
-    data = {}
-    bits = 1
 
     def __init__(self, data=None, is_background=True):
         self.is_background = is_background
@@ -46,36 +43,34 @@ class ColorModel(object):
         """
 
         #first cast everything to a numpy array
-        if data.__class__.__name__ == 'Image':
-            ret = data.get_numpy().reshape(-1, 3)
-        elif data.__class__.__name__ == 'cvmat':
-            ret = array(data).reshape(-1, 3)
-        elif data.__class__.__name__ == 'list':
+        if isinstance(data, Image):
+            ret = data.get_ndarray().reshape(-1, 3)
+        elif isinstance(data, list):
             temp = []
             for dtl in data:  # do the bgr conversion
                 t = (dtl[2], dtl[1], dtl[0])
                 temp.append(t)
-            ret = array(temp, dtype='uint8')
-        elif data.__class__.__name__ == 'tuple':
-            ret = array((data[2], data[1], data[0]), 'uint8')
-        elif data.__class__.__name__ == 'np.array':
+            ret = np.array(temp, dtype=np.uint8)
+        elif isinstance(data, tuple):
+            ret = np.array((data[2], data[1], data[0]), dtype=np.uint8)
+        elif isinstance(data, np.ndarray):
             ret = data
         else:
             logger.warning("ColorModel: color is not in an accepted format!")
             return None
 
-        rshft = right_shift(ret, self.bits)  # right shift 4 bits
+        rshft = np.right_shift(ret, self.bits)  # right shift 4 bits
 
         if len(rshft.shape) > 1:
-            uniques = unique(
-                rshft.view([('', rshft.dtype)]*rshft.shape[1])
+            uniques = np.unique(
+                rshft.view([('', rshft.dtype)] * rshft.shape[1])
             ).view(rshft.dtype).reshape(-1, 3)
         else:
             uniques = [rshft]
         #create a unique set of colors.  I had to look this one up
 
         #create a dict of encoded strings
-        return dict.fromkeys(map(ndarray.tostring, uniques), 1)
+        return dict.fromkeys(map(np.ndarray.tostring, uniques), 1)
 
     def reset(self):
         """
@@ -175,12 +170,13 @@ class ColorModel(object):
             a, b = b, a
 
         # bitshift down and reshape to Nx3
-        rshft = right_shift(img.get_numpy(), self.bits).reshape(-1, 3)
+        rshft = np.right_shift(img.get_ndarray(), self.bits).reshape(-1, 3)
         # map to True/False based on the model
-        mapped = array(map(self.data.has_key, map(ndarray.tostring, rshft)))
+        mapped = np.array(map(self.data.has_key,
+                              map(np.ndarray.tostring, rshft)))
         # replace True and False with fg and bg
-        thresh = where(mapped, a, b)
-        return Image(thresh.reshape(img.width, img.height))
+        thresh = np.where(mapped, a, b)
+        return Image(thresh.reshape(img.width, img.height).astype(np.uint8))
 
     def contains(self, color):
         """
@@ -208,8 +204,8 @@ class ColorModel(object):
        """
         # reverse the color, cast to uint8, right shift
         # convert to string, check dict
-        color_name = right_shift(cast['uint8'](color[::-1]),
-                                 self.bits).tostring()
+        color_name = np.right_shift(np.cast['uint8'](color[::-1]),
+                                    self.bits).tostring()
         return color_name in self.data
 
     def set_is_foreground(self):
