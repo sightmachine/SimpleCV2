@@ -799,43 +799,6 @@ def test_image_get_gray_pixel():
         assert False
 
 
-def test_camera_calibration():
-    fake_camera = FrameSource()
-    path = "../data/sampleimages/CalibImage"
-    ext = ".png"
-    imgs = []
-    for i in range(0, 10):
-        fname = path + str(i) + ext
-        img = Image(fname)
-        imgs.append(img)
-
-    fake_camera.calibrate(imgs)
-    #we're just going to check that the function doesn't puke
-    mat = fake_camera.get_camera_matrix()
-    assert isinstance(mat, np.ndarray)
-
-    #we're also going to test load in save in the same pass
-    matname = "TestCalibration"
-    if False == fake_camera.save_calibration(matname):
-        assert False
-    if False == fake_camera.load_calibration(matname):
-        assert False
-
-
-def test_camera_undistort():
-    fake_camera = FrameSource()
-    fake_camera.load_calibration("../data/test/StereoVision/Default")
-    img = Image("../data/sampleimages/CalibImage0.png")
-    img2 = fake_camera.undistort(img)
-
-    results = [img2]
-    name_stem = "test_camera_undistort"
-    perform_diff(results, name_stem, tolerance=12)
-
-    if not img2:  # right now just wait for this to return
-        assert False
-
-
 def test_image_crop():
     img = Image(logo)
     x = 5
@@ -1805,15 +1768,15 @@ def test_basic_palette():
     img = Image(testimageclr)
     img = img.scale(0.1)  # scale down the image to reduce test time
     img._generate_palette(10, False)
-    if img._mPalette is not None \
-            and img._mPaletteMembers is not None \
-            and img._mPalettePercentages is not None \
-            and img._mPaletteBins == 10:
+    if img._palette is not None \
+            and img._palette_members is not None \
+            and img._palette_percentages is not None \
+            and img._palette_bins == 10:
         img._generate_palette(20, True)
-        if img._mPalette is not None \
-                and img._mPaletteMembers is not None \
-                and img._mPalettePercentages is not None \
-                and img._mPaletteBins == 20:
+        if img._palette is not None \
+                and img._palette_members is not None \
+                and img._palette_percentages is not None \
+                and img._palette_bins == 20:
             pass
 
 
@@ -1895,7 +1858,7 @@ def test_skeletonize():
     s2 = img.skeletonize(10)
 
     results = [s, s2]
-    name_stem = "test_skelotinze"
+    name_stem = "test_skeletonize"
     perform_diff(results, name_stem)
 
 
@@ -1906,7 +1869,6 @@ def test_threshold():
         img.threshold(t)
 
 
-# FIXME: This test fails when all tests are executed
 def test_smart_threshold():
     img = Image("../data/sampleimages/RatTop.png")
     mask = Image((img.width, img.height))
@@ -1923,7 +1885,7 @@ def test_smart_threshold():
 
 
 def test_smart_find_blobs():
-    img = Image("../data/sampleimages/RatTop.png")
+    img = Image(topImg)
     mask = Image((img.width, img.height))
     mask.dl().circle((100, 100), 80, color=Color.MAYBE_BACKGROUND, filled=True)
     mask.dl().circle((100, 100), 60, color=Color.MAYBE_FOREGROUND, filled=True)
@@ -1931,20 +1893,13 @@ def test_smart_find_blobs():
     mask = mask.apply_layers()
     blobs = img.smart_find_blobs(mask=mask)
     blobs.draw()
-    results = [img]
+    assert_equals(1, len(blobs))
 
-    if len(blobs) < 1:
-        assert False
-
-    for t in range(2, 3):
-        img = Image("../data/sampleimages/RatTop.png")
+    for t in range(2, 5):
+        img = Image(topImg)
         blobs2 = img.smart_find_blobs(rect=(30, 30, 150, 185), thresh_level=t)
-        if blobs2 is not None:
-            blobs2.draw()
-            results.append(img)
-
-    name_stem = "test_smart_find_blobs"
-    perform_diff(results, name_stem)
+        assert_equals(1, len(blobs2))
+        blobs2.draw()
 
 
 def test_image_webp_load():

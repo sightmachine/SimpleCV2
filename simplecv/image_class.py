@@ -11905,15 +11905,11 @@ class Image(object):
         return self._ndarray.astype(np.float32)
 
     def __getstate__(self):
-        return dict(colorspace=self._color_space,
-                    image=self.apply_layers().get_ndarray())
+        return dict(color_space=self._color_space,
+                    source=self.apply_layers().get_ndarray())
 
-    def __setstate__(self, mydict):
-        self._ndarray = mydict['image']
-        self._color_space = mydict['colorspace']
-        self.height = self._ndarray.shape[0]
-        self.width = self._ndarray.shape[1]
-        self.dtype = self._ndarray.dtype
+    def __setstate__(self, d):
+        self.__init__(**d)
 
     def get_area(self):
         '''

@@ -2513,12 +2513,6 @@ class Feature(object):
         ((a,b),(c,d),...,(a,b)) the polygon should be closed
 
         """
-        # try:
-        #     import cv2
-        # except:
-        #     logger.warning("Unable to import cv2")
-        #     return False
-
         if len(polygon) < 3:
             logger.warning(
                 "feature._point_inside_polygon - this is not a valid polygon")
@@ -2529,20 +2523,11 @@ class Feature(object):
                 "feature._point_inside_polygon - this is not a valid polygon")
             return False
 
-            # if( not isinstance(point,tuple) ):
-            # if( len(point) == 2 ):
-            #    point = tuple(point)
-            # else:
-            #    logger.warning("feature._point_inside_polygon - this is not "
-            #                   "a valid point")
-            #    return False
-        #if( cv2.__version__ == '$Rev:4557'):
         counter = 0
         ret_value = True
         #print "point: " + str(point)
         poly = copy.deepcopy(polygon)
         poly.append(polygon[0])
-        #for p2 in poly:
         poly_len = len(poly)
         p1 = poly[0]
         for i in range(1, poly_len + 1):
