@@ -20,12 +20,9 @@ def img_diffs(test_imgs, name_stem, tolerance, path):
         lhs = test_imgs[idx].apply_layers()  # this catches drawing methods
         lhs = lhs.to_bgr().get_ndarray()
         fname = standard_path + name_stem + str(idx)
-        fname_jpg = fname + ".jpg"
         fname_png = fname + ".png"
         if os.path.exists(fname_png):
             rhs = cv2.imread(fname_png)
-        elif os.path.exists(fname_jpg):
-            rhs = cv2.imread(fname_jpg)
         else:
             raise Exception('Cannot load standard image')
         if lhs.shape == rhs.shape:
@@ -36,14 +33,16 @@ def img_diffs(test_imgs, name_stem, tolerance, path):
                 num_img_pixels = lhs.size
                 percent_diff_pixels = diff_pixels_sum / num_img_pixels
                 print "{0:.2f}% difference".format(percent_diff_pixels * 100)
-                # cv2.imwrite(fname + ".png", lhs)
+                # Uncomment this to save result and diff images
+                # cv2.imwrite(fname + "_RESULT.png", lhs)
                 # cv2.imwrite(fname + "_DIFF.png",
                 #             (diff_pixels * (0, 0, 255)).astype(np.uint8))
                 ret_val = True
         else:
             print "images have different size {} and {}".format(lhs.shape,
                                                                 rhs.shape)
-            cv2.imwrite(fname + "_WRONG_SIZE.png", lhs)
+            # Uncomment this to save result image with wrong size
+            # cv2.imwrite(fname + "_WRONG_SIZE.png", lhs)
             ret_val = True
     return ret_val
 
