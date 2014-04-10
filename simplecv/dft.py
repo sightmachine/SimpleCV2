@@ -5,7 +5,7 @@ import warnings
 
 from numpy import arange, clip, dstack, exp, meshgrid, ogrid, ones, sqrt, zeros
 
-from simplecv.image_class import Image
+from simplecv.image import Image
 
 
 class DFT(object):
@@ -648,11 +648,11 @@ class DFT(object):
         if self.width == 0 or self.height == 0:
             warnings.warn("Empty Filter. Returning the image.")
             return image
-        image_size = image.size()
+        image_size = image.size
         if grayscale:
             image = image.to_gray()
         flt_img = self._image
-        if flt_img.size() != image.size():
+        if flt_img.size != image.size:
             flt_img = flt_img.resize(*image_size)
         filtered_image = image.apply_dft_filter(flt_img)
         return filtered_image

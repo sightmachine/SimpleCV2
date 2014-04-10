@@ -2,6 +2,7 @@ import os
 import cv2
 from simplecv.base import logger, LAUNCH_PATH
 
+
 class HaarCascade(object):
     """
     This class wraps HaarCascade files for the find_haar_features file.

@@ -3,7 +3,7 @@ import warnings
 
 import numpy as np
 
-from simplecv.image_class import Image
+from simplecv.factory import Factory
 
 
 class FaceRecognizer(object):
@@ -106,7 +106,7 @@ class FaceRecognizer(object):
             self.csvfiles.append(csvfile)
             filereader = csv.reader(f, delimiter=delimiter)
             for row in filereader:
-                images.append(Image(row[0]))
+                images.append(Factory.Image(row[0]))
                 labels.append(row[1])
 
         if isinstance(labels, type(None)):

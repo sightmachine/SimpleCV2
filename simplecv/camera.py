@@ -57,7 +57,8 @@ except ImportError:
 from simplecv.base import logger, SYSTEM
 from simplecv.color import Color
 from simplecv.display import Display
-from simplecv.image_class import Image, ImageSet, ColorSpace
+from simplecv.image import Image
+from simplecv.image_set import ImageSet
 
 #Globals
 _cameras = []
@@ -231,7 +232,7 @@ class FrameSource(object):
         # camera calibration
         _, cam_matrix, dist_cft, _, _, _ = cv2.calibrateCamera(object_points2,
                                                                image_points2,
-                                                               img.size())
+                                                               img.size)
 
         self._calib_matrix = cam_matrix
         self._dist_coeff = dist_cft
@@ -409,7 +410,7 @@ class FrameSource(object):
 
         #from SimpleCV.Display import Display
         image = self.get_image()
-        display = Display(image.size())
+        display = Display(image.size)
         image.save(display)
         col = Color.RED
 
@@ -705,7 +706,7 @@ class Camera(FrameSource):
         else:
             warnings.warn("Unable to open camera")
             return None
-        return Image(img, self)
+        return Image(img, camera=self)
 
 
 class VirtualCamera(FrameSource):
@@ -820,7 +821,7 @@ class VirtualCamera(FrameSource):
         """
         if self.sourcetype == 'image':
             self.counter += 1
-            return Image(self.source, self)
+            return Image(self.source, camera=self)
 
         elif self.sourcetype == 'imageset':
             print len(self.source)
@@ -830,12 +831,12 @@ class VirtualCamera(FrameSource):
 
         elif self.sourcetype == 'video':
             ret_value, img = self.capture.read()
-            return Image(img, self) if ret_value else None
+            return Image(img, camera=self) if ret_value else None
 
         elif self.sourcetype == 'directory':
             img = self.find_lastest_image(self.source, 'bmp')
             self.counter += 1
-            return Image(img, self)
+            return Image(img, camera=self)
 
     def rewind(self, start=None):
         """
@@ -1103,7 +1104,7 @@ class Kinect(FrameSource):
         video = freenect.sync_get_video(self.device_number)[0]
         self.capture_time = time.time()
         #video = video[:, :, ::-1]  # RGB -> BGR
-        return Image(video.transpose([1, 0, 2]), self)
+        return Image(video.transpose([1, 0, 2]), camera=self)
 
     #low bits in this depth are stripped so it fits in an 8-bit image channel
     def get_depth(self):
@@ -1138,7 +1139,7 @@ class Kinect(FrameSource):
         depth >>= 2
         depth = depth.astype(np.uint8).transpose()
 
-        return Image(depth, self)
+        return Image(depth, camera=self)
 
     #we're going to also support a higher-resolution (11-bit) depth matrix
     #if you want to actually do computations with the depth
@@ -1317,7 +1318,7 @@ class JpegStreamCamera(FrameSource):
 
         self.capture_time = self.cam_thread.get_thread_capture_time()
         return Image(PilImage.open(StringIO(self.cam_thread.current_frame)),
-                     self)
+                     camera=self)
 
 
 _SANE_INIT = False
@@ -1689,7 +1690,7 @@ class ScreenCamera():
         if not PYSCREENSHOT_ENABLED:
             warnings.warn("pyscreenshot not found.")
             return None
-        return Image(pyscreenshot.grab()).size()
+        return Image(pyscreenshot.grab()).size
 
     def set_roi(self, roi):
         """
@@ -1789,11 +1790,11 @@ class StereoImage(object):
     def __init__(self, img_left, img_right):
         self.image_left = img_left
         self.image_right = img_right
-        if self.image_left.size() != self.image_right.size():
+        if self.image_left.size != self.image_right.size:
             logger.warning('Left and Right images should have the same size.')
             return
         else:
-            self.size = self.image_left.size()
+            self.size = self.image_left.size
         self.image_3d = None
 
     def find_fundamental_mat(self, thresh=500.00, min_dist=0.15):
@@ -1976,7 +1977,7 @@ class StereoImage(object):
                 dsp_visual = cv2.normalize(dsp, alpha=0, beta=256,
                                            norm_type=cv2.NORM_MINMAX,
                                            dtype=cv2.CV_8U)
-                return Image(dsp_visual, color_space=ColorSpace.GRAY)
+                return Image(dsp_visual, color_space=Image.GRAY)
 
             elif method == 'SGBM':
                 ssgbm = cv2.StereoSGBM(minDisparity=0,
@@ -3489,3 +3490,59 @@ class GigECamera(Camera):
 
         for prop in self.get_property_list():
             print "{}: {}".format(prop, self.get_property(prop))
+
+
+def live(img):
+    """
+    **SUMMARY**
+
+    This shows a live view of the camera.
+    * Left click will show mouse coordinates and color.
+    * Right click will kill the live image.
+
+    **RETURNS**
+
+    Nothing. In place method.
+
+    **EXAMPLE**
+
+    >>> cam = Camera()
+    >>> cam.live()
+
+    """
+
+    start_time = time.time()
+
+    from simplecv.display import Display
+
+    i = img
+    d = Display(i.size)
+    i.save(d)
+    col = Color.RED
+
+    while d.is_not_done():
+        i = img
+        i.clear_layers()
+        elapsed_time = time.time() - start_time
+
+        if d.mouse_left:
+            txt = "coord: (" + str(d.mouse_x) + "," + str(d.mouse_y) + ")"
+            i.dl().text(txt, (10, i.height / 2), color=col)
+            txt = "color: " + str(i.get_pixel(d.mouse_x, d.mouse_y))
+            i.dl().text(txt, (10, (i.height / 2) + 10), color=col)
+            print "coord: (" + str(d.mouse_x) + "," + str(d.mouse_y) \
+                + "), color: " + str(i.get_pixel(d.mouse_x, d.mouse_y))
+
+        if elapsed_time > 0 and elapsed_time < 5:
+            i.dl().text("In live mode", (10, 10), color=col)
+            i.dl().text("Left click will show mouse coordinates and color",
+                        (10, 20), color=col)
+            i.dl().text("Right click will kill the live image", (10, 30),
+                        color=col)
+
+        i.save(d)
+        if d.mouse_right:
+            print "Closing Window"
+            d.done = True
+
+    pg.quit()

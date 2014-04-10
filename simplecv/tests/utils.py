@@ -4,6 +4,8 @@ from nose.tools import nottest
 import cv2
 import numpy as np
 
+from simplecv.image import Image
+
 VISUAL_TEST = False  # if TRUE we save the images - otherwise we DIFF against
                      # them - the default is False
 
@@ -63,3 +65,21 @@ def perform_diff(result, name_stem, tolerance=0.03, path=standard_path):
         img_saves(result, name_stem, path)
     else:  # otherwise we test our output against the visual test
         assert not img_diffs(result, name_stem, tolerance, path)
+
+
+@nottest
+def create_test_array():
+    """ Returns array 2 x 2 pixels, 8 bit and BGR color space
+        pixels are colored so:
+        RED, GREEN
+        BLUE, WHITE
+    """
+    return np.array([[[0, 0, 255], [0, 255, 0]],       # RED,  GREEN
+                     [[255, 0, 0], [255, 255, 255]]],  # BLUE, WHITE
+                    dtype=np.uint8)
+
+
+@nottest
+def create_test_image():
+    bgr_array = create_test_array()
+    return Image(array=bgr_array, color_space=Image.BGR)

@@ -1,4 +1,3 @@
-# /usr/bin/python
 # To run this test you need python nose tools installed
 # Run test just use:
 #   nosetest tests.py
@@ -9,7 +8,6 @@
 # test_detection_lines().  This makes it easier to verify visually
 # that all the correct test per operation exist
 
-from math import sqrt
 import os
 import pickle
 import tempfile
@@ -19,9 +17,7 @@ import numpy as np
 from nose.tools import assert_equals, assert_list_equal
 
 from simplecv.base import logger
-from simplecv.camera import FrameSource
-from simplecv.color import Color, ColorCurve, ColorMap
-from simplecv.color_model import ColorModel
+from simplecv.color import Color, ColorMap
 from simplecv.dft import DFT
 from simplecv.drawing_layer import DrawingLayer
 from simplecv.features.blobmaker import BlobMaker
@@ -29,7 +25,8 @@ from simplecv.features.detection import Corner, Line, ROI
 from simplecv.features.facerecognizer import FaceRecognizer
 from simplecv.features.features import FeatureSet
 from simplecv.features.haar_cascade import HaarCascade
-from simplecv.image_class import Image, ImageSet, ColorSpace
+from simplecv.image import Image
+from simplecv.image_set import ImageSet
 from simplecv.linescan import LineScan
 from simplecv.segmentation.color_segmentation import ColorSegmentation
 from simplecv.segmentation.diff_segmentation import DiffSegmentation
@@ -82,27 +79,6 @@ alphaMaskImg = "../data/sampleimages/RatAlphaMask.png"
 alphaSrcImg = "../data/sampleimages/GreenMaskSource.png"
 
 
-def test_image_stretch():
-    img = Image(greyscaleimage)
-    stretched = img.stretch(100, 200)
-    if stretched is None:
-        assert False
-
-    result = [stretched]
-    name_stem = "test_stretch"
-    perform_diff(result, name_stem)
-
-
-def test_image_scale():
-    img = Image(testimage)
-    thumb = img.scale(30, 30)
-    if thumb is None:
-        assert False
-    result = [thumb]
-    name_stem = "test_image_scale"
-    perform_diff(result, name_stem)
-
-
 def test_detection_find_corners():
     img = Image(testimage2)
     corners = img.find_corners(25)
@@ -110,135 +86,6 @@ def test_detection_find_corners():
     assert len(corners)
     result = [img]
     name_stem = "test_detection_find_corners"
-    perform_diff(result, name_stem)
-
-
-def test_color_meancolor():
-    a = np.arange(0, 256)
-    b = a[::-1]
-    c = np.copy(a) / 2
-    a = a.reshape(16, 16)
-    b = b.reshape(16, 16)
-    c = c.reshape(16, 16)
-    imgarr = np.dstack((a, b, c)).astype(np.uint8)
-    img = Image(imgarr, color_space=ColorSpace.RGB)
-
-    b, g, r = img.mean_color('BGR')
-    print b, g, r
-    if not (127 < r < 128 and 127 < g < 128 and 63 < b < 64):
-        assert False
-
-    r, g, b = img.mean_color('RGB')
-    if not (127 < r < 128 and 127 < g < 128 and 63 < b < 64):
-        assert False
-
-    h, s, v = img.mean_color('HSV')
-    if not (83 < h < 84 and 191 < s < 192 and 191 < v < 192):
-        assert False
-
-    x, y, z = img.mean_color('XYZ')
-    if not (109 < x < 110 and 122 < y < 123 and 77 < z < 79):
-        assert False
-
-    gray = img.mean_color('Gray')
-    if not (120 < gray < 121):
-        assert False
-
-    y, cr, cb = img.mean_color('YCrCb')
-    if not (120 < y < 121 and 133 < cr < 134 and 96 < cb < 97):
-        assert False
-
-    h, l, s = img.mean_color('HLS')
-    if not (84 < h < 85 and 117 < l < 118 and 160 < s < 161):
-        assert False
-
-
-def test_image_smooth():
-    img = Image(testimage2)
-    result = []
-    result.append(img.smooth())
-    result.append(img.smooth('bilateral', (3, 3), 4, 1))
-    result.append(img.smooth('blur', (3, 3)))
-    result.append(img.smooth('median', (3, 3)))
-    result.append(img.smooth('gaussian', (5, 5), 0))
-    result.append(img.smooth('bilateral', (3, 3), 4, 1, grayscale=False))
-    result.append(img.smooth('blur', (3, 3), grayscale=True))
-    result.append(img.smooth('median', (3, 3), grayscale=True))
-    result.append(img.smooth('gaussian', (5, 5), 0, grayscale=True))
-    name_stem = "test_image_smooth"
-    perform_diff(result, name_stem)
-
-
-def test_image_gamma_correct():
-    img = Image(topImg)
-    img2 = img.gamma_correct(1)
-    img3 = img.gamma_correct(0.5)
-    img4 = img.gamma_correct(2)
-    result = []
-    result.append(img3)
-    result.append(img4)
-
-    assert img3.mean_color() >= img2.mean_color()
-    assert img4.mean_color() <= img2.mean_color()
-
-    name_stem = "test_image_gamma_correct"
-    perform_diff(result, name_stem)
-
-
-def test_image_binarize():
-    img = Image(testimage2)
-    binary = img.binarize()
-    binary2 = img.binarize((60, 100, 200))
-    hist = binary.histogram(20)
-    hist2 = binary2.histogram(20)
-
-    result = [binary, binary2]
-    name_stem = "test_image_binarize"
-    perform_diff(result, name_stem)
-
-    assert hist[0] + hist[-1] == np.sum(hist)
-    assert hist2[0] + hist2[-1] == np.sum(hist2)
-
-
-def test_image_binarize_adaptive():
-    img = Image(testimage2)
-    binary = img.binarize()
-    hist = binary.histogram(20)
-
-    result = [binary]
-    name_stem = "test_image_binarize_adaptive"
-    perform_diff(result, name_stem)
-
-    assert hist[0] + hist[-1] == np.sum(hist)
-
-
-def test_image_drawing():
-    img = Image(testimageclr)
-    img.draw_circle((img.width / 2, img.height / 2), 10, thickness=3)
-    img.draw_circle((img.width / 2, img.height / 2), 15, thickness=5,
-                    color=Color.RED)
-    img.draw_circle((img.width / 2, img.height / 2), 20)
-    img.draw_line((5, 5), (5, 8))
-    img.draw_line((5, 5), (10, 10), thickness=3)
-    img.draw_line((0, 0), (img.width, img.height), thickness=3,
-                  color=Color.BLUE)
-    img.draw_rectangle(20, 20, 10, 5)
-    img.draw_rectangle(22, 22, 10, 5, alpha=128)
-    img.draw_rectangle(24, 24, 10, 15, width=-1, alpha=128)
-    img.draw_rectangle(28, 28, 10, 15, width=3, alpha=128)
-    result = [img]
-    name_stem = "test_image_drawing"
-    perform_diff(result, name_stem)
-
-
-def test_image_draw():
-    img = Image("lenna")
-    newimg = Image("simplecv")
-    lines = img.find_lines()
-    newimg.draw(lines)
-    lines.draw()
-    result = [newimg, img]
-    name_stem = "test_image_draw"
     perform_diff(result, name_stem)
 
 
@@ -420,7 +267,7 @@ def test_detection_barcode():
 def test_detection_x():
     tmp_x = Image(testimage).find_lines().x()[0]
 
-    if tmp_x > 0 and Image(testimage).size()[0]:
+    if tmp_x > 0 and Image(testimage).size[0]:
         pass
     else:
         assert False
@@ -429,7 +276,7 @@ def test_detection_x():
 def test_detection_y():
     tmp_y = Image(testimage).find_lines().y()[0]
 
-    if tmp_y > 0 and Image(testimage).size()[0]:
+    if tmp_y > 0 and Image(testimage).size[0]:
         pass
     else:
         assert False
@@ -449,34 +296,6 @@ def test_detection_area():
 
 def test_detection_angle():
     angle_val = Image(testimage).find_lines().get_angle()[0]
-
-
-def test_image():
-    img = Image(testimage)
-    if isinstance(img, Image):
-        pass
-    else:
-        assert False
-
-
-def test_color_colordistance():
-    img = Image(blackimage)
-    (r, g, b) = img.split_channels()
-    avg = img.mean_color()
-
-    c1 = Corner(img, 1, 1)
-    c2 = Corner(img, 1, 2)
-    if c1.color_distance(c2.mean_color()) != 0:
-        assert False
-
-    if c1.color_distance((0, 0, 0)) != 0:
-        assert False
-
-    if c1.color_distance((0, 0, 255)) != 255:
-        assert False
-
-    if c1.color_distance((255, 255, 255)) != sqrt(255 ** 2 * 3):
-        assert False
 
 
 def test_detection_length():
@@ -516,463 +335,6 @@ def test_detection_sort_length():
     # believe we need a universal type, either Int or scvINT or something.
 
 
-def test_image_add():
-    img_a = Image(blackimage)
-    img_b = Image(whiteimage)
-    img_c = img_a + img_b
-    # FIXME: add assertion
-
-
-def test_color_curve_hls():
-    # These are the weights
-    y = np.array([[0, 0], [64, 128], [192, 128], [255, 255]])
-    curve = ColorCurve(y)
-    img = Image(testimage)
-    img2 = img.apply_hls_curve(curve, curve, curve)
-    img3 = img - img2
-
-    result = [img2, img3]
-    name_stem = "test_color_curve_hls"
-    perform_diff(result, name_stem)
-
-    c = img3.mean_color()
-    # there may be a bit of roundoff error
-    if c[0] > 2.0 or c[1] > 2.0 or c[2] > 2.0:
-        assert False
-
-
-def test_color_curve_rgb():
-    # These are the weights
-    y = np.array([[0, 0], [64, 128], [192, 128], [255, 255]])
-    curve = ColorCurve(y)
-    img = Image(testimage)
-    img2 = img.apply_rgb_curve(curve, curve, curve)
-    img3 = img - img2
-
-    result = [img2, img3]
-    name_stem = "test_color_curve_rgb"
-    perform_diff(result, name_stem)
-
-    c = img3.mean_color()
-    # there may be a bit of roundoff error
-    if c[0] > 1.0 or c[1] > 1.0 or c[2] > 1.0:
-        assert False
-
-
-def test_color_curve_gray():
-    # These are the weights
-    y = np.array([[0, 0], [64, 128], [192, 128], [255, 255]])
-    curve = ColorCurve(y)
-    img = Image(testimage)
-    gray = img.to_gray()
-    img2 = img.apply_intensity_curve(curve)
-
-    result = [img2]
-    name_stem = "test_color_curve_gray"
-    perform_diff(result, name_stem)
-
-    g = gray.mean_color()
-    i2 = img2.mean_color()
-    if g - i2[0] > 1:  # there may be a bit of roundoff error
-        assert False
-
-
-def test_image_dilate():
-    img = Image(barcode)
-    img2 = img.dilate(20)
-
-    result = [img2]
-    name_stem = "test_image_dilate"
-    perform_diff(result, name_stem)
-    c = img2.mean_color()
-
-    if c[0] < 254 or c[1] < 254 or c[2] < 254:
-        assert False
-
-
-def test_image_erode():
-    img = Image(barcode)
-    img2 = img.erode(100)
-
-    result = [img2]
-    name_stem = "test_image_erode"
-    perform_diff(result, name_stem)
-
-    c = img2.mean_color()
-    print(c)
-    if c[0] > 0 or c[1] > 0 or c[2] > 0:
-        assert False
-
-
-def test_image_morph_open():
-    img = Image(barcode)
-    erode = img.erode()
-    dilate = erode.dilate()
-    result = img.morph_open()
-    test = result - dilate
-    c = test.mean_color()
-    results = [result]
-    name_stem = "test_image_morph_open"
-    perform_diff(results, name_stem)
-
-    if c[0] > 1 or c[1] > 1 or c[2] > 1:
-        assert False
-
-
-def test_image_morph_close():
-    img = Image(barcode)
-    dilate = img.dilate()
-    erode = dilate.erode()
-    result = img.morph_close()
-    test = result - erode
-    c = test.mean_color()
-
-    results = [result]
-    name_stem = "test_image_morph_close"
-    perform_diff(results, name_stem)
-
-    if c[0] > 1 or c[1] > 1 or c[2] > 1:
-        assert False
-
-
-def test_image_morph_grad():
-    img = Image(barcode)
-    dilate = img.dilate()
-    erode = img.erode()
-    dif = dilate - erode
-    result = img.morph_gradient()
-    test = result - dif
-    c = test.mean_color()
-
-    results = [result]
-    name_stem = "test_image_morph_grad"
-    perform_diff(results, name_stem)
-
-    if c[0] > 1 or c[1] > 1 or c[2] > 1:
-        assert False
-
-
-def test_image_rotate_fixed():
-    img = Image(testimage2)
-    img2 = img.rotate(180, scale=1)
-    img3 = img.flip_vertical()
-    img4 = img3.flip_horizontal()
-    img5 = img.rotate(70)
-    img6 = img.rotate(70, scale=0.5)
-
-    results = [img2, img3, img4, img5, img6]
-    name_stem = "test_image_rotate_fixed"
-    perform_diff(results, name_stem)
-
-    test = img4 - img2
-    c = test.mean_color()
-
-    if c[0] > 5 or c[1] > 5 or c[2] > 5:
-        assert False
-
-
-def test_image_rotate_full():
-    img = Image(testimage2)
-    img2 = img.rotate(135, False, scale=1)
-
-    results = [img2]
-    name_stem = "test_image_rotate_full"
-    perform_diff(results, name_stem)
-
-
-def test_image_shear_warp():
-    img = Image(testimage2)
-    dst = ((img.width / 2, 0), (img.width - 1, img.height / 2),
-           (img.width / 2, img.height - 1))
-    s = img.shear(dst)
-
-    color = s[0, 0]
-    assert color == [0, 0, 0]
-
-    dst = ((img.width * 0.05, img.height * 0.03),
-           (img.width * 0.9, img.height * 0.1),
-           (img.width * 0.8, img.height * 0.7),
-           (img.width * 0.2, img.height * 0.9))
-    w = img.warp(dst)
-
-    results = [s, w]
-    name_stem = "test_image_shear_warp"
-    perform_diff(results, name_stem)
-
-    color = s[0, 0]
-    assert color == [0, 0, 0]
-
-
-def test_image_affine():
-    img = Image(testimage2)
-    src = ((0, 0), (img.width - 1, 0), (img.width - 1, img.height - 1))
-    dst = ((img.width / 2, 0), (img.width - 1, img.height / 2),
-           (img.width / 2, img.height - 1))
-    a_warp = cv2.getAffineTransform(np.array(src).astype(np.float32),
-                                    np.array(dst).astype(np.float32))
-    atrans = img.transform_affine(a_warp)
-
-    a_warp2 = np.array(a_warp)
-    atrans2 = img.transform_affine(a_warp2)
-
-    test = atrans - atrans2
-    c = test.mean_color()
-
-    results = [atrans, atrans2]
-
-    name_stem = "test_image_affine"
-    perform_diff(results, name_stem)
-
-    if c[0] > 1 or c[1] > 1 or c[2] > 1:
-        assert False
-
-
-def test_image_perspective():
-    img = Image(testimage2)
-    src = ((0, 0), (img.width - 1, 0), (img.width - 1, img.height - 1),
-           (0, img.height - 1))
-    dst = ((img.width * 0.05, img.height * 0.03),
-           (img.width * 0.9, img.height * 0.1),
-           (img.width * 0.8, img.height * 0.7),
-           (img.width * 0.2, img.height * 0.9))
-    src = np.array(src).astype(np.float32)
-    dst = np.array(dst).astype(np.float32)
-
-    p_warp = cv2.getPerspectiveTransform(src, dst)
-    ptrans = img.transform_perspective(p_warp)
-
-    p_warp2 = np.array(p_warp)
-    ptrans2 = img.transform_perspective(p_warp2)
-
-    test = ptrans - ptrans2
-    c = test.mean_color()
-
-    results = [ptrans, ptrans2]
-    name_stem = "test_image_perspective"
-    perform_diff(results, name_stem)
-    if c[0] > 1 or c[1] > 1 or c[2] > 1:
-        assert False
-
-
-def test_image_horz_scanline():
-    img = Image(logo)
-    sl = img.get_horz_scanline(10)
-    assert sl.shape[0] == img.width
-    assert sl.shape[1] == 3
-    assert len(sl.shape) == 2
-
-
-def test_image_vert_scanline():
-    img = Image(logo)
-    sl = img.get_vert_scanline(10)
-    assert sl.shape[0] == img.height
-    assert sl.shape[1] == 3
-    assert len(sl.shape) == 2
-
-
-def test_image_horz_scanline_gray():
-    img = Image(logo)
-    sl = img.get_horz_scanline_gray(10)
-    assert sl.shape[0] == img.width
-    assert len(sl.shape) == 1
-
-
-def test_image_vert_scanline_gray():
-    img = Image(logo)
-    sl = img.get_vert_scanline_gray(10)
-    assert sl.shape[0] == img.width
-    assert len(sl.shape) == 1
-
-
-def test_image_get_pixel():
-    img = Image(logo)
-    px = img.get_pixel(0, 0)
-    print(px)
-    if px[0] != 0 or px[1] != 0 or px[2] != 0:
-        assert False
-
-
-def test_image_get_gray_pixel():
-    img = Image(logo)
-    px = img.get_gray_pixel(0, 0)
-    if px != 0:
-        assert False
-
-
-def test_image_crop():
-    img = Image(logo)
-    x = 5
-    y = 6
-    w = 10
-    h = 20
-    crop = img.crop(x, y, w, h)
-    crop2 = img[y:(y + h), x:(x + w)]
-    crop6 = img.crop(0, 0, 10, 10)
-
-    crop7 = img.crop(0, 0, -10, 10)
-    crop8 = img.crop(-50, -50, 10, 10)
-    crop3 = img.crop(-3, -3, 10, 20)
-    crop4 = img.crop(-10, 10, 20, 20, centered=True)
-    crop5 = img.crop(-10, -10, 20, 20)
-
-    tests = []
-    tests.append(img.crop((50, 50), (10, 10)))  # 0
-    tests.append(img.crop([10, 10, 40, 40]))  # 1
-    tests.append(img.crop((10, 10, 40, 40)))  # 2
-    tests.append(img.crop([50, 50], [10, 10]))  # 3
-    tests.append(img.crop([10, 10], [50, 50]))  # 4
-
-    roi = np.array([10, 10, 40, 40])
-    pts1 = np.array([[50, 50], [10, 10]])
-    pts2 = np.array([[10, 10], [50, 50]])
-    pt1 = np.array([10, 10])
-    pt2 = np.array([50, 50])
-
-    tests.append(img.crop(roi))  # 5
-    tests.append(img.crop(pts1))  # 6
-    tests.append(img.crop(pts2))  # 7
-    tests.append(img.crop(pt1, pt2))  # 8
-    tests.append(img.crop(pt2, pt1))  # 9
-
-    xs = [10, 10, 10, 20, 20, 20, 30, 30, 40, 40, 40, 50, 50, 50]
-    ys = [10, 20, 50, 20, 30, 40, 30, 10, 40, 50, 10, 50, 10, 42]
-    lots = zip(xs, ys)
-
-    tests.append(img.crop(xs, ys))  # 10
-    tests.append(img.crop(lots))  # 11
-    tests.append(img.crop(np.array(xs), np.array(ys)))  # 12
-    tests.append(img.crop(np.array(lots)))  # 14
-
-    i = 0
-    failed = False
-    for img in tests:
-        if img is None or img.width != 40 and img.height != 40:
-            print "FAILED CROP TEST " + str(i) + " " + str(img)
-            failed = True
-        i = i + 1
-    assert not failed
-
-    results = [crop, crop2, crop6]
-    name_stem = "test_image_crop"
-    perform_diff(results, name_stem)
-
-    diff = crop - crop2
-    c = diff.mean_color()
-    if c[0] > 0 or c[1] > 0 or c[2] > 0:
-        assert False
-
-
-def test_image_region_select():
-    img = Image(logo)
-    x1 = 0
-    y1 = 0
-    x2 = img.width
-    y2 = img.height
-    crop = img.region_select(x1, y1, x2, y2)
-
-    results = [crop]
-    name_stem = "test_image_region_select"
-    perform_diff(results, name_stem)
-
-    diff = crop - img
-    c = diff.mean_color()
-    if c[0] > 0 or c[1] > 0 or c[2] > 0:
-        assert False
-
-
-def test_image_subtract():
-    img_a = Image(logo)
-    img_b = Image(logo_inverted)
-    img_c = img_a - img_b
-    results = [img_c]
-    name_stem = "test_image_subtract"
-    perform_diff(results, name_stem)
-
-
-def test_image_negative():
-    img_a = Image(logo)
-    img_b = -img_a
-    results = [img_b]
-    name_stem = "test_image_negative"
-    perform_diff(results, name_stem)
-
-
-def test_image_divide():
-    img_a = Image(logo)
-    img_b = Image(logo_inverted)
-
-    img_c = img_a / img_b
-
-    results = [img_c]
-    name_stem = "test_image_divide"
-    perform_diff(results, name_stem)
-
-
-def test_image_and():
-    img_a = Image(barcode)
-    img_b = img_a.invert()
-
-    img_c = img_a & img_b  # should be all black
-
-    results = [img_c]
-    name_stem = "test_image_and"
-    perform_diff(results, name_stem)
-
-
-def test_image_or():
-    img_a = Image(barcode)
-    img_b = img_a.invert()
-
-    img_c = img_a | img_b  # should be all white
-
-    results = [img_c]
-    name_stem = "test_image_or"
-    perform_diff(results, name_stem)
-
-
-def test_image_edgemap():
-    img_a = Image(logo)
-    img_b = img_a._get_edge_map()
-    #results = [imgB]
-    #name_stem = "test_image_edgemap"
-    #perform_diff(results,name_stem)
-
-
-def test_color_colormap_build():
-    cm = ColorModel()
-    cm.add((127, 127, 127))
-    assert cm.contains((127, 127, 127))
-    cm.remove((127, 127, 127))
-
-    cm.remove((0, 0, 0))
-    cm.remove((255, 255, 255))
-    cm.add((0, 0, 0))
-    cm.add([(0, 0, 0), (255, 255, 255)])
-    cm.add([(255, 0, 0), (0, 255, 0)])
-    img = cm.threshold(Image(testimage))
-
-    tmp_dir = tempfile.gettempdir()
-    tmp_txt = os.path.join(tmp_dir, 'temp.txt')
-    cm.save(tmp_txt)
-
-    cm2 = ColorModel()
-    cm2.load(tmp_txt)
-    img = Image("logo")
-    img2 = cm2.threshold(img)
-    cm2.add((0, 0, 255))
-    img3 = cm2.threshold(img)
-    cm2.add((255, 255, 0))
-    cm2.add((0, 255, 255))
-    cm2.add((255, 0, 255))
-    img4 = cm2.threshold(img)
-    cm2.add(img)
-    img5 = cm2.threshold(img)
-
-    results = [img, img2, img3, img4, img5]
-    name_stem = "test_color_colormap_build"
-    perform_diff(results, name_stem)
-
-
 def test_feature_get_height():
     img_a = Image(logo)
     lines = img_a.find_lines(1)
@@ -1000,99 +362,6 @@ def test_feature_crop():
 
     if len(cropped_images) <= 0:
         assert False
-
-
-def test_color_conversion_func_bgr():
-    #we'll just go through the space to make sure nothing blows up
-    img = Image(testimage)
-    results = []
-    results.append(img.to_bgr())
-    results.append(img.to_rgb())
-    results.append(img.to_hls())
-    results.append(img.to_hsv())
-    results.append(img.to_xyz())
-
-    bgr = img.to_bgr()
-
-    results.append(bgr.to_bgr())
-    results.append(bgr.to_rgb())
-    results.append(bgr.to_hls())
-    results.append(bgr.to_hsv())
-    results.append(bgr.to_xyz())
-
-    name_stem = "test_color_conversion_func_bgr"
-    perform_diff(results, name_stem)
-
-
-def test_color_conversion_func_rgb():
-    img = Image(testimage)
-    if not img.is_bgr():
-        assert False
-    rgb = img.to_rgb()
-
-    foo = rgb.to_bgr()
-    if not foo.is_bgr():
-        assert False
-
-    foo = rgb.to_rgb()
-    if not foo.is_rgb():
-        assert False
-
-    foo = rgb.to_hls()
-    if not foo.is_hls():
-        assert False
-
-    foo = rgb.to_hsv()
-    if not foo.is_hsv():
-        assert False
-
-    foo = rgb.to_xyz()
-    if not foo.is_xyz():
-        assert False
-
-
-def test_color_conversion_func_hsv():
-    img = Image(testimage)
-    hsv = img.to_hsv()
-    results = [hsv]
-    results.append(hsv.to_bgr())
-    results.append(hsv.to_rgb())
-    results.append(hsv.to_hls())
-    results.append(hsv.to_hsv())
-    results.append(hsv.to_xyz())
-    name_stem = "test_color_conversion_func_hsv"
-    perform_diff(results, name_stem)
-
-
-def test_color_conversion_func_hls():
-    img = Image(testimage)
-
-    hls = img.to_hls()
-    results = [hls]
-
-    results.append(hls.to_bgr())
-    results.append(hls.to_rgb())
-    results.append(hls.to_hls())
-    results.append(hls.to_hsv())
-    results.append(hls.to_xyz())
-
-    name_stem = "test_color_conversion_func_hls"
-    perform_diff(results, name_stem)
-
-
-def test_color_conversion_func_xyz():
-    img = Image(testimage)
-
-    xyz = img.to_xyz()
-    results = [xyz]
-    results.append(xyz.to_bgr())
-    results.append(xyz.to_rgb())
-    results.append(xyz.to_hls())
-    results.append(xyz.to_hsv())
-    results.append(xyz.to_xyz())
-
-    name_stem = "test_color_conversion_func_xyz"
-    perform_diff(results, name_stem)
 
 
 def test_blob_maker():
@@ -1212,33 +481,6 @@ def test_blob_methods():
         #b.overlaps(first)
 
 
-def test_image_convolve():
-    img = Image(testimageclr)
-    kernel = np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]])
-    img2 = img.convolve(kernel, center=(2, 2))
-
-    results = [img2]
-    name_stem = "test_image_convolve"
-    perform_diff(results, name_stem)
-
-    c = img.mean_color()
-    d = img2.mean_color()
-    e0 = abs(c[0] - d[0])
-    e1 = abs(c[1] - d[1])
-    e2 = abs(c[2] - d[2])
-    if e0 > 1 or e1 > 1 or e2 > 1:
-        assert False
-
-
-def test_detection_ocr():
-    img = Image(ocrimage)
-
-    foundtext = img.read_text()
-    print foundtext
-    if len(foundtext) <= 1:
-        assert False
-
-
 def test_template_match():
     results = []
     source = Image("../data/sampleimages/templatetest.png")
@@ -1269,14 +511,6 @@ def test_template_match_once():
 
     fs = source.find_template_once(template, method='CCORR_NORM')
     assert len(fs) != 0
-
-
-def test_image_intergralimage():
-    img = Image(logo)
-    ii = img.integral_image()
-
-    if len(ii) == 0:
-        assert False
 
 
 def test_segmentation_diff():
@@ -1310,133 +544,6 @@ def test_segmentation_color():
     blobs = segmentor.get_segmented_blobs()
     if blobs is None:
         assert False
-
-
-def test_embiggen():
-    img = Image(logo)
-
-    results = []
-    w = int(img.width * 1.2)
-    h = int(img.height * 1.2)
-
-    results.append(img.embiggen(size=(w, h), color=Color.RED))
-    results.append(img.embiggen(size=(w, h), color=Color.RED, pos=(30, 30)))
-
-    results.append(img.embiggen(size=(w, h), color=Color.RED, pos=(-20, -20)))
-    results.append(img.embiggen(size=(w, h), color=Color.RED, pos=(30, -20)))
-    results.append(img.embiggen(size=(w, h), color=Color.RED, pos=(60, -20)))
-    results.append(img.embiggen(size=(w, h), color=Color.RED, pos=(60, 30)))
-
-    results.append(img.embiggen(size=(w, h), color=Color.RED, pos=(80, 80)))
-    results.append(img.embiggen(size=(w, h), color=Color.RED, pos=(30, 80)))
-    results.append(img.embiggen(size=(w, h), color=Color.RED, pos=(-20, 80)))
-    results.append(img.embiggen(size=(w, h), color=Color.RED, pos=(-20, 30)))
-
-    name_stem = "test_embiggen"
-    perform_diff(results, name_stem)
-
-
-def test_create_binary_mask():
-    img2 = Image(logo)
-    results = []
-    results.append(
-        img2.create_binary_mask(color1=(0, 100, 100), color2=(255, 200, 200)))
-    results.append(
-        img2.create_binary_mask(color1=(0, 0, 0), color2=(128, 128, 128)))
-    results.append(
-        img2.create_binary_mask(color1=(0, 0, 128), color2=(255, 255, 255)))
-    name_stem = "test_create_binary_mask"
-    perform_diff(results, name_stem)
-
-
-def test_apply_binary_mask():
-    img = Image(logo)
-    mask = img.create_binary_mask(color1=(0, 128, 128), color2=(255, 255, 255))
-    results = []
-    results.append(img.apply_binary_mask(mask))
-    results.append(img.apply_binary_mask(mask, bg_color=Color.RED))
-    name_stem = "test_apply_binary_mask"
-    perform_diff(results, name_stem, tolerance=3.0)
-
-
-def test_apply_pixel_func():
-    img = Image(logo)
-
-    def myfunc(pixels):
-        b, g, r = pixels
-        return r, g, b
-
-    img = img.apply_pixel_function(myfunc)
-    name_stem = "test_apply_pixel_func"
-    results = [img]
-    perform_diff(results, name_stem)
-
-
-def test_apply_side_by_side():
-    img = Image(logo)
-    img3 = Image(testimage2)
-
-    # LB = little image big image
-    # BL = big image little image
-    # this is important to test all the possible cases.
-    results = []
-
-    results.append(img3.side_by_side(img, side='right', scale=False))
-    results.append(img3.side_by_side(img, side='left', scale=False))
-    results.append(img3.side_by_side(img, side='top', scale=False))
-    results.append(img3.side_by_side(img, side='bottom', scale=False))
-
-    results.append(img.side_by_side(img3, side='right', scale=False))
-    results.append(img.side_by_side(img3, side='left', scale=False))
-    results.append(img.side_by_side(img3, side='top', scale=False))
-    results.append(img.side_by_side(img3, side='bottom', scale=False))
-
-    results.append(img3.side_by_side(img, side='right', scale=True))
-    results.append(img3.side_by_side(img, side='left', scale=True))
-    results.append(img3.side_by_side(img, side='top', scale=True))
-    results.append(img3.side_by_side(img, side='bottom', scale=True))
-
-    results.append(img.side_by_side(img3, side='right', scale=True))
-    results.append(img.side_by_side(img3, side='left', scale=True))
-    results.append(img.side_by_side(img3, side='top', scale=True))
-    results.append(img.side_by_side(img3, side='bottom', scale=True))
-
-    name_stem = "test_apply_side_by_side"
-    perform_diff(results, name_stem)
-
-
-def test_resize():
-    img = Image(topImg)
-    w = img.width
-    h = img.height
-
-    img2 = img.resize(w * 2, None)
-    assert_equals(w * 2, img2.width)
-    assert_equals(h * 2, img2.height)
-
-    img3 = img.resize(h=h * 2)
-    assert_equals(w * 2, img3.width)
-    assert_equals(h * 2, img3.height)
-
-    img4 = img.resize(h=h * 2, w=w * 2)
-    assert_equals(w * 2, img4.width)
-    assert_equals(h * 2, img4.height)
-
-    results = [img2, img3, img4]
-    name_stem = "test_image_resize"
-    perform_diff(results, name_stem)
-
-
-def test_create_alpha_mask():
-    alpha_mask = Image(alphaSrcImg)
-    mask = alpha_mask.create_alpha_mask(hue=60)
-    mask2 = alpha_mask.create_alpha_mask(hue_lb=59, hue_ub=61)
-    top = Image(topImg)
-    bottom = Image(bottomImg)
-    bottom = bottom.blit(top, alpha_mask=mask2)
-    results = [mask, mask2, bottom]
-    name_stem = "test_create_alpha_mask"
-    perform_diff(results, name_stem)
 
 
 def test_blit_regular():
@@ -1767,12 +874,12 @@ def test_basic_palette():
     # FIXME: Test should have assertion
     img = Image(testimageclr)
     img = img.scale(0.1)  # scale down the image to reduce test time
-    img._generate_palette(10, False)
+    img.generate_palette(10, False)
     if img._palette is not None \
             and img._palette_members is not None \
             and img._palette_percentages is not None \
             and img._palette_bins == 10:
-        img._generate_palette(20, True)
+        img.generate_palette(20, True)
         if img._palette is not None \
                 and img._palette_members is not None \
                 and img._palette_percentages is not None \
@@ -2587,7 +1694,6 @@ def test_find_keypoints_all():
         results = [img]
         name_stem = "test_find_keypoints"
         #~ perform_diff(results,name_stem,tolerance=8)
-    pass
 
 
 def test_upload_flickr():
@@ -2778,16 +1884,16 @@ def test_blob_edge_images():
     b = img.find_blobs()
     m1 = b[-1].get_edge_image()
     assert isinstance(m1, Image)
-    assert_equals(m1.size(), img.size())
+    assert_equals(m1.size, img.size)
     m2 = b[-1].get_hull_edge_image()
     assert isinstance(m2, Image)
-    assert_equals(m1.size(), img.size())
+    assert_equals(m1.size, img.size)
     m3 = b[-1].get_full_edge_image()
     assert isinstance(m3, Image)
-    assert_equals(m3.size(), img.size())
+    assert_equals(m3.size, img.size)
     m4 = b[-1].get_full_hull_edge_image()
     assert isinstance(m4, Image)
-    assert_equals(m4.size(), img.size())
+    assert_equals(m4.size, img.size)
 
 
 def test_line_scan():
@@ -2993,15 +2099,6 @@ def test_color_map():
     result = [img]
     name_stem = "test_color_map"
     perform_diff(result, name_stem)
-
-
-def test_steganograpy():
-    img = Image(logo)
-    msg = 'How do I SimpleCV?'
-    img.stega_encode(msg)
-    img.save(logo)
-    img2 = Image(logo)
-    msg2 = img2.stega_decode()
 
 
 def test_watershed():
@@ -3508,7 +2605,7 @@ def test_edge_snap():
 def test_grayscalmatrix():
     img = Image("lenna")
     graymat = img.get_gray_ndarray()
-    newimg = Image(graymat, color_space=ColorSpace.GRAY)
+    newimg = Image(graymat, color_space=Image.GRAY)
     from numpy import array_equal
 
     if not array_equal(img.get_gray_ndarray(), newimg.get_gray_ndarray()):

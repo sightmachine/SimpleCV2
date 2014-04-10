@@ -367,9 +367,5 @@ IMAGE_FORMATS = ('*.[bB][mM][Pp]', '*.[Gg][Ii][Ff]',     '*.[Jj][Pp][Gg]',
                  '*.[pP][bB][mM]', '*.[pP][gG][mM]',     '*.[pP][pP][mM]',
                  '*.[tT][iI][fF]', '*.[tT][iI][fF][fF]', '*.[wW][eE][bB][pP]')
 
-# maximum image size -
-# about twice the size of a full 35mm images
-# if you hit this, you got a lot data.
-MAX_DIMENSION = 2 * 6000
 LAUNCH_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__)))
 SYSTEM = platform.system()

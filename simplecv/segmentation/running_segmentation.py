@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 from simplecv.features.blobmaker import BlobMaker
-from simplecv.image_class import Image
+from simplecv.image import Image
 from simplecv.segmentation.segmentation_base import SegmentationBase
 
 

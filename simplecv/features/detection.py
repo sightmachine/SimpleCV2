@@ -18,8 +18,8 @@ import scipy.spatial.distance as spsd
 
 from simplecv.base import logger
 from simplecv.color import Color
+from simplecv.factory import Factory
 from simplecv.features.features import Feature, FeatureSet
-from simplecv.image_class import Image
 
 
 class Corner(Feature):
@@ -915,7 +915,7 @@ class Chessboard(Feature):
 
         """
         cv2.drawChessboardCorners(self.image.get_ndarray(), self.dimensions,
-                                 self.sp_corners, 1)
+                                  self.sp_corners, 1)
 
     def get_area(self):
         """
@@ -1280,7 +1280,7 @@ class Circle(Feature):
             cv2.circle(mask, (self.x, self.y), self.r, color=(255, 255, 255),
                        thickness=-1)
             np.where(mask, self.image.get_ndarray(), result)
-            ret_value = Image(result)
+            ret_value = Factory.Image(source=result)
             ret_value = ret_value.crop(self.x, self.y, self.get_width(),
                                        self.get_height(), centered=True)
             return ret_value
@@ -1442,7 +1442,7 @@ class KeyPoint(Feature):
         distance of x,y from this point
         """
         if point[0] == -1 or point[1] == -1:
-            point = np.array(self.image.size()) / 2
+            point = np.array(self.image.size) / 2
         return spsd.euclidean(point, [self.x, self.y])
 
     def mean_color(self):
@@ -1551,7 +1551,7 @@ class KeyPoint(Feature):
             cv2.circle(mask, (int(self.x), int(self.y)), int(self._r),
                        color=(255, 255, 255), thickness=-1)
             np.where(mask, self.image.get_ndarray(), result)
-            ret_value = Image(result)
+            ret_value = Factory.Image(source=result)
             ret_value = ret_value.crop(self.x, self.y, self.get_width(),
                                        self.get_height(), centered=True)
             return ret_value
@@ -1835,11 +1835,12 @@ class KeypointMatch(Feature):
             # crop the minbouding rect
             raw = self.image.crop(tlc[0], tlc[0],
                                   self.get_width(), self.get_height())
-            mask = Image((self.get_width(), self.get_height()))
+            mask = Factory.Image((self.get_width(), self.get_height()))
             mask.dl().polygon(self._min_rect, color=Color.WHITE,
                               filled=pickle.TRUE)
             mask = mask.apply_layers()
-            ret_value = cv2.mean(raw.get_ndarray(), mask._get_grayscale_bitmap())
+            ret_value = cv2.mean(raw.get_ndarray(),
+                                 mask._get_grayscale_bitmap())
             self._avg_color = ret_value
         else:
             ret_value = self._avg_color
@@ -1960,13 +1961,13 @@ class ROI(Feature):
         """
         #After forgetting to set img=Image I put this catch
         # in to save some debugging headache.
-        if isinstance(y, Image):
+        if isinstance(y, Factory.Image):
             self.image = y
             y = None
-        elif isinstance(w, Image):
+        elif isinstance(w, Factory.Image):
             self.image = w
             w = None
-        elif isinstance(h, Image):
+        elif isinstance(h, Factory.Image):
             self.image = h
             h = None
         else:

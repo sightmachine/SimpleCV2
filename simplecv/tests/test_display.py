@@ -3,7 +3,7 @@
 #   nosetest test_display.py
 
 from simplecv.color import Color
-from simplecv.image_class import Image
+from simplecv.image import Image
 from simplecv.tests.utils import perform_diff
 
 #colors

@@ -1,7 +1,7 @@
 import os
 import tempfile
 
-from simplecv.image_class import Image
+from simplecv.image import Image
 
 FACECASCADE = 'face.xml'
 

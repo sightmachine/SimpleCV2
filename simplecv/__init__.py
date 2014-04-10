@@ -1,4 +1,4 @@
-__version__ = '1.3.0'
+__version__ = '2.0.0'
 
 # from simplecv.base import *
 # from simplecv.camera import *
@@ -14,6 +14,10 @@ __version__ = '1.3.0'
 # from simplecv.machine_learning import *
 # from simplecv.linescan import *
 # from simplecv.dft import DFT
+
+import os
+DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
+
 
 if __name__ == '__main__':
     import sys

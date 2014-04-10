@@ -12,7 +12,7 @@ from simplecv.color import Color
 from simplecv.features.detection import Line, Corner
 from simplecv.features.detection import ShapeContextDescriptor
 from simplecv.features.features import Feature, FeatureSet
-from simplecv.image_class import Image
+from simplecv.factory import Factory
 
 
 class Blob(Feature):
@@ -601,7 +601,7 @@ class Blob(Feature):
             maskblu = cv2.convertScaleAbs(gs_bitmap, alpha=color[2] / 255.0)
             maskbit = np.dstack((maskblu, maskgrn, maskred))
 
-            masksurface = Image(maskbit).get_pg_surface()
+            masksurface = Factory.Image(maskbit).get_pg_surface()
             masksurface.set_colorkey(Color.BLACK)
             if alpha != -1:
                 masksurface.set_alpha(alpha)
@@ -904,7 +904,7 @@ class Blob(Feature):
         width = self.hull_mask.width
         height = self.hull_mask.height
 
-        idealcircle = Image((width, height))
+        idealcircle = Factory.Image((width, height))
         radius = min(width, height) / 2
         idealcircle.dl().circle((width / 2, height / 2), radius, filled=True,
                                 color=Color.WHITE)
@@ -962,7 +962,7 @@ class Blob(Feature):
         mask = self.mask.get_gray_ndarray() != 0  # binary mask
         array = np.zeros((self.height, self.width, 3), dtype=np.uint8)
         array[mask] = roi_img.get_ndarray()[mask]
-        return Image(array)
+        return Factory.Image(array)
 
     @LazyProperty
     def mask(self):
@@ -985,7 +985,7 @@ class Blob(Feature):
                                       dtype=np.int32))
             if holes:
                 cv2.fillPoly(ret_value, holes, (0, 0, 0), 8)
-        return Image(ret_value)
+        return Factory.Image(ret_value)
 
     @LazyProperty
     def hull_img(self):
@@ -995,7 +995,7 @@ class Blob(Feature):
         mask = self.hull_mask.get_gray_ndarray() != 0  # binary mask
         array = np.zeros((self.get_height(), self.get_width(), 3), np.uint8)
         array[mask] = roi_img[mask]
-        return Image(array)
+        return Factory.Image(array)
 
     @LazyProperty
     def hull_mask(self):
@@ -1006,7 +1006,7 @@ class Blob(Feature):
         array = np.array([[(p[0] - l, p[1] - t) for p in self.convex_hull]],
                          dtype=np.int32)
         cv2.fillPoly(ret_value, array, (255, 255, 255), 8)
-        return Image(ret_value)
+        return Factory.Image(ret_value)
 
     def get_hull_img(self):
         """
@@ -1153,9 +1153,9 @@ class Blob(Feature):
         roi = (tlc[0], tlc[1], self.get_width(), self.get_height())
         img_roi = self.image.crop(*roi).get_ndarray()
         mask = self.mask.get_gray_ndarray() != 0  # binary mask
-        ret_value_roi = ret_value[Image.roi_to_slice(roi)]
+        ret_value_roi = ret_value[Factory.Image.roi_to_slice(roi)]
         ret_value_roi[mask] = img_roi[mask]
-        return Image(ret_value)
+        return Factory.Image(ret_value)
 
     def get_full_hull_masked_image(self):
         """
@@ -1167,9 +1167,9 @@ class Blob(Feature):
         roi = (tlc[0], tlc[1], self.get_width(), self.get_height())
         img_roi = self.image.crop(*roi).get_ndarray()
         mask = self.hull_mask.get_gray_ndarray() != 0  # binary mask
-        ret_value_roi = ret_value[Image.roi_to_slice(roi)]
+        ret_value_roi = ret_value[Factory.Image.roi_to_slice(roi)]
         ret_value_roi[mask] = img_roi[mask]
-        return Image(ret_value)
+        return Factory.Image(ret_value)
 
     def get_full_mask(self):
         """
@@ -1180,8 +1180,8 @@ class Blob(Feature):
         tlc = self.top_left_corner()
         roi = (tlc[0], tlc[1], self.get_width(), self.get_height())
         mask = self.mask.get_gray_ndarray()
-        ret_value[Image.roi_to_slice(roi)] = mask
-        return Image(ret_value)
+        ret_value[Factory.Image.roi_to_slice(roi)] = mask
+        return Factory.Image(ret_value)
 
     def get_full_hull_mask(self):
         """
@@ -1192,8 +1192,8 @@ class Blob(Feature):
         tlc = self.top_left_corner()
         roi = (tlc[0], tlc[1], self.get_width(), self.get_height())
         mask = self.hull_mask.get_gray_ndarray()
-        ret_value[Image.roi_to_slice(roi)] = mask
-        return Image(ret_value)
+        ret_value[Factory.Image.roi_to_slice(roi)] = mask
+        return Factory.Image(ret_value)
 
     def get_hull_edge_image(self):
         ret_value = np.zeros((self.image.height, self.image.width, 3),
@@ -1203,14 +1203,14 @@ class Blob(Feature):
                      for cs in self.convex_hull]
 
         cv2.polylines(ret_value, [np.int32(translate)], 1, (255, 255, 255))
-        return Image(ret_value)
+        return Factory.Image(ret_value)
 
     def get_full_hull_edge_image(self):
         ret_value = np.zeros((self.image.height, self.image.width, 3),
                              dtype=np.uint8)
         cv2.polylines(ret_value, [np.int32(self.convex_hull)], 1,
                       (255, 255, 255))
-        return Image(ret_value)
+        return Factory.Image(ret_value)
 
     def get_edge_image(self):
         """
@@ -1221,7 +1221,7 @@ class Blob(Feature):
         tlc = self.top_left_corner()
         translate = [[cs[0] - tlc[0], cs[1] - tlc[1]] for cs in self.contour]
         cv2.polylines(ret_value, [np.int32(translate)], 1, (255, 255, 255))
-        return Image(ret_value)
+        return Factory.Image(ret_value)
 
     def get_full_edge_image(self):
         """
@@ -1231,7 +1231,7 @@ class Blob(Feature):
                              dtype=np.uint8)
 
         cv2.polylines(ret_value, [np.int32(self.contour)], 1, (255, 255, 255))
-        return Image(ret_value)
+        return Factory.Image(ret_value)
 
     def __repr__(self):
         return "SimpleCV.features.Blob.Blob object at (%d, %d) with area %d"\

@@ -6,7 +6,7 @@ from pickle import load, dump
 import numpy as np
 
 from simplecv.base import logger
-from simplecv.image_class import Image
+from simplecv.image import Image
 
 
 class ColorModel(object):

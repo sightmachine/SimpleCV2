@@ -1385,7 +1385,7 @@ class Feature(object):
 
         """
         if point[0] == -1 or point[1] == -1:
-            point = np.array(self.image.size()) / 2
+            point = np.array(self.image.size) / 2
         return spsd.euclidean(point, [self.x, self.y])
 
     def mean_color(self):

@@ -7,7 +7,7 @@ import numpy as np
 from simplecv.base import logger
 from simplecv.features.blob import Blob
 from simplecv.features.features import FeatureSet
-from simplecv.image_class import Image
+from simplecv.factory import Factory
 
 
 class BlobMaker(object):
@@ -267,7 +267,7 @@ class BlobMaker(object):
         """
         Calculate the average color of a blob given the mask.
         """
-        img = color_array[Image.roi_to_slice(bb)]
+        img = color_array[Factory.Image.roi_to_slice(bb)]
         return cv2.mean(img, mask)
 
     @staticmethod
@@ -275,7 +275,7 @@ class BlobMaker(object):
         """
         Return an image that contains just pixels defined by the blob sequence.
         """
-        img = color_array[Image.roi_to_slice(bbr)]
+        img = color_array[Factory.Image.roi_to_slice(bbr)]
         output_img = np.zeros((bbr[3], bbr[2], 3), dtype=np.uint8)
         output_img[mask] = img[mask]
-        return Image(output_img)
+        return Factory.Image(output_img)

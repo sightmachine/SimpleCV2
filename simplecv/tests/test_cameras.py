@@ -4,7 +4,7 @@ import tempfile
 import numpy as np
 
 from simplecv.camera import Camera, VirtualCamera, FrameSource
-from simplecv.image_class import Image
+from simplecv.image import Image
 from simplecv.tests.utils import perform_diff
 
 testoutput = os.path.join(tempfile.gettempdir(), 'cam.jpg')

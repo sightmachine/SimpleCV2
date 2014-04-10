@@ -4,7 +4,7 @@ import tempfile
 from nose.tools import nottest
 
 from simplecv.camera import VirtualCamera
-from simplecv.image_class import ImageSet
+from simplecv.image_set import ImageSet
 
 
 testimage = "../data/sampleimages/9dots4lines.png"
@@ -54,7 +54,7 @@ def test_camera_video():
     img.save(testoutput)
 
     assert img is not None
-    assert img.size() == (320, 240)
+    assert img.size == (320, 240)
     assert do_full_vcam_coverage_test(mycam)
 
 

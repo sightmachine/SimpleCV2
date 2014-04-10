@@ -7,7 +7,7 @@ import tempfile
 
 from simplecv.base import logger
 from simplecv.color import Color
-from simplecv.image_class import Image
+from simplecv.image import Image
 from simplecv.camera import ScreenCamera
 from simplecv.tests.utils import perform_diff
 
@@ -166,3 +166,12 @@ def test_tv_denoising():
         perform_diff(result, name_stem, 3)
     except ImportError:
         pass
+
+
+def test_steganograpy():
+    img = Image(logo)
+    msg = 'How do I SimpleCV?'
+    img.stega_encode(msg)
+    img.save(logo)
+    img2 = Image(logo)
+    msg2 = img2.stega_decode()
