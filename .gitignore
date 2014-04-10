@@ -9,8 +9,11 @@ simplecv/.settings.xml
 simplecv/data/test/StereoVision/TestCalibrationDistortion.xml
 simplecv/data/test/StereoVision/TestCalibrationIntrinsic.xml
 simplecv/tests/temp.txt
+simplecv/tests/.coverage
+simplecv/tests/coverage.xml
 simplecv/data/sampleimages/tmpimg.jpg
 simplecv/data/sampleimages/9d4l.jpg
+simplecv/data/sampleimages/simplecv.png
 simplecv/tests/*.pkl
 *.ipynb
 *.komodoproject

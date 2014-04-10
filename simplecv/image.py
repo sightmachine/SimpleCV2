@@ -477,7 +477,7 @@ class Image(CoreImage):
             return "Please pass a DrawingLayer object"
 
         if not layer:
-            layer = DrawingLayer(self.size())
+            layer = DrawingLayer(self.size)
         self._layers.append(layer)
         return len(self._layers) - 1
 
@@ -1133,7 +1133,7 @@ class Image(CoreImage):
             if init_options_handler.on_notebook:
                 d = Display(displaytype='notebook')
             else:
-                d = Display(self.size())
+                d = Display(self.size)
             self.save(d)
             return d
         else:
