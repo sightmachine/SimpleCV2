@@ -1,20 +1,22 @@
 import os
 import tempfile
 
-import cv2
+from mock import patch
 from nose.tools import assert_equals, raises
+import cv2
 import numpy as np
 
+from simplecv import DATA_DIR
 from simplecv.color import Color
 from simplecv.image import Image
 from simplecv.tests.utils import (perform_diff, create_test_image,
                                   create_test_array)
 from simplecv.core.image import finder
 
-LENNA_PATH = '../data/sampleimages/lenna.png'
-WEBP_IMAGE_PATH = '../data/sampleimages/simplecv.webp'
-TESTIMAGECLR = "../data/sampleimages/statue_liberty.jpg"
-TESTIMAGE = "../data/sampleimages/9dots4lines.png"
+LENNA_PATH = os.path.join(DATA_DIR, 'sampleimages/lenna.png')
+WEBP_IMAGE_PATH = os.path.join(DATA_DIR, 'sampleimages/simplecv.webp')
+TESTIMAGECLR = os.path.join(DATA_DIR, 'sampleimages/statue_liberty.jpg')
+TESTIMAGE = os.path.join(DATA_DIR, 'sampleimages/9dots4lines.png')
 
 
 def test_image_init_path_to_png():
@@ -36,11 +38,72 @@ def test_image_init_path_to_png():
     assert not img1.is_color_space(Image.GRAY)
 
 
+def test_image_repr():
+    img = Image((10, 10))
+    repr_str = img.__repr__()
+    assert 'simplecv.Image Object' in repr_str
+    assert 'size:(10, 10)' in repr_str
+    assert 'dtype: uint8' in repr_str
+    assert 'channels: 3' in repr_str
+    assert 'filename: (None)' in repr_str
+    assert 'dtype: uint8' in repr_str
+    assert 'at memory location: ' in repr_str
+
+    # Test for some filename
+    img = Image(LENNA_PATH)
+    repr_str = img.__repr__()
+    assert 'simplecv.Image Object' in repr_str
+    assert 'size:(512, 512)' in repr_str
+    assert 'dtype: uint8' in repr_str
+    assert 'channels: 3' in repr_str
+    assert 'filename: (None)' not in repr_str
+    assert LENNA_PATH in repr_str
+    assert 'dtype: uint8' in repr_str
+    assert 'at memory location: ' in repr_str
+
+
 def test_image_init_sample_png():
     img1 = Image(source="lenna")
     assert_equals((512, 512), img1.size)
     assert_equals(Image.BGR, img1.color_space)
     assert img1.is_color_space(Image.BGR)
+
+
+def test_sample_images():
+    img = Image('lenna')
+    assert img.filename
+    assert 'lenna.png' in img.filename
+    assert img.is_color_space(Image.BGR)
+    assert_equals(np.uint8, img.dtype)
+
+    img = Image('simplecv')
+    assert img.filename
+    assert 'simplecv.png' in img.filename
+    assert img.is_color_space(Image.BGR)
+    assert_equals(np.uint8, img.dtype)
+
+    img = Image('inverted')
+    assert img.filename
+    assert 'simplecv_inverted.png' in img.filename
+    assert img.is_color_space(Image.BGR)
+    assert_equals(np.uint8, img.dtype)
+
+    img = Image('lyle')
+    assert img.filename
+    assert 'LyleJune1973.png' in img.filename
+    assert img.is_color_space(Image.BGR)
+    assert_equals(np.uint8, img.dtype)
+
+    img = Image('lyle')
+    assert img.filename
+    assert 'LyleJune1973.png' in img.filename
+    assert img.is_color_space(Image.BGR)
+    assert_equals(np.uint8, img.dtype)
+
+    img = Image("parity")
+    assert img.filename
+    assert img.is_color_space(Image.BGR)
+    assert_equals(np.uint8, img.dtype)
 
 
 def test_image_init_path_to_webp():
@@ -57,6 +120,16 @@ def test_image_init_path_to_webp():
 @raises(Exception)
 def test_image_init_bad_path():
     Image('/bad/path/to/image.png')
+
+
+@patch('urllib2.urlopen')
+def test_image_init_url(urlopen_mock):
+    with open(LENNA_PATH) as f:
+        urlopen_mock.return_value = f
+        img = Image("http://someserver.com/lenna.png")
+        assert_equals((512, 512), img.size)
+        assert_equals(np.uint8, img.dtype)
+        assert img.is_color_space(Image.BGR)
 
 
 def test_image_init_ndarray_color():
