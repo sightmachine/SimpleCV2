@@ -69,7 +69,7 @@ class Image(CoreImage):
         if self.filename is None:
             fn = "None"
         else:
-            fn = self.filename
+            fn = os.path.abspath(self.filename)
         c = self._ndarray.shape[2] if len(self._ndarray.shape) > 2 else 1
         return "<simplecv.Image Object size:(%d, %d), dtype: %s, " \
                "channels: %d, filename: (%s), " \
