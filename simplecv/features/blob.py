@@ -1137,8 +1137,8 @@ class Blob(Feature):
         my_logs = np.log(np.abs(self.hu))
         my_m = my_signs * my_logs
 
-        other_signs = np.sign(otherblob.mHu)
-        other_logs = np.log(np.abs(otherblob.mHu))
+        other_signs = np.sign(otherblob.hu)
+        other_logs = np.log(np.abs(otherblob.hu))
         other_m = other_signs * other_logs
 
         return np.sum(abs((1 / my_m - 1 / other_m)))
@@ -1234,7 +1234,7 @@ class Blob(Feature):
         return Factory.Image(ret_value)
 
     def __repr__(self):
-        return "SimpleCV.features.Blob.Blob object at (%d, %d) with area %d"\
+        return "simplecv.features.blob.Blob object at (%d, %d) with area %d"\
                % (self.x, self.y, self.get_area())
 
     @staticmethod
@@ -1244,7 +1244,7 @@ class Blob(Feature):
         max_d = max_distance ** 2
         contour = [p0] + contour[:-1]
         contour = contour[:-1]
-        ret_value = [p0]
+        ret_value = [] #Keep it empty, else first and last point are the same
         while len(contour) > 0:
             pnt = np.array(contour.pop())
             dist = ((p0[0] - pnt[0]) ** 2) + ((p0[1] - pnt[1]) ** 2)
@@ -1297,6 +1297,10 @@ class Blob(Feature):
         complete_contour - All of the edge points as a long list
         r_bound - Bounds on the log part of the shape context descriptor
         """
+        # To compute descriptors, contour points need to be linked in circle
+        p0 = np.array(complete_contour[-1])
+        complete_contour = [p0] + complete_contour[:]
+        
         data = []
         for pnt in complete_contour:  #
             temp = []
@@ -1329,7 +1333,6 @@ class Blob(Feature):
             hist = hist.reshape(1, dsz ** 2)
             if np.all(np.isfinite(hist[0])):
                 descriptors.append(hist[0])
-
         self._scdescriptors = descriptors
         return descriptors
 
