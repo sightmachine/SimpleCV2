@@ -5,7 +5,8 @@
 import numpy as np
 
 from simplecv.color import Color
-from simplecv.camera import Camera, StereoImage, StereoCamera
+from simplecv.core.camera.camera import Camera
+from simplecv.core.camera.stereo_camera import StereoImage, StereoCamera
 from simplecv.image import Image
 from simplecv.tests.utils import perform_diff
 

@@ -8,7 +8,7 @@ import tempfile
 from simplecv.base import logger
 from simplecv.color import Color
 from simplecv.image import Image
-from simplecv.camera import ScreenCamera
+from simplecv.core.camera.screen_camera import ScreenCamera
 from simplecv.tests.utils import perform_diff
 
 SHOW_WARNING_TESTS = True   # show that warnings are working

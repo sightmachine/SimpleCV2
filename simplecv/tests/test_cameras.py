@@ -3,7 +3,9 @@ import tempfile
 
 import numpy as np
 
-from simplecv.camera import Camera, VirtualCamera, FrameSource
+from simplecv.core.camera.camera import Camera
+from simplecv.core.camera.frame_source import FrameSource
+from simplecv.core.camera.virtual_camera import VirtualCamera
 from simplecv.image import Image
 from simplecv.tests.utils import perform_diff
 

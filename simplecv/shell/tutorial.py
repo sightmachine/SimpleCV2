@@ -6,9 +6,9 @@ from code import InteractiveInterpreter
 import platform
 from subprocess import call
 
-from simplecv.camera import Camera
+from simplecv.core.camera.camera import Camera
 from simplecv.features.features import FeatureSet
-from simplecv.image_class import Image
+from simplecv.image import Image
 
 lb = "\n"  # linebreak
 tb = "\t"  # tab

@@ -17,7 +17,7 @@ class DiffSegmentation(SegmentationBase):
     The general usage is
 
     >>> from simplecv.segmentation.diff_segmentation import DiffSegmentation
-    >>> from simplecv.camera import Camera
+    >>> from simplecv.core.camera.camera import Camera
     >>> segmentor = DiffSegmentation()
     >>> cam = Camera()
     >>> while True:

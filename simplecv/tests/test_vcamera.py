@@ -3,7 +3,7 @@ import tempfile
 
 from nose.tools import nottest
 
-from simplecv.camera import VirtualCamera
+from simplecv.core.camera.virtual_camera import VirtualCamera
 from simplecv.image_set import ImageSet
 
 

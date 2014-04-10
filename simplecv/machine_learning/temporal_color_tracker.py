@@ -2,10 +2,11 @@ import time
 
 import numpy as np
 
-from simplecv.camera import Camera, VirtualCamera
+from simplecv.core.camera.camera import Camera
+from simplecv.core.camera.virtual_camera import VirtualCamera
 from simplecv.color import Color
 from simplecv.features.detection import ROI
-from simplecv.image_class import ImageSet
+from simplecv.image_set import ImageSet
 from simplecv.linescan import LineScan
 
 
