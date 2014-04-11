@@ -661,3 +661,14 @@ def test_color_conversion_func_ycrcb():
     results.append(ycrcb.to_ycrcb())
     name_stem = "test_color_conversion_func_ycrcb"
     perform_diff(results, name_stem)
+
+
+def test_get_exif_data():
+    img = Image("../data/sampleimages/cat.jpg")
+    d1 = img.get_exif_data()
+    assert_equals(37, len(d1))
+    assert_equals('sRGB', d1['EXIF ColorSpace'].printable)
+    assert_equals('JPEG (old-style)', d1['Thumbnail Compression'].printable)
+    img2 = Image(TESTIMAGE)
+    d2 = img2.get_exif_data()
+    assert_equals(0, len(d2))

@@ -18,7 +18,6 @@ from nose.tools import assert_equals, assert_list_equal
 
 from simplecv.base import logger
 from simplecv.color import Color, ColorMap
-from simplecv.dft import DFT
 from simplecv.drawing_layer import DrawingLayer
 from simplecv.features.blobmaker import BlobMaker
 from simplecv.features.detection import Corner, Line, ROI
@@ -959,38 +958,6 @@ def test_palette_blobs():
     assert len(b2) > 0
 
 
-def test_skeletonize():
-    img = Image(logo)
-    s = img.skeletonize()
-    s2 = img.skeletonize(10)
-
-    results = [s, s2]
-    name_stem = "test_skeletonize"
-    perform_diff(results, name_stem)
-
-
-def test_threshold():
-    # FIXME: Test should have assertion
-    img = Image(logo)
-    for t in range(0, 255):
-        img.threshold(t)
-
-
-def test_smart_threshold():
-    img = Image("../data/sampleimages/RatTop.png")
-    mask = Image((img.width, img.height))
-    mask.dl().circle((100, 100), 80, color=Color.MAYBE_BACKGROUND, filled=True)
-    mask.dl().circle((100, 100), 60, color=Color.MAYBE_FOREGROUND, filled=True)
-    mask.dl().circle((100, 100), 40, color=Color.FOREGROUND, filled=True)
-    mask = mask.apply_layers()
-    new_mask1 = img.smart_threshold(mask=mask)
-    new_mask2 = img.smart_threshold(rect=(30, 30, 150, 185))
-
-    results = [new_mask1, new_mask2]
-    name_stem = "test_smart_threshold"
-    perform_diff(results, name_stem)
-
-
 def test_smart_find_blobs():
     img = Image(topImg)
     mask = Image((img.width, img.height))
@@ -1078,17 +1045,6 @@ def test_detection_spatial_relationships():
             g.right(a_point)
 
 
-def test_get_exif_data():
-    img = Image("../data/sampleimages/cat.jpg")
-    img2 = Image(testimage)
-    d1 = img.get_exif_data()
-    d2 = img2.get_exif_data()
-    if len(d1) > 0 and len(d2) == 0:
-        pass
-    else:
-        assert False
-
-
 def test_get_raw_dft():
     img = Image("../data/sampleimages/RedDog2.jpg")
     raw3 = img.raw_dft_image()
@@ -1114,105 +1070,6 @@ def test_get_dft_log_magnitude():
     results = [lm3, lm1]
     name_stem = "test_get_dft_log_magnitude"
     perform_diff(results, name_stem, tolerance=6.0)
-
-
-def test_apply_dft_filter():
-    img = Image("../data/sampleimages/RedDog2.jpg")
-    flt = Image("../data/sampleimages/RedDogFlt.png")
-    f1 = img.apply_dft_filter(flt)
-    f2 = img.apply_dft_filter(flt, grayscale=True)
-    results = [f1, f2]
-    name_stem = "test_apply_dft_filter"
-    perform_diff(results, name_stem)
-
-
-def test_high_pass_filter():
-    img = Image("../data/sampleimages/RedDog2.jpg")
-    a = img.high_pass_filter(0.5)
-    b = img.high_pass_filter(0.5, grayscale=True)
-    c = img.high_pass_filter(0.5, y_cutoff=0.4)
-    d = img.high_pass_filter(0.5, y_cutoff=0.4, grayscale=True)
-    e = img.high_pass_filter([0.5, 0.4, 0.3])
-    f = img.high_pass_filter([0.5, 0.4, 0.3], y_cutoff=[0.5, 0.4, 0.3])
-
-    results = [a, b, c, d, e, f]
-    name_stem = "test_high_pass_filter"
-    perform_diff(results, name_stem)
-
-
-def test_low_pass_filter():
-    img = Image("../data/sampleimages/RedDog2.jpg")
-    a = img.low_pass_filter(0.5)
-    b = img.low_pass_filter(0.5, grayscale=True)
-    c = img.low_pass_filter(0.5, y_cutoff=0.4)
-    d = img.low_pass_filter(0.5, y_cutoff=0.4, grayscale=True)
-    e = img.low_pass_filter([0.5, 0.4, 0.3])
-    f = img.low_pass_filter([0.5, 0.4, 0.3], y_cutoff=[0.5, 0.4, 0.3])
-
-    results = [a, b, c, d, e, f]
-    name_stem = "test_low_pass_filter"
-    perform_diff(results, name_stem)
-
-
-def test_dft_gaussian():
-    img = Image("../data/sampleimages/RedDog2.jpg")
-    flt = DFT.create_gaussian_filter(dia=300, size=(300, 300), highpass=False)
-    fltimg = img.filter(flt)
-    fltimggray = img.filter(flt, grayscale=True)
-    flt = DFT.create_gaussian_filter(dia=300, size=(300, 300), highpass=True)
-    fltimg1 = img.filter(flt)
-    fltimggray1 = img.filter(flt, grayscale=True)
-    results = [fltimg, fltimggray, fltimg1, fltimggray1]
-    name_stem = "test_dft_gaussian"
-    perform_diff(results, name_stem)
-
-
-def test_dft_butterworth():
-    img = Image("../data/sampleimages/RedDog2.jpg")
-    flt = DFT.create_butterworth_filter(dia=300, size=(300, 300), order=3,
-                                        highpass=False)
-    fltimg = img.filter(flt)
-    fltimggray = img.filter(flt, grayscale=True)
-    flt = DFT.create_butterworth_filter(dia=100, size=(300, 300), order=3,
-                                        highpass=True)
-    fltimg1 = img.filter(flt)
-    fltimggray1 = img.filter(flt, grayscale=True)
-    results = [fltimg, fltimggray, fltimg1, fltimggray1]
-    name_stem = "test_dft_butterworth"
-    perform_diff(results, name_stem)
-
-
-def test_dft_lowpass():
-    img = Image("../data/sampleimages/RedDog2.jpg")
-    flt = DFT.create_lowpass_filter(x_cutoff=150, size=(600, 600))
-    fltimg = img.filter(flt)
-    fltimggray = img.filter(flt, grayscale=True)
-    results = [fltimg, fltimggray]
-    name_stem = "test_dft_lowpass"
-    perform_diff(results, name_stem)
-
-
-def test_dft_highpass():
-    img = Image("../data/sampleimages/RedDog2.jpg")
-    flt = DFT.create_lowpass_filter(x_cutoff=10, size=(600, 600))
-    fltimg = img.filter(flt)
-    fltimggray = img.filter(flt, grayscale=True)
-    results = [fltimg, fltimggray]
-    name_stem = "test_dft_highpass"
-    perform_diff(results, name_stem)
-
-
-def test_dft_notch():
-    img = Image("../data/sampleimages/RedDog2.jpg")
-    flt = DFT.create_notch_filter(dia1=500, size=(512, 512), ftype="lowpass")
-    fltimg = img.filter(flt)
-    fltimggray = img.filter(flt, grayscale=True)
-    flt = DFT.create_notch_filter(dia1=300, size=(512, 512), ftype="highpass")
-    fltimg1 = img.filter(flt)
-    fltimggray1 = img.filter(flt, grayscale=True)
-    results = [fltimg, fltimggray, fltimg1, fltimggray1]
-    name_stem = "test_dft_notch"
-    perform_diff(results, name_stem)
 
 
 def test_find_haar_features():
@@ -1286,22 +1143,6 @@ def test_find_blobs_from_mask():
     perform_diff(results, name_stem)
 
     assert len(b1) == len(b2)
-
-
-def test_band_pass_filter():
-    img = Image("../data/sampleimages/RedDog2.jpg")
-    a = img.band_pass_filter(0.1, 0.3)
-    b = img.band_pass_filter(0.1, 0.3, grayscale=True)
-    c = img.band_pass_filter(0.1, 0.3, y_cutoff_low=0.1, y_cutoff_high=0.3)
-    d = img.band_pass_filter(0.1, 0.3, y_cutoff_low=0.1, y_cutoff_high=0.3,
-                             grayscale=True)
-    e = img.band_pass_filter([0.1, 0.2, 0.3], [0.5, 0.5, 0.5])
-    f = img.band_pass_filter([0.1, 0.2, 0.3], [0.5, 0.5, 0.5],
-                             y_cutoff_low=[0.1, 0.2, 0.3],
-                             y_cutoff_high=[0.6, 0.6, 0.6])
-    results = [a, b, c, d, e, f]
-    name_stem = "test_band_pass_filter"
-    perform_diff(results, name_stem)
 
 
 def test_image_slice():
@@ -1549,31 +1390,6 @@ def test_minrect_blobs():
     perform_diff(results, name_stem, tolerance=11.0)
 
 
-def test_pixelize():
-    img = Image("../data/sampleimages/The1970s.png")
-    img1 = img.pixelize(4)
-    img2 = img.pixelize((5, 13))
-    img3 = img.pixelize((img.width / 10, img.height))
-    img4 = img.pixelize((img.width, img.height / 10))
-    img5 = img.pixelize((12, 12), (200, 180, 250, 250))
-    img6 = img.pixelize((12, 12), (600, 80, 250, 250))
-    img7 = img.pixelize((12, 12), (600, 80, 250, 250), levels=4)
-    img8 = img.pixelize((12, 12), levels=6)
-    #img9 = img.pixelize(4, )
-    #img10 = img.pixelize((5,13))
-    #img11 = img.pixelize((img.width/10,img.height), mode=True)
-    #img12 = img.pixelize((img.width,img.height/10), mode=True)
-    #img13 = img.pixelize((12,12),(200,180,250,250), mode=True)
-    #img14 = img.pixelize((12,12),(600,80,250,250), mode=True)
-    #img15 = img.pixelize((12,12),(600,80,250,250),levels=4, mode=True)
-    #img16 = img.pixelize((12,12),levels=6, mode=True)
-
-    results = [img1, img2, img3, img4, img5, img6, img7, img8]
-              # img9,img10,img11,img12,img13,img14,img15,img16]
-    name_stem = "test_pixelize"
-    perform_diff(results, name_stem, tolerance=6.0)
-
-
 def test_point_intersection():
     img = Image("simplecv")
     e = img.edges(0, 100)
@@ -1644,11 +1460,6 @@ def test_get_skintone_mask():
 
 
 def test_find_keypoints_all():
-    try:
-        import cv2
-    except:
-        pass
-        return
     img = Image(testimage2)
     methods = ["ORB", "SIFT", "SURF", "FAST", "STAR", "MSER", "Dense"]
     for i in methods:
@@ -1679,31 +1490,6 @@ def test_find_keypoints_all():
         results = [img]
         name_stem = "test_find_keypoints"
         #~ perform_diff(results,name_stem,tolerance=8)
-
-
-def test_upload_flickr():
-    try:
-        import flickrapi
-    except:
-        if SHOW_WARNING_TESTS:
-            logger.warning("Couldn't run the upload test as optional flickr "
-                           "library required")
-        pass
-    else:
-        img = Image('simplecv')
-        api_key = None
-        api_secret = None
-        if api_key is None or api_secret is None:
-            pass
-        else:
-            try:
-                ret = img.upload('flickr', api_key, api_secret)
-                if ret:
-                    pass
-                else:
-                    assert False
-            except:  # we will chock this up to key errors
-                pass
 
 
 def test_image_new_crop():
@@ -1788,28 +1574,6 @@ def test_sliceing_image_set():
         assert True
     else:
         assert False
-
-
-def test_upload_dropbox():
-    try:
-        import dropbox
-    except:
-        if SHOW_WARNING_TESTS:
-            logger.warning("Couldn't run the upload test as optional dropbox "
-                           "library required")
-        pass
-    else:
-        img = Image('simplecv')
-        api_key = ''
-        api_secret = ''
-        if api_key is None or api_secret is None:
-            pass
-        else:
-            ret = img.upload('dropbox', api_key, api_secret)
-            if ret:
-                pass
-            else:
-                assert False
 
 
 def test_builtin_rotations():
@@ -2084,29 +1848,6 @@ def test_color_map():
     result = [img]
     name_stem = "test_color_map"
     perform_diff(result, name_stem)
-
-
-def test_watershed():
-    img = Image('../data/sampleimages/wshed.jpg')
-    img1 = img.watershed()
-    img2 = img.watershed(dilate=3, erode=2)
-    img3 = img.watershed(mask=img.threshold(128), erode=1, dilate=1)
-    my_mask = Image((img.width, img.height))
-    my_mask = my_mask.flood_fill((0, 0), color=Color.WATERSHED_BG)
-    mask = img.threshold(128)
-    my_mask = my_mask - mask.dilate(2).to_bgr()
-    my_mask = my_mask + mask.erode(2).to_bgr()
-    img4 = img.watershed(mask=my_mask, use_my_mask=True)
-    blobs = img.find_blobs_from_watershed(dilate=3, erode=2)
-    blobs = img.find_blobs_from_watershed()
-    blobs = img.find_blobs_from_watershed(mask=img.threshold(128), erode=1,
-                                          dilate=1)
-    blobs = img.find_blobs_from_watershed(mask=img.threshold(128), erode=1,
-                                          dilate=1, invert=True)
-    blobs = img.find_blobs_from_watershed(mask=my_mask, use_my_mask=True)
-    result = [img1, img2, img3, img4]
-    name_stem = "test_watershed"
-    perform_diff(result, name_stem, 3.0)
 
 
 def test_minmax():
@@ -2450,51 +2191,6 @@ def test_line_scan_div():
         assert False
 
 
-# FIXME: the following tests should be merged
-def test_motion_blur():
-    i = Image('lenna')
-    d = ('n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw')
-    i0 = i.motion_blur(intensity=20, direction=d[0])
-    i1 = i.motion_blur(intensity=20, direction=d[1])
-    i2 = i.motion_blur(intensity=20, direction=d[2])
-    i3 = i.motion_blur(intensity=20, direction=d[3])
-    i4 = i.motion_blur(intensity=10, direction=d[4])
-    i5 = i.motion_blur(intensity=10, direction=d[5])
-    i6 = i.motion_blur(intensity=10, direction=d[6])
-    i7 = i.motion_blur(intensity=10, direction=d[7])
-    a = i.motion_blur(intensity=0)
-    c = 0
-    img = (i0, i1, i2, i3, i4, i5, i6, i7)
-    for im in img:
-        if im is not i:
-            c += 1
-
-    if c == 8 and a is i:
-        pass
-    else:
-        assert False
-
-
-def test_motion_blur2():
-    image = Image('lenna')
-    d = (-70, -45, -30, -10, 100, 150, 235, 420)
-    p = (10, 20, 30, 40, 50, 60, 70, 80)
-    img = []
-
-    a = image.motion_blur2(0)
-    for i in range(8):
-        img += [image.motion_blur2(p[i], d[i])]
-    c = 0
-    for im in img:
-        if im is not i:
-            c += 1
-
-    if c == 8 and a is image:
-        pass
-    else:
-        assert False
-
-
 def test_face_recognize():
     try:
         import cv2
@@ -2597,32 +2293,6 @@ def test_grayscalmatrix():
         assert False
 
 
-def test_get_lightness():
-    img = Image('lenna')
-    i = img.get_lightness()
-    if int(i[27, 42]) == int((max(img[27, 42]) + min(img[27, 42])) / 2):
-        pass
-    else:
-        assert False
-
-
-def test_get_luminosity():
-    img = Image('lenna')
-    i = img.get_luminosity()
-    assert_equals(150, i[27, 42])
-
-
-def test_get_average():
-    img = Image('lenna')
-    i = img.get_average()
-    if int(i[0, 0]) == int((img[0, 0][0]
-                            + img[0, 0][1]
-                            + img[0, 0][2]) / 3):
-        pass
-    else:
-        assert False
-
-
 def test_smart_rotate():
     img = Image('kptest2.png', sample=True)
 
@@ -2634,15 +2304,6 @@ def test_smart_rotate():
         assert False
     else:
         assert True
-
-
-def test_normalize():
-    img = Image("lenna")
-    img1 = img.normalize()
-    img2 = img.normalize(min_cut=0, max_cut=0)
-    result = [img1, img2]
-    name_stem = "test_image_normalize"
-    perform_diff(result, name_stem, 5)
 
 
 def test_get_normalized_hue_histogram():

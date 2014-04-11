@@ -153,3 +153,48 @@ def test_steganograpy():
     img2 = Image(tmp_file)
     msg2 = img2.stega_decode()
     assert_equals(msg, msg2)
+
+
+def test_upload_dropbox():
+    try:
+        import dropbox
+    except:
+        logger.warning("Couldn't run the upload test as optional dropbox "
+                       "library required")
+        return
+
+    img = Image('simplecv')
+    api_key = ''
+    api_secret = ''
+    if api_key is None or api_secret is None:
+        pass
+    else:
+        ret = img.upload('dropbox', api_key, api_secret)
+        if ret:
+            pass
+        else:
+            assert False
+
+
+def test_upload_flickr():
+    try:
+        import flickrapi
+    except:
+        logger.warning("Couldn't run the upload test as optional flickr "
+                       "library required")
+        return
+
+    img = Image('simplecv')
+    api_key = None
+    api_secret = None
+    if api_key is None or api_secret is None:
+        pass
+    else:
+        try:
+            ret = img.upload('flickr', api_key, api_secret)
+            if ret:
+                pass
+            else:
+                assert False
+        except:  # we will chock this up to key errors
+            pass
