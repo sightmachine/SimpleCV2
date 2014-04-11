@@ -1,18 +1,13 @@
-# /usr/bin/python
-# To run this test you need python nose tools installed
-# Run test just use:
-#   nosetest test_optional.py
-#
+import os
 import tempfile
+
+from nose.tools import assert_equals
 
 from simplecv.base import logger
 from simplecv.color import Color
 from simplecv.image import Image
 from simplecv.core.camera.screen_camera import ScreenCamera
 from simplecv.tests.utils import perform_diff
-
-SHOW_WARNING_TESTS = True   # show that warnings are working
-                            # tests will pass but warnings are generated.
 
 #colors
 black = Color.BLACK
@@ -59,35 +54,26 @@ def test_detection_barcode():
     try:
         import zbar
     except:
-        return None
+        return
 
     img1 = Image(testimage)
     img2 = Image(testbarcode)
 
-    if SHOW_WARNING_TESTS:
-        nocode = img1.find_barcode()
-        if nocode:  # we should find no barcode in our test image
-            assert False
-        code = img2.find_barcode()
-        code.draw()
-        if code.points:
-            pass
-        result = [img1, img2]
-        name_stem = "test_detection_barcode"
-        perform_diff(result, name_stem)
-    else:
-        pass
+    nocode = img1.find_barcode()
+    if nocode:  # we should find no barcode in our test image
+        assert False
+    code = img2.find_barcode()
+    code.draw()
+    result = [img1, img2]
+    name_stem = "test_detection_barcode"
+    perform_diff(result, name_stem)
 
 
 def test_detection_ocr():
     img = Image(ocrimage)
 
     foundtext = img.read_text()
-    print foundtext
-    if len(foundtext) <= 1:
-        assert False
-    else:
-        pass
+    assert len(foundtext) > 1
 
 
 def test_image_webp_load():
@@ -95,19 +81,12 @@ def test_image_webp_load():
     try:
         import webm
     except:
-        if SHOW_WARNING_TESTS:
-            logger.warning("Couldn't run the webp test as optional webm "
-                           "library required")
-        pass
+        logger.warning("Couldn't run the webp test as optional webm "
+                       "library required")
+        return
 
-    else:
-        img = Image(webp)
-
-        if len(img.to_string()) <= 1:
-            assert False
-
-        else:
-            pass
+    img = Image(webp)
+    assert len(img.to_string()) > 1
 
 
 def test_image_webp_save():
@@ -115,63 +94,62 @@ def test_image_webp_save():
     try:
         import webm
     except ImportError:
-        if SHOW_WARNING_TESTS:
-            logger.warning("Couldn't run the webp test as optional "
-                           "webm library required")
-        pass
+        logger.warning("Couldn't run the webp test as optional "
+                       "webm library required")
+        return
 
-    else:
-        img = Image('simplecv')
-        tf = tempfile.NamedTemporaryFile(suffix=".webp")
-        if img.save(tf.name):
-            pass
-        else:
-            assert False
+    img = Image('simplecv')
+    tf = tempfile.NamedTemporaryFile(suffix=".webp")
+    assert img.save(tf.name)
 
 
 def test_screenshot():
     try:
         import pyscreenshot
     except ImportError:
-        if SHOW_WARNING_TESTS:
-            logger.warning("Couldn't run the pyscreenshot test. "
-                           "Install pyscreenshot library")
-        pass
+        logger.warning("Couldn't run the pyscreenshot test. "
+                       "Install pyscreenshot library")
+        return
 
-    else:
-        sc = ScreenCamera()
-        res = sc.get_resolution()
-        img = sc.get_image()
-        crop = (res[0]/4, res[1]/4, res[0]/2, res[1]/2)
-        sc.set_roi(crop)
-        crop_img = sc.get_image()
-        if img and crop_img:
-            assert True
-        else:
-            assert False
+    sc = ScreenCamera()
+    res = sc.get_resolution()
+    img = sc.get_image()
+    crop = (res[0]/4, res[1]/4, res[0]/2, res[1]/2)
+    sc.set_roi(crop)
+    crop_img = sc.get_image()
+    assert img
+    assert crop_img
 
 
 def test_tv_denoising():
     try:
         from skimage.filter import denoise_tv_chambolle
-
-        img = Image('lenna')
-        img1 = img.tv_denoising(gray=False, weight=20)
-        img2 = img.tv_denoising(weight=50, max_iter=250)
-        img3 = img.to_gray()
-        img3 = img3.tv_denoising(gray=True, weight=20)
-        img4 = img.tv_denoising(resize=0.5)
-        result = [img1, img2, img3, img4]
-        name_stem = "test_tvDenoising"
-        perform_diff(result, name_stem, 3)
     except ImportError:
-        pass
+        return
+
+    img = Image('lenna')
+    img1 = img.tv_denoising(gray=False, weight=20)
+    img2 = img.tv_denoising(weight=50, max_iter=250)
+    img3 = img.to_gray()
+    img3 = img3.tv_denoising(gray=True, weight=20)
+    img4 = img.tv_denoising(resize=0.5)
+    result = [img1, img2, img3, img4]
+    name_stem = "test_tvDenoising"
+    perform_diff(result, name_stem, 3)
 
 
 def test_steganograpy():
+    try:
+        import stepic
+    except ImportError:
+        return
+
+    tmp_file = os.path.join(tempfile.gettempdir(), 'simplecv_tmp.png')
     img = Image(logo)
     msg = 'How do I SimpleCV?'
-    img.stega_encode(msg)
-    img.save(logo)
-    img2 = Image(logo)
+    img = img.stega_encode(msg)
+    assert img
+    img.save(tmp_file)
+    img2 = Image(tmp_file)
     msg2 = img2.stega_decode()
+    assert_equals(msg, msg2)

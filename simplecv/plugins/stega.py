@@ -96,6 +96,6 @@ def stega_decode(img):
         logger.warning("stepic library required")
         return None
     warnings.simplefilter("ignore")
-    pil_img = PilImage.frombuffer("RGB", img.size(), img.to_rgb().to_string())
+    pil_img = PilImage.frombuffer("RGB", img.size, img.to_rgb().to_string())
     result = stepic.decode(pil_img)
     return result
