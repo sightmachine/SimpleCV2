@@ -11,6 +11,8 @@ from simplecv.features.features import FeatureSet
 from simplecv.factory import Factory
 from simplecv.core.image import image_method
 
+_barcode_reader = None
+
 
 @image_method
 def find_barcode(img, do_zlib=True, zxing_path=""):
@@ -130,24 +132,22 @@ def find_barcode(img, do_zlib=True, zxing_path=""):
         for symbol in image:
             # do something useful with results
             barcode = symbol
-        # clean up
-        del image
-
     else:
         if not ZXING_ENABLED:
             logger.warn("Zebra Crossing (ZXing) Library not installed. "
                         "Please see the release notes.")
             return None
 
-        if not img._barcode_reader:
+        global _barcode_reader
+        if not _barcode_reader:
             if not zxing_path:
-                img._barcode_reader = zxing.BarCodeReader()
+                _barcode_reader = zxing.BarCodeReader()
             else:
-                img._barcode_reader = zxing.BarCodeReader(zxing_path)
+                _barcode_reader = zxing.BarCodeReader(zxing_path)
 
         tmp_filename = os.tmpnam() + ".png"
         img.save(tmp_filename)
-        barcode = img._barcode_reader.decode(tmp_filename)
+        barcode = _barcode_reader.decode(tmp_filename)
         os.unlink(tmp_filename)
 
     if barcode:

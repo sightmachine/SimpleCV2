@@ -6,7 +6,8 @@ import scipy.cluster.vq as scv
 import scipy.spatial.distance as spsd
 
 from simplecv.base import logger
-from simplecv.core.image import image_method, static_image_method
+from simplecv.core.image import (image_method, static_image_method,
+                                 cached_method)
 from simplecv.factory import Factory
 from simplecv.linescan import LineScan
 
@@ -266,6 +267,7 @@ def hue_peaks(img, bins=179):
 
 
 @image_method
+@cached_method
 def get_edge_map(img, t1=50, t2=100):
     """
     Return the binary bitmap which shows where edges are in the image.
@@ -277,15 +279,7 @@ def get_edge_map(img, t1=50, t2=100):
     http://opencv.willowgarage.com/documentation/python/
     imgproc_feature_detection.html?highlight=canny#Canny
     """
-
-    if img._edge_map and img._cannyparam[0] == t1 \
-            and img._cannyparam[1] == t2:
-        return img._edge_map
-
-    img._edge_map = cv2.Canny(img.get_gray_ndarray(), t1, t2)
-    img._cannyparam = (t1, t2)
-
-    return img._edge_map
+    return cv2.Canny(img.get_gray_ndarray(), t1, t2)
 
 
 @image_method

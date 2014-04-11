@@ -20,6 +20,31 @@ def static_image_method(func):
     return func
 
 
+def cached_method(func):
+    """ Decorator for image methods. Saves the method result and arguments
+        to the cache and returns cached result if the arguments are not
+        changed.
+    """
+    def wrapper(*args, **kwargs):
+        img = args[0]  # first arg is image
+        img_args = args[1:]
+        cache_item = img._cache.get(func.__name__)
+        if cache_item \
+                and cache_item['args'] == img_args \
+                and cache_item['kwargs'] == kwargs:
+            return cache_item['result']
+
+        result = func(*args, **kwargs)
+        img._cache[func.__name__] = {
+            'result': result,
+            'args': img_args,
+            'kwargs': kwargs
+        }
+        return result
+    wrapper.__name__ = func.__name__
+    return wrapper
+
+
 class Image(object):
     """
     Core Image class
@@ -87,6 +112,7 @@ class Image(object):
                 raise AttributeError('Unknown color space')
             else:
                 self._color_space = color_space
+        self._cache = {}
 
     @property
     def color_space(self):
@@ -390,6 +416,13 @@ class Image(object):
         else:
             self._ndarray = np.zeros((self.width, self.height, 3),
                                      dtype=self.dtype)
+        self.clear_cache()
+
+    def clear_cache(self):
+        """ Removes all cached results from methods that was decorated with
+            cached_method
+        """
+        self._cache.clear()
 
     def is_empty(self):
         """

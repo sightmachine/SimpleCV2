@@ -16,6 +16,7 @@ from simplecv import exif
 from simplecv.base import logger, init_options_handler
 from simplecv.color import Color
 from simplecv.core.image import Image as CoreImage
+from simplecv.core.image import cached_method
 from simplecv.core.image.loader import ImageLoader
 from simplecv.display import Display
 from simplecv.drawing_layer import DrawingLayer
@@ -57,14 +58,6 @@ class Image(CoreImage):
 
     """
 
-    #when we empty the buffers, populate with this:
-    _initialized_buffers = {
-        "_edge_map": None,
-        "_cannyparam": (0, 0),
-        "_pil": None,
-        "_pgsurface": None,
-    }
-
     def __repr__(self):
         if self.filename is None:
             fn = "None"
@@ -92,17 +85,12 @@ class Image(CoreImage):
         self._temp_files = []
         # drawing layers
         self._layers = []
-        # Other
-        self.camera = kwargs.get('camera')
-        self.filename = None
-        self.filehandle = None
-        self._barcode_reader = None  # property for the ZXing barcode reader
-        self._pgsurface = None
-        self._edge_map = None  # holding reference for edge map
-        self._cannyparam = (0, 0)  # parameters that created _edge_map
-        self._pil = None  # holds a PIL object in buffer
         # to store grid details | Format -> [gridIndex, gridDimensions]
         self._grid_layer = [None, [0, 0]]
+        # Other
+        self.camera = kwargs.get('camera')  # self.camera is unused so far
+        self.filename = None
+        self.filehandle = None
         # For DFT Caching
         self._dft = []  # an array of 2 channel (real,imaginary) 64F images
         # The variables uncropped_x and uncropped_y are used to buffer the
@@ -128,12 +116,6 @@ class Image(CoreImage):
 
     def __setstate__(self, d):
         self.__init__(**d)
-
-    def _clear_buffers(self, clearexcept="_ndarray"):
-        for k, v in self._initialized_buffers.items():
-            if k == clearexcept:
-                continue
-            self.__dict__[k] = v
 
     def save(self, filehandle_or_filename="", mode="", verbose=False,
              temp=False, path=None, filename=None, clean_temp=False, **params):
@@ -749,6 +731,7 @@ class Image(CoreImage):
             layers.render_to_other_layer(final)
         return final
 
+    @cached_method
     def get_pil(self):
         """
         **SUMMARY**
@@ -775,10 +758,9 @@ class Image(CoreImage):
         :py:meth:`get_gray_numpy`
         :py:meth:`get_grayscale_matrix`
         """
-        if not self._pil:
-            self._pil = convert.to_pil_image(self)
-        return self._pil
+        return convert.to_pil_image(self)
 
+    @cached_method
     def get_pg_surface(self):
         """
         **SUMMARY**
@@ -790,9 +772,7 @@ class Image(CoreImage):
 
         A pygame surface object used for rendering.
         """
-        if not self._pgsurface:
-            self._pgsurface = convert.to_pg_surface(self)
-        return self._pgsurface
+        return convert.to_pg_surface(self)
 
     def get_exif_data(self):
         """

@@ -6,24 +6,7 @@ from nose.tools import assert_equals, nottest, raises
 import numpy as np
 
 from simplecv.core.image import Image as CoreImage
-
-
-@nottest
-def create_test_array():
-    """ Returns array 2 x 2 pixels, 8 bit and BGR color space
-        pixels are colored so:
-        RED, GREEN
-        BLUE, WHITE
-    """
-    return np.array([[[0, 0, 255], [0, 255, 0]],       # RED,  GREEN
-                     [[255, 0, 0], [255, 255, 255]]],  # BLUE, WHITE
-                    dtype=np.uint8)
-
-
-@nottest
-def create_test_image():
-    bgr_array = create_test_array()
-    return CoreImage(array=bgr_array, color_space=CoreImage.BGR)
+from simplecv.tests.utils import create_test_array, create_test_image
 
 
 def test_init_core_image():
