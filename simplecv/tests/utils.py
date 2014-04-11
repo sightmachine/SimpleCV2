@@ -84,6 +84,7 @@ def create_test_image():
     bgr_array = create_test_array()
     return Image(array=bgr_array, color_space=Image.BGR)
 
+
 @nottest
 def perform_diff_blobs(blob1, blob2):
     assert_equals(blob1.m00, blob2.m00)
@@ -104,7 +105,7 @@ def perform_diff_blobs(blob1, blob2):
     assert_equals(blob1.contour, blob2.contour)
     assert_equals(blob1.convex_hull, blob2.convex_hull)
     assert_equals(blob1.contour_appx, blob2.contour_appx)
-    assert_equals(blob1.image.get_ndarray().data, blob2.image.get_ndarray().data)
+    assert_equals(blob1.image.get_ndarray().data,
+                  blob2.image.get_ndarray().data)
     assert_equals(blob1.points, blob2.points)
     assert_equals(blob1.hole_contour, blob2.hole_contour)
-

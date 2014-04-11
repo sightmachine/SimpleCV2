@@ -1244,7 +1244,7 @@ class Blob(Feature):
         max_d = max_distance ** 2
         contour = [p0] + contour[:-1]
         contour = contour[:-1]
-        ret_value = [] #Keep it empty, else first and last point are the same
+        ret_value = []  # Keep it empty, else first and last point are the same
         while len(contour) > 0:
             pnt = np.array(contour.pop())
             dist = ((p0[0] - pnt[0]) ** 2) + ((p0[1] - pnt[1]) ** 2)
@@ -1300,7 +1300,7 @@ class Blob(Feature):
         # To compute descriptors, contour points need to be linked in circle
         p0 = np.array(complete_contour[-1])
         complete_contour = [p0] + complete_contour[:]
-        
+
         data = []
         for pnt in complete_contour:  #
             temp = []
