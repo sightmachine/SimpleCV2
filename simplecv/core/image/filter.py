@@ -591,10 +591,9 @@ def get_skintone_mask(img, dilate_iter=0):
     array = np.dstack((y_array, cr_array, cb_array))
 
     mask = Factory.Image(array, color_space=Factory.Image.YCR_CB)
-    mask = binarize(mask, (128, 128, 128))
-    mask = binarize(mask.to_rgb())
-    dilate(mask, dilate_iter)
-    return mask
+    mask = mask.binarize(thresh=(128, 128, 128))
+    mask = mask.to_rgb().binarize()
+    return mask.dilate(iterations=dilate_iter)
 
 
 @image_method

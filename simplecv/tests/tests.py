@@ -1456,7 +1456,10 @@ def test_get_skintone_mask():
     img_set.append(Image('../data/sampleimages/040007.jpg'))
     masks = [img.get_skintone_mask() for img in img_set]
     name_stem = 'test_skintone'
-    perform_diff(masks, name_stem, tolerance=17)
+    masks.append(img_set[0].get_skintone_mask(dilate_iter=1))
+    masks.append(img_set[0].get_skintone_mask(dilate_iter=2))
+    masks.append(img_set[0].get_skintone_mask(dilate_iter=3))
+    perform_diff(masks, name_stem)
 
 
 def test_find_keypoints_all():
