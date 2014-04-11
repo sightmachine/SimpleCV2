@@ -1009,21 +1009,6 @@ def test_smart_find_blobs():
         blobs2.draw()
 
 
-def test_image_webp_load():
-    #only run if webm suppport exist on system
-    try:
-        import webm
-    except:
-        if SHOW_WARNING_TESTS:
-            logger.warning("Couldn't run the webp test as optional webm "
-                           "library required")
-    else:
-        img = Image(webp)
-
-        if len(img.to_string()) <= 1:
-            assert False
-
-
 def test_image_webp_save():
     #only run if webm suppport exist on system
     try:
