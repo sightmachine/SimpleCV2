@@ -1,13 +1,14 @@
-
 import cv2
 import numpy as np
 
 from simplecv.base import logger
-from simplecv.core.image import image_method
+from simplecv.core.image import (image_method, cached_method,
+                                 static_image_method)
 from simplecv.factory import Factory
 
 
 @image_method
+@cached_method
 def do_dft(img, grayscale=False):
     """
     **SUMMARY**
@@ -33,8 +34,8 @@ def do_dft(img, grayscale=False):
     **EXAMPLE**
 
     >>> img = Image('logo.png')
-    >>> img._do_dft()
-    >>> img._dft[0] # get the b channel Re/Im components
+    >>> dft = img._do_dft()
+    >>> dft[0] # get the b channel Re/Im components
 
     **NOTES**
 
@@ -50,17 +51,15 @@ def do_dft(img, grayscale=False):
 
     """
     width, height = img.size
-    if grayscale and (len(img._dft) == 0 or len(img._dft) == 3):
-        img._dft = []
+    dft = []
+    if grayscale:
         img_array = img.get_gray_ndarray()
         data = img_array.astype(np.float64)
         blank = np.zeros((height, width))
         src = np.dstack((data, blank))
         dst = cv2.dft(src)
-        img._dft.append(dst)
-    elif not grayscale and len(img._dft) < 2:
-        width, height = img.size
-        img._dft = []
+        dft.append(dst)
+    else:
         img_array = img.get_ndarray().copy()
         if len(img_array.shape) == 3:
             b = img_array[:, :, 0]
@@ -74,7 +73,8 @@ def do_dft(img, grayscale=False):
             blank = np.zeros((height, width))
             src = np.dstack((data, blank))
             dst = cv2.dft(src)
-            img._dft.append(dst)
+            dft.append(dst)
+    return dft
 
 
 @image_method
@@ -113,14 +113,8 @@ def _get_dft_clone(img, grayscale=False):
     """
     # this is needs to be switched to the optimal
     # DFT size for faster processing.
-    img.do_dft(grayscale)
-    ret_val = []
-    if grayscale:
-        ret_val.append(img._dft[0].copy())
-    else:
-        for dft_img in img._dft:
-            ret_val.append(dft_img.copy())
-    return ret_val
+    dft = img.do_dft(grayscale)
+    return [dft_img.copy() for dft_img in dft]
 
 
 @image_method
@@ -173,8 +167,7 @@ def raw_dft_image(img, grayscale=False):
     :py:meth:`apply_unsharp_mask`
 
     """
-    do_dft(img, grayscale)
-    return img._dft
+    return img.do_dft(grayscale)
 
 
 @image_method
@@ -318,15 +311,14 @@ def apply_dft_filter(img, flt, grayscale=False):
     if flt.size != img.size:
         logger.warning("Image.apply_dft_filter - Your filter must match "
                        "the size of the image")
-    dft = []
+        return None
+    dft = img._get_dft_clone(grayscale)
     if grayscale:
-        dft = img._get_dft_clone(grayscale)
         flt64f = flt.get_gray_ndarray().astype(np.float64)
         final_filt = np.dstack((flt64f, flt64f))
         for i in range(len(dft)):
-            dft[i] = cv2.mulSpectrums(dft[i], final_filt, 0)
+            dft[i] = cv2.mulSpectrums(dft[i], final_filt, flags=0)
     else:  # break down the filter and then do each channel
-        dft = img._get_dft_clone(grayscale)
         flt = flt.get_ndarray()
         if len(flt.shape) == 3:
             b = flt[:, :, 0]
@@ -340,7 +332,7 @@ def apply_dft_filter(img, flt, grayscale=False):
             final_filt = np.dstack((flt64f, flt64f))
             if dft[i].dtype != final_filt.dtype:
                 final_filt = final_filt.astype(dft[i].dtype)
-            dft[i] = cv2.mulSpectrums(dft[i], final_filt, 0)
+            dft[i] = cv2.mulSpectrums(dft[i], final_filt, flags=0)
     return img._inverse_dft(dft)
 
 
@@ -430,14 +422,14 @@ def high_pass_filter(img, x_cutoff, y_cutoff=None, grayscale=False):
         filter += 255  # make everything white
 
         # now make all of the corners black
-        cv2.rectangle(filter, (0, 0), (x_cutoff[0], y_cutoff[0]),
-                      0, thickness=-1)  # TL
-        cv2.rectangle(filter, (0, h - y_cutoff[0]), (x_cutoff[0], h),
-                      0, thickness=-1)  # BL
-        cv2.rectangle(filter, (w - x_cutoff[0], 0), (w, y_cutoff[0]),
-                      0, thickness=-1)  # TR
-        cv2.rectangle(filter, (w - x_cutoff[0], h - y_cutoff[0]), (w, h),
-                      0, thickness=-1)  # BR
+        cv2.rectangle(filter, pt1=(0, 0), pt2=(x_cutoff[0], y_cutoff[0]),
+                      color=0, thickness=-1)  # TL
+        cv2.rectangle(filter, pt1=(0, h - y_cutoff[0]), pt2=(x_cutoff[0], h),
+                      color=0, thickness=-1)  # BL
+        cv2.rectangle(filter, pt1=(w - x_cutoff[0], 0), pt2=(w, y_cutoff[0]),
+                      color=0, thickness=-1)  # TR
+        cv2.rectangle(filter, pt1=(w - x_cutoff[0], h - y_cutoff[0]),
+                      pt2=(w, h), color=0, thickness=-1)  # BR
 
         scv_filt = Factory.Image(filter)
     else:
@@ -451,14 +443,14 @@ def high_pass_filter(img, x_cutoff, y_cutoff=None, grayscale=False):
         temp = [filter_b, filter_g, filter_r]
         i = 0
         for f in temp:
-            cv2.rectangle(f, (0, 0), (x_cutoff[i], y_cutoff[i]), 0,
-                          thickness=-1)
-            cv2.rectangle(f, (0, h - y_cutoff[i]), (x_cutoff[i], h), 0,
-                          thickness=-1)
-            cv2.rectangle(f, (w - x_cutoff[i], 0), (w, y_cutoff[i]), 0,
-                          thickness=-1)
-            cv2.rectangle(f, (w - x_cutoff[i], h - y_cutoff[i]), (w, h), 0,
-                          thickness=-1)
+            cv2.rectangle(f, pt1=(0, 0), pt2=(x_cutoff[i], y_cutoff[i]),
+                          color=0, thickness=-1)
+            cv2.rectangle(f, pt1=(0, h - y_cutoff[i]), pt2=(x_cutoff[i], h),
+                          color=0, thickness=-1)
+            cv2.rectangle(f, pt1=(w - x_cutoff[i], 0), pt2=(w, y_cutoff[i]),
+                          color=0, thickness=-1)
+            cv2.rectangle(f, pt1=(w - x_cutoff[i], h - y_cutoff[i]),
+                          pt2=(w, h), color=0, thickness=-1)
             i = i + 1
 
         filter = np.dstack(tuple(temp))
@@ -551,14 +543,14 @@ def low_pass_filter(img, x_cutoff, y_cutoff=None, grayscale=False):
         filter = img.get_empty(1)
 
         #now make all of the corners white
-        cv2.rectangle(filter, (0, 0), (x_cutoff[0], y_cutoff[0]), 255,
-                      thickness=-1)  # TL
-        cv2.rectangle(filter, (0, h - y_cutoff[0]), (x_cutoff[0], h), 255,
-                      thickness=-1)  # BL
-        cv2.rectangle(filter, (w - x_cutoff[0], 0), (w, y_cutoff[0]), 255,
-                      thickness=-1)  # TR
-        cv2.rectangle(filter, (w - x_cutoff[0], h - y_cutoff[0]), (w, h),
-                      255, thickness=-1)  # BR
+        cv2.rectangle(filter, pt1=(0, 0), pt2=(x_cutoff[0], y_cutoff[0]),
+                      color=255, thickness=-1)  # TL
+        cv2.rectangle(filter, pt1=(0, h - y_cutoff[0]), pt2=(x_cutoff[0], h),
+                      color=255, thickness=-1)  # BL
+        cv2.rectangle(filter, pt1=(w - x_cutoff[0], 0), pt2=(w, y_cutoff[0]),
+                      color=255, thickness=-1)  # TR
+        cv2.rectangle(filter, pt1=(w - x_cutoff[0], h - y_cutoff[0]),
+                      pt2= (w, h), color=255, thickness=-1)  # BR
         scv_filt = Factory.Image(filter)
 
     else:
@@ -572,14 +564,14 @@ def low_pass_filter(img, x_cutoff, y_cutoff=None, grayscale=False):
         temp = [filter_b, filter_g, filter_r]
         i = 0
         for f in temp:
-            cv2.rectangle(f, (0, 0), (x_cutoff[i], y_cutoff[i]), 255,
-                          thickness=-1)
-            cv2.rectangle(f, (0, h - y_cutoff[i]), (x_cutoff[i], h), 255,
-                          thickness=-1)
-            cv2.rectangle(f, (w - x_cutoff[i], 0), (w, y_cutoff[i]), 255,
-                          thickness=-1)
+            cv2.rectangle(f, (0, 0), (x_cutoff[i], y_cutoff[i]),
+                          color=255, thickness=-1)
+            cv2.rectangle(f, (0, h - y_cutoff[i]), (x_cutoff[i], h),
+                          color=255, thickness=-1)
+            cv2.rectangle(f, (w - x_cutoff[i], 0), (w, y_cutoff[i]),
+                          color=255, thickness=-1)
             cv2.rectangle(f, (w - x_cutoff[i], h - y_cutoff[i]), (w, h),
-                          255, thickness=-1)
+                          color=255, thickness=-1)
             i = i + 1
 
         filter = np.dstack(tuple(temp))
@@ -699,22 +691,29 @@ def band_pass_filter(img, x_cutoff_low, x_cutoff_high, y_cutoff_low=None,
         filter = img.get_empty(1)
 
         # now make all of the corners white
-        cv2.rectangle(filter, (0, 0), (x_cutoff_high[0], y_cutoff_high[0]),
-                      255, thickness=-1)  # TL
-        cv2.rectangle(filter, (0, h - y_cutoff_high[0]),
-                      (x_cutoff_high[0], h), 255, thickness=-1)  # BL
-        cv2.rectangle(filter, (w - x_cutoff_high[0], 0),
-                      (w, y_cutoff_high[0]), 255, thickness=-1)  # TR
-        cv2.rectangle(filter, (w - x_cutoff_high[0], h - y_cutoff_high[0]),
-                      (w, h), 255, thickness=-1)  # BR
-        cv2.rectangle(filter, (0, 0), (x_cutoff_low[0], y_cutoff_low[0]),
-                      0, thickness=-1)  # TL
-        cv2.rectangle(filter, (0, h - y_cutoff_low[0]),
-                      (x_cutoff_low[0], h), 0, thickness=-1)  # BL
-        cv2.rectangle(filter, (w - x_cutoff_low[0], 0),
-                      (w, y_cutoff_low[0]), 0, thickness=-1)  # TR
-        cv2.rectangle(filter, (w - x_cutoff_low[0], h - y_cutoff_low[0]),
-                      (w, h), 0, thickness=-1)  # BR
+        cv2.rectangle(filter, pt1=(0, 0),
+                      pt2=(x_cutoff_high[0], y_cutoff_high[0]),
+                      color=255, thickness=-1)  # TL
+        cv2.rectangle(filter, pt1=(0, h - y_cutoff_high[0]),
+                      pt2=(x_cutoff_high[0], h),
+                      color=255, thickness=-1)  # BL
+        cv2.rectangle(filter, pt1=(w - x_cutoff_high[0], 0),
+                      pt2=(w, y_cutoff_high[0]),
+                      color=255, thickness=-1)  # TR
+        cv2.rectangle(filter, pt1=(w - x_cutoff_high[0], h - y_cutoff_high[0]),
+                      pt2=(w, h), color=255, thickness=-1)  # BR
+        cv2.rectangle(filter, pt1=(0, 0),
+                      pt2=(x_cutoff_low[0], y_cutoff_low[0]),
+                      color=0, thickness=-1)  # TL
+        cv2.rectangle(filter, pt1=(0, h - y_cutoff_low[0]),
+                      pt2=(x_cutoff_low[0], h),
+                      color=0, thickness=-1)  # BL
+        cv2.rectangle(filter, pt1=(w - x_cutoff_low[0], 0),
+                      pt2=(w, y_cutoff_low[0]),
+                      color=0, thickness=-1)  # TR
+        cv2.rectangle(filter, pt1=(w - x_cutoff_low[0], h - y_cutoff_low[0]),
+                      pt2=(w, h),
+                      color=0, thickness=-1)  # BR
         scv_filt = Factory.Image(filter)
 
     else:
@@ -728,22 +727,28 @@ def band_pass_filter(img, x_cutoff_low, x_cutoff_high, y_cutoff_low=None,
         temp = [filter_b, filter_g, filter_r]
         i = 0
         for f in temp:
-            cv2.rectangle(f, (0, 0), (x_cutoff_high[i], y_cutoff_high[i]),
-                          255, thickness=-1)  # TL
-            cv2.rectangle(f, (0, h - y_cutoff_high[i]),
-                          (x_cutoff_high[i], h), 255, thickness=-1)  # BL
-            cv2.rectangle(f, (w - x_cutoff_high[i], 0),
-                          (w, y_cutoff_high[i]), 255, thickness=-1)  # TR
-            cv2.rectangle(f, (w - x_cutoff_high[i], h - y_cutoff_high[i]),
-                          (w, h), 255, thickness=-1)  # BR
-            cv2.rectangle(f, (0, 0), (x_cutoff_low[i], y_cutoff_low[i]), 0,
-                          thickness=-1)  # TL
-            cv2.rectangle(f, (0, h - y_cutoff_low[i]),
-                          (x_cutoff_low[i], h), 0, thickness=-1)  # BL
-            cv2.rectangle(f, (w - x_cutoff_low[i], 0),
-                          (w, y_cutoff_low[i]), 0, thickness=-1)  # TR
-            cv2.rectangle(f, (w - x_cutoff_low[i], h - y_cutoff_low[i]),
-                          (w, h), 0, thickness=-1)  # BR
+            cv2.rectangle(f, pt1=(0, 0),
+                          pt2=(x_cutoff_high[i], y_cutoff_high[i]),
+                          color=255, thickness=-1)  # TL
+            cv2.rectangle(f, pt1=(0, h - y_cutoff_high[i]),
+                          pt2=(x_cutoff_high[i], h),
+                          color=255, thickness=-1)  # BL
+            cv2.rectangle(f, pt1=(w - x_cutoff_high[i], 0),
+                          pt2=(w, y_cutoff_high[i]),
+                          color=255, thickness=-1)  # TR
+            cv2.rectangle(f, pt1=(w - x_cutoff_high[i], h - y_cutoff_high[i]),
+                          pt2=(w, h), color=255, thickness=-1)  # BR
+            cv2.rectangle(f, pt1=(0, 0),
+                          pt2=(x_cutoff_low[i], y_cutoff_low[i]),
+                          color=0, thickness=-1)  # TL
+            cv2.rectangle(f, pt1=(0, h - y_cutoff_low[i]),
+                          pt2=(x_cutoff_low[i], h),
+                          color=0, thickness=-1)  # BL
+            cv2.rectangle(f, pt1=(w - x_cutoff_low[i], 0),
+                          pt2=(w, y_cutoff_low[i]),
+                          color=0, thickness=-1)  # TR
+            cv2.rectangle(f, pt1=(w - x_cutoff_low[i], h - y_cutoff_low[i]),
+                          pt2=(w, h), color=0, thickness=-1)  # BR
             i = i + 1
 
         filter = np.dstack(tuple(temp))
@@ -752,8 +757,8 @@ def band_pass_filter(img, x_cutoff_low, x_cutoff_high, y_cutoff_low=None,
     return img.apply_dft_filter(scv_filt, grayscale)
 
 
-@image_method
-def _inverse_dft(img, input):
+@static_image_method
+def _inverse_dft(input):
     """
     **SUMMARY**
     **PARAMETERS**
@@ -793,8 +798,8 @@ def _inverse_dft(img, input):
     return ret_val
 
 
-@image_method
-def inverse_dft(img, raw_dft_image):
+@static_image_method
+def inverse_dft(raw_dft_image):
     """
     **SUMMARY**
 
@@ -838,13 +843,8 @@ def inverse_dft(img, raw_dft_image):
     :py:meth:`apply_unsharp_mask`
 
     """
-    input = []
-    if len(raw_dft_image) == 1:
-        input.append(img._dft[0].copy())
-    else:
-        for raw_img in raw_dft_image:
-            input.append(raw_img.copy())
-    return img._inverse_dft(input)
+    input = [raw_img.copy() for raw_img in raw_dft_image]
+    return Factory.Image._inverse_dft(input)
 
 
 @image_method
@@ -922,8 +922,7 @@ def apply_butterworth_filter(img, dia=400, order=2, highpass=False,
     # doesn't matter for symmetric filter
     flt = Factory.Factory.Image(flt)
     flt_re = flt.resize(w, h)
-    img = img.apply_dft_filter(flt_re, grayscale)
-    return img
+    return img.apply_dft_filter(flt_re, grayscale)
 
 
 @image_method
@@ -998,8 +997,7 @@ def apply_gaussian_filter(img, dia=400, highpass=False, grayscale=False):
     # doesn't matter for symmetric filter
     flt = Factory.Image(flt)
     flt_re = flt.resize(w, h)
-    img = img.apply_dft_filter(flt_re, grayscale)
-    return img
+    return img.apply_dft_filter(flt_re, grayscale)
 
 
 @image_method
@@ -1109,5 +1107,4 @@ def filter(img, flt, grayscale=False):
     >>>  result = myImage.filter(filter)
     >>>  result.show()
     """
-    filteredimage = flt.apply_filter(img, grayscale)
-    return filteredimage
+    return flt.apply_filter(img, grayscale)

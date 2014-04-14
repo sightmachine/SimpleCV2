@@ -91,8 +91,6 @@ class Image(CoreImage):
         self.camera = kwargs.get('camera')  # self.camera is unused so far
         self.filename = None
         self.filehandle = None
-        # For DFT Caching
-        self._dft = []  # an array of 2 channel (real,imaginary) 64F images
         # The variables uncropped_x and uncropped_y are used to buffer the
         # points when we crop the image.
         self.uncropped_x = 0
