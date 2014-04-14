@@ -800,9 +800,6 @@ class Image(CoreImage):
 
         :py:class:`EXIF`
         """
-        import os
-        import string
-
         if len(self.filename) < 5 or self.filename is None:
             # I am not going to warn, better of img sets
             # logger.warning("ImageClass.get_exif_data: This image did not come
@@ -810,7 +807,7 @@ class Image(CoreImage):
             return {}
 
         file_name, file_extension = os.path.splitext(self.filename)
-        file_extension = string.lower(file_extension)
+        file_extension = file_extension.lower()
         if file_extension != '.jpeg' and file_extension != '.jpg' \
                 and file_extension != 'tiff' and file_extension != '.tif':
             return {}
@@ -861,13 +858,11 @@ class Image(CoreImage):
         :py:class:`DrawingLayer`
 
         """
-        if thickness < 0:
-            self.get_drawing_layer().circle((int(ctr[0]), int(ctr[1])),
-                                            int(rad), color, int(thickness),
-                                            filled=True)
-        else:
-            self.get_drawing_layer().circle((int(ctr[0]), int(ctr[1])),
-                                            int(rad), color, int(thickness))
+        filled = thickness < 0
+        self.get_drawing_layer().circle(center=(int(ctr[0]), int(ctr[1])),
+                                        radius=int(rad),
+                                        color=color, width=int(thickness),
+                                        filled=filled)
 
     def draw_line(self, pt1, pt2, color=(0, 0, 0), thickness=1):
         """
@@ -913,7 +908,8 @@ class Image(CoreImage):
         """
         pt1 = (int(pt1[0]), int(pt1[1]))
         pt2 = (int(pt2[0]), int(pt2[1]))
-        self.get_drawing_layer().line(pt1, pt2, color, thickness)
+        self.get_drawing_layer().line(start=pt1, stop=pt2, color=color,
+                                      width=thickness)
 
     def draw(self, features, color=Color.GREEN, width=1, autocolor=False):
         """
@@ -1004,7 +1000,7 @@ class Image(CoreImage):
             y = self.height / 2
 
         self.get_drawing_layer().set_font_size(fontsize)
-        self.get_drawing_layer().text(text, (x, y), color)
+        self.get_drawing_layer().text(text, location=(x, y), color=color)
 
     def draw_rectangle(self, x, y, w, h, color=Color.RED, width=1, alpha=255):
         """
@@ -1045,12 +1041,10 @@ class Image(CoreImage):
         :py:class:`DrawingLayer`
 
         """
-        if width < 1:
-            self.get_drawing_layer().rectangle((x, y), (w, h), color,
-                                               filled=True, alpha=alpha)
-        else:
-            self.get_drawing_layer().rectangle((x, y), (w, h), color, width,
-                                               alpha=alpha)
+        filled = width < 1
+        self.get_drawing_layer().rectangle(top_left=(x, y), dimensions=(w, h),
+                                           color=color, width=width,
+                                           filled=filled, alpha=alpha)
 
     def draw_rotated_rectangle(self, boundingbox, color=Color.RED, width=1):
         """
@@ -1097,7 +1091,6 @@ class Image(CoreImage):
         :py:class:`Display`
 
         """
-
         if type == 'browser':
             import webbrowser
 
@@ -1115,7 +1108,7 @@ class Image(CoreImage):
             self.save(d)
             return d
         else:
-            print "Unknown type to show"
+            logger.warning("Unknown type to show")
 
     def draw_keypoint_matches(self, template, thresh=500.00, min_dist=0.15,
                               width=1):

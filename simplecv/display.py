@@ -4,11 +4,10 @@
 
 import os
 import pygame as pg
-from numpy import max as npmax, min as npmin
+import numpy as np
 
-# FIXME: uncomment import and  178-180 lines
-from simplecv.base import LAUNCH_PATH
-#from simplecv.image_class import Image
+from simplecv import DATA_DIR
+from simplecv.factory import Factory
 
 PYGAME_INITIALIZED = False
 
@@ -76,38 +75,8 @@ class Display(object):
 
     """
 
-    resolution = None
-    sourceresolution = ''
-    sourceoffset = ''
-    screen = ''
-    eventhandler = ''
-    done = False
-    mouse_x = 0  # These are the scaled mouse values,
-    mouse_y = 0  # if you want to do image manipulation use these.
-    mouse_raw_x = 0  # Raw x and y are the actual position on the screen
-    mouse_raw_y = 0  # versus the position on the image.
-    mouse_left = 0
-    mouse_middle = 0
-    mouse_right = 0
-    mouse_wheel_up = 0
-    mouse_wheel_down = 0
-    xscale = 1.0
-    yscale = 1.0
-    xoffset = 0
-    yoffset = 0
-    imgw = 0
-    imgh = 0
-    last_left_button = 0
-    last_right_button = 0
-    left_button_down = None
-    left_button_up = None
-    right_button_down = None
-    right_button_up = None
-    displaytype = None
-    pressed = []
-
     def __repr__(self):
-        return "<SimpleCV.Display Object resolution:(%s), \
+        return "<simplecv.Display Object resolution:(%s), \
                 Image Resolution: (%d, %d) at memory location: (%s)>" \
                 % (self.resolution, self.imgw, self.imgh, hex(id(self)))
 
@@ -140,12 +109,27 @@ class Display(object):
         Once in IPython you can do the following:
 
         >>> from simplecv.display import Display
-        >>> from simplecv.image_class import Image
+        >>> from simplecv.image import Image
         >>> disp = Display(displaytype='notebook')
         >>> img = Image('simplecv')
         >>> img.save(disp)
 
         """
+        self.resolution = None
+        self.sourceresolution = ''
+        self.sourceoffset = ''
+        self.screen = ''
+        self.done = False
+        self.mouse_x = 0  # These are the scaled mouse values,
+        self.mouse_y = 0  # if you want to do image manipulation use these.
+        self.mouse_left = 0
+        self.mouse_middle = 0
+        self.mouse_right = 0
+        self.mouse_wheel_up = 0
+        self.mouse_wheel_down = 0
+        self.imgw = 0
+        self.imgh = 0
+
         global PYGAME_INITIALIZED
 
         if headless:
@@ -167,20 +151,22 @@ class Display(object):
         self.right_button_up = None
         self.pressed = None
         self.displaytype = displaytype
-        # NOTE: NO PYGAME CALLS SHOULD BE MADE IN INIT AS THEY KILLL
+        # NOTE: NO PYGAME CALLS SHOULD BE MADE IN INIT AS THEY KILL
         # THE DISPLAY IN IPYTHON NOTEBOOKS
 
         # Raw x and y are the actual position on the screen
+        # versus the position on the image.
         self.mouse_raw_x = 0
-        self.mouse_raw_y = 0  # versus the position on the image.
+        self.mouse_raw_y = 0
+
         self.resolution = resolution
         if not displaytype == 'notebook':
             self.screen = pg.display.set_mode(resolution, flags)
         scv_png = 'simplecv.png'
         # checks if simplecv.png exists
-        #if os.path.isfile(os.path.join(LAUNCH_PATH, 'sampleimages', scv_png)):
-        #    scv_logo = Image("simplecv").scale(32, 32)
-        #    pg.display.set_icon(scv_logo.get_pg_surface())
+        if os.path.isfile(os.path.join(DATA_DIR, 'sampleimages', scv_png)):
+            scv_logo = Factory.Image("simplecv").scale(32, 32)
+            pg.display.set_icon(scv_logo.get_pg_surface())
         if flags != pg.FULLSCREEN and flags != pg.NOFRAME:
             pg.display.set_caption(title)
 
@@ -378,10 +364,10 @@ class Display(object):
         :py:meth:`right_button_up_postion`
         :py:meth:`check_events`
         """
-        xmax = npmax((pt0[0], pt1[0]))
-        xmin = npmin((pt0[0], pt1[0]))
-        ymax = npmax((pt0[1], pt1[1]))
-        ymin = npmin((pt0[1], pt1[1]))
+        xmax = np.max((pt0[0], pt1[0]))
+        xmin = np.min((pt0[0], pt1[0]))
+        ymax = np.max((pt0[1], pt1[1]))
+        ymin = np.min((pt0[1], pt1[1]))
         return xmin, ymin, xmax-xmin, ymax-ymin
 
     def write_frame(self, img, fit=True):

@@ -9,7 +9,6 @@ import warnings
 import scipy.signal as sps
 import scipy.optimize as spo
 import numpy as np
-#from numpy import linspace
 
 
 class LineScan(list):
@@ -34,8 +33,6 @@ class LineScan(list):
     >>>> plt.plot(ss)
     >>>> plt.show()
     """
-    point_loc = None
-    image = None
 
     def __init__(self, args, **kwargs):
         if isinstance(args, np.ndarray):
@@ -203,7 +200,7 @@ class LineScan(list):
         >>>> plt.show()
 
         """
-        temp = np.array(self, dtype='float32')
+        temp = np.array(self, dtype=np.float32)
         temp = temp / np.max(temp)
         ret_value = LineScan(list(temp[:]), image=self.image,
                              point_loc=self.point_loc,
@@ -241,7 +238,7 @@ class LineScan(list):
         **SEE ALSO**
 
         """
-        temp = np.array(self, dtype='float32')
+        temp = np.array(self, dtype=np.float32)
         vmax = np.max(temp)
         vmin = np.min(temp)
         vrmin = np.min(value_range)
@@ -346,7 +343,7 @@ class LineScan(list):
         >>>> plt.show()
 
         """
-        temp = np.array(self, dtype='float32')
+        temp = np.array(self, dtype=np.float32)
         drv = [0]
         drv += list(temp[1:] - temp[0:-1])
         ret_value = LineScan(drv, image=self.image, point_loc=self.point_loc,
@@ -507,7 +504,7 @@ class LineScan(list):
         >>>> plt.show()
 
         """
-        yvals = np.array(self, dtype='float32')
+        yvals = np.array(self, dtype=np.float32)
         xvals = range(0, len(yvals), 1)
         popt, pcov = spo.curve_fit(f, xvals, yvals, p0=p0)
         yvals = f(xvals, *popt)
@@ -546,7 +543,7 @@ class LineScan(list):
         >>>> print p
 
         """
-        yvals = np.array(self, dtype='float32')
+        yvals = np.array(self, dtype=np.float32)
         xvals = range(0, len(yvals), 1)
         popt, pcov = spo.curve_fit(f, xvals, yvals, p0=p0)
         return popt
@@ -582,11 +579,10 @@ class LineScan(list):
         **SEE ALSO**
 
         """
-        out = np.convolve(self, np.array(kernel, dtype='float32'), 'same')
-        ret_value = LineScan(out, image=self.image, point_loc=self.point_loc,
-                             pt1=self.pt1, pt2=self.pt2,
-                             channel=self.channel)
-        return ret_value
+        out = np.convolve(self, np.array(kernel, dtype=np.float32),
+                          mode='same')
+        return LineScan(out, image=self.image, point_loc=self.point_loc,
+                        pt1=self.pt1, pt2=self.pt2, channel=self.channel)
 
     def fft(self):
         """
@@ -611,7 +607,7 @@ class LineScan(list):
         >>>> plt.show()
 
         """
-        signal = np.array(self, dtype='float32')
+        signal = np.array(self, dtype=np.float32)
         fft = np.fft.fft(signal)
         freq = np.fft.fftfreq(len(signal))
         return fft, freq

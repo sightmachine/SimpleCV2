@@ -27,18 +27,6 @@ class DrawingLayer(object):
     image2 = Image("/path/to/image2.png")
     image.dl().blit(image2) #write image 2 on top of image
     """
-    surface = []
-    default_color = 0
-    font_color = 0
-    clear_color = 0
-    font = 0
-    font_name = ""
-    font_size = 0
-    default_alpha = 255
-    alpha_delta = 1  # This is used to track the changed value in alpha
-    svg = ""
-    width = 0
-    height = 0
 
     def __init__(self, (width, height)):
         #pg.init()
@@ -50,11 +38,14 @@ class DrawingLayer(object):
         self.height = height
         self.surface = pg.Surface((width, height), flags=pg.SRCALPHA)
         self.default_alpha = 255
+        # This is used to track the changed value in alpha
+        self.alpha_delta = 1
         self.clear_color = pg.Color(0, 0, 0, 0)
 
         self.surface.fill(self.clear_color)
         self.default_color = Color.BLACK
 
+        self.font_color = 0
         self.font_size = 18
         self.font_name = None
         self.font_bold = False
@@ -86,7 +77,6 @@ class DrawingLayer(object):
         This method sets the alpha value of the entire layer in a single
         pass. This is helpful for merging layers with transparency.
         """
-
         self.surface.set_alpha(alpha)
         # Get access to the alpha band of the image.
         pixels_alpha = pg.surfarray.pixels_alpha(self.surface)

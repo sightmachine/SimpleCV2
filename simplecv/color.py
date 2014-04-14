@@ -5,8 +5,8 @@
 import random
 
 from colorsys import rgb_to_hsv, hsv_to_rgb
-from numpy import array, minimum, maximum, linspace
 from scipy.interpolate import UnivariateSpline
+import numpy as np
 
 
 class Color(object):
@@ -358,15 +358,15 @@ class ColorCurve(object):
     curve = ""
 
     def __init__(self, curve_vals):
-        in_bins = linspace(0, 255, 256)
+        in_bins = np.linspace(0, 255, 256)
         if type(curve_vals) == UnivariateSpline:
             # FIXME: uresolver reference to 'curvVals'
             self.curve = curvVals(in_bins)
         else:
-            curve_vals = array(curve_vals)
+            curve_vals = np.array(curve_vals)
             spline = UnivariateSpline(curve_vals[:, 0], curve_vals[:, 1], s=1)
             #nothing above 255, nothing below 0
-            self.curve = maximum(minimum(spline(in_bins), 255), 0)
+            self.curve = np.maximum(np.minimum(spline(in_bins), 255), 0)
 
 
 class ColorMap(object):
@@ -408,10 +408,10 @@ class ColorMap(object):
     value_range = 0
 
     def __init__(self, color, start_map, end_map):
-        self.color = array(color)
+        self.color = np.array(color)
         if self.color.ndim == 1:  # To check if only one color was passed
             color = ((color[0], color[1], color[2]), Color.WHITE)
-            self.color = array(color)
+            self.color = np.array(color)
         self.start_map = float(start_map)
         self.end_map = float(end_map)
         self.value_range = float(end_map - start_map)  # delta

@@ -121,15 +121,12 @@ class JpegStreamer(object):
     Once initialized, the buffer and sleeptime can be modified and will
     function properly -- port will not.
     """
-    server = ""
-    host = ""
-    port = ""
-    sleeptime = ""
-    framebuffer = ""
-    counter = 0
-    refreshtime = 0
 
     def __init__(self, hostandport=8080, st=0.1):
+        self.host = ""
+        self.port = ""
+        self.counter = 0
+        self.refreshtime = 0
         global _jpegstreamers
         if isinstance(hostandport, int):
             self.port = hostandport
@@ -198,16 +195,11 @@ class VideoStream(object):
         my_camera.get_image().save(vs)
     """
 
-    fps = 25
-    filename = ""
-    writer = ""
-    fourcc = ""
-    framefill = True
-    videotime = 0.0
-    starttime = 0.0
-    framecount = 0
-
     def __init__(self, filename, fps=25, framefill=True):
+        self.writer = ""
+        self.videotime = 0.0
+        self.starttime = 0.0
+        self.framecount = 0
         # FIXME: some unused code?
         #(revextension, revname) = filename[::-1].split(".")
         #extension = revextension[::-1]
@@ -224,8 +216,8 @@ class VideoStream(object):
         #  return False
 
     def initialize_writer(self, size):
-        self.writer = VideoWriter(self.filename, self.fourcc,
-                                  self.fps, size, isColor=True)
+        self.writer = VideoWriter(filename=self.filename, fourcc=self.fourcc,
+                                  fps=self.fps, frameSize=size, isColor=True)
         self.videotime = 0.0
         self.starttime = time.time()
 

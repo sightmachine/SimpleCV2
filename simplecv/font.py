@@ -4,6 +4,8 @@
 
 from PIL import ImageFont as pilImageFont
 
+from simplecv.base import logger
+
 
 class Font(object):
     """
@@ -13,11 +15,8 @@ class Font(object):
     Font.print_fonts()
     """
 
-    _font_path = "simplecv/data/fonts/"
-    _extension = ".ttf"
-    _font_face = "ubuntu"
-    _font_size = 16
-    _font = None
+    _FONT_PATH = "simplecv/data/fonts/"
+    _EXTENSION = ".ttf"
 
     # These fonts were downloaded from Google at:
     # http://www.http://www.google.com/webfonts
@@ -43,7 +42,9 @@ class Font(object):
         To give it a custom font you can just pass the absolute path
         to the truetype font file.
         """
-
+        self._font = None
+        self._font_size = 16
+        self._font_face = "ubuntu"
         self.set_size(font_size)
         self.set_font(font_face)
 
@@ -53,7 +54,6 @@ class Font(object):
 
         Returns: PIL Image Font
         """
-
         return self._font
 
     def set_font(self, new_font='ubuntu'):
@@ -63,15 +63,14 @@ class Font(object):
         path of the truetype font file.
         Example: Font.set_font("/home/simplecv/my_font.ttf")
         """
-
         if isinstance(new_font, basestring):
-            print "Please pass a string"
+            logger.warning("Please pass a string")
             return None
 
         if new_font in self._fonts:
             self._font_face = new_font
-            font_to_use = self._font_path + self._font_face + "/" + \
-                self._font_face + self._extension
+            font_to_use = Font._FONT_PATH + self._font_face + "/" + \
+                self._font_face + Font._EXTENSION
         else:
             self._font_face = new_font
             font_to_use = new_font
@@ -82,13 +81,10 @@ class Font(object):
         """
         Set the font point size. i.e. 16pt
         """
-
-        #FIXME: delete print...
-        print type(size)
         if isinstance(size, int):
             self._font_size = size
         else:
-            print "please provide an integer"
+            logger.warning("please provide an integer")
 
     def get_size(self):
         """
@@ -96,21 +92,17 @@ class Font(object):
 
         Returns: Integer
         """
-
         return self._font_size
 
     def get_fonts(self):
         """
         This returns the list of fonts built into simplecv
         """
-
         return self._fonts
 
     def print_fonts(self):
         """
         This prints a list of fonts built into simplecv
         """
-
-        # FIXME: change print -> some logging?
         for font in self._fonts:
             print font
