@@ -1,5 +1,7 @@
+import cv2
+
+from simplecv.factory import Factory
 from simplecv.features.blobmaker import BlobMaker
-from simplecv.image_class import Image
 from simplecv.segmentation.segmentation_base import SegmentationBase
 
 
@@ -20,12 +22,6 @@ class MOGSegmentation(SegmentationBase):
 
     def __init__(self, **kwargs):
 
-        try:
-            import cv2
-        except ImportError:
-            raise ImportError("Cannot load OpenCV library which is required "
-                              "by simplecv")
-
         if not hasattr(cv2, 'BackgroundSubtractorMOG'):
             raise ImportError("A newer version of OpenCV is needed")
 
@@ -41,9 +37,9 @@ class MOGSegmentation(SegmentationBase):
         self.noise_sigma = kwargs.get('noise_sigma', 15)
         self.learning_rate = kwargs.get('learning_rate', 0.7)
 
-        self.bs_mog = cv2.BackgroundSubtractorMOG(self.history, self.mixtures,
-                                                  self.bg_ratio,
-                                                  self.noise_sigma)
+        self.bs_mog = cv2.BackgroundSubtractorMOG(
+            history=self.history, nmixtures=self.mixtures,
+            backgroundRatio=self.bg_ratio, noiseSigma=self.noise_sigma)
 
     def add_image(self, img):
         """
@@ -53,9 +49,9 @@ class MOGSegmentation(SegmentationBase):
             return
 
         self.color_img = img
-        self.diff_img = Image(
-            self.bs_mog.apply(img.get_numpy_cv2(), None, self.learning_rate),
-            cv2image=True)
+        self.diff_img = Factory.Image(self.bs_mog.apply(img.get_ndarray(),
+                                                        None,
+                                                        self.learning_rate))
         self.ready = True
 
     def is_ready(self):

@@ -1,6 +1,6 @@
 from simplecv.color_model import ColorModel
+from simplecv.factory import Factory
 from simplecv.features.blobmaker import BlobMaker
-from simplecv.image import Image
 from simplecv.segmentation.segmentation_base import SegmentationBase
 
 
@@ -22,9 +22,9 @@ class ColorSegmentation(SegmentationBase):
         Add a single image to the segmentation algorithm
         """
         if isinstance(img, str):
-            img = Image(img)
+            img = Factory.Image(img)
 
-        if isinstance(img, Image):
+        if isinstance(img, Factory.Image):
             self.truth_img = img
             self.cur_img = self.color_model.threshold(img)
 

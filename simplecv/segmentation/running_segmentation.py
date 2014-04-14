@@ -1,8 +1,8 @@
 import cv2
 import numpy as np
 
+from simplecv.factory import Factory
 from simplecv.features.blobmaker import BlobMaker
-from simplecv.image import Image
 from simplecv.segmentation.segmentation_base import SegmentationBase
 
 
@@ -40,19 +40,19 @@ class RunningSegmentation(SegmentationBase):
 
         self.color_img = img
         if self.model_img is None:
-            self.model_img = Image(img.get_empty(3).astype(np.float32))
-            self.diff_img = Image(img.get_empty(3).astype(np.float32))
+            self.model_img = Factory.Image(img.get_empty(3).astype(np.float32))
+            self.diff_img = Factory.Image(img.get_empty(3).astype(np.float32))
 
         else:
             # do the difference
             diff = cv2.absdiff(self.model_img.get_ndarray(),
                                img.get_fp_ndarray())
-            self.diff_img = Image(diff)
+            self.diff_img = Factory.Image(diff)
 
             #update the model
-            cv2.accumulateWeighted(img.get_fp_ndarray(),
-                                   self.model_img.get_ndarray(),
-                                   self.alpha)
+            cv2.accumulateWeighted(src=img.get_fp_ndarray(),
+                                   dst=self.model_img.get_ndarray(),
+                                   alpha=self.alpha)
             self.ready = True
 
     def is_ready(self):
@@ -117,8 +117,7 @@ class RunningSegmentation(SegmentationBase):
         """
         convert a 32bit floating point cv array to an int array
         """
-
-        return Image(np.uint8(img.get_ndarray()))
+        return Factory.Image(np.uint8(img.get_ndarray()))
 
     def __getstate__(self):
         mydict = self.__dict__.copy()

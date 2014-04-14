@@ -1,7 +1,7 @@
 import cv2
 
+from simplecv.factory import Factory
 from simplecv.features.blobmaker import BlobMaker
-from simplecv.image import Image
 from simplecv.segmentation.segmentation_base import SegmentationBase
 
 
@@ -46,11 +46,11 @@ class DiffSegmentation(SegmentationBase):
         if self.last_img is None:
             if self.grayonly_mode:
                 self.last_img = img.to_gray()
-                self.diff_img = Image(self.last_img.get_empty(1))
+                self.diff_img = Factory.Image(self.last_img.get_empty(1))
                 self.curr_img = None
             else:
                 self.last_img = img
-                self.diff_img = Image(self.last_img.get_empty(3))
+                self.diff_img = Factory.Image(self.last_img.get_empty(3))
                 self.curr_img = None
         else:
             if self.curr_img is not None:  # catch the first step
@@ -63,9 +63,9 @@ class DiffSegmentation(SegmentationBase):
                 self.color_img = img
                 self.curr_img = img
 
-            cv2.absdiff(self.curr_img.get_ndarray(),
-                        self.last_img.get_ndarray(),
-                        self.diff_img.get_ndarray())
+            diff = cv2.absdiff(self.curr_img.get_ndarray(),
+                               self.last_img.get_ndarray())
+            self.diff_img = Factory.Image(diff)
 
     def is_ready(self):
         """
