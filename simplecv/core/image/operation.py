@@ -2330,7 +2330,7 @@ def get_normalized_hue_histogram(img, roi=None):
         hsv = img.to_hsv().get_ndarray()
     hist = cv2.calcHist(images=[hsv], channels=[0, 1], mask=None,
                         histSize=[180, 256], ranges=[0, 180, 0, 256])
-    cv2.normalize(hist, hist, 0, 255, cv2.NORM_MINMAX)
+    hist = cv2.normalize(hist, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
     return hist
 
 

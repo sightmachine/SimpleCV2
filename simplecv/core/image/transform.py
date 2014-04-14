@@ -39,7 +39,7 @@ def scale(img, ratio, interpolation=cv2.INTER_LINEAR):
             logger.warning("Holy Heck! You tried to make an image really "
                            "big or impossibly small. I can't scale that")
             return img
-    scaled_array = cv2.resize(img.get_ndarray(), size,
+    scaled_array = cv2.resize(img.get_ndarray(), dsize=size,
                               interpolation=interpolation)
     return Factory.Image(scaled_array, color_space=img.color_space)
 
@@ -84,7 +84,7 @@ def resize(img, w=None, h=None, interpolation=cv2.INTER_LINEAR):
                        "image really big or impossibly small. "
                        "I can't scale that")
         return None
-    saceld_array = cv2.resize(img.get_ndarray(), (w, h),
+    saceld_array = cv2.resize(img.get_ndarray(), dsize=(w, h),
                               interpolation=interpolation)
     return Factory.Image(saceld_array, color_space=img.color_space)
 
@@ -112,7 +112,7 @@ def flip_horizontal(img):
     :py:meth:`flip_vertical`
     :py:meth:`rotate`
     """
-    flip_array = cv2.flip(img.get_ndarray(), 1)
+    flip_array = cv2.flip(img.get_ndarray(), flipCode=1)
     return Factory.Image(flip_array, color_space=img.color_space)
 
 
@@ -139,7 +139,7 @@ def flip_vertical(img):
     :py:meth:`rotate`
     :py:meth:`flip_horizontal`
     """
-    flip_array = cv2.flip(img.get_ndarray(), 0)
+    flip_array = cv2.flip(img.get_ndarray(), flipCode=0)
     return Factory.Image(flip_array, color_space=img.color_space)
 
 
@@ -195,11 +195,12 @@ def rotate(img, angle, fixed=True, point=None, scale=1.0):
         point[1] = (img.height - 1) / 2
 
     # first we create what we thing the rotation matrix should be
-    rot_mat = cv2.getRotationMatrix2D((float(point[0]),
-                                       float(point[1])),
-                                      float(angle), float(scale))
+    rot_mat = cv2.getRotationMatrix2D(center=(float(point[0]),
+                                              float(point[1])),
+                                      angle=float(angle),
+                                      scale=float(scale))
     if fixed:
-        array = cv2.warpAffine(img.get_ndarray(), rot_mat, img.size)
+        array = cv2.warpAffine(img.get_ndarray(), M=rot_mat, dsize=img.size)
         return Factory.Image(array, color_space=img.color_space)
 
     # otherwise, we're expanding the matrix to
@@ -248,10 +249,10 @@ def rotate(img, angle, fixed=True, point=None, scale=1.0):
     # calculate the translation of the corners to center the image
     # use these new corner positions as the input to cvGetAffineTransform
     rot_mat = cv2.getAffineTransform(
-        np.array(src).astype(np.float32),
-        np.array(dst).astype(np.float32))
-    array = cv2.warpAffine(img.get_ndarray(), rot_mat,
-                           (int(new_width), int(new_height)))
+        src=np.array(src).astype(np.float32),
+        dst=np.array(dst).astype(np.float32))
+    array = cv2.warpAffine(img.get_ndarray(), M=rot_mat,
+                           dsize=(int(new_width), int(new_height)))
     return Factory.Image(array, color_space=img.color_space)
 
 
@@ -322,9 +323,9 @@ def shear(img, cornerpoints):
     """
     src = ((0, 0), (img.width - 1, 0), (img.width - 1, img.height - 1))
     rot_matrix = cv2.getAffineTransform(
-        np.array(src).astype(np.float32),
-        np.array(cornerpoints).astype(np.float32))
-    return img.transform_affine(rot_matrix)
+        src=np.array(src).astype(np.float32),
+        dst=np.array(cornerpoints).astype(np.float32))
+    return img.transform_affine(rot_matrix=rot_matrix)
 
 
 @image_method
@@ -365,7 +366,7 @@ def transform_affine(img, rot_matrix):
     http://en.wikipedia.org/wiki/Transformation_matrix
 
     """
-    array = cv2.warpAffine(img.get_ndarray(), rot_matrix, img.size)
+    array = cv2.warpAffine(img.get_ndarray(), M=rot_matrix, dsize=img.size)
     return Factory.Image(array, color_space=img.color_space)
 
 
@@ -415,8 +416,8 @@ def warp(img, cornerpoints):
                     (0, img.height - 1))).astype(np.float32)
     # figure out the warp matrix
     p_wrap = cv2.getPerspectiveTransform(
-        src, np.array(cornerpoints).astype(np.float32))
-    return img.transform_perspective(p_wrap)
+        src=src, dst=np.array(cornerpoints).astype(np.float32))
+    return img.transform_perspective(rot_matrix=p_wrap)
 
 
 @image_method
@@ -903,7 +904,7 @@ def adaptive_scale(img, resolution, fit=True):
         if img.width <= resolution[0] and img.height <= resolution[1]:
             #we're too small just center the thing
             ret_val = np.zeros((resolution[1], resolution[0], 3),
-                               dtype='uint8')
+                               dtype=np.uint8)
             targetx = (resolution[0] / 2) - (img.width / 2)
             targety = (resolution[1] / 2) - (img.height / 2)
             targeth = img.height
@@ -922,7 +923,7 @@ def adaptive_scale(img, resolution, fit=True):
         elif img.width <= resolution[0] and img.height > resolution[1]:
             # crop along the y dimension and center along the x dimension
             ret_val = np.zeros((resolution[1], resolution[0], 3),
-                               dtype='uint8')
+                               dtype=np.uint8)
             targetw = img.width
             targeth = resolution[1]
             targetx = (resolution[0] - img.width) / 2
@@ -935,7 +936,7 @@ def adaptive_scale(img, resolution, fit=True):
         elif img.width > resolution[0] and img.height <= resolution[1]:
             # crop along the y dimension and center along the x dimension
             ret_val = np.zeros((resolution[1], resolution[0], 3),
-                               dtype='uint8')
+                               dtype=np.uint8)
             targetw = resolution[0]
             targeth = img.height
             targetx = 0
@@ -1247,7 +1248,7 @@ def rotate270(img):
     >>>> img.rotate270().show()
 
     """
-    array = cv2.flip(img.get_ndarray(), 0)  # vertical
+    array = cv2.flip(img.get_ndarray(), flipCode=0)  # vertical
     array = cv2.transpose(array)
     return Factory.Image(array, color_space=img.color_space)
 
@@ -1270,9 +1271,8 @@ def rotate90(img):
     >>>> img.rotate90().show()
 
     """
-
     array = cv2.transpose(img.get_ndarray())
-    array = cv2.flip(array, 0)  # vertical
+    array = cv2.flip(array, flipCode=0)  # vertical
     return Factory.Image(array, color_space=img.color_space)
 
 
@@ -1294,7 +1294,6 @@ def rotate_left(img):  # same as 90
     >>>> img.rotate_left().show()
 
     """
-
     return img.rotate90()
 
 
@@ -1336,6 +1335,6 @@ def rotate180(img):
     >>>> img = Image('lenna')
     >>>> img.rotate180().show()
     """
-    array = cv2.flip(img.get_ndarray(), 0)  # vertical
-    array = cv2.flip(array, 1)  # horizontal
+    array = cv2.flip(img.get_ndarray(), flipCode=0)  # vertical
+    array = cv2.flip(array, flipCode=1)  # horizontal
     return Factory.Image(array, color_space=img.color_space)
