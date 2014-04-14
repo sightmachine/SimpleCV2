@@ -279,7 +279,7 @@ def get_edge_map(img, t1=50, t2=100):
     http://opencv.willowgarage.com/documentation/python/
     imgproc_feature_detection.html?highlight=canny#Canny
     """
-    return cv2.Canny(img.get_gray_ndarray(), t1, t2)
+    return cv2.Canny(img.get_gray_ndarray(), threshold1=t1, threshold2=t2)
 
 
 @image_method
@@ -566,9 +566,8 @@ def integral_image(img, tilted=False):
 
     http://en.wikipedia.org/wiki/Summed_area_table
     """
-
     if tilted:
-        _, _, array = cv2.integral3(img.get_gray_ndarray())
+        array = cv2.integral3(img.get_gray_ndarray())[2]
     else:
         array = cv2.integral(img.get_gray_ndarray())
     return array
@@ -803,7 +802,7 @@ def _get_flann_matches(sd, td):
     """
     flann_index_kdtree = 1  # bug: flann enums are missing
     flann_params = dict(algorithm=flann_index_kdtree, trees=4)
-    flann = cv2.flann_Index(sd, flann_params)
+    flann = cv2.flann_Index(features=sd, params=flann_params)
     # FIXME: need to provide empty dict
     idx, dist = flann.knnSearch(td, 1, params={})
     del flann
@@ -1190,8 +1189,9 @@ def edge_intersections(img, pt0, pt1, width=1, canny1=0, canny2=100):
     p1p = np.array([(pt1[0] - x, pt1[1] - y)])
     edges = img.crop(x, y, w, h).get_edge_map(canny1, canny2)
     line = np.zeros((h, w), np.uint8)
-    cv2.line(line, ((pt0[0] - x), (pt0[1] - y)),
-            ((pt1[0] - x), (pt1[1] - y)), 255.00, width, 8)
+    cv2.line(line, pt1=((pt0[0] - x), (pt0[1] - y)),
+             pt2=((pt1[0] - x), (pt1[1] - y)), color=255.00,
+             thickness=width, lineType=8)
     line = cv2.multiply(line, edges)
     intersections = line.transpose()
     (xs, ys) = np.where(intersections == 255)
@@ -1366,7 +1366,7 @@ def get_threshold_crossing(self, pt1, pt2, threshold=128, darktolight=True,
             ret_val = (xind, yind)
         else:
             ret_val = (-1, -1)
-            print 'Edgepoint not found.'
+            logger.warning('Edgepoint not found.')
     else:
         while ind < linearr.size - (departurethreshold + 1):
             if darktolight:
@@ -1390,7 +1390,7 @@ def get_threshold_crossing(self, pt1, pt2, threshold=128, darktolight=True,
             ret_val = (xind, yind)
         else:
             ret_val = (-1, -1)
-            print 'Edgepoint not found.'
+            logger.warning('Edgepoint not found.')
     return ret_val
 
 
@@ -1482,7 +1482,7 @@ def get_line_scan(img, x=None, y=None, pt1=None, pt2=None, channel=-1):
         try:
             img_array = img.get_ndarray()[:, :, channel]
         except IndexError:
-            print 'Channel missing!'
+            logger.warning('Channel missing!')
             return None
 
     ret_val = None
@@ -1698,13 +1698,12 @@ def replace_line_scan(img, linescan, x=None, y=None, pt1=None, pt2=None,
             and pt1 is None and pt2 is None and channel is None:
 
         if linescan.channel == -1:
-            img_array = np.copy(img.get_gray_ndarray())
+            img_array = img.get_gray_ndarray().copy()
         else:
             try:
-                img_array = np.copy(img.get_ndarray()[:, :,
-                                                      linescan.channel])
+                img_array = np.copy(img.get_ndarray()[:, :, linescan.channel])
             except IndexError:
-                print 'Channel missing!'
+                logger.warn('Channel missing!')
                 return None
 
         if linescan.row is not None:
@@ -2329,7 +2328,8 @@ def get_normalized_hue_histogram(img, roi=None):
         hsv = roi.crop().to_hsv().get_ndarray()
     else:
         hsv = img.to_hsv().get_ndarray()
-    hist = cv2.calcHist([hsv], [0, 1], None, [180, 256], [0, 180, 0, 256])
+    hist = cv2.calcHist(images=[hsv], channels=[0, 1], mask=None,
+                        histSize=[180, 256], ranges=[0, 180, 0, 256])
     cv2.normalize(hist, hist, 0, 255, cv2.NORM_MINMAX)
     return hist
 
@@ -2388,17 +2388,18 @@ def back_project_hue_histogram(img, model, smooth=True, full_color=False,
         logger.warn('Backproject requires a model')
         return None
     # this is the easier test, try to cajole model into ROI
-    if isinstance(model, img.__class__):
+    if isinstance(model, Factory.Image):
         model = model.get_normalized_hue_histogram()
     if not isinstance(model, np.ndarray) or model.shape != (180, 256):
         model = img.get_normalized_hue_histogram(model)
     if isinstance(model, np.ndarray) and model.shape == (180, 256):
         hsv = img.to_hsv().get_ndarray()
-        dst = cv2.calcBackProject(
-            [hsv], [0, 1], model, [0, 180, 0, 256], 1)
+        dst = cv2.calcBackProject(images=[hsv], channels=[0, 1],
+                                  hist=model, ranges=[0, 180, 0, 256], scale=1)
         if smooth:
-            disc = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
-            cv2.filter2D(dst, -1, disc, dst)
+            disc = cv2.getStructuringElement(shape=cv2.MORPH_ELLIPSE,
+                                             ksize=(5, 5))
+            dst = cv2.filter2D(dst, ddepth=-1, kernel=disc)
         result = Factory.Image(dst)
         result = result.to_bgr()
         if threshold:

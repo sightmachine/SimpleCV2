@@ -1969,7 +1969,7 @@ def smart_threshold(img, mask=None, rect=None):
         tmp1 = np.zeros((1, 13 * 5))
         tmp2 = np.zeros((1, 13 * 5))
         mask = np.zeros((img.height, img.width), dtype=np.uint8)
-        cv2.grabCut(npimg, mask=mask, rest=rect, bgdModel=tmp1,
+        cv2.grabCut(npimg, mask=mask, rect=rect, bgdModel=tmp1,
                     fgdModel=tmp2, iterCount=10, mode=cv2.GC_INIT_WITH_RECT)
         lut = np.zeros((256, 1), dtype=np.uint8)
         lut[1] = 255
