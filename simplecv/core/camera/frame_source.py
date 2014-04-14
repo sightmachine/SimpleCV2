@@ -20,13 +20,12 @@ class FrameSource(object):
 
 
     """
-    _calib_matrix = ""  # Intrinsic calibration matrix
-    _dist_coeff = ""  # Distortion matrix
-    _thread_capture_time = ''  # when the last picture was taken
-    capture_time = ''  # timestamp of the last aquired image
 
     def __init__(self):
-        return
+        self._calib_matrix = ""  # Intrinsic calibration matrix
+        self._dist_coeff = ""  # Distortion matrix
+        self._thread_capture_time = ''  # when the last picture was taken
+        self.capture_time = ''  # timestamp of the last aquired image
 
     def get_property(self, p):
         return None

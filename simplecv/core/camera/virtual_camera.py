@@ -28,9 +28,6 @@ class VirtualCamera(FrameSource):
       calling .get_image() will get the latest in the directory
 
     """
-    source = ""
-    sourcetype = ""
-    lastmtime = 0
 
     def __init__(self, s, st, start=1):
         """
@@ -57,10 +54,11 @@ class VirtualCamera(FrameSource):
         >>> vc3 = VirtualCamera("video.mpg", "video", 300)
         >>> vc4 = VirtualCamera("./imgs", "directory")
 
-
         """
+        super(VirtualCamera, self).__init__()
         self.source = s
         self.sourcetype = st
+        self.lastmtime = 0
         self.counter = 0
         if start == 0:
             start = 1

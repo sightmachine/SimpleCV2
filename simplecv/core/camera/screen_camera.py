@@ -1,5 +1,3 @@
-
-
 from simplecv.base import logger
 from simplecv.factory import Factory
 
@@ -10,7 +8,7 @@ except ImportError:
     PYSCREENSHOT_ENABLED = False
 
 
-class ScreenCamera():
+class ScreenCamera(object):
     """
     **SUMMARY**
     ScreenCapture is a camera class would allow you to capture
@@ -27,9 +25,10 @@ class ScreenCamera():
     >>> img = sc.get_image()
     >>> img.show()
     """
-    _roi = None
 
     def __init__(self):
+        super(ScreenCamera, self).__init__()
+        self._roi = None
         if not PYSCREENSHOT_ENABLED:
             logger.warn("Initializing pyscreenshot failed. "
                         "pyscreenshot not found.")
@@ -79,7 +78,6 @@ class ScreenCamera():
         """
         if isinstance(roi, tuple) and len(roi) == 4:
             self._roi = roi
-        return
 
     def get_image(self):
         """

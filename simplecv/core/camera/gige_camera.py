@@ -44,6 +44,8 @@ class GigECamera(Camera):
 
     #def __init__(self, camera_id=None, properties={}, threaded=False):
     def __init__(self, properties={}, threaded=False):
+        super(GigECamera, self).__init__()
+
         if not ARAVIS_ENABLED:
             print "GigE is supported by the Aravis library, download and \
                    build from https://github.com/sightmachine/aravis"

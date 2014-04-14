@@ -37,17 +37,17 @@ class Scanner(FrameSource):
     >>> scan.set_roi() #reset region of interest
     >>> img.show()
 
-
     """
-    usbid = None
-    manufacturer = None
-    model = None
-    kind = None
-    device = None
-    max_x = None
-    max_y = None
 
     def __init__(self, id=0, properties={"mode": "color"}):
+        super(Scanner, self).__init__()
+        self.usbid = None
+        self.manufacturer = None
+        self.model = None
+        self.kind = None
+        self.device = None
+        self.max_x = None
+        self.max_y = None
         global _SANE_INIT
         import sane
 

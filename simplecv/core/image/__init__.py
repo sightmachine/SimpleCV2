@@ -314,9 +314,9 @@ class Image(object):
             converter = getattr(cv2, converter_str)
 
             new_ndarray = cv2.cvtColor(ndarray, converter_bgr)
-            return cv2.cvtColor(new_ndarray, converter)
+            return cv2.cvtColor(new_ndarray, code=converter)
         else:
-            return cv2.cvtColor(ndarray, converter)
+            return cv2.cvtColor(ndarray, code=converter)
 
     def to_color_space(self, color_space):
         """

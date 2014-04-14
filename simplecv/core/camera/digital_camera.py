@@ -31,11 +31,9 @@ class DigitalCamera(FrameSource):
     >>> img.show()
 
     """
-    camera = None
-    usbid = None
-    device = None
 
     def __init__(self, id=0):
+        super(DigitalCamera, self).__init__()
 
         if not PIGGYPHOTO_ENABLED:
             logger.warn("Initializing failed, piggyphoto not found.")
@@ -46,6 +44,7 @@ class DigitalCamera(FrameSource):
             logger.warn("No compatible digital cameras attached")
             return
 
+        self.usbid = None
         self.device, self.usbid = devices[id]
         self.camera = piggyphoto.camera()
 

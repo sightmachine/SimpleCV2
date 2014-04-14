@@ -23,12 +23,12 @@ class JpegStreamReader(threading.Thread):
     This is handy for reading the stream of images from a IP Camera.
 
     """
-    url = ""
-    current_frame = ""
-    _thread_capture_time = ""
 
     def __init__(self, url):
+        super(JpegStreamReader, self).__init__()
         self.url = url
+        self.current_frame = ''
+        self._thread_capture_time = ''
 
     def run(self):
 
@@ -140,10 +140,10 @@ class JpegStreamCamera(FrameSource):
     >>> img.show()
 
     """
-    url = ""
-    cam_thread = ""
 
     def __init__(self, url):
+        super(JpegStreamCamera, self).__init__()
+
         if not url.startswith('http://'):
             url = "http://" + url
         self.url = url

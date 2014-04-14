@@ -14,15 +14,13 @@ except:
 
 
 class AVTCameraThread(threading.Thread):
-    camera = None
-    running = True
-    verbose = False
-    lock = None
-    logger = None
-    framerate = 0
 
     def __init__(self, camera):
         super(AVTCameraThread, self).__init__()
+        self.running = True
+        self.verbose = False
+        self.logger = None
+        self.framerate = 0
         self._stop = threading.Event()
         self.camera = camera
         self.lock = threading.Lock()
@@ -119,14 +117,8 @@ class AVTCamera(FrameSource):
     >>> img.show()
     """
 
-    _buffer = None  # Buffer to store images
     _buffersize = 10  # Number of images to keep
-    # in the rolling image buffer for threads
-    _lastimage = None  # Last image loaded into memory
-    _thread = None
-    _framerate = 0
-    threaded = False
-    _pvinfo = {}
+
     _properties = {
         "AcqEndTriggerEvent": ("Enum", "R/W"),
         "AcqEndTriggerMode": ("Enum", "R/W"),
@@ -346,7 +338,15 @@ class AVTCamera(FrameSource):
         pverr(self.dll.PvCameraClose(self.handle))
 
     def __init__(self, camera_id=-1, properties={}, threaded=False):
-        #~ super(AVTCamera, self).__init__()
+        super(AVTCamera, self).__init__()
+
+        self._buffer = None  # Buffer to store images
+        # in the rolling image buffer for threads
+        self._lastimage = None  # Last image loaded into memory
+        self._thread = None
+        self._framerate = 0
+        self.threaded = False
+        self._pvinfo = {}
 
         if SYSTEM == "Windows":
             self.dll = ct.windll.LoadLibrary("PvAPI.dll")
@@ -380,8 +380,8 @@ class AVTCamera(FrameSource):
         #wait until camera is availble:
         while self.dll.PvCameraOpen(camera_id, 0, ct.byref(self.handle)) != 0:
             if init_count > 4:  # Try to connect 5 times before giving up
-                raise Exception('Could not connect to camera, please \
-                                 verify with SampleViewer you can connect')
+                raise Exception('Could not connect to camera, please '
+                                'verify with SampleViewer you can connect')
             init_count += 1
             time.sleep(1)  # sleep and retry to connect to camera in a second
 

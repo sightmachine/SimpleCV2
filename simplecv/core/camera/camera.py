@@ -55,10 +55,6 @@ class Camera(FrameSource):
     finer control than just basic frame retrieval
 
     """
-    capture = ""  # cv2.VideoCapture object
-    thread = ""
-    pygame_camera = False
-    pygame_buffer = ""
 
     prop_map = {"width": cv2.cv.CV_CAP_PROP_FRAME_WIDTH,
                 "height": cv2.cv.CV_CAP_PROP_FRAME_HEIGHT,
@@ -103,11 +99,15 @@ class Camera(FrameSource):
 
         * *calibrationfile* - A calibration file to load.
         """
+        super(Camera, self).__init__()
 
         global _cameras
         global _camera_polling_thread
         global _index
 
+        self.thread = ""
+        self.pygame_camera = False
+        self.pygame_buffer = ""
         self.index = None
         self.threaded = False
         self.capture = None
@@ -160,7 +160,7 @@ class Camera(FrameSource):
                 self.index = camera_index
                 _index.append(camera_index)
                 print _index
-            if "height" and "width" in prop_set:
+            if 'height' in prop_set and 'width' in prop_set:
                 self.capture = pygame.camera.Camera("/dev/video" +
                                                     str(camera_index),
                                                     (prop_set['width'],

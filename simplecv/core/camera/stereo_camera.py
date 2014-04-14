@@ -42,9 +42,8 @@ class StereoImage(object):
     >>> stereoImg.find_disparity_map(method="BM", n_disparity=20).show()
     """
 
-    image_3d = None
-
     def __init__(self, img_left, img_right):
+        super(StereoImage, self).__init__()
         self.image_left = img_left
         self.image_right = img_right
         if self.image_left.size != self.image_right.size:
@@ -531,7 +530,7 @@ class StereoCamera(object):
     """
 
     def __init__(self):
-        return
+        pass
 
     def stereo_calibration(self, cam_left, cam_right, nboards=30,
                            chessboard=(8, 5), grid_size=0.027,

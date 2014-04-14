@@ -21,7 +21,6 @@ class Kinect(FrameSource):
     you can get_image() and get_depth() for separate channel images
 
     """
-    device_number = 0
 
     def __init__(self, device_number=0):
         """
@@ -34,6 +33,7 @@ class Kinect(FrameSource):
 
         * *device_number* - The index of the kinect, these go from 0 upward.
         """
+        super(Kinect, self).__init__()
         self.device_number = device_number
         if not FREENECT_ENABLED:
             logger.warning("You don't seem to have the freenect library "
