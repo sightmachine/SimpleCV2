@@ -69,9 +69,9 @@ def find_corners(img, maxnum=50, minquality=0.04, mindistance=1.0):
 
     """
     corner_coordinates = cv2.goodFeaturesToTrack(img.get_gray_ndarray(),
-                                                 maxnum, minquality,
-                                                 mindistance)
-
+                                                 maxCorners=maxnum,
+                                                 qualityLevel=minquality,
+                                                 minDistance=mindistance)
     corner_features = []
     for x, y in corner_coordinates[:, 0, :]:
         corner_features.append(Factory.Corner(img, x, y))
@@ -158,8 +158,8 @@ def find_blobs(img, threshval=None, minsize=10, maxsize=0,
 
     blobmaker = BlobMaker()
     blobs = blobmaker.extract_from_binary(
-        img.binarize(threshval, 255, threshblocksize,
-                     threshconstant).invert(),
+        img.binarize(thresh=threshval, maxv=255, blocksize=threshblocksize,
+                     p=threshconstant).invert(),
         img, minsize=minsize, maxsize=maxsize, appx_level=appx_level)
 
     if not len(blobs):
@@ -391,8 +391,8 @@ def find_lines(img, threshold=80, minlinelength=30, maxlinegap=10,
 
     lines_fs = FeatureSet()
     if use_standard:
-        lines = cv2.HoughLines(em, 1.0, math.pi/180.0, threshold,
-                               srn=minlinelength,
+        lines = cv2.HoughLines(em, rho=1.0, theta=math.pi/180.0,
+                               threshold=threshold, srn=minlinelength,
                                stn=maxlinegap)[0]
         if nlines == -1:
             nlines = lines.shape[0]
@@ -480,7 +480,8 @@ def find_lines(img, threshold=80, minlinelength=30, maxlinegap=10,
                 lines_fs.append(Factory.Line(img, l))
         lines_fs = lines_fs[:nlines]
     else:
-        lines = cv2.HoughLinesP(em, 1.0, math.pi/180.0, threshold,
+        lines = cv2.HoughLinesP(em, rho=1.0, theta=math.pi/180.0,
+                                threshold=threshold,
                                 minLineLength=minlinelength,
                                 maxLineGap=maxlinegap)[0]
         if nlines == -1:
@@ -533,14 +534,15 @@ def find_chessboard(img, dimensions=(8, 5), subpixel=True):
     gray_array = img.get_gray_ndarray()
     equalized_grayscale_array = cv2.equalizeHist(gray_array)
     corners = cv2.findChessboardCorners(
-        equalized_grayscale_array, dimensions,
-        cv2.CALIB_CB_ADAPTIVE_THRESH + cv2.CALIB_CB_NORMALIZE_IMAGE)
+        equalized_grayscale_array, patternSize=dimensions,
+        corners=cv2.CALIB_CB_ADAPTIVE_THRESH + cv2.CALIB_CB_NORMALIZE_IMAGE)
     if len(corners[1]) == dimensions[0] * dimensions[1]:
         if subpixel:
             sp_corners = cv2.cornerSubPix(
-                gray_array, corners[1], (11, 11), (-1, -1),
-                (cv2.TERM_CRITERIA_MAX_ITER | cv2.TERM_CRITERIA_EPS,
-                 10, 0.01))
+                gray_array, corners=corners[1], winSize=(11, 11),
+                zeroZone=(-1, -1),
+                criteria=(cv2.TERM_CRITERIA_MAX_ITER | cv2.TERM_CRITERIA_EPS,
+                          10, 0.01))
         else:
             sp_corners = corners[1]
         return FeatureSet([Factory.Chessboard(img, dimensions, sp_corners)])
@@ -640,13 +642,13 @@ def find_template(img, template_image=None, threshold=5,
 
     #choose template matching method to be used
     if grayscale:
-        matches = cv2.matchTemplate(img.get_gray_ndarray(),
-                                    template_image.get_gray_ndarray(),
-                                    method)
+        img_array = img.get_gray_ndarray()
+        template_array = template_image.get_gray_ndarray()
     else:
-        matches = cv2.matchTemplate(img.get_ndarray(),
-                                    template_image.get_ndarray(),
-                                    method)
+        img_array = img.get_ndarray()
+        template_array = template_image.get_ndarray()
+
+    matches = cv2.matchTemplate(img_array, templ=template_array, method=method)
     mean = np.mean(matches)
     sd = np.std(matches)
     if check > 0:
@@ -762,12 +764,13 @@ def find_template_once(img, template_image=None, threshold=0.2,
         return None
     #choose template matching method to be used
     if grayscale:
-        matches = cv2.matchTemplate(img.get_gray_ndarray(),
-                                    template_image.get_gray_ndarray(),
-                                    method)
+        img_array = img.get_gray_ndarray()
+        template_array = template_image.get_gray_ndarray()
     else:
-        matches = cv2.matchTemplate(img.get_ndarray(),
-                                    template_image.get_ndarray(), method)
+        img_array = img.get_ndarray()
+        template_array = template_image.get_ndarray()
+
+    matches = cv2.matchTemplate(img_array, templ=template_array, method=method)
     if check > 0:
         if np.min(matches) <= threshold:
             compute = np.where(matches == np.min(matches))
@@ -828,8 +831,9 @@ def find_circle(img, canny=100, thresh=350, distance=-1):
         distance = 1 + max(img.width, img.height) / 50
 
     circs = cv2.HoughCircles(img.get_gray_ndarray(),
-                             cv2.cv.CV_HOUGH_GRADIENT,
-                             2, distance, param1=canny, param2=thresh)
+                             method=cv2.cv.CV_HOUGH_GRADIENT,
+                             dp=2, minDist=distance,
+                             param1=canny, param2=thresh)
     if circs is None:
         return None
     circle_fs = FeatureSet()
@@ -946,14 +950,15 @@ def find_keypoint_match(img, template, quality=500.00, min_dist=0.2,
         lhs_pt = np.array(lhs)
         if len(rhs_pt) < 16 or len(lhs_pt) < 16:
             return None
-        (homography, mask) = cv2.findHomography(lhs_pt, rhs_pt, cv2.RANSAC,
+        (homography, mask) = cv2.findHomography(srcPoints=lhs_pt,
+                                                dstPoints=rhs_pt,
+                                                method=cv2.RANSAC,
                                                 ransacReprojThreshold=1.0)
-        w = template.width
-        h = template.height
+        w, h = template.size
 
         pts = np.array([[0, 0], [0, h], [w, h], [w, 0]], dtype=np.float32)
 
-        ppts = cv2.perspectiveTransform(np.array([pts]), homography)
+        ppts = cv2.perspectiveTransform(np.array([pts]), m=homography)
 
         pt0i = (ppts[0][0][0], ppts[0][0][1])
         pt1i = (ppts[0][1][0], ppts[0][1][1])
@@ -1077,15 +1082,10 @@ def find_keypoints(img, min_quality=300.00, flavor="SURF",
     """
 
     fs = FeatureSet()
-
-    if highquality:
-        kp, d = img._get_raw_keypoints(thresh=min_quality,
-                                       force_reset=True,
-                                       flavor=flavor, highquality=1)
-    else:
-        kp, d = img._get_raw_keypoints(thresh=min_quality,
-                                       force_reset=True,
-                                       flavor=flavor, highquality=0)
+    kp, d = img._get_raw_keypoints(thresh=min_quality,
+                                   force_reset=True,
+                                   flavor=flavor,
+                                   highquality=int(highquality))
 
     if flavor in ["ORB", "SIFT", "SURF", "BRISK", "FREAK"] \
             and kp is not None and d is not None:
@@ -1160,16 +1160,17 @@ def find_motion(img, previous_frame, window=11, aggregate=True):
                        "and previous frames must match")
         return None
 
-    flow = cv2.calcOpticalFlowFarneback(previous_frame.get_gray_ndarray(),
-                                        img.get_gray_ndarray(), None, 0.5,
-                                        1, window, 1, 7, 1.5, 0)
+    flow = cv2.calcOpticalFlowFarneback(prev=previous_frame.get_gray_ndarray(),
+                                        next=img.get_gray_ndarray(),
+                                        pyr_scale=0.5, levels=1,
+                                        winsize=window, iterations=1,
+                                        poly_n=7, poly_sigma=1.5, flags=0,
+                                        flow=None)
     fs = FeatureSet()
     max_mag = 0.00
     w = math.floor(float(window) / 2.0)
     cx = ((img.width - window) / window) + 1  # our sample rate
     cy = ((img.height - window) / window) + 1
-    vx = 0.00
-    vy = 0.00
     xf = flow[:, :, 0]
     yf = flow[:, :, 1]
     for x in range(0, int(cx)):  # go through our sample grid
@@ -1407,7 +1408,8 @@ def find_blobs_from_mask(img, mask, threshold=128, minsize=10, maxsize=0,
 
     blobmaker = BlobMaker()
     gray = mask.get_gray_ndarray()
-    val, result = cv2.threshold(gray, threshold, 255, cv2.THRESH_BINARY)
+    val, result = cv2.threshold(gray, thresh=threshold, maxval=255,
+                                type=cv2.THRESH_BINARY)
     blobs = blobmaker.extract_from_binary(
         Factory.Image(result), img,
         minsize=minsize, maxsize=maxsize, appx_level=appx_level)
@@ -2054,18 +2056,18 @@ def find_features(img, method="szeliski", threshold=1000):
 
     """
     img_array = img.get_gray_ndarray()
-    blur = cv2.GaussianBlur(img_array, (3, 3), 0)
+    blur = cv2.GaussianBlur(img_array, ksize=(3, 3), sigma1=0)
 
-    ix = cv2.Sobel(blur, cv2.CV_32F, 1, 0)
-    iy = cv2.Sobel(blur, cv2.CV_32F, 0, 1)
+    ix = cv2.Sobel(blur, ddepth=cv2.CV_32F, dx=1, dy=0)
+    iy = cv2.Sobel(blur, ddepth=cv2.CV_32F, dx=0, dy=1)
 
     ix_ix = np.multiply(ix, ix)
     iy_iy = np.multiply(iy, iy)
     ix_iy = np.multiply(ix, iy)
 
-    ix_ix_blur = cv2.GaussianBlur(ix_ix, (5, 5), 0)
-    iy_iy_blur = cv2.GaussianBlur(iy_iy, (5, 5), 0)
-    ix_iy_blur = cv2.GaussianBlur(ix_iy, (5, 5), 0)
+    ix_ix_blur = cv2.GaussianBlur(ix_ix, ksize=(5, 5), sigma1=0)
+    iy_iy_blur = cv2.GaussianBlur(iy_iy, ksize=(5, 5), sigma1=0)
+    ix_iy_blur = cv2.GaussianBlur(ix_iy, ksize=(5, 5), sigma1=0)
 
     harris_thresh = threshold * 5000
     alpha = 0.06
@@ -2644,7 +2646,7 @@ def find_blobs_from_hue_histogram(img, model, threshold=1, smooth=True,
     ImageClass.back_project_hue_histogram()
 
     """
-    new_mask = img.back_project_hue_histogram(model, smooth,
+    new_mask = img.back_project_hue_histogram(model=model, smooth=smooth,
                                               full_color=False,
                                               threshold=threshold)
     return img.find_blobs_from_mask(new_mask, minsize=minsize,
