@@ -1873,7 +1873,7 @@ def test_roi_feature():
     img = Image(testimageclr)
     mask = img.threshold(248).dilate(5)
     blobs = img.find_blobs_from_mask(mask, minsize=1)
-    x, y = np.where(mask.get_gray_ndarray() > 0)
+    y, x = np.where(mask.get_gray_ndarray() > 0)
     xmin = np.min(x)
     xmax = np.max(x)
     ymin = np.min(y)
@@ -1912,8 +1912,10 @@ def test_roi_feature():
     def to_xywh(roi):
         return roi.to_xywh()
 
+    assert_list_equal([320, 0, 121, 53], roi_list[0].to_xywh())
     if subtest(roi_list, to_xywh):
         assert False
+
     broi.translate(10, 10)
     broi.translate(-10)
     broi.translate(y=-10)
@@ -1925,7 +1927,7 @@ def test_roi_feature():
     roi_list[0].crop()
     new_roi = ROI(zip(x, y), image=mask)
     test = new_roi.crop()
-    xroi, yroi = np.where(test.get_gray_numpy() > 128)
+    yroi, xroi = np.where(test.get_gray_ndarray() > 128)
     roi_pts = zip(xroi, yroi)
     real_pts = new_roi.coord_transform_pts(roi_pts)
     unit_roi = new_roi.coord_transform_pts(roi_pts, output="ROI_UNIT")
