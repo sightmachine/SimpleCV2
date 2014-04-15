@@ -149,9 +149,9 @@ class FrameSource(object):
             point_counts2[i, 0] = point_counts[i, 0]
 
         # camera calibration
-        _, cam_matrix, dist_cft, _, _, _ = cv2.calibrateCamera(object_points2,
-                                                               image_points2,
-                                                               img.size)
+        _, cam_matrix, dist_cft, _, _ = cv2.calibrateCamera(
+            [object_points2], [image_points2], img.size, cameraMatrix=None,
+            distCoeffs=None)
 
         self._calib_matrix = cam_matrix
         self._dist_coeff = dist_cft
@@ -273,8 +273,6 @@ class FrameSource(object):
             output = open(filename + "Distortion.bin", 'wb')
             pickle.dump(self._dist_coeff, output)
             output.close()
-
-        return None
 
     def load_calibration(self, filename):
         """
