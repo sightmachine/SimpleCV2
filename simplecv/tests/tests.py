@@ -627,6 +627,7 @@ def test_white_balance():
 def test_hough_circles():
     img = Image(circles)
     circs = img.find_circle(thresh=100)
+    assert_equals(5, len(circs))
     circs.draw()
     if circs[0] < 1:
         assert False
@@ -641,15 +642,12 @@ def test_hough_circles():
     circs[0].mean_color()
     circs[0].distance_from(point=(0, 0))
     circs[0].draw()
-    img2 = circs[0].crop()
-    img3 = circs[0].crop(no_mask=True)
+    assert circs[0].crop()
+    assert circs[0].crop(no_mask=True)
 
-    results = [img, img2, img3]
+    results = [img]
     name_stem = "test_hough_circle"
     perform_diff(results, name_stem)
-
-    assert img2 is not None
-    assert img3 is not None
 
 
 def test_draw_rectangle():
