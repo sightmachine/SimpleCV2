@@ -4,7 +4,7 @@ import pickle
 
 from simplecv.color import Color
 from simplecv.display import Display
-from simplecv.image_class import ImageSet
+from simplecv.image_set import ImageSet
 
 
 class TurkingModule(object):

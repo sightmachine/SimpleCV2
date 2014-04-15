@@ -1,6 +1,9 @@
 import os
+
 import cv2
-from simplecv.base import logger, LAUNCH_PATH
+
+from simplecv import DATA_DIR
+from simplecv.base import logger
 
 
 class HaarCascade(object):
@@ -21,8 +24,7 @@ class HaarCascade(object):
             if os.path.exists(fname):
                 self._fhandle = os.path.abspath(fname)
             else:
-                self._fhandle = os.path.join(LAUNCH_PATH,
-                                             'data/Features/HaarCascades',
+                self._fhandle = os.path.join(DATA_DIR, 'Features/HaarCascades',
                                              fname)
                 if not os.path.exists(self._fhandle):
                     logger.warning("Could not find Haar Cascade file " + fname)

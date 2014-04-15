@@ -21,8 +21,7 @@ class HaarLikeFeatureExtractor(FeatureExtractorBase):
         """
         # we define the black (positive) and white (negative) regions of an
         # image to get our haar wavelet
-        # FIXME: hope this should be self.do45 = do.45
-        self.do45 = True
+        self.do45 = do45
         self.featureset = None
         if fname is not None:
             self.read_wavelets(fname)

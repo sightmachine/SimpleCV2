@@ -1,14 +1,10 @@
 import time
 
+import cv2
 import numpy as np
 
 from simplecv.color import Color
 from simplecv.features.features import Feature
-
-try:
-    import cv2
-except ImportError:
-    pass
 
 
 class Track(Feature):

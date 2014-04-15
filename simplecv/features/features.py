@@ -13,13 +13,13 @@
 #     src_img_w = None
 #     src_img_h = None
 
+from math import sqrt
 import copy
 import re
 import types
 import warnings
 
-from math import sqrt
-
+import cv2
 import numpy as np
 import scipy.spatial.distance as spsd
 
@@ -1337,7 +1337,7 @@ class Feature(object):
         >>> img.show()
 
         """
-        self.image[self.x, self.y] = color
+        self.image[self.y, self.x] = color
 
     def show(self, color=Color.GREEN):
         """
@@ -1407,7 +1407,7 @@ class Feature(object):
         >>>       print "Found a white thing"
 
         """
-        return self.image[self.x, self.y]
+        return self.image[self.y, self.x]
 
     def color_distance(self, color=(0, 0, 0)):
         """
@@ -2393,7 +2393,6 @@ class Feature(object):
         >>> if blobs[-1].does_not_overlap(b):
         >>>    print "does not over overlap biggest blob"
 
-
         """
         return not self.overlaps(other)
 
@@ -2513,6 +2512,8 @@ class Feature(object):
         ((a,b),(c,d),...,(a,b)) the polygon should be closed
 
         """
+        # TODO: consider using 'shapely' lib
+        # http://stackoverflow.com/questions/21612976/point-inside-polygon
         if len(polygon) < 3:
             logger.warning(
                 "feature._point_inside_polygon - this is not a valid polygon")
@@ -2566,13 +2567,6 @@ class Feature(object):
         >>> print blobs[-1].bounding_circle()
 
         """
-
-        try:
-            import cv2
-        except ImportError:
-            logger.warning("Unable to import cv2")
-            return None
-
         # get_contour of the blob in image
         contour = self.contour()
 

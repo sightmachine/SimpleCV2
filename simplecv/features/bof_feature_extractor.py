@@ -8,7 +8,7 @@ import scipy.cluster.vq as cluster
 import scipy.spatial.distance as spsd
 
 from simplecv.base import IMAGE_FORMATS
-from simplecv.image_class import Image, ColorSpace
+from simplecv.image import Image
 
 
 class BOFFeatureExtractor(object):
@@ -27,7 +27,6 @@ class BOFFeatureExtractor(object):
 
     def __init__(self, patchsz=(11, 11), numcodes=128, imglayout=(8, 16),
                  padding=0):
-
         self.padding = padding
         self.layout = imglayout
         self.patch_size = patchsz
@@ -169,7 +168,7 @@ class BOFFeatureExtractor(object):
         height = (patchsize[1] * patch_arrangement[1]) + (
             (patch_arrangement[1] + 1) * spacersz)
         bm = np.zeros((height, width), np.uint8)
-        img = Image(bm, color_space=ColorSpace.GRAY)
+        img = Image(bm)
         count = 0
         for widx in range(patch_arrangement[0]):
             for hidx in range(patch_arrangement[1]):
@@ -226,16 +225,15 @@ class BOFFeatureExtractor(object):
         """
         Save the bag of features codebook and data set to a local file.
         """
-        my_file = open(datafname, 'w')
-        my_file.write("BOF Codebook Data\n")
-        my_file.write(str(self.num_codes) + "\n")
-        my_file.write(str(self.patch_size[0]) + "\n")
-        my_file.write(str(self.patch_size[1]) + "\n")
-        my_file.write(str(self.padding) + "\n")
-        my_file.write(str(self.layout[0]) + "\n")
-        my_file.write(str(self.layout[1]) + "\n")
-        my_file.write(imgfname + "\n")
-        my_file.close()
+        with open(datafname, 'w') as my_file:
+            my_file.write("BOF Codebook Data\n")
+            my_file.write(str(self.num_codes) + "\n")
+            my_file.write(str(self.patch_size[0]) + "\n")
+            my_file.write(str(self.patch_size[1]) + "\n")
+            my_file.write(str(self.padding) + "\n")
+            my_file.write(str(self.layout[0]) + "\n")
+            my_file.write(str(self.layout[1]) + "\n")
+            my_file.write(imgfname + "\n")
         if self.codebook_img is None:
             self._codebook_to_img(self.codebook, self.patch_size,
                                   self.num_codes, self.layout, self.padding)
@@ -284,7 +282,7 @@ class BOFFeatureExtractor(object):
         wsteps = img.width / self.patch_size[0]
         hsteps = img.height / self.patch_size[1]
 
-        ret_value = Image(ret_value, color_space=ColorSpace.GRAY)
+        ret_value = Image(ret_value)
         for widx in range(wsteps):
             for hidx in range(hsteps):
                 x = (widx * self.patch_size[0])

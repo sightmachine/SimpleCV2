@@ -1,13 +1,9 @@
 from copy import copy
 
+import cv2
 import numpy as np
 
 from simplecv.tracking.track_class import MFTrack
-
-try:
-    import cv2
-except ImportError:
-    pass
 
 
 def mfTracker(img, bb, ts, oldimg, **kwargs):

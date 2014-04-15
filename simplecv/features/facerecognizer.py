@@ -1,6 +1,7 @@
 import re
 import warnings
 
+import cv2
 import numpy as np
 
 from simplecv.factory import Factory
@@ -29,10 +30,8 @@ class FaceRecognizer(object):
         # self.mean = None
 
         try:
-            import cv2
-
             self.model = cv2.createFisherFaceRecognizer()
-        except (ImportError, AttributeError):
+        except AttributeError:
             self.supported = False
             warnings.warn("Fisher Recognizer is supported by OpenCV >= 2.4.4")
 
@@ -139,7 +138,7 @@ class FaceRecognizer(object):
         self.train_labels = labels
         labels = np.array(self.int_labels)
         self.train_imgs = images
-        cv2imgs = [img.get_gray_numpy_cv2() for img in images]
+        cv2imgs = [img.get_gray_ndarray() for img in images]
 
         self.model.train(cv2imgs, labels)
         # Not yet supported
@@ -200,7 +199,7 @@ class FaceRecognizer(object):
             w, h = self.image_size
             image = image.resize(w, h)
 
-        cv2img = image.get_gray_numpy_cv2()
+        cv2img = image.get_gray_ndarray()
         label, confidence = self.model.predict(cv2img)
         ret_label = self.labels_dict_rev.get(label)
         if not ret_label:

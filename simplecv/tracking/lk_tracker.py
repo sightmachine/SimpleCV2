@@ -1,11 +1,7 @@
 import itertools
 
 import numpy as np
-
-try:
-    import cv2
-except ImportError:
-    pass
+import cv2
 
 from simplecv.tracking.track_class import LKTrack
 

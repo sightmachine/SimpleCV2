@@ -5,7 +5,7 @@ import pickle
 from simplecv.base import logger, IMAGE_FORMATS
 from simplecv.color import Color
 from simplecv.drawing_layer import DrawingLayer
-from simplecv.image_class import Image
+from simplecv.image import Image
 
 
 ORANGE_ENABLED = True

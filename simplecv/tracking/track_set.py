@@ -1,8 +1,6 @@
-import warnings
-
-import numpy as np
-import cv2
 from cv2 import cv
+import cv2
+import numpy as np
 
 from simplecv.color import Color
 from simplecv.features.features import FeatureSet
@@ -28,10 +26,6 @@ class TrackSet(FeatureSet):
     >>> ts.draw()
     >>> ts.x()
     """
-    try:
-        import cv2
-    except ImportError:
-        warnings.warn("OpenCV >= 2.3.1 required.")
 
     def __init__(self):
         self.kalman = None
@@ -573,8 +567,8 @@ class TrackSet(FeatureSet):
             f = img
             cv2.accumulateWeighted(f, avg, 0.01)
             res = cv2.convertScaleAbs(avg)
-        from simplecv.image_class import Image
-        return Image(res, cv2image=True)
+        from simplecv.image import Image
+        return Image(res)
 
     def __kalman(self):
         self.kalman = cv.CreateKalman(4, 2, 0)

@@ -12,7 +12,6 @@ class EdgeHistogramFeatureExtractor(FeatureExtractorBase):
 
     bins = the number of bins
     """
-    nbins = 10
 
     def __init__(self, bins=10):
         self.nbins = bins

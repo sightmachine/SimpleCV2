@@ -1,11 +1,7 @@
 import itertools
 
+import cv2
 import numpy as np
-
-try:
-    import cv2
-except ImportError:
-    pass
 
 from simplecv.tracking.track_class import SURFTrack
 

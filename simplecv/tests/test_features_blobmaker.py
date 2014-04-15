@@ -1,9 +1,10 @@
 from nose.tools import assert_equals
 
-from simplecv.image import Image
-from simplecv.features.blobmaker import BlobMaker
-from simplecv.color_model import ColorModel
 from simplecv.color import Color
+from simplecv.color_model import ColorModel
+from simplecv.features.blobmaker import BlobMaker
+from simplecv.image import Image
+
 
 def test_blobmaker_extract():
     img = Image((400, 400))
@@ -20,10 +21,11 @@ def test_blobmaker_extract():
     blobs = bm.extract(img, maxsize=9000, minsize=3000)
     assert_equals(len(blobs), 1)
 
-    img = Image((1,1))
-    bin_img = Image((1,1))
+    img = Image((1, 1))
+    bin_img = Image((1, 1))
     blobs = bm.extract_from_binary(bin_img, img, maxsize=-1)
     assert_equals(len(blobs), 0)
+
 
 def test_blobmaker_extract_using_model():
     cm = ColorModel()

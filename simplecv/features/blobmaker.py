@@ -63,8 +63,9 @@ class BlobMaker(object):
         #create a single channel image, thresholded to parameters
 
         blobs = self.extract_from_binary(
-            img.binarize(threshval, 255, threshblocksize,
-                         threshconstant).invert(), img, minsize, maxsize)
+            img.binarize(thresh=threshval, maxv=255, blocksize=threshblocksize,
+                         p=threshconstant).invert(), color_img=img,
+            minsize=minsize, maxsize=maxsize)
         ret_value = sorted(blobs, key=lambda x: x.area, reverse=True)
         return FeatureSet(ret_value)
 
@@ -105,8 +106,8 @@ class BlobMaker(object):
         # us.
 
         contours, hierarchy = cv2.findContours(binary_img.get_gray_ndarray(),
-                                               cv2.RETR_TREE,
-                                               cv2.CHAIN_APPROX_SIMPLE)
+                                               mode=cv2.RETR_TREE,
+                                               method=cv2.CHAIN_APPROX_SIMPLE)
         if not list(contours):
             warnings.warn("Unable to find Blobs. Retuning Empty FeatureSet.")
             return FeatureSet([])
@@ -172,10 +173,10 @@ class BlobMaker(object):
         bbr = cv2.boundingRect(contour)
         ret_value.x = bbr[0] + (bbr[2] / 2)
         ret_value.y = bbr[1] + (bbr[3] / 2)
-        ret_value.perimeter = cv2.arcLength(contour, True)
+        ret_value.perimeter = cv2.arcLength(contour, closed=True)
         ret_value.contour = contour[:, 0, :].tolist()
         appx = cv2.approxPolyDP(np.array(contour, np.float32),
-                                appx_level, True)
+                                epsilon=appx_level, closed=True)
         ret_value.contour_appx = appx[:, 0, :].astype(int).tolist()
 
         # so this is a bit hacky....
@@ -258,7 +259,8 @@ class BlobMaker(object):
         """
         bbr = cv2.boundingRect(contour)
         mask = np.zeros((bbr[3], bbr[2]), dtype=np.uint8)
-        cv2.drawContours(mask, [contour], 0, 255, thickness=-1, maxLevel=0,
+        cv2.drawContours(mask, contours=[contour], contourIdx=0,
+                         color=255, thickness=-1, maxLevel=0,
                          offset=(-1 * bbr[0], -1 * bbr[1]))
         return mask
 
@@ -268,7 +270,7 @@ class BlobMaker(object):
         Calculate the average color of a blob given the mask.
         """
         img = color_array[Factory.Image.roi_to_slice(bb)]
-        return cv2.mean(img, mask)
+        return cv2.mean(img, mask=mask)
 
     @staticmethod
     def _get_blob_as_image(bbr, color_array, mask):

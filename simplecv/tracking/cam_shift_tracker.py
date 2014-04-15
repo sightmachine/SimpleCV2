@@ -1,11 +1,7 @@
 import numpy as np
+import cv2
 
 from simplecv.tracking.track_class import CAMShiftTrack
-
-try:
-    import cv2
-except ImportError:
-    pass
 
 
 def camshiftTracker(img, bb, ts, **kwargs):

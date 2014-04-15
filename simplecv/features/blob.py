@@ -551,10 +551,9 @@ class Blob(Feature):
         if not layer:
             layer = self.image.dl()
 
-        if width < 1:
-            layer.polygon(self.contour_appx, color, width, True, True, alpha)
-        else:
-            layer.polygon(self.contour_appx, color, width, False, True, alpha)
+        filled = width < 1
+        layer.polygon(points=self.contour_appx, color=color,
+                      width=width, filled=filled, antialias=True, alpha=alpha)
 
     def draw(self, color=Color.GREEN, width=-1, alpha=-1, layer=None):
         """
@@ -787,7 +786,6 @@ class Blob(Feature):
         mx = self.bounding_box[0] + offset[0]
         my = self.bounding_box[1] + offset[1]
         layer.blit(self.image, coordinates=(mx, my))
-        return None
 
     def is_square(self, tolerance=0.05, ratiotolerance=0.05):
         """
@@ -933,7 +931,7 @@ class Blob(Feature):
         >>> img.show()
 
         """
-        return self.m10/self.m00, self.m01/self.m00
+        return self.m10 / self.m00, self.m01 / self.m00
 
     def radius(self):
         """
@@ -975,7 +973,7 @@ class Blob(Feature):
         array = np.array([[(p[0] - l, p[1] - t) for p in self.contour]],
                          dtype=np.int32)
 
-        cv2.fillPoly(ret_value, array, (255, 255, 255), 8)
+        cv2.fillPoly(ret_value, pts=array, color=(255, 255, 255), lineType=8)
 
         # construct the hole contours
         holes = []
@@ -984,7 +982,7 @@ class Blob(Feature):
                 holes.append(np.array([(h2[0] - l, h2[1] - t) for h2 in h],
                                       dtype=np.int32))
             if holes:
-                cv2.fillPoly(ret_value, holes, (0, 0, 0), 8)
+                cv2.fillPoly(ret_value, pts=holes, color=(0, 0, 0), lineType=8)
         return Factory.Image(ret_value)
 
     @LazyProperty
@@ -1005,7 +1003,7 @@ class Blob(Feature):
 
         array = np.array([[(p[0] - l, p[1] - t) for p in self.convex_hull]],
                          dtype=np.int32)
-        cv2.fillPoly(ret_value, array, (255, 255, 255), 8)
+        cv2.fillPoly(ret_value, pts=array, color=(255, 255, 255), lineType=8)
         return Factory.Image(ret_value)
 
     def get_hull_img(self):
@@ -1072,7 +1070,6 @@ class Blob(Feature):
         >>> blobs = img.find_blobs()
         >>> blobs[-1].blob_image().show()
 
-
         """
         return self.image
 
@@ -1093,8 +1090,6 @@ class Blob(Feature):
         >>> img = Image("lenna")
         >>> blobs = img.find_blobs()
         >>> blobs[-1].blob_mask().show()
-
-
 
         """
         return self.mask
@@ -1202,14 +1197,15 @@ class Blob(Feature):
         translate = [(cs[0] - tlc[0], cs[1] - tlc[1])
                      for cs in self.convex_hull]
 
-        cv2.polylines(ret_value, [np.int32(translate)], 1, (255, 255, 255))
+        cv2.polylines(ret_value, pts=[np.int32(translate)], isClosed=1,
+                      color=(255, 255, 255))
         return Factory.Image(ret_value)
 
     def get_full_hull_edge_image(self):
         ret_value = np.zeros((self.image.height, self.image.width, 3),
                              dtype=np.uint8)
-        cv2.polylines(ret_value, [np.int32(self.convex_hull)], 1,
-                      (255, 255, 255))
+        cv2.polylines(ret_value, pts=[np.int32(self.convex_hull)], isClosed=1,
+                      color=(255, 255, 255))
         return Factory.Image(ret_value)
 
     def get_edge_image(self):
@@ -1230,7 +1226,8 @@ class Blob(Feature):
         ret_value = np.zeros((self.image.height, self.image.width, 3),
                              dtype=np.uint8)
 
-        cv2.polylines(ret_value, [np.int32(self.contour)], 1, (255, 255, 255))
+        cv2.polylines(ret_value, pts=[np.int32(self.contour)], isClosed=1,
+                      color=(255, 255, 255))
         return Factory.Image(ret_value)
 
     def __repr__(self):
@@ -1461,7 +1458,8 @@ class Blob(Feature):
 
         hull = [self.contour.index(x) for x in self.convex_hull]
         hull = np.array(hull).reshape(len(hull), 1)
-        defects = cv2.convexityDefects(np.array(self.contour), hull)
+        defects = cv2.convexityDefects(contour=np.array(self.contour),
+                                       convexhull=hull)
         if isinstance(defects, type(None)):
             warnings.warn("Unable to find defects. "
                           "Returning Empty FeatureSet.")

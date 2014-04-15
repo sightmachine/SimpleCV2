@@ -914,8 +914,9 @@ class Chessboard(Feature):
         drawing layer.
 
         """
-        cv2.drawChessboardCorners(self.image.get_ndarray(), self.dimensions,
-                                  self.sp_corners, 1)
+        cv2.drawChessboardCorners(self.image.get_ndarray(),
+                                  patternSize=self.dimensions,
+                                  corners=self.sp_corners, patternWasFound=1)
 
     def get_area(self):
         """
@@ -1179,9 +1180,9 @@ class Circle(Feature):
         #generate the mask
         if self.avg_color is None:
             mask = self.image.get_empty(1)
-            cv2.circle(mask, (self.x, self.y), self.r, color=(255, 255, 255),
-                       thickness=-1)
-            temp = cv2.mean(self.image.get_ndarray(), mask)
+            cv2.circle(mask, center=(self.x, self.y), radius=self.r,
+                       color=(255, 255, 255), thickness=-1)
+            temp = cv2.mean(self.image.get_ndarray(), mask=mask)
             self.avg_color = (temp[0], temp[1], temp[2])
         return self.avg_color
 
@@ -1277,10 +1278,10 @@ class Circle(Feature):
 
             # if you want to shave a bit of time we go do
             # the crop before the blit
-            cv2.circle(mask, (self.x, self.y), self.r, color=(255, 255, 255),
-                       thickness=-1)
+            cv2.circle(mask, center=(self.x, self.y), radius=self.r,
+                       color=(255, 255, 255), thickness=-1)
             np.where(mask, self.image.get_ndarray(), result)
-            ret_value = Factory.Image(source=result)
+            ret_value = Factory.Image(result)
             ret_value = ret_value.crop(self.x, self.y, self.get_width(),
                                        self.get_height(), centered=True)
             return ret_value
@@ -1466,8 +1467,9 @@ class KeyPoint(Feature):
         #generate the mask
         if self._avg_color is None:
             mask = self.image.get_empty(1)
-            cv2.circle(mask, (int(self.x), int(self.y)), int(self._r),
-                       color=(255, 255, 255), thickness=-1)
+            cv2.circle(mask, center=(int(self.x), int(self.y)),
+                       radius=int(self._r), color=(255, 255, 255),
+                       thickness=-1)
             temp = cv2.mean(self.image.get_ndarray(), mask)
             self._avg_color = (temp[0], temp[1], temp[2])
         return self._avg_color
@@ -1548,8 +1550,9 @@ class KeyPoint(Feature):
 
             # if you want to shave a bit of time we go do
             # the crop before the blit
-            cv2.circle(mask, (int(self.x), int(self.y)), int(self._r),
-                       color=(255, 255, 255), thickness=-1)
+            cv2.circle(mask, center=(int(self.x), int(self.y)),
+                       radius=int(self._r), color=(255, 255, 255),
+                       thickness=-1)
             np.where(mask, self.image.get_ndarray(), result)
             ret_value = Factory.Image(source=result)
             ret_value = ret_value.crop(self.x, self.y, self.get_width(),
@@ -1908,7 +1911,8 @@ class ShapeContextDescriptor(Feature):
 
 
         """
-        self.image.dl().circle((self.x, self.y), 3, color, width)
+        self.image.dl().circle(center=(self.x, self.y), radius=3,
+                               color=color, width=width)
 
 
 ######################################################################
@@ -2471,7 +2475,8 @@ class ROI(Feature):
             xstart = x[i]
             xstop = x[i + 1]
             w = xstop - xstart
-            ret_value.append(ROI(xstart, self.ytl, w, self.h, self.image))
+            ret_value.append(ROI(x=xstart, y=self.ytl, w=w, h=self.h,
+                                 image=self.image))
         return ret_value
 
     def split_y(self, y, unit_vals=False, src_vals=False):
@@ -2528,7 +2533,8 @@ class ROI(Feature):
             ystart = y[i]
             ystop = y[i + 1]
             h = ystop - ystart
-            ret_value.append(ROI(self.xtl, ystart, self.w, h, self.image))
+            ret_value.append(ROI(x=self.xtl, y=ystart, w=self.w, h=h,
+                                 image=self.image))
         return ret_value
 
     def merge(self, regions):
@@ -2799,7 +2805,7 @@ class ROI(Feature):
                 and y is None and w is None and h is None:
             if len(x[0]) == 2 and len(x[1]) == 2:
                 xt = np.min([x[0][0], x[1][0]])
-                yt = np.min([x[0][0], x[1][0]])
+                yt = np.min([x[0][1], x[1][1]])
                 w = np.abs(x[0][0] - x[1][0])
                 h = np.abs(x[0][1] - x[1][1])
                 x = xt
