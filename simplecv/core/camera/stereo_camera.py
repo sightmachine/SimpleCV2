@@ -230,11 +230,6 @@ class StereoImage(object):
                                    SADWindowSize=41)
 
                 dsp = sbm.compute(gray_left, gray_right)
-                dsp_visual = cv2.normalize(dsp, alpha=0, beta=256,
-                                           norm_type=cv2.NORM_MINMAX,
-                                           dtype=cv2.CV_8U)
-                return Factory.Image(dsp_visual)
-
             elif method == 'SGBM':
                 ssgbm = cv2.StereoSGBM(minDisparity=0,
                                        numDisparities=n_disparity,
@@ -246,11 +241,15 @@ class StereoImage(object):
                                        P2=32 * 1 * 41 * 41,
                                        uniquenessRatio=15)
                 dsp = ssgbm.compute(gray_left, gray_right)
-                return Factory.Image(dsp)
             else:
                 logger.warning("Unknown method. Choose one method amoung "
                                "BM or SGBM or GC !")
                 return None
+
+            dsp_visual = cv2.normalize(dsp, alpha=0, beta=256,
+                                       norm_type=cv2.NORM_MINMAX,
+                                       dtype=cv2.CV_8U)
+            return Factory.Image(dsp_visual)
         except Exception:
             logger.warning("Error in computing the Disparity Map, may be "
                            "due to the Images are stereo in nature.")

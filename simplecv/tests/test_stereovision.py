@@ -59,23 +59,25 @@ def test_find_homography():
             assert False
 
 
-def test_find_disparity_map():
+def test_find_disparity_map_bm():
     dips = []
     for pairs in correct_pairs:
         img1 = Image(pairs[0])
         img2 = Image(pairs[1])
         stereo_img = StereoImage(img1, img2)
         dips.append(stereo_img.find_disparity_map(method="BM"))
-    name_stem = "test_disparitymapBM"
+    name_stem = "test_disparitymap_bm"
     perform_diff(dips, name_stem)
 
+
+def test_find_disparity_map_sgbm():
     dips = []
     for pairs in correct_pairs:
         img1 = Image(pairs[0])
         img2 = Image(pairs[1])
         stereo_img = StereoImage(img1, img2)
         dips.append(stereo_img.find_disparity_map(method="SGBM"))
-    name_stem = "test_disparitymapSGBM"
+    name_stem = "test_disparitymap_sgbm"
     perform_diff(dips, name_stem)
 
 
