@@ -165,7 +165,7 @@ class Display(object):
         scv_png = 'simplecv.png'
         # checks if simplecv.png exists
         if os.path.isfile(os.path.join(DATA_DIR, 'sampleimages', scv_png)):
-            scv_logo = Factory.Image("simplecv").scale(32, 32)
+            scv_logo = Factory.Image("simplecv").resize(w=32, h=32)
             pg.display.set_icon(scv_logo.get_pg_surface())
         if flags != pg.FULLSCREEN and flags != pg.NOFRAME:
             pg.display.set_caption(title)
@@ -440,7 +440,7 @@ class Display(object):
         elif img_ar == wndw_ar:
             self.xscale = (float(img.width)/float(self.resolution[0]))
             self.yscale = (float(img.height)/float(self.resolution[1]))
-            img = img.scale(self.resolution[0], self.resolution[1])
+            img = img.resize(w=self.resolution[0], h=self.resolution[1])
             pgsurf = img.get_pg_surface()
             self.screen.blit(pgsurf, pgsurf.get_rect())
             pg.display.flip()
@@ -486,7 +486,7 @@ class Display(object):
                 else:
                     targetx = 0
                     targety = (self.resolution[1]-targeth)/2
-                img = img.scale(targetw, targeth)
+                img = img.resize(w=targetw, h=targeth)
                 pgsurf = img.get_pg_surface()
             else:  # the height has more distortion
                 sfactor = float(self.resolution[1])/float(img.height)
@@ -503,7 +503,7 @@ class Display(object):
                 else:
                     targetx = (self.resolution[0]-targetw)/2
                     targety = 0
-                img = img.scale(targetw, targeth)
+                img = img.resize(w=targetw, h=targeth)
                 pgsurf = img.get_pg_surface()
             # clear out the screen so everything is clean
             black = pg.Surface((self.resolution[0], self.resolution[1]))

@@ -63,9 +63,9 @@ def resize(img, w=None, h=None, interpolation=cv2.INTER_LINEAR):
     **EXAMPLE**
 
     >>> img = Image("lenna")
-    >>> img2 = resize(img, w=1024)  # h is guessed from w
-    >>> img3 = resize(img, h=1024)  # w is guessed from h
-    >>> img4 = resize(img, w=200, h=100)
+    >>> img2 = img.resize(w=1024)  # h is guessed from w
+    >>> img3 = img.resize(h=1024)  # w is guessed from h
+    >>> img4 = img.resize(w=200, h=100)
 
     :py:meth:`scale`
     """
@@ -105,7 +105,7 @@ def flip_horizontal(img):
     **EXAMPLE**
 
     >>> img = Image("lenna")
-    >>> upsidedown = flip_horizontal(img)
+    >>> upsidedown = img.flip_horizontal()
 
     **SEE ALSO**
 
@@ -132,7 +132,7 @@ def flip_vertical(img):
     **EXAMPLE**
 
     >>> img = Image("lenna")
-    >>> img = flip_vertical(img)
+    >>> img = img.flip_vertical()
 
     **SEE ALSO**
 
@@ -842,7 +842,7 @@ def adaptive_scale(img, resolution, fit=True):
     if img.size == resolution:  # we have to resize
         ret_val = img
     elif img_ar == wndw_ar and fit:
-        ret_val = img.scale(resolution[0], resolution[1])
+        ret_val = img.resize(w=resolution[0], h=resolution[1])
         return ret_val
     elif fit:
         #scale factors
@@ -882,7 +882,7 @@ def adaptive_scale(img, resolution, fit=True):
             else:
                 targetx = 0
                 targety = (resolution[1] - targeth) / 2
-            img = img.scale(targetw, targeth)
+            img = img.resize(w=targetw, h=targeth)
         else:  # the height has more distortion
             sfactor = float(resolution[1]) / float(img.height)
             targetw = int(float(img.width) * sfactor)
@@ -897,7 +897,7 @@ def adaptive_scale(img, resolution, fit=True):
             else:
                 targetx = (resolution[0] - targetw) / 2
                 targety = 0
-            img = img.scale(targetw, targeth)
+            img = img.resize(w=targetw, h=targeth)
 
     else:  # we're going to crop instead
         # center a too small image

@@ -268,7 +268,7 @@ def tutorial_manipulation():
         img = Image("lenna")
 
     print lb
-    cmd = "thumb = img.scale(90,90)"
+    cmd = "thumb = img.resize(90,90)"
     desired_tuple = ('thumb', Image)
 
     while True:
