@@ -11,7 +11,6 @@ from simplecv.color import Color
 from simplecv.image import Image
 from simplecv.tests.utils import (perform_diff, create_test_image,
                                   create_test_array)
-from simplecv.core.image import finder
 
 LENNA_PATH = os.path.join(DATA_DIR, 'sampleimages/lenna.png')
 WEBP_IMAGE_PATH = os.path.join(DATA_DIR, 'sampleimages/simplecv.webp')
@@ -563,7 +562,7 @@ def test_image_drawing():
 def test_image_draw():
     img = Image(source="lenna")
     newimg = Image(source="simplecv")
-    lines = finder.find_lines(img)
+    lines = img.find_lines()
     newimg.draw(lines)
     lines.draw()
     result = [newimg, img]
