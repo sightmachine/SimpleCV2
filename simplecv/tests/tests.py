@@ -107,15 +107,6 @@ def test_feature_crop():
         assert False
 
 
-def test_blob_maker():
-    img = Image("../data/sampleimages/blockhead.png")
-    blobber = BlobMaker()
-    results = blobber.extract(img)
-    print(len(results))
-    if len(results) != 7:
-        assert False
-
-
 def test_blob_holes():
     img = Image("../data/sampleimages/blockhead.png")
     blobber = BlobMaker()
@@ -137,33 +128,6 @@ def test_blob_holes():
             assert False
 
 
-def test_blob_data():
-    # FIXME: Test should have assertion
-    img = Image("../data/sampleimages/blockhead.png")
-    blobber = BlobMaker()
-    blobs = blobber.extract(img)
-    for b in blobs:
-        if b.area > 0:
-            pass
-        if b.get_perimeter() > 0:
-            pass
-        if sum(b.avg_color) > 0:
-            pass
-        if sum(b.bounding_box) > 0:
-            pass
-        if b.m00 is not 0 \
-                and b.m01 is not 0 \
-                and b.m10 is not 0 \
-                and b.m11 is not 0 \
-                and b.m20 is not 0 \
-                and b.m02 is not 0 \
-                and b.m21 is not 0 \
-                and b.m12 is not 0:
-            pass
-        if sum(b.hu) > 0:
-            pass
-
-
 def test_blob_render():
     img = Image("../data/sampleimages/blockhead.png")
     blobber = BlobMaker()
@@ -183,45 +147,6 @@ def test_blob_render():
     results = [img]
     name_stem = "test_blob_render"
     perform_diff(results, name_stem, tolerance=5.0)
-
-
-def test_blob_methods():
-    # FIXME: Test should have assertion
-    img = Image("../data/sampleimages/blockhead.png")
-    blobber = BlobMaker()
-    blobs = blobber.extract(img)
-    bl = (img.width, img.height)
-    first = blobs[0]
-    for b in blobs:
-        b.get_width()
-        b.get_height()
-        b.get_area()
-        b.get_max_x()
-        b.get_min_x()
-        b.get_max_y()
-        b.get_min_y()
-        b.min_rect_width()
-        b.min_rect_height()
-        b.min_rect_x()
-        b.min_rect_y()
-        b.get_contour()
-        b.get_aspect_ratio()
-        b.blob_image()
-        b.blob_mask()
-        b.get_hull_img()
-        b.get_hull_mask()
-        b.rectify_major_axis()
-        b.blob_image()
-        b.blob_mask()
-        b.get_hull_img()
-        b.get_hull_mask()
-        b.get_angle()
-        b.above(first)
-        b.below(first)
-        b.left(first)
-        b.right(first)
-        #b.contains(first)
-        #b.overlaps(first)
 
 
 def test_template_match():

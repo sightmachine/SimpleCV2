@@ -487,7 +487,6 @@ class Blob(Feature):
             final_rotation -= 90
 
         self.rotate(final_rotation)
-        return None
 
     def rotate(self, angle):
         """
