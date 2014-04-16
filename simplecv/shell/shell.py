@@ -15,21 +15,20 @@
 # more info:
 # http://www.simplecv.org
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+from subprocess import call
 import logging
 import os
 import platform
-from subprocess import call
 import sys
 import webbrowser
 
+from simplecv import __version__ as simplecv_version
 from simplecv.base import init_logging, logger, IPython
-from simplecv.shell.tutorial import magic_tutorial
 from simplecv.shell.example import magic_examples
+from simplecv.shell.tutorial import magic_tutorial
 
-try:
-    from simplecv import __version__ as simplecv_version
-except ImportError:
-    simplecv_version = ''
+# import all classes
+from simplecv.api import *
 
 
 #Command to clear the shell screen
