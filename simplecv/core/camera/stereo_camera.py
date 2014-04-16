@@ -584,16 +584,18 @@ class StereoCamera(object):
         left = "Left"
         right = "Right"
 
-        capture_left = cv2.VideoCapture(cam_left)
+        capture_left = cv2.VideoCapture()
+        ret = capture_left.open(cam_left)
         capture_left.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, win_size[0])
         capture_left.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, win_size[1])
         _, frame_left = capture_left.read()
         cv2.findChessboardCorners(frame_left, chessboard)
 
-        capture_right = cv2.VideoCapture(cam_right)
+        capture_right = cv2.VideoCapture()
+        ret = capture_right.open(cam_right)
         capture_right.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, win_size[0])
         capture_right.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, win_size[1])
-        frame_right = capture_right.read()
+        _, frame_right = capture_right.read()
         cv2.findChessboardCorners(frame_right, chessboard)
 
         cols = nboards * chessboard[0] * chessboard[1]
@@ -639,8 +641,6 @@ class StereoCamera(object):
                                     (k * grid_size, j * grid_size, 0)
 
                     print "Running stereo calibration..."
-                    del cam_left
-                    del cam_right
                     rtval, cm1, d1, cm2, d2, r, t, e, f = cv2.stereoCalibrate(
                         object_points, image_points1, image_points2,
                         win_size, flags=cv2.CALIB_SAME_FOCAL_LENGTH |
