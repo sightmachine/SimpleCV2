@@ -7,7 +7,6 @@ dist/
 doc/_build/
 simplecv.egg-info/
 simplecv/.settings.xml
-simplecv/data/test/StereoVision/TestCalibrationDistortion.xml
-simplecv/data/test/StereoVision/TestCalibrationIntrinsic.xml
 simplecv/tests/.coverage
+simplecv/tests/cover/
 simplecv/tests/coverage.xml

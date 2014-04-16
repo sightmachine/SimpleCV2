@@ -12,10 +12,13 @@ To install nosetools you can either use:
 
 
 once these are installed, just run the command
-  nosetest tests.py
+  nosetest -v
 
 to run basic functionality test working.  You should get all OK checks
 if everything is fine and dandy. But you will get errors if something
 is broken.
+
+to get coverage report in html format:
+  nosetests -v --with-coverage --cover-erase --cover-package=simplecv --cover-html
 
 ------------------------------------------------------------------------
