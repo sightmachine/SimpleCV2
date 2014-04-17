@@ -1,7 +1,11 @@
 import os
 import tempfile
 
+from nose.tools import assert_equals
+
 from simplecv.image import Image
+from simplecv.features.haar_cascade import HaarCascade
+from simplecv import DATA_DIR
 
 FACECASCADE = 'face.xml'
 
@@ -22,6 +26,20 @@ def test_haarcascade():
     else:
         assert False
 
+    cascade = HaarCascade(FACECASCADE, "face_cascade")
+    assert_equals(cascade.get_name(), "face_cascade")
+    
+    fhandle = os.path.join(DATA_DIR, "Features", "HaarCascades", "face.xml")
+    assert_equals(cascade.get_fhandle(), fhandle)
+
+    cascade.set_name("eye_cascade")
+    assert_equals(cascade.get_name(), "eye_cascade")
+
+    new_fhandle = os.path.join(DATA_DIR, "Features", "HaarCascades", "eye.xml") 
+    cascade.load(new_fhandle)
+    assert_equals(cascade.get_fhandle(), new_fhandle)
+
+    emptycascade = HaarCascade()
 
 def test_minneighbors(img_in=testneighbor_in, img_out=testneighbor_out):
     img = Image(img_in)
