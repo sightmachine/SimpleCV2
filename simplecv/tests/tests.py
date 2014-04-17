@@ -404,7 +404,7 @@ def test_find_keypoints():
                 k.get_width()
                 k.get_height()
                 k.radius()
-                k.crop()
+            kp[0].crop()
             kp.draw()
         else:
             print "Found None."
@@ -419,7 +419,7 @@ def test_movement_feature():
 
     fs = current1.find_motion(prev, window=7)
     assert_greater(len(fs), 0)
-    fs.draw(color=Color.RED)
+    fs[0].draw(color=Color.RED)
     img = fs[0].crop()
     color = fs[1].mean_color()
     wndw = fs[1].window_sz()
@@ -430,7 +430,7 @@ def test_movement_feature():
     current2 = Image("../data/sampleimages/flow_simple1.png")
     fs = current2.find_motion(prev, window=7)
     assert_greater(len(fs), 0)
-    fs.draw(color=Color.RED)
+    fs[0].draw(color=Color.RED)
     img = fs[0].crop()
     color = fs[1].mean_color()
     wndw = fs[1].window_sz()
@@ -441,7 +441,7 @@ def test_movement_feature():
     current3 = Image("../data/sampleimages/flow_simple1.png")
     fs = current3.find_motion(prev, window=7, aggregate=False)
     assert_greater(len(fs), 0)
-    fs.draw(color=Color.RED)
+    fs[0].draw(color=Color.RED)
     img = fs[0].crop()
     color = fs[1].mean_color()
     wndw = fs[1].window_sz()
