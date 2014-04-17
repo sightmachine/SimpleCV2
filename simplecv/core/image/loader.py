@@ -82,18 +82,10 @@ class Cv2ImageLoader(ImageLoaderBase):
     @staticmethod
     def load(**kwargs):
         source = kwargs.get('source')
-        if isinstance(source, str):
-            if source == '':
-                raise IOError("No filename provided to Image constructor")
-            elif not os.path.exists(source):
-                raise IOError("Filename provided does not exist")
-
-            array = cv2.imread(source)
-            if array is None:
-                raise Exception('Failed to create an image array')
-            return array, Image.BGR, source
-        else:
-            raise Exception('Cannot load image from {}'.format(source))
+        array = cv2.imread(source)
+        if array is None:
+            raise Exception('Failed to create an image array')
+        return array, Image.BGR, source
 
 
 class SampleImageLoader(ImageLoaderBase):
