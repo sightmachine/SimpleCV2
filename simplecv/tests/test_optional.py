@@ -2,6 +2,7 @@ import os
 import tempfile
 
 from nose.tools import assert_equals
+import mock
 
 from simplecv.base import logger
 from simplecv.color import Color
@@ -111,14 +112,18 @@ def test_screenshot():
                        "Install pyscreenshot library")
         return
 
-    sc = ScreenCamera()
-    res = sc.get_resolution()
-    img = sc.get_image()
-    crop = (res[0]/4, res[1]/4, res[0]/2, res[1]/2)
-    sc.set_roi(crop)
-    crop_img = sc.get_image()
-    assert img
-    assert crop_img
+    tmp_img = Image('simplecv')
+    # pyscreenshot.grab takes about 4 seconds, so mock it!
+    with mock.patch('pyscreenshot.grab') as grab_mock:
+        grab_mock.return_value = tmp_img.get_pil()
+        sc = ScreenCamera()
+        res = sc.get_resolution()
+        img = sc.get_image()
+        crop = (res[0]/4, res[1]/4, res[0]/2, res[1]/2)
+        sc.set_roi(crop)
+        crop_img = sc.get_image()
+        assert img
+        assert crop_img
 
 
 def test_tv_denoising():
@@ -142,6 +147,8 @@ def test_steganograpy():
     try:
         import stepic
     except ImportError:
+        logger.warning("Couldn't run the steganograpy test as optional stepic "
+                       "library required")
         return
 
     tmp_file = os.path.join(tempfile.gettempdir(), 'simplecv_tmp.png')
