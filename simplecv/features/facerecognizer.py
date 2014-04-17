@@ -3,6 +3,7 @@ import warnings
 
 import cv2
 import numpy as np
+import os
 
 from simplecv.factory import Factory
 
@@ -24,6 +25,7 @@ class FaceRecognizer(object):
         self.labels_set = []
         self.int_labels = []
         self.labels_dict_rev = {}
+        self.trained = False
         # Not yet supported
         # self.eigenValues = None
         # self.eigenVectors = None
@@ -89,7 +91,7 @@ class FaceRecognizer(object):
         """
         if not self.supported:
             warnings.warn("Fisher Recognizer is supported by OpenCV >= 2.4.4")
-            return None
+            return False
 
         if csvfile:
             images = []
@@ -100,7 +102,7 @@ class FaceRecognizer(object):
                 f = open(csvfile, "rb")
             except IOError:
                 warnings.warn("No such file found. Training not initiated")
-                return None
+                return False
 
             self.csvfiles.append(csvfile)
             filereader = csv.reader(f, delimiter=delimiter)
@@ -110,7 +112,7 @@ class FaceRecognizer(object):
 
         if isinstance(labels, type(None)):
             warnings.warn("Labels not provided. Training not inititated.")
-            return None
+            return False
 
         self.labels_set = list(set(labels))
         i = 0
@@ -122,16 +124,16 @@ class FaceRecognizer(object):
         if len(self.labels_set) < 2:
             warnings.warn("At least two classes/labels are required"
                           "for training. Training not inititated.")
-            return None
+            return False
 
         if len(images) != len(labels):
             warnings.warn("Mismatch in number of labels and number of"
                           "training images. Training not initiated.")
-            return None
+            return False
 
-        self.image_size = images[0].size()
+        self.image_size = images[0].size
         w, h = self.image_size
-        images = [img if img.size() == self.image_size else img.resize(w, h)
+        images = [img if img.size == self.image_size else img.resize(w, h)
                   for img in images]
 
         self.int_labels = [self.labels_dict[key] for key in labels]
@@ -141,6 +143,8 @@ class FaceRecognizer(object):
         cv2imgs = [img.get_gray_ndarray() for img in images]
 
         self.model.train(cv2imgs, labels)
+        self.trained = True
+        return True
         # Not yet supported
         # self.eigenValues = self.model.getMat("eigenValues")
         # self.eigenVectors = self.model.getMat("eigenVectors")
@@ -195,7 +199,11 @@ class FaceRecognizer(object):
             warnings.warn("Fisher Recognizer is supported by OpenCV >= 2.4.4")
             return None
 
-        if image.size() != self.image_size:
+        if not self.trained:
+            warnings.warn("FaceRecognizer is not trained")
+            return None
+
+        if image.size != self.image_size:
             w, h = self.image_size
             image = image.resize(w, h)
 
@@ -246,9 +254,14 @@ class FaceRecognizer(object):
         """
         if not self.supported:
             warnings.warn("Fisher Recognizer is supported by OpenCV >= 2.4.4")
-            return None
+            return False
+
+        if not self.trained:
+            warnings.warn("FaceRecognizer is not trained")
+            return False
 
         self.model.save(filename)
+        return True
 
     def load(self, filename):
         """
@@ -273,7 +286,10 @@ class FaceRecognizer(object):
         """
         if not self.supported:
             warnings.warn("Fisher Recognizer is supported by OpenCV >= 2.4.4")
-            return None
+            return False
+        if not os.path.exists(os.path.abspath(filename)):
+            warnings.warn("Given training data file does not exist")
+            return False
 
         self.model.load(filename)
         loadfile = open(filename, "r")
@@ -289,3 +305,5 @@ class FaceRecognizer(object):
             w += 1
             h = tsize / w
         self.image_size = (w, h)
+        self.trained = True
+        return True
