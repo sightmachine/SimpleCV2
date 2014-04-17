@@ -1713,18 +1713,12 @@ class Feature(object):
         if new_feature or None in [max_x, min_x, max_y, min_y, width, height,
                                    extents, bounding_box]:
 
-            max_x = max_y = float("-infinity")
-            min_x = min_y = float("infinity")
-
-            for point in self.points:
-                if point[0] > max_x:
-                    max_x = point[0]
-                if point[0] < min_x:
-                    min_x = point[0]
-                if point[1] > max_y:
-                    max_y = point[1]
-                if point[1] < min_y:
-                    min_y = point[1]
+            xs = [p[0] for p in self.points]
+            ys = [p[1] for p in self.points]
+            max_x = max(xs)
+            min_x = min(xs)
+            max_y = max(ys)
+            min_y = min(ys)
 
             width = max_x - min_x
             height = max_y - min_y
