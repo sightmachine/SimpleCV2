@@ -1,37 +1,35 @@
 import os
 import tempfile
 
-from nose.tools import nottest
+from nose.tools import nottest, assert_is_instance, assert_tuple_equal
 
+from simplecv import DATA_DIR
 from simplecv.core.camera.virtual_camera import VirtualCamera
 from simplecv.image_set import ImageSet
+from simplecv.image import Image
 
 
-testimage = "../data/sampleimages/9dots4lines.png"
-testvideo = "../data/sampleimages/ball.mov"
+testimage = os.path.join(DATA_DIR, 'sampleimages/9dots4lines.png')
+testvideo = os.path.join(DATA_DIR, 'sampleimages/ball.mov')
 testoutput = os.path.join(tempfile.gettempdir(), 'vc.jpg')
 
 
 @nottest
 def do_full_vcam_coverage_test(vcam):
-    run = True
-    count = 0
-    maxf = 1000
-    while run:
+    maxf = 100
+    for i in range(0, maxf):
         img = vcam.get_image()
         vcam.get_frame_number()
-        count = count + 1
-        if img is None or count > maxf:
-            run = False
+        if img is None:
+            break
+
     vcam.rewind()
-    run = True
-    while run:
+
+    for i in range(0, maxf):
         vcam.skip_frames(2)
         img = vcam.get_image()
-        count = count + 1
-        if img is None or count > maxf:
-            run = False
-    return True
+        if img is None:
+            break
 
 
 def test_camera_constructor():
@@ -44,8 +42,7 @@ def test_camera_constructor():
 
 def test_camera_image():
     mycam = VirtualCamera(testimage, "image")
-
-    assert do_full_vcam_coverage_test(mycam)
+    do_full_vcam_coverage_test(mycam)
 
 
 def test_camera_video():
@@ -53,24 +50,24 @@ def test_camera_video():
     img = mycam.get_image()
     img.save(testoutput)
 
-    assert img is not None
-    assert img.size == (320, 240)
-    assert do_full_vcam_coverage_test(mycam)
+    assert_is_instance(img, Image)
+    assert_tuple_equal((320, 240), img.size)
+    do_full_vcam_coverage_test(mycam)
 
 
 def test_camera_iset():
-    iset = ImageSet('../data/test/standard/')
+    iset = ImageSet(os.path.join(DATA_DIR, 'test/animation'))
     mycam = VirtualCamera(iset, "imageset")
     img = mycam.get_image()
 
-    assert img is not None
-    assert do_full_vcam_coverage_test(mycam)
+    assert_is_instance(img, Image)
+    do_full_vcam_coverage_test(mycam)
 
 
 def test_camera_iset_directory():
-    iset = '../data/test/standard/'
-    mycam = VirtualCamera(iset, "imageset")
+    path = os.path.join(DATA_DIR, 'test/animation')
+    mycam = VirtualCamera(path, "imageset")
     img = mycam.get_image()
 
-    assert img is not None
-    assert do_full_vcam_coverage_test(mycam)
+    assert_is_instance(img, Image)
+    do_full_vcam_coverage_test(mycam)
