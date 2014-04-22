@@ -215,7 +215,6 @@ class Line(Feature):
         px = []
         weights = []
         
-        print d_err, "d_er"
         if d_err < 1:
             y = miny
             #iterate over X
@@ -389,6 +388,9 @@ class Line(Feature):
         if self.slope == float("inf"):
             for y in range(self.end_points[0][1], self.end_points[1][1] + 1):
                 pixels.append((self.end_points[0][0], y))
+        elif self.slope == 0.0:
+            for x in range(self.end_points[0][0], self.end_points[1][0] + 1):
+                pixels.append((x, self.end_points[0][1]))
         else:
             for x in range(self.end_points[0][0], self.end_points[1][0] + 1):
                 pixels.append((x, int(self.end_points[1][1] + self.slope *

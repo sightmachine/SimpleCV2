@@ -1,4 +1,5 @@
-from nose.tools import assert_equals, assert_almost_equals
+from nose.tools import assert_equals, assert_almost_equals, \
+                       assert_tuple_equal, assert_list_equal
 
 from simplecv.image import Image
 from simplecv.features.detection import Line
@@ -50,7 +51,6 @@ def test_line_mean_color():
     l3 = Line(img, ((25, 25), (35, 35)))
     expected_mean_color = (255.0/2.0, 255.0/2.0, 0.0)
     l3.draw(color=(255, 255, 255), width=2)
-    img.show()
     assert_equals(l3.mean_color(), expected_mean_color)
 
 def test_line_find_intersection():
@@ -67,44 +67,110 @@ def test_line_parallel():
     img = None
     l1 = Line(img, ((100, 200), (300, 400)))
     l2 = Line(img, ((200, 300), (400, 500)))
+    l3 = Line(img, ((300, 300), (400, 500)))
     assert l1.is_parallel(l2)
-
+    assert_equals(l1.is_parallel(l3), False)
 
 def test_line_perp():
     img = None
     l1 = Line(img, ((100, 200), (100, 400)))
     l2 = Line(img, ((200, 300), (400, 300)))
     assert l1.is_perpendicular(l2)
+    assert l2.is_perpendicular(l1)
 
-    l1 = Line(None, ((50, 10), (50, 80)))
-    l2 = Line(None, ((10, 50), (80, 50)))
-    assert l1.find_intersection(l2)
-    assert l2.find_intersection(l1)
+    l3 = Line(None, ((10, 10), (80, 80)))
+    l4 = Line(None, ((80, 10), (10, 80)))
+    assert l3.is_perpendicular(l4)
+    
+    assert_equals(l1.is_perpendicular(l3), False)
+    assert_equals(l3.is_perpendicular(l1), False)
 
 def test_line_img_intersection():
     img = Image((512, 512))
     for x in range(200, 400):
         img[200, x] = (255.0, 255.0, 255.0)
+    for y in range(200, 400):
+        img[y, 200] = (255.0, 255.0, 255.0)
+
     l = Line(img, ((300, 100), (300, 500)))
+    l1 = Line(img, ((100, 300), (500,300)))
+    l2 = Line(img, ((200, 300), (300,200)))
+    
     assert_equals([(300, 200)], l.img_intersections(img))
+    assert_equals([(200, 300), (300, 200)], l2.img_intersections(img))
+    assert_equals([(200, 300)], l1.img_intersections(img))
 
 def test_line_get_angle():
     l1 = Line(None, ((50, 10), (50, 80)))
-    l2 = Line(None, ((10, 50), (80, 50)))
+    l2 = Line(None, ((80, 50), (10, 50)))
     assert_equals(l1.get_angle(), 90.0)
     assert_equals(l2.get_angle(), 0.0)
 
 def test_line_crop_to_image_edges():
-    img = Image((512, 512))
-    l = Line(img, ((-10, -5), (400, 400)))
+    img = Image((101, 101))
+
+    l = Line(img, ((-10, -5), (40, 40)))
     l_cr = l.crop_to_image_edges()
-    assert_tuple_equal(((0, 5), (400, 400)), l_cr.end_points)
+    assert_tuple_equal(((0, 4), (40, 40)), l_cr.end_points)
+
+    l = Line(img, ((-5, -5), (140, 140)))
+    l_cr = l.crop_to_image_edges()
+    assert_tuple_equal(((0, 0), (100, 100)), l_cr.end_points)
+
+    l = Line(img, ((40, 40), (140, 140)))
+    l_cr = l.crop_to_image_edges()
+    assert_tuple_equal(((40, 40), (100, 100)), l_cr.end_points)
+
+    l = Line(img, ((105, -5), (50, 50)))
+    l_cr = l.crop_to_image_edges()
+    assert_tuple_equal(((50, 50), (100, 0)), l_cr.end_points)
+
+    l = Line(img, ((105, -5), (-5, 105)))
+    l_cr = l.crop_to_image_edges()
+    assert_tuple_equal(((100, 0), (0, 100)), l_cr.end_points)
+
+    l = Line(img, ((50, -50), (50, 90)))
+    l_cr = l.crop_to_image_edges()
+    assert_tuple_equal(((50, 0), (50, 90)), l_cr.end_points)
+
+    l = Line(img, ((50, -50), (50, 150)))
+    l_cr = l.crop_to_image_edges()
+    assert_tuple_equal(((50, 0), (50, 100)), l_cr.end_points)
+
+    l = Line(img, ((50, 10), (50, 150)))
+    l_cr = l.crop_to_image_edges()
+    assert_tuple_equal(((50, 10), (50, 100)), l_cr.end_points)
+
+    l = Line(img, ((50, -50), (150, -50)))
+    l_cr = l.crop_to_image_edges()
+    assert_equals(None, l_cr)
+
+    l = Line(img, ((50, 50), (150, 50)))
+    l_cr = l.crop_to_image_edges()
+    assert_tuple_equal(((50, 50), (100, 50)), l_cr.end_points)
+
+    l = Line(img, ((20, 50), (80, 50)))
+    l_cr = l.crop_to_image_edges()
+    assert_tuple_equal(((20, 50), (80, 50)), l_cr.end_points)
+
+    l = Line(img, ((-50, 50), (50, 50)))
+    l_cr = l.crop_to_image_edges()
+    assert_tuple_equal(((0, 50), (50, 50)), l_cr.end_points)
 
 def test_line_extend_to_image_edges():
-    img = Image((512, 512))
+    img = Image((101, 101))
+
     l = Line(img, ((10, 10), (30, 30)))
     l_ext = l.extend_to_image_edges()
-    assert_list_equal([(0, 0), (511, 511)], l_ext.end_points)
+    assert_list_equal([(0, 0), (100, 100)], l_ext.end_points)
+
+    l = Line(img, ((10, 10), (30, 10)))
+    l_ext = l.extend_to_image_edges()
+    assert_list_equal([(0, 10), (100, 10)], l_ext.end_points)
+
+    l = Line(img, ((10, 10), (10, 30)))
+    l_ext = l.extend_to_image_edges()
+    assert_list_equal([(10, 0), (10, 100)], l_ext.end_points)
 
 def test_line_get_vector():
     l1 = Line(None, ((50, 10), (50, 80)))
