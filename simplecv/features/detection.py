@@ -203,15 +203,19 @@ class Line(Feature):
 
         #if it's a straight one, we can just get mean color on the slice
         if d_x == 0.0:
-            return self.image[pt1[0]:pt1[0] + 1, miny:maxy].mean_color()
+            return self.image[miny:maxy, pt1[0]:pt1[0]+1].mean_color()
+            # return self.image[pt1[0]:pt1[0] + 1, miny:maxy].mean_color()
         if d_y == 0.0:
-            return self.image[minx:maxx, pt1[1]:pt1[1] + 1].mean_color()
+            return self.image[pt1[1]:pt1[1]+1, minx:maxx].mean_color()
+            # return self.image[minx:maxx, pt1[1]:pt1[1] + 1].mean_color()
 
         error = 0.0
         # this is how much our "error" will increase in every step
         d_err = d_y / d_x
         px = []
         weights = []
+        
+        print d_err, "d_er"
         if d_err < 1:
             y = miny
             #iterate over X

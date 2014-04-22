@@ -850,17 +850,6 @@ def test_get_aspectratio():
     assert_greater(len(kp.aspect_ratios()), 0)
 
 
-def test_line_crop():
-    img = Image("../data/sampleimages/EdgeTest2.png")
-    l = img.find_lines().sort_area()
-    l = l[-5:-1]
-    results = []
-    for ls in l:
-        results.append(ls.crop())
-    name_stem = "test_line_crop"
-    perform_diff(results, name_stem, tolerance=3.0)
-
-
 def test_get_corners():
     img = Image("../data/sampleimages/EdgeTest1.png")
     img2 = Image("../data/sampleimages/EdgeTest2.png")
@@ -1344,42 +1333,6 @@ def test_cluster():
     assert clusters1
     clusters2 = blobs.cluster(method="hierarchical")
     assert clusters2
-
-
-def test_line_parallel():
-    img = Image("lenna")
-    l1 = Line(img, ((100, 200), (300, 400)))
-    l2 = Line(img, ((200, 300), (400, 500)))
-    assert l1.is_parallel(l2)
-
-
-def test_line_perp():
-    img = Image("lenna")
-    l1 = Line(img, ((100, 200), (100, 400)))
-    l2 = Line(img, ((200, 300), (400, 300)))
-    assert l1.is_perpendicular(l2)
-
-
-def test_line_img_intersection():
-    img = Image((512, 512))
-    for x in range(200, 400):
-        img[200, x] = (255.0, 255.0, 255.0)
-    l = Line(img, ((300, 100), (300, 500)))
-    assert_equals([(300, 200)], l.img_intersections(img))
-
-
-def test_line_crop_to_edges():
-    img = Image((512, 512))
-    l = Line(img, ((-10, -5), (400, 400)))
-    l_cr = l.crop_to_image_edges()
-    assert_tuple_equal(((0, 5), (400, 400)), l_cr.end_points)
-
-
-def test_line_extend_to_edges():
-    img = Image((512, 512))
-    l = Line(img, ((10, 10), (30, 30)))
-    l_ext = l.extend_to_image_edges()
-    assert_list_equal([(0, 0), (511, 511)], l_ext.end_points)
 
 
 def test_find_grid_lines():
