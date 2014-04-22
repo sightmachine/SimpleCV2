@@ -888,18 +888,17 @@ class Chessboard(Feature):
     def __init__(self, i, dim, subpixel_corners):
         self.dimensions = dim
         self.sp_corners = subpixel_corners
-        at_x = np.average(np.array(self.sp_corners)[:, 0])
-        at_y = np.average(np.array(self.sp_corners)[:, 1])
+        at_x, at_y = np.average(self.sp_corners[:, 0], axis=0)
 
         posdiagsorted = sorted(self.sp_corners,
-                               key=lambda corner: corner[0] + corner[1])
+                               key=lambda corner: corner[0][0] + corner[0][1])
         #sort corners along the x + y axis
         negdiagsorted = sorted(self.sp_corners,
-                               key=lambda corner: corner[0] - corner[1])
+                               key=lambda corner: corner[0][0] - corner[0][1])
         #sort corners along the x - y axis
 
-        points = (posdiagsorted[0], negdiagsorted[-1], posdiagsorted[-1],
-                  negdiagsorted[0])
+        points = (posdiagsorted[0][0], negdiagsorted[-1][0], posdiagsorted[-1][0],
+                  negdiagsorted[0][0])
         super(Chessboard, self).__init__(i, at_x, at_y, points)
 
     def draw(self, no_needed_color=None):
@@ -1161,7 +1160,7 @@ class Circle(Feature):
 
         """
         if point[0] == -1 or point[1] == -1:
-            point = np.array(self.image.size()) / 2
+            point = np.array(self.image.size) / 2
         return spsd.euclidean(point, [self.x, self.y])
 
     def mean_color(self):

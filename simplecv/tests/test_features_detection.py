@@ -1,12 +1,17 @@
 from nose.tools import assert_equals, assert_almost_equals, \
-                       assert_tuple_equal, assert_list_equal
+                       assert_tuple_equal, assert_list_equal, \
+                       assert_almost_equal
+
+import cv2
+
+from math import pi
 
 from simplecv.image import Image
-from simplecv.features.detection import Line
-from simplecv.features.detection import Barcode
+from simplecv.features.detection import Line, Barcode, Chessboard, Circle
 from simplecv.tests.utils import perform_diff
 
 BARCODE_IMAGE = "../data/sampleimages/barcode.png"
+CHESSBOARD_IMAGE = "../data/sampleimages/CalibImage3.png"
 
 def test_line_draw():
     img = Image((100, 100))
@@ -80,10 +85,12 @@ def test_line_perp():
 
     l3 = Line(None, ((10, 10), (80, 80)))
     l4 = Line(None, ((80, 10), (10, 80)))
+    l5 = Line(None, ((10, 10), (20, 30)))
     assert l3.is_perpendicular(l4)
     
     assert_equals(l1.is_perpendicular(l3), False)
     assert_equals(l3.is_perpendicular(l1), False)
+    assert_equals(l3.is_perpendicular(l5), False)
 
 def test_line_img_intersection():
     img = Image((512, 512))
@@ -205,3 +212,58 @@ def test_barcode():
     assert_equals(barcode.length(),[262.0])
     assert_almost_equals(barcode.get_area(), 68644.0)
     perform_diff([img], "test_barcode", 0.0)
+
+def test_chessboard():
+    img = Image(CHESSBOARD_IMAGE)
+    chessboard_patent = (8, 5)
+    res, cor = cv2.findChessboardCorners(img.get_ndarray(), chessboard_patent)
+
+    chessboard = Chessboard(img, chessboard_patent, cor)
+    chessboard.get_area()
+    chessboard.draw()
+
+    perform_diff([img], "test_chessboard", 0.0)
+
+def test_circle_draw():
+    image = Image((200, 200))
+    circ = Circle(image, 100, 100, 50)
+    circ.draw(color=(255, 255, 255), width=3)
+    perform_diff([image], "test_circle_draw", 0.0)
+
+def test_circle_distance_from():
+    image = Image((200, 200))
+    circ = Circle(image, 100, 100, 50)
+
+    assert_equals(circ.distance_from(), 0)
+    assert_equals(circ.distance_from((0, 0)), ((100*100)+(100*100))**0.5)
+
+def test_circle_mean_color():
+    image = Image((201, 201))
+    np_array = image.get_ndarray()
+    np_array[:, :100] = (255, 0, 0)
+    np_array[:, 101:] = (0, 0, 255)
+
+    circ = Circle(image, 100, 100, 100)
+    assert_almost_equal(circ.mean_color()[0], 126.68, 2)
+    assert_equals(circ.mean_color()[1], 0.0)
+    assert_almost_equal(circ.mean_color()[2], 126.68, 2)
+    
+def test_circle_properties():
+    circ = Circle(None, 100, 100, 100)
+    assert_almost_equal(circ.get_area(), 100*100*pi, 3)
+    assert_almost_equal(circ.get_perimeter(), 100*2*pi, 3)
+    assert_equals(circ.get_width(), 100*2)
+    assert_equals(circ.get_height(), 100*2)
+    assert_equals(circ.radius(), 100)
+    assert_equals(circ.diameter(), 200)
+
+def test_circle_crop():
+    image = Image("simplecv")
+    circ = Circle(image, 100, 100, 50)
+    no_mask_image = circ.crop(no_mask=False)
+
+    image = Image("simplecv")
+    circ = Circle(image, 100, 100, 50)
+    mask_image = circ.crop(no_mask=True)
+
+    perform_diff([no_mask_image, mask_image], "test_circle_crop", 0.0)
