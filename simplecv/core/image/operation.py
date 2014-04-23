@@ -700,7 +700,7 @@ def _get_raw_keypoints(img, thresh=500.00, flavor="SURF", highquality=1,
             #          nOctaveLayers, extended, upright)
             detector = cv2.SURF(thresh, 4, 2, highquality, 1)
             img._key_points, img._kp_descriptors = \
-                detector.detect(img.get_gray_ndarray(), None, False)
+                detector.detectAndCompute(img.get_gray_ndarray(), None, False)
             if len(img._key_points) == 0:
                 return None, None
             if highquality == 1:

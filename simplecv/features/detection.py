@@ -1916,7 +1916,10 @@ class ShapeContextDescriptor(Feature):
 
 
         """
-        self.image.dl().circle(center=(self.x, self.y), radius=3,
+        radius=3
+        if(width > radius):
+            radius = width + 1
+        self.image.dl().circle(center=(int(self.x), int(self.y)), radius=radius,
                                color=color, width=width)
 
 
@@ -2583,7 +2586,7 @@ class ROI(Feature):
                 h = np.clip(h, 0, self.image.height - y)
             self._rebase([x, y, w, h])
             if isinstance(regions, ROI):
-                self.sub_features += regions
+                self.sub_features += regions.sub_features # ROI is not iterable error
             elif isinstance(regions, Feature):
                 self.sub_features.append(regions)
             elif isinstance(regions, (list, tuple)):
@@ -2839,6 +2842,7 @@ class ROI(Feature):
 
         if y is None or w is None or h is None:
             logger.warning('Not a valid roi')
+            return None
         elif w <= 0 or h <= 0:
             logger.warning("ROI can't have a negative dimension")
             return None

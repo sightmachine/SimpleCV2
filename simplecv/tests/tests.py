@@ -503,6 +503,8 @@ def test_keypoint_match():
         f.get_homography()
         f.get_min_rect()
         f.coordinates()
+        f.crop()
+        f.mean_color()
 
     match3 = Image("../data/sampleimages/aerospace.jpg")
     fs3 = match3.find_keypoint_match(template, quality=500.00, min_dist=0.2,
@@ -1417,97 +1419,6 @@ def test_minmax():
     assert_equals(245, max)
     for p in points:
         assert_equals(245, gray_img[p])
-
-
-def test_roi_feature():
-    img = Image(testimageclr)
-    mask = img.threshold(248).dilate(5)
-    blobs = img.find_blobs_from_mask(mask, minsize=1)
-    y, x = np.where(mask.get_gray_ndarray() > 0)
-    xmin = np.min(x)
-    xmax = np.max(x)
-    ymin = np.min(y)
-    ymax = np.max(y)
-    w = xmax - xmin
-    h = ymax - ymin
-    roi_list = []
-
-    def subtest(data, effect):
-        broke = False
-        first = effect(data[0])
-        i = 0
-        for d in data:
-            e = effect(d)
-            print (i, e)
-            i = i + 1
-            if first != e:
-                broke = True
-        return broke
-
-    broi = ROI(blobs)
-    broi2 = ROI(blobs, image=img)
-
-    roi_list.append(ROI(x=x, y=y, image=img))
-    roi_list.append(ROI(x=list(x), y=list(y), image=img))
-    roi_list.append(ROI(x=tuple(x), y=tuple(y), image=img))
-    roi_list.append(ROI(zip(x, y), image=img))
-    roi_list.append(ROI((xmin, ymin), (xmax, ymax), image=img))
-    roi_list.append(ROI(xmin, ymin, w, h, image=img))
-    roi_list.append(
-        ROI([(xmin, ymin), (xmax, ymin), (xmax, ymax), (xmin, ymax)],
-            image=img))
-    roi_list.append(ROI(roi_list[0]))
-
-    # test the basics
-    def to_xywh(roi):
-        return roi.to_xywh()
-
-    assert_list_equal([320, 0, 121, 53], roi_list[0].to_xywh())
-    if subtest(roi_list, to_xywh):
-        assert False
-
-    broi.translate(10, 10)
-    broi.translate(-10)
-    broi.translate(y=-10)
-    broi.to_tl_and_br()
-    broi.to_points()
-    broi.to_unit_xywh()
-    broi.to_unit_tl_and_br()
-    broi.to_unit_points()
-    roi_list[0].crop()
-    new_roi = ROI(zip(x, y), image=mask)
-    test = new_roi.crop()
-    yroi, xroi = np.where(test.get_gray_ndarray() > 128)
-    roi_pts = zip(xroi, yroi)
-    real_pts = new_roi.coord_transform_pts(roi_pts)
-    unit_roi = new_roi.coord_transform_pts(roi_pts, output="ROI_UNIT")
-    unit_src = new_roi.coord_transform_pts(roi_pts, output="SRC_UNIT")
-    src1 = new_roi.coord_transform_pts(roi_pts, intype="SRC_UNIT",
-                                       output='SRC')
-    src2 = new_roi.coord_transform_pts(roi_pts, intype="ROI_UNIT",
-                                       output='SRC')
-    src3 = new_roi.coord_transform_pts(roi_pts, intype="SRC_UNIT",
-                                       output='ROI')
-    src4 = new_roi.coord_transform_pts(roi_pts, intype="ROI_UNIT",
-                                       output='ROI')
-    fs = new_roi.split_x(10)
-    fs = new_roi.split_x(.5, unit_vals=True)
-    for f in fs:
-        f.draw(color=Color.BLUE)
-    fs = new_roi.split_x(new_roi.xtl + 10, src_vals=True)
-    xs = new_roi.xtl
-    fs = new_roi.split_x([10, 20])
-    fs = new_roi.split_x([xs + 10, xs + 20, xs + 30], src_vals=True)
-    fs = new_roi.split_x([0.3, 0.6, 0.9], unit_vals=True)
-    fs = new_roi.split_y(10)
-    fs = new_roi.split_y(.5, unit_vals=True)
-    for f in fs:
-        f.draw(color=Color.BLUE)
-    fs = new_roi.split_y(new_roi.ytl + 30, src_vals=True)
-    test_roi = ROI(blobs[0], mask)
-    for b in blobs[1:]:
-        test_roi.merge(b)
-
 
 def test_find_keypoint_clusters():
     img = Image('simplecv')
