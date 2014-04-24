@@ -3,4 +3,3 @@ scipy
 PIL
 ipython
 svgwrite
-
