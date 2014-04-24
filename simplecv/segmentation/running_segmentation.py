@@ -25,7 +25,7 @@ class RunningSegmentation(SegmentationBase):
         self.error = False
         self.ready = False
         self.alpha = kwargs.get('alpha', 0.7)
-        self.thresh = kwargs.get('alpha', (20, 20, 20))
+        self.thresh = kwargs.get('thresh', (20, 20, 20))
         self.model_img = None
         self.diff_img = None
         self.color_img = None
@@ -45,13 +45,13 @@ class RunningSegmentation(SegmentationBase):
 
         else:
             # do the difference
-            diff = cv2.absdiff(self.model_img.get_ndarray(),
+            diff = cv2.absdiff(self.model_img.get_fp_ndarray(),
                                img.get_fp_ndarray())
             self.diff_img = Factory.Image(diff)
 
             #update the model
             cv2.accumulateWeighted(src=img.get_fp_ndarray(),
-                                   dst=self.model_img.get_ndarray(),
+                                   dst=self.model_img.get_fp_ndarray(),
                                    alpha=self.alpha)
             self.ready = True
 

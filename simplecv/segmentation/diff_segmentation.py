@@ -53,15 +53,15 @@ class DiffSegmentation(SegmentationBase):
                 self.diff_img = Factory.Image(self.last_img.get_empty(3))
                 self.curr_img = None
         else:
-            if self.curr_img is not None:  # catch the first step
-                self.last_img = self.curr_img
-
             if self.grayonly_mode:
                 self.color_img = img
                 self.curr_img = img.to_gray()
             else:
                 self.color_img = img
                 self.curr_img = img
+
+            if self.curr_img is not None:  # catch the first step
+                self.last_img = self.curr_img
 
             diff = cv2.absdiff(self.curr_img.get_ndarray(),
                                self.last_img.get_ndarray())
