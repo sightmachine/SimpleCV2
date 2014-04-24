@@ -2,7 +2,7 @@
 # SimpleCV
 --------------------------
 
-[![Build Status](https://travis-ci.org/sightmachine/SimpleCV.png?branch=develop)](https://travis-ci.org/sightmachine/SimpleCV) [![Coverage Status](https://coveralls.io/repos/sightmachine/SimpleCV/badge.png)](https://coveralls.io/r/sightmachine/SimpleCV)
+[![Build Status](https://travis-ci.org/sightmachine/SimpleCV.png?branch=develop)](https://travis-ci.org/sightmachine/SimpleCV) [![Coverage Status](https://coveralls.io/repos/sightmachine/SimpleCV2/badge.png)](https://coveralls.io/r/sightmachine/SimpleCV2)
 
 
 Quick Links:
