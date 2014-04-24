@@ -66,8 +66,8 @@ def test_running_segmentation_get_segmented_image():
     r.add_image(img)
 
     final = r.get_segmented_image()
-    final_white_fg = r.get_segmented_image(True)
-    result = [final, final_white_fg]
+    final1 = r.get_segmented_image(False)
+    result = [final, final1]
     name_stem = "test_running_segmentation_get_segmented_image"
 
     perform_diff(result, name_stem, 0.0)

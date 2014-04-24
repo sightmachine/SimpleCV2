@@ -92,10 +92,10 @@ def test_diff_segmentation_get_raw_image():
     assert_equals(result.get_ndarray().data, diff_img.get_ndarray().data)
 
 def test_diff_segmentation_get_segmented_image():
-    d = DiffSegmentation()
+    d = DiffSegmentation(threshold=(50, 80, 100))
     img = Image(source="lenna")
     d.add_image(img)
-
+    d.add_image(img.rotate90())
     result = [d.get_segmented_image(), d.get_segmented_image(False)]
     name_stem = "test_diff_segmentation_get_segmented_image"
 
