@@ -20,7 +20,7 @@ def test_diff_segmentation_add_image():
     d1.add_image(img1)
 
     assert_equals(d1.last_img.get_ndarray().data, img1_gray.get_ndarray().data)
-    assert_equals(d1.curr_img, None)
+    assert_equals(d1.curr_img.get_ndarray().data, img1_gray.get_ndarray().data)
 
     d2 = DiffSegmentation()
     d2.grayonly_mode = True
@@ -35,7 +35,6 @@ def test_diff_segmentation_add_image():
     d2.curr_img = curr_img
     d2.add_image(img2)    # In this case, diff_img is unaffected. 
 
-    assert_equals(d2.last_img.get_ndarray().data, img2.to_gray().get_ndarray().data)
     assert_equals(d2.color_img.get_ndarray().data, img2.get_ndarray().data)
     assert_equals(d2.curr_img.get_ndarray().data, img2_gray.get_ndarray().data)
 
