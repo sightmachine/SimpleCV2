@@ -1,5 +1,5 @@
 --------------------------
-# SimpleCV
+# SimpleCV2
 --------------------------
 
 [![Build Status](https://travis-ci.org/sightmachine/SimpleCV.png?branch=develop)](https://travis-ci.org/sightmachine/SimpleCV) [![Coverage Status](https://coveralls.io/repos/sightmachine/SimpleCV2/badge.png?branch=2.0%2Fdevelop)](https://coveralls.io/r/sightmachine/SimpleCV2?branch=2.0%2Fdevelop)
