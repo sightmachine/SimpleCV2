@@ -1,0 +1,41 @@
+box: nuzz/sightmachine
+build:
+  steps:
+    - script:
+        name: setup SimpleCV2 on Wercker
+        code: |
+          sudo python setup.py develop
+    - script:
+        name: run tests
+        code: |
+          nosetests -w SimpleCV/tests -v tests.py --with-coverage
+  after-steps:
+    - script:
+        name: Coveralls.io
+        code: |
+          # This export is required to make coveralls report correct branch
+          export CIRCLE_BRANCH=$WERCKER_GIT_BRANCH
+          coveralls
+deploy:
+  steps:
+    - add-to-known_hosts:
+        hostname: $DO_BOX
+    - mktemp:
+        envvar: PRIVATEKEY_PATH
+    - create-file:
+        name: write key
+        filename: $PRIVATEKEY_PATH
+        content: $SIMPLECV2_PRIVATE
+        overwrite: true
+    - script:
+        name: transfer SimpleCV2 module
+        code: |
+          rsync -ai --exclude '*.egg-info' --delete -e "ssh -i $PRIVATEKEY_PATH" $WERCKER_SOURCE_DIR/ sm@$DO_BOX:~/Code/SimpleCV2/
+    - script:
+        name: setup SimpleCV2 on DigitalOcean
+        code: ssh -i $PRIVATEKEY_PATH -l sm $DO_BOX "cd ~/Code/qa && ./setup_and_build_ci_box.sh"
+  after-steps:
+    - hipchat-notify:
+        token: $HIPCHAT_TOKEN
+        room-id: 362330
+        from-name: wercker
