@@ -1,5 +1,5 @@
 [run]
-source = simpleCV 
+source = simplecv
 
 [report]
 omit =
