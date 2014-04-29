@@ -13,7 +13,6 @@ build:
     - script:
         name: Coveralls.io
         code: |
-          # This export is required to make coveralls report correct branch
           export CIRCLE_BRANCH=$WERCKER_GIT_BRANCH
           coveralls
 deploy:
