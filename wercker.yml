@@ -2,6 +2,14 @@ box: nuzz/sightmachine
 build:
   steps:
     - script:
+        name: git source key stuff
+        code: |
+          echo $SOURCE_KEY | base64 --decode > ~/.ssh/id_rsa
+          cat ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          eval `ssh-agent` > /dev/null 2>&1
+          ssh-add ~/.ssh/id_rsa > /dev/null 2>&1
+    - script:
         name: setup SimpleCV2 on Wercker
         code: |
           sudo python setup.py develop
