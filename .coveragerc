@@ -3,6 +3,8 @@ source = simplecv
 
 [report]
 omit =
+    */PIL/*
+    */pygame/*
     */python?.?/*
     */site-packages/nose/*
     /usr/share/pyshared/nose/*
