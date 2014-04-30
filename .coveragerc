@@ -3,6 +3,8 @@ source = simplecv
 
 [report]
 omit =
+    */IPython/*
+    */pexpect/*
     */PIL/*
     */pygame/*
     */python?.?/*
