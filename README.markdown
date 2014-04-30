@@ -1,9 +1,5 @@
---------------------------
-# SimpleCV
---------------------------
-
-[![Build Status](https://travis-ci.org/sightmachine/SimpleCV.png?branch=develop)](https://travis-ci.org/sightmachine/SimpleCV) [![Coverage Status](https://coveralls.io/repos/sightmachine/SimpleCV2/badge.png?branch=2.0%2Fdevelop)](https://coveralls.io/r/sightmachine/SimpleCV2?branch=2.0%2Fdevelop)
-
+SimpleCV2 [![wercker status](https://app.wercker.com/status/b7ca4bb0b7c4e2c454f62574bb40cac4/s/ "wercker status")](https://app.wercker.com/project/bykey/b7ca4bb0b7c4e2c454f62574bb40cac4) [![Coverage Status](https://coveralls.io/repos/sightmachine/SimpleCV2/badge.png?branch=2.0%2Fdevelop)](https://coveralls.io/r/sightmachine/SimpleCV2?branch=2.0%2Fdevelop)
+=====
 
 Quick Links:
 
@@ -212,7 +208,7 @@ If you got error like `fatal error: 'freetype/fterrors.h' file not found`, resol
 
     ln -s /usr/local/include/freetype2 /usr/local/include/freetype
 
-Then install PIL: 
+Then install PIL:
     sudo python setup.py install
 
 Manually create a few PIL symlinks:
@@ -497,7 +493,3 @@ These libraries are NOT required to run or use SimpleCV but are needed for some 
 * python-tesseract (<http://code.google.com/p/python-tesseract/>)
 * Orange (<http://orange.biolab.si>)
 * scikit-learn
-
-
-
-
