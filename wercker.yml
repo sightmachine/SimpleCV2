@@ -16,7 +16,7 @@ build:
     - script:
         name: run tests
         code: |
-          nosetests -w simplecv/tests -v tests.py --with-coverage
+          nosetests -w simplecv/tests -v --with-coverage
   after-steps:
     - script:
         name: Coveralls.io
