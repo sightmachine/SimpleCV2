@@ -23,7 +23,7 @@ Quick Links:
 
 <a id="about"></a>
 ## About
----------------------------
+=====
 Make computers see with SimpleCV, the Open Source Framework for Computer Vision
 
 SimpleCV is a framework for Open Source Machine Vision, using OpenCV and the Python programming language.
@@ -46,7 +46,7 @@ Here is the simplecv "hello world":
 
 For more code snippets, we recommend the [SimpleCV examples website](http://examples.simplecv.org) or looking at our example scripts in [examples](http://github.com/sightmachine/SimpleCV/tree/master/examples)
 
----------------------------
+=====
 <a id="installation"></a>
 ## Installation
 
@@ -136,7 +136,7 @@ Install using clone of SimpleCV repository
 Note: We originally tried to bundle all Mac dependencies in a superpack.  This turned out to be extremely difficult with the many differences between versions of Mac OS.  Now, with Mac, you must build from source and we will try and make it as easy as possible.  Please report a bug if you have issues.
 
 
----------------------------
+=====
 **Explicit (as in every step) instructions compliments of JHawkins**
 
 *These instructions are geared towards people who are just getting started with python development on OSX. They will walk you through setting up all the tools you need to build SimpleCV from scratch. If you don't know which instructions you want, you probably want to use these.*
@@ -254,7 +254,7 @@ If it starts (it should!) be sure to check out:
 
      example()
 
---------------------------------
+=====
 **Lion Take Two**
 
 *This is the abridged set of the instructions. It assumes you have most of the common OSX developer tools installed like brew and pip.
@@ -399,7 +399,7 @@ The solution for this is to install latest stable version of scipy for windows .
 
 * [Installation instructions can be found here.](https://github.com/sightmachine/SimpleCV/blob/develop/doc/HOWTO-Install%20on%20RaspberryPi.rst)
 
----------------------------
+=====
 <a id="shell"></a>
 ## SimpleCV Interactive Shell, or how to run SimpleCV
 
@@ -447,7 +447,7 @@ student had built, we have forked the project and instructions on how to set it 
 
 
 
--------------------------------
+=====
 <a id="help"></a>
 ## Getting Help
 
