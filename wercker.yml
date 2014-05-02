@@ -1,4 +1,4 @@
-box: nuzz/sightmachine
+box: nuzz/box-simplecv2
 build:
   steps:
     - script:
