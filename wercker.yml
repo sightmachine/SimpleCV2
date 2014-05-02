@@ -1,4 +1,4 @@
-box: nuzz/box-simplecv2
+box: nuzz/SimpleCV2
 build:
   steps:
     - script:
