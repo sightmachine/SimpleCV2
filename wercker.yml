@@ -2,6 +2,10 @@ box: nuzz/box-SimpleCV2
 build:
   steps:
     - script:
+        name: pip install
+        code: |
+          sudo pip install -r $WERCKER_SOURCE_DIR/requirements.txt
+    - script:
         name: git source key stuff
         code: |
           echo $SOURCE_KEY | base64 --decode > ~/.ssh/id_rsa
