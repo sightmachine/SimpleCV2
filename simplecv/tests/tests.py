@@ -247,16 +247,6 @@ def test_hsv_conversion():
     px[0, 0] = Color.GREEN
     assert_list_equal(Color.hsv(Color.GREEN), px.to_hsv()[0, 0])
 
-
-def test_white_balance():
-    img = Image("../data/sampleimages/BadWB2.jpg")
-    output = img.white_balance()
-    output2 = img.white_balance(method="GrayWorld")
-    results = [output, output2]
-    name_stem = "test_white_balance"
-    perform_diff(results, name_stem)
-
-
 def test_draw_rectangle():
     img = Image(testimage2)
     img.draw_rectangle(0, 0, 100, 100, color=Color.BLUE, width=0, alpha=0)
@@ -410,16 +400,6 @@ def test_draw_palette():
                                                     img8]))
 
 
-def test_palette_binarize():
-    img = Image(testimageclr)
-    img = img.scale(0.1)  # scale down the image to reduce test time
-    p = img.get_palette()
-    img2 = img.binarize_from_palette(p[0:5])
-    p = img.get_palette(hue=True)
-    img3 = img.binarize_from_palette(p[0:5])
-    assert all(map(lambda a: isinstance(a, Image), [img2, img3]))
-
-
 def test_image_webp_save():
     #only run if webm suppport exist on system
     try:
@@ -508,43 +488,6 @@ def test_get_dft_log_magnitude():
     results = [lm3, lm1]
     name_stem = "test_get_dft_log_magnitude"
     perform_diff(results, name_stem, tolerance=6.0)
-
-def test_biblical_flood_fill():
-    results = []
-    img = Image(testimage2)
-    b = img.find_blobs()
-    results.append(img.flood_fill(b.coordinates(), tolerance=3,
-                                  color=Color.RED))
-    results.append(img.flood_fill(b.coordinates(), tolerance=(3, 3, 3),
-                                  color=Color.BLUE))
-    results.append(img.flood_fill(b.coordinates(), tolerance=(3, 3, 3),
-                                  color=Color.GREEN, fixed_range=False))
-    img.flood_fill((30, 30), lower=3, upper=5, color=Color.ORANGE)
-    img.flood_fill((30, 30), lower=3, upper=(5, 5, 5), color=Color.ORANGE)
-    img.flood_fill((30, 30), lower=(3, 3, 3), upper=5, color=Color.ORANGE)
-    img.flood_fill((30, 30), lower=(3, 3, 3), upper=(5, 5, 5))
-    img.flood_fill((30, 30), lower=(3, 3, 3), upper=(5, 5, 5),
-                   color=np.array([255, 0, 0]))
-    img.flood_fill((30, 30), lower=(3, 3, 3), upper=(5, 5, 5),
-                   color=[255, 0, 0])
-
-    name_stem = "test_biblical_flood_fill"
-    perform_diff(results, name_stem)
-
-
-def test_flood_fill_to_mask():
-    img = Image(testimage2)
-    b = img.find_blobs()
-    imask = img.edges()
-    omask = img.flood_fill_to_mask(b.coordinates(), tolerance=10)
-    omask2 = img.flood_fill_to_mask(b.coordinates(), tolerance=(3, 3, 3),
-                                    mask=imask)
-    omask3 = img.flood_fill_to_mask(b.coordinates(), tolerance=(3, 3, 3),
-                                    mask=imask, fixed_range=False)
-
-    results = [omask, omask2, omask3]
-    name_stem = "test_flood_fill_to_mask"
-    perform_diff(results, name_stem)
 
 def test_image_slice():
     img = Image("../data/sampleimages/blockhead.png")

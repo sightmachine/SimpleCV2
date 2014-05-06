@@ -173,6 +173,12 @@ def test_color_curve_rgb():
     name_stem = "test_color_curve_rgb"
     perform_diff(result, name_stem)
 
+    # Let function convert it color curve
+    y = [[0, 0], [64, 128], [192, 128], [255, 255]]
+    img4 = img.apply_rgb_curve(y, y, y)
+
+    assert_equals(img2.get_ndarray().data, img4.get_ndarray().data)
+
 
 def test_color_curve_gray():
     # These are the weights
@@ -250,6 +256,14 @@ def test_image_convolve():
     name_stem = "test_image_convolve"
     perform_diff(results, name_stem)
 
+    # pass None as kernel
+    img3 = img.convolve()
+    kernel = np.array(((1, 0, 0), (0, 1, 0), (0, 0, 1)))
+    img4 = img.convolve(kernel)
+    assert_equals(img3.get_ndarray().data, img4.get_ndarray().data)
+
+    # pass invalid kernel
+    assert_is_none(img.convolve(3))
 
 def test_create_binary_mask():
     img2 = Image(source='simplecv')
@@ -677,3 +691,85 @@ def test_hue_distance():
     assert_equals(dist2.data, array_dis2.data)
 
 
+def test_white_balance():
+    img = Image("../data/sampleimages/BadWB2.jpg")
+    output = img.white_balance()
+    output2 = img.white_balance(method="GrayWorld")
+    results = [output, output2]
+    name_stem = "test_white_balance"
+    perform_diff(results, name_stem)
+
+    # pass blue image
+    img = Image((100, 100))
+    np_array = img.get_ndarray()
+    np_array[:, :, 0] = 255
+    output = img.white_balance(method="GrayWorld")
+    assert_equals(output.mean_color(), (85.0, 0.0, 0.0))
+
+    # pass green image
+    img = Image((100, 100))
+    np_array = img.get_ndarray()
+    np_array[:, :, 1] = 255
+    output = img.white_balance(method="GrayWorld")
+    assert_equals(output.mean_color(), (0.0, 85.0, 0.0))
+
+    # pass red image
+    img = Image((100, 100))
+    np_array = img.get_ndarray()
+    np_array[:, :, 2] = 255
+    output = img.white_balance(method="GrayWorld")
+    assert_equals(output.mean_color(), (0.0, 0.0, 85.0))
+
+def test_binarize_from_palette():
+    img = Image(testimageclr)
+    img = img.scale(0.1)  # scale down the image to reduce test time
+    p = img.get_palette()
+    img2 = img.binarize_from_palette(p[0:5])
+    p = img.get_palette(hue=True)
+    img3 = img.binarize_from_palette(p[0:5])
+    assert all(map(lambda a: isinstance(a, Image), [img2, img3]))
+
+    # img._palette is None
+    img = Image((100, 100))
+    assert_is_none(img.binarize_from_palette(p[:5]))
+
+def test_biblical_flood_fill():
+    results = []
+    img = Image(testimage2)
+    b = img.find_blobs()
+    results.append(img.flood_fill(b.coordinates(), tolerance=3,
+                                  color=Color.RED))
+
+    # pass color dict
+    color_dict = {'R':0, 'B':255, 'G':0}
+    results.append(img.flood_fill(b.coordinates(), tolerance=(3, 3, 3),
+                                  color=color_dict))
+    results.append(img.flood_fill(b.coordinates(), tolerance=(3, 3, 3),
+                                  color=Color.GREEN, fixed_range=False))
+    img.flood_fill((30, 30), lower=3, upper=5, color=Color.ORANGE)
+    img.flood_fill((30, 30), lower=3, upper=(5, 5, 5), color=Color.ORANGE)
+    img.flood_fill((30, 30), lower=(3, 3, 3), upper=5, color=Color.ORANGE)
+    img.flood_fill((30, 30), lower=(3, 3, 3), upper=(5, 5, 5))
+    img.flood_fill((30, 30), lower=(3, 3, 3), upper=(5, 5, 5),
+                   color=np.array([255, 0, 0]))
+    img.flood_fill((30, 30), lower=(3, 3, 3), upper=(5, 5, 5),
+                   color=[255, 0, 0])
+
+    name_stem = "test_biblical_flood_fill"
+    perform_diff(results, name_stem)
+
+def test_flood_fill_to_mask():
+    img = Image(testimage2)
+    b = img.find_blobs()
+    imask = img.edges()
+    omask = img.flood_fill_to_mask(b.coordinates(), tolerance=10)
+    # pass color dict
+    color_dict = {'R':255, 'B':255, 'G':255}
+    omask2 = img.flood_fill_to_mask(b.coordinates(), tolerance=(3, 3, 3),
+                                    mask=imask, color=color_dict)
+    omask3 = img.flood_fill_to_mask(b.coordinates(), tolerance=(3, 3, 3),
+                                    mask=imask, fixed_range=False)
+
+    results = [omask, omask2, omask3]
+    name_stem = "test_flood_fill_to_mask"
+    perform_diff(results, name_stem)

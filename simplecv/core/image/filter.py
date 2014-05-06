@@ -102,7 +102,7 @@ def smooth(img, algorithm_name='gaussian', aperture=(3, 3), sigma=0,
                            "greater than 0.")
             return None
     else:
-        raise ValueError("Please provide a tuple to aperture, "
+        logger.warning("Please provide a tuple to aperture, "
                          "got: %s" % type(aperture))
         return None
 
@@ -2117,9 +2117,6 @@ def flood_fill(img, points, tolerance=None, color=Color.WHITE, lower=None,
     elif upper is None:
         upper = tolerance
 
-    if isinstance(points, tuple):
-        points = np.array(points)
-
     flags = 8
     if fixed_range:
         flags |= cv2.FLOODFILL_FIXED_RANGE
@@ -2233,9 +2230,6 @@ def flood_fill_to_mask(img, points, tolerance=None, color=Color.WHITE,
         upper = (int(upper), int(upper), int(upper))
     elif upper is None:
         upper = tolerance
-
-    if isinstance(points, tuple):
-        points = np.array(points)
 
     flags = (255 << 8) + 8
     if fixed_range:
