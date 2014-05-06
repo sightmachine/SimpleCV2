@@ -304,6 +304,6 @@ def test_core_merge_channels():
     c3 = c1 - c2
 
     img_new = img.merge_channels(c1, c2, c3)
-    np_array_new np.dstack((c1.get_ndarray(), c2.get_ndarray(), c3.get_ndarray()))
+    np_array_new = np.dstack((c1.get_ndarray(), c2.get_ndarray(), c3.get_ndarray()))
 
     assert_equals(img_new.get_ndarray().data, np_array_new.data)

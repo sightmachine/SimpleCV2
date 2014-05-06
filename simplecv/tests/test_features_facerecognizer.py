@@ -15,7 +15,7 @@ def test_facerecognizer():
     
     imgset3 = []
 
-    for img in images1:
+    for img in images3:
         imgset1.append(Image(img))
     label1 = ["female"] * len(imgset1)
 

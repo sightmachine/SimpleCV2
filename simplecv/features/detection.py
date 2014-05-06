@@ -88,7 +88,7 @@ class Line(Feature):
         self.image = i
         self.vector = None
         self.y_intercept = None
-        self.end_points = copy(line)
+        self.end_points = list(copy(line))
 
         if self.end_points[1][0] - self.end_points[0][0] == 0:
             self.slope = float("inf")
@@ -607,7 +607,7 @@ class Line(Feature):
         # remove duplicates of points if line cross image at corners
         ep = list(set(ep))
         ep.sort()
-
+        print type(ep), "typeof"
         return Line(self.image, ep)
 
 
@@ -1843,12 +1843,12 @@ class KeypointMatch(Feature):
             # crop the minbouding rect
             raw = self.image.crop(tlc[0], tlc[0],
                                   self.get_width(), self.get_height())
-            mask = Factory.Image((self.get_width(), self.get_height()))
+            mask = Factory.Image((raw.width, raw.height))
             mask.dl().polygon(self._min_rect, color=Color.WHITE,
                               filled=pickle.TRUE)
             mask = mask.apply_layers()
             ret_value = cv2.mean(raw.get_ndarray(),
-                                 mask._get_grayscale_bitmap())
+                                 mask.get_gray_ndarray())
             self._avg_color = ret_value
         else:
             ret_value = self._avg_color

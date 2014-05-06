@@ -25,6 +25,7 @@ CHESSBOARD_IMAGE = "../data/sampleimages/CalibImage3.png"
 TEMPLATE_TEST_IMG = "../data/sampleimages/templatetest.png"
 TEMPLATE_IMG = "../data/sampleimages/template.png"
 testimageclr = "../data/sampleimages/statue_liberty.jpg"
+circles = "../data/sampleimages/circles.png"
 
 #alpha masking images
 topImg = "../data/sampleimages/RatTop.png"
@@ -217,7 +218,7 @@ def test_detection_barcode():
     assert nocode is None  # we should find no barcode in our test image
     code = img2.find_barcode()
     code.draw()
-    assert code.points
+    assert code[0].points
     result = [img1, img2]
     name_stem = "test_detection_barcode"
     perform_diff(result, name_stem)
@@ -421,7 +422,7 @@ def test_find_template_once():
     assert_is_not_none(fs)
 
     # method = "CCORR_NORM"
-    fs = source.find_template_once(template, threshold=3, method="CCORR_NORM", rawmatches=True)
+    fs = source.find_template_once(template, threshold=3, method="CCORR_NORM")
     assert_is_not_none(fs)
 
     # method = "UNKOWN"
@@ -441,7 +442,8 @@ def test_find_template_once():
 
 def test_find_circles():
     img = Image(circles)
-    circs = img.find_circle(thresh=100)
+    img.show()
+    circs = img.find_circle(thresh=85)
     assert_equals(5, len(circs))
     circs.draw()
     assert circs[0] >= 1
@@ -517,7 +519,7 @@ def test_find_keypoints():
     for flavor in flavors:
         try:
             print "trying to find " + flavor + " keypoints."
-            kp = img.find_keypoints(flavor=flavor)
+            kp = img.find_keypoints(flavor=flavor, min_quality=100)
         except:
             continue
         if kp is not None:

@@ -137,7 +137,7 @@ def test_line_crop_to_image_edges():
 
     l = Line(img, ((105, -5), (-5, 105)))
     l_cr = l.crop_to_image_edges()
-    assert_tuple_equal(((100, 0), (0, 100)), l_cr.end_points)
+    assert_tuple_equal(((0, 100), (100, 0)), l_cr.end_points)
 
     l = Line(img, ((50, -50), (50, 90)))
     l_cr = l.crop_to_image_edges()
