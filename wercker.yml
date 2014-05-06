@@ -20,7 +20,7 @@ build:
     - script:
         name: run tests
         code: |
-          nosetests -w simplecv/tests -v --with-coverage
+          nosetests -w simplecv/tests -v --with-coverage --cover-package=simplecv
   after-steps:
     - script:
         name: Coveralls.io
