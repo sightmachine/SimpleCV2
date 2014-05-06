@@ -148,38 +148,6 @@ def test_blob_render():
     perform_diff(results, name_stem, tolerance=5.0)
 
 
-def test_template_match():
-    results = []
-    source = Image("../data/sampleimages/templatetest.png")
-    source2 = source.copy()
-    template = Image("../data/sampleimages/template.png")
-
-    fs = source.find_template(template, threshold=2)
-    fs.draw()
-    results.append(source)
-
-    fs = source2.find_template(template, threshold=2, grayscale=False)
-    fs.draw()
-    results.append(source2)
-
-    name_stem = "test_template_match"
-    perform_diff(results, name_stem)
-
-
-def test_template_match_once():
-    source = Image("../data/sampleimages/templatetest.png")
-    template = Image("../data/sampleimages/template.png")
-    t = 2
-    fs = source.find_template_once(template, threshold=t)
-    assert len(fs) != 0
-
-    fs = source.find_template_once(template, threshold=t, grayscale=False)
-    assert len(fs) != 0
-
-    fs = source.find_template_once(template, method='CCORR_NORM')
-    assert len(fs) != 0
-
-
 def test_segmentation_diff():
     segmentor = DiffSegmentation()
     i1 = Image("logo")
@@ -289,31 +257,6 @@ def test_white_balance():
     perform_diff(results, name_stem)
 
 
-def test_hough_circles():
-    img = Image(circles)
-    circs = img.find_circle(thresh=100)
-    assert_equals(5, len(circs))
-    circs.draw()
-    assert circs[0] >= 1
-    circs[0].coordinates()
-    circs[0].get_width()
-    circs[0].get_area()
-    circs[0].get_perimeter()
-    circs[0].get_height()
-    circs[0].radius()
-    circs[0].diameter()
-    circs[0].color_distance()
-    circs[0].mean_color()
-    circs[0].distance_from(point=(0, 0))
-    circs[0].draw()
-    assert circs[0].crop()
-    assert circs[0].crop(no_mask=True)
-
-    results = [img]
-    name_stem = "test_hough_circle"
-    perform_diff(results, name_stem)
-
-
 def test_draw_rectangle():
     img = Image(testimage2)
     img.draw_rectangle(0, 0, 100, 100, color=Color.BLUE, width=0, alpha=0)
@@ -370,86 +313,6 @@ def test_blob_isa_methods():
     assert_true(blobs[-1].is_rectangle())
 
 
-def test_find_keypoints():
-    img = Image(testimage2)
-    if cv2.__version__.startswith('$Rev:'):
-        flavors = ['SURF', 'STAR', 'SIFT']  # supported in 2.3.1
-    elif cv2.__version__ == '2.4.0' or cv2.__version__ == '2.4.1':
-        flavors = ['SURF', 'STAR', 'FAST', 'MSER', 'ORB', 'BRISK', 'SIFT',
-                   'Dense']
-    else:
-        flavors = ['SURF', 'STAR', 'FAST', 'MSER', 'ORB', 'BRISK', 'FREAK',
-                   'SIFT', 'Dense']
-    for flavor in flavors:
-        try:
-            print "trying to find " + flavor + " keypoints."
-            kp = img.find_keypoints(flavor=flavor)
-        except:
-            continue
-        if kp is not None:
-            print "Found: " + str(len(kp))
-            for k in kp:
-                k.get_object()
-                k.get_descriptor()
-                k.quality()
-                k.get_octave()
-                k.get_flavor()
-                k.get_angle()
-                k.coordinates()
-                k.draw()
-                k.distance_from()
-                k.mean_color()
-                k.get_area()
-                k.get_perimeter()
-                k.get_width()
-                k.get_height()
-                k.radius()
-            kp[0].crop()
-            kp.draw()
-        else:
-            print "Found None."
-    results = [img]
-    name_stem = "test_find_keypoints"
-    perform_diff(results, name_stem)
-
-
-def test_movement_feature():
-    current1 = Image("../data/sampleimages/flow_simple1.png")
-    prev = Image("../data/sampleimages/flow_simple2.png")
-
-    fs = current1.find_motion(prev, window=7)
-    assert_greater(len(fs), 0)
-    fs[0].draw(color=Color.RED)
-    img = fs[0].crop()
-    color = fs[1].mean_color()
-    wndw = fs[1].window_sz()
-    for f in fs:
-        f.vector()
-        f.magnitude()
-
-    current2 = Image("../data/sampleimages/flow_simple1.png")
-    fs = current2.find_motion(prev, window=7)
-    assert_greater(len(fs), 0)
-    fs[0].draw(color=Color.RED)
-    img = fs[0].crop()
-    color = fs[1].mean_color()
-    wndw = fs[1].window_sz()
-    for f in fs:
-        f.vector()
-        f.magnitude()
-
-    current3 = Image("../data/sampleimages/flow_simple1.png")
-    fs = current3.find_motion(prev, window=7, aggregate=False)
-    assert_greater(len(fs), 0)
-    fs[0].draw(color=Color.RED)
-    img = fs[0].crop()
-    color = fs[1].mean_color()
-    wndw = fs[1].window_sz()
-    for f in fs:
-        f.vector()
-        f.magnitude()
-
-
 def test_keypoint_extraction():
     img1 = Image("../data/sampleimages/KeypointTemplate2.png")
     img2 = Image("../data/sampleimages/KeypointTemplate2.png")
@@ -479,37 +342,6 @@ def test_keypoint_extraction():
     results = [img1, img2, img3]
     name_stem = "test_keypoint_extraction"
     perform_diff(results, name_stem, tolerance=4.0)
-
-
-def test_keypoint_match():
-    template = Image("../data/sampleimages/KeypointTemplate2.png")
-    match0 = Image("../data/sampleimages/kptest0.png")
-    match1 = Image("../data/sampleimages/kptest1.png")
-    match2 = Image("../data/sampleimages/kptest2.png")
-
-    fs0 = match0.find_keypoint_match(template)  # test zero
-    fs1 = match1.find_keypoint_match(template, quality=300.00, min_dist=0.5,
-                                     min_match=0.2)
-    fs2 = match2.find_keypoint_match(template, quality=300.00, min_dist=0.5,
-                                     min_match=0.2)
-
-    for fs in [fs0, fs1, fs2]:
-        assert fs
-        assert_equals(1, len(fs))
-        fs.draw()
-        f = fs[0]
-        f.draw_rect()
-        f.draw()
-        f.get_homography()
-        f.get_min_rect()
-        f.coordinates()
-        f.crop()
-        f.mean_color()
-
-    match3 = Image("../data/sampleimages/aerospace.jpg")
-    fs3 = match3.find_keypoint_match(template, quality=500.00, min_dist=0.2,
-                                     min_match=0.1)
-    assert fs3 is None
 
 
 def test_draw_keypoint_matches():
@@ -586,38 +418,6 @@ def test_palette_binarize():
     p = img.get_palette(hue=True)
     img3 = img.binarize_from_palette(p[0:5])
     assert all(map(lambda a: isinstance(a, Image), [img2, img3]))
-
-
-def test_palette_blobs():
-    img = Image(testimageclr)
-    img = img.scale(0.1)  # scale down the image to reduce test time
-    p = img.get_palette()
-    b1 = img.find_blobs_from_palette(p[0:5])
-    b1.draw()
-    assert_greater(len(b1), 0)
-
-    p = img.get_palette(hue=True)
-    b2 = img.find_blobs_from_palette(p[0:5])
-    b2.draw()
-    assert_greater(len(b2), 0)
-
-
-def test_smart_find_blobs():
-    img = Image(topImg)
-    mask = Image((img.width, img.height))
-    mask.dl().circle((100, 100), 80, color=Color.MAYBE_BACKGROUND, filled=True)
-    mask.dl().circle((100, 100), 60, color=Color.MAYBE_FOREGROUND, filled=True)
-    mask.dl().circle((100, 100), 40, color=Color.FOREGROUND, filled=True)
-    mask = mask.apply_layers()
-    blobs = img.smart_find_blobs(mask=mask)
-    blobs.draw()
-    assert_equals(1, len(blobs))
-
-    for t in range(2, 5):
-        img = Image(topImg)
-        blobs2 = img.smart_find_blobs(rect=(30, 30, 150, 185), thresh_level=t)
-        assert_equals(1, len(blobs2))
-        blobs2.draw()
 
 
 def test_image_webp_save():
@@ -745,22 +545,6 @@ def test_flood_fill_to_mask():
     results = [omask, omask2, omask3]
     name_stem = "test_flood_fill_to_mask"
     perform_diff(results, name_stem)
-
-
-def test_find_blobs_from_mask():
-    img = Image(testimage2)
-    mask = img.binarize().invert()
-    b1 = img.find_blobs_from_mask(mask)
-    b2 = img.find_blobs()
-    b1.draw()
-    b2.draw()
-
-    results = [img]
-    name_stem = "test_find_blobs_from_mask"
-    perform_diff(results, name_stem)
-
-    assert len(b1) == len(b2)
-
 
 def test_image_slice():
     img = Image("../data/sampleimages/blockhead.png")
@@ -1302,17 +1086,6 @@ def test_cluster():
     assert clusters2
 
 
-def test_find_grid_lines():
-    img = Image("simplecv")
-    img = img.grid((10, 10), (0, 255, 255))
-    lines = img.find_grid_lines()
-    assert lines
-    lines.draw()
-    result = [img]
-    name_stem = "test_image_grid_lines"
-    perform_diff(result, name_stem, 5)
-
-
 def test_logical_and():
     img = Image("lenna")
     img1 = img.logical_and(img.invert())
@@ -1335,28 +1108,6 @@ def test_logical_xor():
     img = Image("lenna")
     img1 = img.logical_xor(img.invert())
     assert img1.get_ndarray().all()
-
-
-def test_match_sift_key_points():
-    if not "2.4.3" in cv2.__version__:
-        return
-
-    img = Image("lenna")
-    skp, tkp = img.match_sift_key_points(img)
-    assert_equals(len(skp), len(tkp))
-
-    for i in range(len(skp)):
-        assert_equals(skp[i].x, tkp[i].x)
-        assert_equals(skp[i].y, tkp[i].y)
-
-
-def test_find_features():
-    img = Image('../data/sampleimages/mtest.png')
-    h_features = img.find_features("harris", threshold=500)
-    assert h_features
-    s_features = img.find_features("szeliski", threshold=500)
-    assert s_features
-
 
 def test_color_map():
     img = Image('../data/sampleimages/mtest.png')
@@ -1384,12 +1135,6 @@ def test_minmax():
     assert_equals(245, max)
     for p in points:
         assert_equals(245, gray_img[p])
-
-def test_find_keypoint_clusters():
-    img = Image('simplecv')
-    kpc = img.find_keypoint_clusters()
-    assert_greater(len(kpc), 0)
-
 
 def test_replace_line_scan():
     img = Image("lenna")
@@ -1507,22 +1252,6 @@ def test_linescan_detrend():
     l1 = img.get_line_scan(y=90)
     l2 = l1.detrend()
     assert line_scan_perform_diff(l1, l2, LineScan.detrend)
-
-
-def test_get_freak_descriptor():
-    if '$Rev' in cv2.__version__:
-        return
-
-    if int(cv2.__version__.replace('.', '0')) >= 20402:
-        img = Image("lenna")
-        flavors = ["SIFT", "SURF", "BRISK", "ORB", "STAR", "MSER", "FAST",
-                   "Dense"]
-        for flavor in flavors:
-            f, d = img.get_freak_descriptor(flavor)
-            assert_greater(len(f), 0)
-            assert_equals(len(f), d.shape[0])
-            assert_equals(64, d.shape[1])
-
 
 def test_gray_peaks():
     i = Image('lenna')

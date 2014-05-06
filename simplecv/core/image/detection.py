@@ -1497,9 +1497,8 @@ def find_flood_fill_blobs(img, points, tolerance=None, lower=None,
                                   fixed_range=fixed_range)
     return img.find_blobs_from_mask(mask, minsize, maxsize)
 
-
 @image_method
-def list_haar_features():
+def list_haar_features(img):
     '''
     This is used to list the built in features available for HaarCascade
     feature detection.  Just run this function as:
@@ -1516,6 +1515,7 @@ def list_haar_features():
     features_directory = os.path.join(DATA_DIR, 'Features/HaarCascades')
     features = os.listdir(features_directory)
     print features
+    return features
 
 
 @image_method
@@ -1559,12 +1559,13 @@ def anonymize(img, block_size=10, features=None, transform=None):
     regions = []
 
     if features is None:
-        regions.append(img.find_haar_features("face"))
-        regions.append(img.find_haar_features("profile"))
+        regions.append(img.find_haar_features("face.xml"))
+        regions.append(img.find_haar_features("profile.xml"))
     else:
         for feature in features:
             regions.append(img.find_haar_features(feature))
 
+    print regions
     found = [f for f in regions if f is not None]
 
     img = img.copy()
@@ -1906,11 +1907,13 @@ def find_grid_lines(img):
     >>>> lines = img.find_grid_lines()
 
     """
+    print img._grid_layer
+    if img._grid_layer[0] is None:
+        print "Cannot find grid on the image, Try adding a grid first"
+        return None
 
     grid_index = img.get_drawing_layer(img._grid_layer[0])
-    if img._grid_layer[0] == -1:
-        print "Cannot find grid on the image, Try adding a grid first"
-
+    
     line_fs = FeatureSet()
     try:
         step_row = img.size[1] / img._grid_layer[1][0]
@@ -2062,8 +2065,12 @@ def find_features(img, method="szeliski", threshold=1000):
     :py:meth:`find_keypoint_match`
 
     """
+    if method not in ["harris", "szeliski"]:
+        logger.warning("Invalid method.")
+        return None
+
     img_array = img.get_gray_ndarray()
-    blur = cv2.GaussianBlur(img_array, ksize=(3, 3), sigma1=0)
+    blur = cv2.GaussianBlur(img_array, ksize=(3, 3), sigmaX=0)
 
     ix = cv2.Sobel(blur, ddepth=cv2.CV_32F, dx=1, dy=0)
     iy = cv2.Sobel(blur, ddepth=cv2.CV_32F, dx=0, dy=1)
@@ -2072,9 +2079,9 @@ def find_features(img, method="szeliski", threshold=1000):
     iy_iy = np.multiply(iy, iy)
     ix_iy = np.multiply(ix, iy)
 
-    ix_ix_blur = cv2.GaussianBlur(ix_ix, ksize=(5, 5), sigma1=0)
-    iy_iy_blur = cv2.GaussianBlur(iy_iy, ksize=(5, 5), sigma1=0)
-    ix_iy_blur = cv2.GaussianBlur(ix_iy, ksize=(5, 5), sigma1=0)
+    ix_ix_blur = cv2.GaussianBlur(ix_ix, ksize=(5, 5), sigmaX=0)
+    iy_iy_blur = cv2.GaussianBlur(iy_iy, ksize=(5, 5), sigmaX=0)
+    ix_iy_blur = cv2.GaussianBlur(ix_iy, ksize=(5, 5), sigmaX=0)
 
     harris_thresh = threshold * 5000
     alpha = 0.06
@@ -2092,9 +2099,7 @@ def find_features(img, method="szeliski", threshold=1000):
         for j, i in np.argwhere(harris_function > harris_thresh):
             feature_list.append(
                 Feature(img, i, j, ((i, j), (i, j), (i, j), (i, j))))
-    else:
-        logger.warning("Invalid method.")
-        return None
+        
     return feature_list
 
 

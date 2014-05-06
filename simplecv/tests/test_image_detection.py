@@ -1,9 +1,10 @@
 import pickle
 
 import cv2
+import os
 import numpy as np
 from nose.tools import assert_equals, assert_is_instance, assert_greater \
-                      , assert_less
+                      , assert_less, assert_is_none, assert_is_not_none
 
 from simplecv.image import Image
 from simplecv.tests.utils import perform_diff
@@ -13,6 +14,7 @@ from simplecv.features.features import FeatureSet, Feature
 from simplecv.features.detection import Corner, Line
 from simplecv.features.haar_cascade import HaarCascade
 from simplecv.color import Color
+from simplecv import DATA_DIR
 
 #images
 contour_hiearachy = "../data/sampleimages/contour_hiearachy.png"
@@ -20,6 +22,12 @@ testimage = "../data/sampleimages/9dots4lines.png"
 testimage2 = "../data/sampleimages/aerospace.jpg"
 testbarcode = "../data/sampleimages/barcode.png"
 CHESSBOARD_IMAGE = "../data/sampleimages/CalibImage3.png"
+TEMPLATE_TEST_IMG = "../data/sampleimages/templatetest.png"
+TEMPLATE_IMG = "../data/sampleimages/template.png"
+testimageclr = "../data/sampleimages/statue_liberty.jpg"
+
+#alpha masking images
+topImg = "../data/sampleimages/RatTop.png"
 
 def test_detection_find_corners():
     img = Image(testimage2)
@@ -338,4 +346,409 @@ def test_find_chessboard():
     img = Image((100, 100))
     feat = img.find_chessboard()
     assert_equals(feat, None)
-    
+
+def test_find_template():
+    results = []
+    source = Image(TEMPLATE_TEST_IMG)
+    source2 = source.copy()
+    template = Image(TEMPLATE_IMG)
+
+    fs = source.find_template(template, threshold=2)
+    fs.draw()
+    results.append(source)
+
+    fs = source2.find_template(template, threshold=2, grayscale=False)
+    fs.draw()
+    results.append(source2)
+
+    name_stem = "test_find_template"
+    perform_diff(results, name_stem)
+
+    # method = "SQR_DIFF"
+    fs = source.find_template(template, threshold=3, method="SQR_DIFF")
+    assert_is_not_none(fs)
+
+    # method = "CCOEFF"
+    fs = source.find_template(template, threshold=3, method="CCOEFF")
+    assert_is_not_none(fs)
+
+    # method = "CCORR"
+    fs = source.find_template(template, threshold=3, method="CCORR")
+    assert_is_not_none(fs)
+
+    # method = "CCORR_NORM"
+    fs = source.find_template(template, threshold=3, method="CCORR_NORM", rawmatches=True)
+    assert_is_not_none(fs)
+
+    # method = "UNKOWN"
+    fs = source.find_template(template, threshold=3, method="UNKOWN")
+    assert_is_none(fs)
+
+    # None template
+    template = None
+    assert_is_none(source.find_template(template))
+
+    # Template bigger than image
+    template = source.resize(source.width+10, source.height)
+    assert_is_none(source.find_template(template))
+
+    template = source.resize(source.width, source.height + 10)
+    assert_is_none(source.find_template(template))
+
+def test_find_template_once():
+    source = Image(TEMPLATE_TEST_IMG)
+    template = Image(TEMPLATE_IMG)
+
+    t = 2
+    fs = source.find_template_once(template, threshold=t)
+    assert len(fs) != 0
+
+    fs = source.find_template_once(template, threshold=t, grayscale=False)
+    assert len(fs) != 0
+
+    fs = source.find_template_once(template, method='CCORR_NORM')
+    assert len(fs) != 0
+
+    fs = source.find_template_once(template, threshold=3, method="SQR_DIFF")
+    assert_is_not_none(fs)
+
+    # method = "CCOEFF"
+    fs = source.find_template_once(template, threshold=3, method="CCOEFF")
+    assert_is_not_none(fs)
+
+    # method = "CCORR"
+    fs = source.find_template_once(template, threshold=3, method="CCORR")
+    assert_is_not_none(fs)
+
+    # method = "CCORR_NORM"
+    fs = source.find_template_once(template, threshold=3, method="CCORR_NORM", rawmatches=True)
+    assert_is_not_none(fs)
+
+    # method = "UNKOWN"
+    fs = source.find_template_once(template, threshold=3, method="UNKOWN")
+    assert_is_none(fs)
+
+    # None template
+    template = None
+    assert_is_none(source.find_template_once(template))
+
+    # Template bigger than image
+    template = source.resize(source.width+10, source.height)
+    assert_is_none(source.find_template_once(template))
+
+    template = source.resize(source.width, source.height + 10)
+    assert_is_none(source.find_template_once(template))
+
+def test_find_circles():
+    img = Image(circles)
+    circs = img.find_circle(thresh=100)
+    assert_equals(5, len(circs))
+    circs.draw()
+    assert circs[0] >= 1
+    circs[0].coordinates()
+    circs[0].get_width()
+    circs[0].get_area()
+    circs[0].get_perimeter()
+    circs[0].get_height()
+    circs[0].radius()
+    circs[0].diameter()
+    circs[0].color_distance()
+    circs[0].mean_color()
+    circs[0].distance_from(point=(0, 0))
+    circs[0].draw()
+    assert circs[0].crop()
+    assert circs[0].crop(no_mask=True)
+
+    results = [img]
+    name_stem = "test_find_circle"
+    perform_diff(results, name_stem)
+
+    # find no circle
+    img = Image((100, 100)) # Black Image
+    assert_is_none(img.find_circle())
+
+def test_find_keypoint_match():
+    template = Image("../data/sampleimages/KeypointTemplate2.png")
+    match0 = Image("../data/sampleimages/kptest0.png")
+    match1 = Image("../data/sampleimages/kptest1.png")
+    match2 = Image("../data/sampleimages/kptest2.png")
+
+    fs0 = match0.find_keypoint_match(template)  # test zero
+    fs1 = match1.find_keypoint_match(template, quality=300.00, min_dist=0.5,
+                                     min_match=0.2)
+    fs2 = match2.find_keypoint_match(template, quality=300.00, min_dist=0.5,
+                                     min_match=0.2)
+
+    for fs in [fs0, fs1, fs2]:
+        assert fs
+        assert_equals(1, len(fs))
+        fs.draw()
+        f = fs[0]
+        f.draw_rect()
+        f.draw()
+        f.get_homography()
+        f.get_min_rect()
+        f.coordinates()
+        f.crop()
+        f.mean_color()
+
+    match3 = Image("../data/sampleimages/aerospace.jpg")
+    fs3 = match3.find_keypoint_match(template, quality=500.00, min_dist=0.2,
+                                     min_match=0.1)
+    assert fs3 is None
+
+    # None template
+    assert_is_none(match0.find_keypoint_match(None))
+
+    # No keypoints found
+    img = Image((100, 100)) # Black image
+    assert_is_none(img.find_keypoint_match(template))
+
+def test_find_keypoints():
+    img = Image(testimage2)
+    if cv2.__version__.startswith('$Rev:'):
+        flavors = ['SURF', 'STAR', 'SIFT']  # supported in 2.3.1
+    elif cv2.__version__ == '2.4.0' or cv2.__version__ == '2.4.1':
+        flavors = ['SURF', 'STAR', 'FAST', 'MSER', 'ORB', 'BRISK', 'SIFT',
+                   'Dense']
+    else:
+        flavors = ['SURF', 'STAR', 'FAST', 'MSER', 'ORB', 'BRISK', 'FREAK',
+                   'SIFT', 'Dense']
+    for flavor in flavors:
+        try:
+            print "trying to find " + flavor + " keypoints."
+            kp = img.find_keypoints(flavor=flavor)
+        except:
+            continue
+        if kp is not None:
+            print "Found: " + str(len(kp))
+            for k in kp:
+                k.get_object()
+                k.get_descriptor()
+                k.quality()
+                k.get_octave()
+                k.get_flavor()
+                k.get_angle()
+                k.coordinates()
+                k.draw()
+                k.distance_from()
+                k.mean_color()
+                k.get_area()
+                k.get_perimeter()
+                k.get_width()
+                k.get_height()
+                k.radius()
+            kp[0].crop()
+            kp.draw()
+        else:
+            print "Found None."
+    results = [img]
+    name_stem = "test_find_keypoints"
+    perform_diff(results, name_stem)
+
+    # UNKOWN flavor
+    assert_is_none(img.find_keypoints(flavor="UNKOWN"))
+
+def test_find_motion():
+    current1 = Image("../data/sampleimages/flow_simple1.png")
+    prev = Image("../data/sampleimages/flow_simple2.png")
+
+    fs = current1.find_motion(prev, window=7)
+    assert_greater(len(fs), 0)
+    fs[0].draw(color=Color.RED)
+    img = fs[0].crop()
+    color = fs[1].mean_color()
+    wndw = fs[1].window_sz()
+    for f in fs:
+        f.vector()
+        f.magnitude()
+
+    current2 = Image("../data/sampleimages/flow_simple1.png")
+    fs = current2.find_motion(prev, window=7)
+    assert_greater(len(fs), 0)
+    fs[0].draw(color=Color.RED)
+    img = fs[0].crop()
+    color = fs[1].mean_color()
+    wndw = fs[1].window_sz()
+    for f in fs:
+        f.vector()
+        f.magnitude()
+
+    current3 = Image("../data/sampleimages/flow_simple1.png")
+    fs = current3.find_motion(prev, window=7, aggregate=False)
+    assert_greater(len(fs), 0)
+    fs[0].draw(color=Color.RED)
+    img = fs[0].crop()
+    color = fs[1].mean_color()
+    wndw = fs[1].window_sz()
+    for f in fs:
+        f.vector()
+        f.magnitude()
+
+    # different frame sizes
+    current4 = current3.resize(current3.width/2, current3.height/2)
+    assert_is_none(current4.find_motion(prev))
+
+def test_find_blobs_from_palette():
+    img = Image(testimageclr)
+    img = img.scale(0.1)  # scale down the image to reduce test time
+    p = img.get_palette()
+    b1 = img.find_blobs_from_palette(p[0:5])
+    b1.draw()
+    assert_greater(len(b1), 0)
+
+    p = img.get_palette(hue=True)
+    b2 = img.find_blobs_from_palette(p[0:5])
+    b2.draw()
+    assert_greater(len(b2), 0)
+
+    # dilate
+    b3 = img.find_blobs_from_palette(p[0:5], dilate=1)
+    b3.draw()
+    assert_greater(len(b3), 0)
+
+def test_smart_find_blobs():
+    img = Image(topImg)
+    mask = Image((img.width, img.height))
+    mask.dl().circle((100, 100), 80, color=Color.MAYBE_BACKGROUND, filled=True)
+    mask.dl().circle((100, 100), 60, color=Color.MAYBE_FOREGROUND, filled=True)
+    mask.dl().circle((100, 100), 40, color=Color.FOREGROUND, filled=True)
+    mask = mask.apply_layers()
+    blobs = img.smart_find_blobs(mask=mask)
+    blobs.draw()
+    assert_equals(1, len(blobs))
+
+    for t in range(2, 5):
+        img = Image(topImg)
+        blobs2 = img.smart_find_blobs(rect=(30, 30, 150, 185), thresh_level=t)
+        assert_equals(1, len(blobs2))
+        blobs2.draw()
+
+    blobs2 = img.smart_find_blobs(rect=(30, 30, 150, 185),
+                  thresh_level=1)
+    assert_equals(len(blobs2), 0)
+
+def test_find_blobs_from_mask():
+    img = Image(testimage2)
+    mask = img.binarize().invert()
+    b1 = img.find_blobs_from_mask(mask)
+    b2 = img.find_blobs()
+    b1.draw()
+    b2.draw()
+
+    results = [img]
+    name_stem = "test_find_blobs_from_mask"
+    perform_diff(results, name_stem)
+
+    assert len(b1) == len(b2)
+
+    # different mask size
+    mask = mask.resize(mask.width/2, mask.height/2)
+    assert_is_none(img.find_blobs_from_mask(mask))
+
+    # no blobs
+    mask = Image(img.size) # Black mask
+    blobs = img.find_blobs_from_mask(mask)
+    assert_is_none(img.find_blobs_from_mask(mask))
+
+def test_find_flood_fill_blobs():
+    img = Image(testimage2)
+    blobs = img.find_flood_fill_blobs((((10, 10), (20, 20), (50, 50))),
+                                      tolerance=30)
+    blobs.draw()
+    name_stem = "test_find_flood_fill_blobs"
+    results = [img]
+    perform_diff(results, name_stem)
+
+def test_list_haar_features():
+    features_directory = os.path.join(DATA_DIR, 'Features/HaarCascades')
+    features = os.listdir(features_directory)
+    img = Image((10, 10))
+    assert_equals(features, img.list_haar_features())
+
+def test_anonymize():
+    img = Image(source="lenna")
+    anon_img = img.anonymize()
+    anon_img.show()
+
+    # provide features
+    anon_img1 = img.anonymize(features=["face.xml", "profile.xml"])
+
+    # match both images
+    assert_equals(anon_img.get_ndarray().data, anon_img1.get_ndarray().data)
+
+    # transform function
+    def transform_blur(img, rect):
+        np_array = img.get_ndarray()
+        x, y, w, h = rect
+        crop_np_array = np_array[y:y+h, x:x+w]
+        crop_img = Image(array=crop_np_array)
+        blur_img = crop_img.blur((15, 15))
+        blur_np_array = blur_img.get_ndarray()
+        np_array[y:y+h, x:x+w] = blur_np_array
+        return Image(array=np_array)
+
+    # apply tranform function
+    anon_img2 = img.anonymize(transform=transform_blur)
+
+    perform_diff([anon_img1, anon_img2], "test_anonymize")
+
+def test_find_grid_lines():
+    img = Image("simplecv")
+    img = img.grid((10, 10), (0, 255, 255))
+    lines = img.find_grid_lines()
+    assert lines
+    lines.draw()
+    result = [img]
+    name_stem = "test_image_grid_lines"
+    perform_diff(result, name_stem, 5)
+
+    # no grid
+    img = Image((100, 100))
+    assert_is_none(img.find_grid_lines())
+
+def test_match_sift_key_points():
+    img = Image("lenna")
+    skp, tkp = img.match_sift_key_points(img)
+    assert_equals(len(skp), len(tkp))
+
+    for i in range(len(skp)):
+        assert_equals(skp[i].x, tkp[i].x)
+        assert_equals(skp[i].y, tkp[i].y)
+
+def test_find_features():
+    img = Image('../data/sampleimages/mtest.png')
+    h_features = img.find_features("harris", threshold=500)
+    assert h_features
+    s_features = img.find_features("szeliski", threshold=500)
+    assert s_features
+
+    # UNKOWN method
+    assert_is_none(img.find_features("UNKOWN", threshold=500))
+
+def test_find_keypoint_clusters():
+    img = Image('simplecv')
+    kpc = img.find_keypoint_clusters()
+    assert_greater(len(kpc), 0)
+
+    kpc1 = img.find_keypoint_clusters(flavor="corner")
+    assert_greater(len(kpc1), 0)
+
+    # no keypoints
+    img1 = Image((100, 100))
+    kpc2 = img1.find_keypoint_clusters(flavor="sift")
+    assert_is_none(kpc2)
+
+def test_get_freak_descriptor():
+    if '$Rev' in cv2.__version__:
+        return
+
+    if int(cv2.__version__.replace('.', '0')) >= 20402:
+        img = Image("lenna")
+        flavors = ["SIFT", "SURF", "BRISK", "ORB", "STAR", "MSER", "FAST",
+                   "Dense"]
+        for flavor in flavors:
+            f, d = img.get_freak_descriptor(flavor)
+            assert_greater(len(f), 0)
+            assert_equals(len(f), d.shape[0])
+            assert_equals(64, d.shape[1])
