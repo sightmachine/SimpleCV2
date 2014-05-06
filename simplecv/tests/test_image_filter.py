@@ -1,6 +1,6 @@
 import math
 
-from nose.tools import assert_equals
+from nose.tools import assert_equals, assert_is_none
 import numpy as np
 
 from simplecv.color import Color, ColorCurve
@@ -42,6 +42,10 @@ def test_image_max_image():
     img = img1.maximum(img2)
     assert_equals(array.data, img.get_ndarray().data)
 
+    # different image sizes
+    img2 = img2.resize(5, 5)
+    assert_is_none(img1.maximum(img2))
+
 
 def test_image_min_int():
     array1 = np.ones((2, 2, 3), dtype=np.uint8) * 5
@@ -50,7 +54,6 @@ def test_image_min_int():
 
     img = img1.minimum(20)
     assert_equals(array.data, img.get_ndarray().data)
-
 
 def test_image_min_image():
     array1 = np.ones((2, 2, 3), dtype=np.uint8) * 2
@@ -61,6 +64,10 @@ def test_image_min_image():
 
     img = img1.minimum(img2)
     assert_equals(array.data, img.get_ndarray().data)
+
+    # different image sizes
+    img2 = img2.resize(5, 5)
+    assert_is_none(img1.minimum(img2))
 
 
 def test_image_stretch():
@@ -89,6 +96,10 @@ def test_image_smooth():
     name_stem = "test_image_smooth"
     perform_diff(result, name_stem)
 
+    # invalid aperture
+    assert_is_none(img.smooth(aperture=3))
+    assert_is_none(img.smooth(aperture=(4, 4)))
+    assert_is_none(img.smooth(aperture=(-1, -1)))
 
 def test_image_gamma_correct():
     img = Image(source=topimg)
@@ -104,6 +115,9 @@ def test_image_gamma_correct():
 
     name_stem = "test_image_gamma_correct"
     perform_diff(result, name_stem)
+
+    # incorrect gamma
+    assert_is_none(img.gamma_correct(-1))
 
 
 def test_image_binarize():
@@ -249,6 +263,13 @@ def test_create_binary_mask():
     name_stem = "test_create_binary_mask"
     perform_diff(results, name_stem)
 
+    # other colorspace
+    assert_is_none(img2.to_gray().create_binary_mask())
+
+    # invalid color range
+    assert_is_none(img2.create_binary_mask(color1=(0, 0, 0), color2=(0, 0, 0)))
+    assert_is_none(img2.create_binary_mask(color1=(-1, 100, 10)))
+    assert_is_none(img2.create_binary_mask(color1=(300, 240, 130)))
 
 def test_apply_binary_mask():
     img = Image(source='simplecv')
@@ -258,6 +279,9 @@ def test_apply_binary_mask():
     results.append(img.apply_binary_mask(mask, bg_color=Color.RED))
     name_stem = "test_apply_binary_mask"
     perform_diff(results, name_stem, tolerance=3.0)
+
+    # invalid size of the mask
+    assert_is_none(img.apply_binary_mask(mask.resize(mask.width/2, mask.height/2)))
 
 
 def test_apply_pixel_func():
@@ -276,13 +300,17 @@ def test_apply_pixel_func():
 def test_create_alpha_mask():
     alpha_mask = Image(source=alphasrcimg)
     mask = alpha_mask.create_alpha_mask(hue=60)
-    mask2 = alpha_mask.create_alpha_mask(hue_lb=59, hue_ub=61)
+    mask2 = alpha_mask.to_hsv().create_alpha_mask(hue_lb=59, hue_ub=61)
     top = Image(source=topimg)
     bottom = Image(source=bottomimg)
     bottom = bottom.blit(top, alpha_mask=mask2)
     results = [mask, mask2, bottom]
     name_stem = "test_create_alpha_mask"
     perform_diff(results, name_stem)
+
+    # invalid hue values
+    assert_is_none(alpha_mask.create_alpha_mask(hue=-10))
+    assert_is_none(alpha_mask.create_alpha_mask(hue=200))
 
 
 def test_normalize():
@@ -549,7 +577,6 @@ def test_threshold():
     name_stem = "test_threshold"
     perform_diff(results, name_stem)
 
-
 def test_smart_threshold():
     img = Image("../data/sampleimages/RatTop.png")
     mask = Image((img.width, img.height))
@@ -563,3 +590,90 @@ def test_smart_threshold():
     results = [new_mask1, new_mask2]
     name_stem = "test_smart_threshold"
     perform_diff(results, name_stem)
+
+def test_equalize():
+    img = Image("simplecv")
+    eq = img.equalize()
+    name_stem = "test_equalize"
+    perform_diff([eq], name_stem)
+
+def test_median_filter():
+    img = Image("simplecv")
+    blur = img.median_filter(window=5, grayscale=False)
+    blur_g = img.median_filter(window=(3, 5), grayscale=True)
+
+    # invalid window
+    assert_is_none(img.median_filter(window=(6, 6)))
+    assert_is_none(img.median_filter(window=(-1, -1)))
+
+def test_bilateral_filter():
+    img = Image("simplecv")
+    blur = img.bilateral_filter(diameter=5, grayscale=False)
+    blur_g = img.bilateral_filter(diameter=(3, 5), grayscale=True)
+    blur_g1 = img.bilateral_filter(diameter=[3, 5], grayscale=True)
+
+    # invalid window
+    assert_is_none(img.bilateral_filter(diameter=(6, 6)))
+    assert_is_none(img.bilateral_filter(diameter=(-1, -1)))
+
+def test_blur():
+    img = Image("simplecv")
+    blur = img.blur(window=5, grayscale=False)
+    blur_g = img.blur(window=[3, 5], grayscale=True)
+
+    # invalid window
+    assert_is_none(img.blur(window=(-1, -1)))
+
+def test_gaussian_blur():
+    img = Image("simplecv")
+    blur = img.gaussian_blur(window=5, grayscale=False)
+    blur_g = img.gaussian_blur(window=[3, 5], grayscale=True)
+
+    # invalid window
+    assert_is_none(img.gaussian_blur(window=(-1, -1)))
+
+def test_get_skintone_mask():
+    img_set = []
+    img_set.append(Image('../data/sampleimages/040000.jpg').to_ycrcb())
+    img_set.append(Image('../data/sampleimages/040001.jpg'))
+    img_set.append(Image('../data/sampleimages/040002.jpg'))
+    img_set.append(Image('../data/sampleimages/040003.jpg'))
+    img_set.append(Image('../data/sampleimages/040004.jpg'))
+    img_set.append(Image('../data/sampleimages/040005.jpg'))
+    img_set.append(Image('../data/sampleimages/040006.jpg'))
+    img_set.append(Image('../data/sampleimages/040007.jpg'))
+    masks = [img.get_skintone_mask() for img in img_set]
+    name_stem = 'test_skintone'
+    masks.append(img_set[0].get_skintone_mask(dilate_iter=1))
+    masks.append(img_set[0].get_skintone_mask(dilate_iter=2))
+    masks.append(img_set[0].get_skintone_mask(dilate_iter=3))
+    
+    masks[0].save("../data/test/standard/test_skintone0.png")
+    masks[1].save("../data/test/standard/test_skintone1.png")
+    masks[2].save("../data/test/standard/test_skintone2.png")
+    perform_diff(masks, name_stem, tolerance=2.0)
+
+def test_color_distance():
+    img = Image(array=np.array([[(255, 128, 255), (0, 128, 0)]]))
+    np_array = img.color_distance().get_ndarray().astype(np.uint8)
+    array_dis = np.array([[254],[85]], dtype=np.uint8)
+    assert_equals(np_array.data, array_dis.data)
+
+def test_hue_distance():
+    # might be broken
+
+    img = Image(array=np.array([[[255, 128, 255]], [[0, 128, 0]],
+                [[255, 128, 0]]], dtype=np.uint8))
+
+    color1 = (255, 0, 0)
+    color2 = 120
+    dist1 = img.hue_distance(color1).get_ndarray().astype(np.uint8)
+    dist2 = img.hue_distance(color2).get_ndarray().astype(np.uint8)
+
+    array_dis1 = np.array([[212, 147, 212]], dtype=np.uint8)
+    array_dis2 = np.array([[126, 22, 126]],dtype=np.uint8)
+    
+    assert_equals(dist1.data, array_dis1.data)
+    assert_equals(dist2.data, array_dis2.data)
+
+

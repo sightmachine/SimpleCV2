@@ -35,11 +35,15 @@ def img_diffs(test_imgs, name_stem, tolerance, path):
                 num_img_pixels = lhs.size
                 percent_diff_pixels = diff_pixels_sum / num_img_pixels
                 print "{0:.2f}% difference".format(percent_diff_pixels * 100)
+                if (percent_diff_pixels * 100 < tolerance):
+                    ret_val = False
+                else:
+                    ret_val = True
                 # Uncomment this to save result and diff images
                 # cv2.imwrite(fname + "_RESULT.png", lhs)
                 # cv2.imwrite(fname + "_DIFF.png",
                 #             (diff_pixels * (0, 0, 255)).astype(np.uint8))
-                ret_val = True
+                
         else:
             print "images have different size {} and {}".format(lhs.shape,
                                                                 rhs.shape)

@@ -791,25 +791,6 @@ def test_point_intersection():
     name_stem = "test_point_intersection"
     perform_diff(results, name_stem, tolerance=6.0)
 
-
-def test_get_skintone_mask():
-    img_set = []
-    img_set.append(Image('../data/sampleimages/040000.jpg'))
-    img_set.append(Image('../data/sampleimages/040001.jpg'))
-    img_set.append(Image('../data/sampleimages/040002.jpg'))
-    img_set.append(Image('../data/sampleimages/040003.jpg'))
-    img_set.append(Image('../data/sampleimages/040004.jpg'))
-    img_set.append(Image('../data/sampleimages/040005.jpg'))
-    img_set.append(Image('../data/sampleimages/040006.jpg'))
-    img_set.append(Image('../data/sampleimages/040007.jpg'))
-    masks = [img.get_skintone_mask() for img in img_set]
-    name_stem = 'test_skintone'
-    masks.append(img_set[0].get_skintone_mask(dilate_iter=1))
-    masks.append(img_set[0].get_skintone_mask(dilate_iter=2))
-    masks.append(img_set[0].get_skintone_mask(dilate_iter=3))
-    perform_diff(masks, name_stem)
-
-
 def test_find_keypoints_all():
     img = Image(testimage2)
     methods = ["ORB", "SIFT", "SURF", "FAST", "STAR", "MSER", "Dense"]

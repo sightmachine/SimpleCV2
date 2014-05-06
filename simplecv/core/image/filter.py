@@ -104,6 +104,7 @@ def smooth(img, algorithm_name='gaussian', aperture=(3, 3), sigma=0,
     else:
         raise ValueError("Please provide a tuple to aperture, "
                          "got: %s" % type(aperture))
+        return None
 
     window = (win_x, win_y)
     if algorithm_name == "blur":
@@ -218,7 +219,8 @@ def bilateral_filter(img, diameter=5, sigma_color=10, sigma_space=10,
         win_x, win_y = diameter
         if win_x >= 0 and win_y >= 0 and win_x % 2 == 1 and win_y % 2 == 1:
             if win_x != win_y:
-                diameter = (win_x, win_y)
+                win_x = win_y
+                diameter = win_x
         else:
             logger.warning("The aperture (win_x, win_y) must be odd number "
                            "and greater than 0.")
@@ -228,7 +230,7 @@ def bilateral_filter(img, diameter=5, sigma_color=10, sigma_space=10,
         pass
     else:
         win_x = 3  # set the default aperture window size (3x3)
-        diameter = (win_x, win_x)
+        diameter = win_x
 
     if grayscale:
         img_bilateral = cv2.bilateralFilter(img.get_gray_ndarray(),
@@ -440,7 +442,8 @@ def gamma_correct(img, gamma=1):
 
     """
     if gamma < 0:
-        return "Gamma should be a non-negative real number"
+        logger.warning("Gamma should be a non-negative real number")
+        return None
     scale = 255.0
     dst = (((1.0 / scale) * img.get_ndarray()) ** gamma) * scale
     return Factory.Image(dst.astype(img.dtype), color_space=img.color_space)
@@ -762,7 +765,6 @@ def color_distance(img, color=Color.BLACK):
         """
         # reshape our matrix to 1xN
         pixels = img._ndarray.copy().reshape(-1, 3)
-
         # calculate the distance each pixel is
         distances = spsd.cdist(pixels, [color])
         distances *= (255.0 / distances.max())  # normalize to 0 - 255
@@ -1307,8 +1309,11 @@ def apply_binary_mask(img, mask, bg_color=Color.BLACK):
         return None
 
     array = np.zeros((img.height, img.width, 3), img.dtype)
-    array = cv2.add(array, np.array(tuple(reversed(bg_color)),
-                                    dtype=img.dtype))
+    bg_color = tuple(reversed(bg_color))
+    c_arr = np.array((bg_color), dtype=img.dtype)
+
+    #array = cv2.add(array, c_arr, dtype=-1)
+    array = array + c_arr
     binary_mask = mask.get_gray_ndarray() != 0
 
     array[binary_mask] = img.get_ndarray()[binary_mask]
@@ -1373,7 +1378,11 @@ def create_alpha_mask(img, hue=60, hue_lb=None, hue_ub=None):
         hlut[hue_lb:hue_ub] = 255
     else:
         hlut[hue] = 255
-    mask = cv2.LUT(h, lut=hlut)[:, :, 0]
+    lut = cv2.LUT(h, lut=hlut)
+    if len(lut.shape) > 2 and lut.shape[2] > 0:
+        mask = lut[:, :, 0]
+    else:
+        mask = lut
     array = hsv.get_empty(1)
     array = np.where(mask, v, array)
     return Factory.Image(array)
