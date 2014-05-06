@@ -709,27 +709,6 @@ def test_get_dft_log_magnitude():
     name_stem = "test_get_dft_log_magnitude"
     perform_diff(results, name_stem, tolerance=6.0)
 
-
-def test_find_haar_features():
-    img = Image("../data/sampleimages/orson_welles.jpg")
-    img1 = img.copy()
-    face = HaarCascade("face.xml")  # old HaarCascade
-    f = img.find_haar_features(face)
-    f2 = img1.find_haar_features("face_cv2.xml")  # new cv2 HaarCascade
-    assert len(f) > 0
-    assert len(f2) > 0
-    f.draw()
-    f2.draw()
-    f[0].get_width()
-    f[0].get_height()
-    f[0].length()
-    f[0].get_area()
-
-    results = [img, img1]
-    name_stem = "test_find_haar_features"
-    perform_diff(results, name_stem)
-
-
 def test_biblical_flood_fill():
     results = []
     img = Image(testimage2)
@@ -1027,20 +1006,6 @@ def test_point_intersection():
     results = [e]
     name_stem = "test_point_intersection"
     perform_diff(results, name_stem, tolerance=6.0)
-
-
-def test_find_skintone_blobs():
-    img = Image('../data/sampleimages/04000.jpg')
-    blobs = img.find_skintone_blobs()
-    for b in blobs:
-        assert_greater(b.area, 0)
-        assert_greater(b.get_perimeter(), 0)
-        assert_greater(b.avg_color[0], 0)
-        assert_greater(b.avg_color[1], 0)
-        assert_greater(b.avg_color[2], 0)
-        assert_less(b.avg_color[0], 255)
-        assert_less(b.avg_color[1], 255)
-        assert_less(b.avg_color[2], 255)
 
 
 def test_get_skintone_mask():

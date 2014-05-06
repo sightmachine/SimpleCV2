@@ -2,7 +2,8 @@ import pickle
 
 import cv2
 import numpy as np
-from nose.tools import assert_equals, assert_is_instance, assert_greater
+from nose.tools import assert_equals, assert_is_instance, assert_greater \
+                      , assert_less
 
 from simplecv.image import Image
 from simplecv.tests.utils import perform_diff
@@ -10,6 +11,7 @@ from simplecv.features.blobmaker import BlobMaker
 from simplecv.features.blob import Blob
 from simplecv.features.features import FeatureSet, Feature
 from simplecv.features.detection import Corner, Line
+from simplecv.features.haar_cascade import HaarCascade
 from simplecv.color import Color
 
 #images
@@ -17,7 +19,7 @@ contour_hiearachy = "../data/sampleimages/contour_hiearachy.png"
 testimage = "../data/sampleimages/9dots4lines.png"
 testimage2 = "../data/sampleimages/aerospace.jpg"
 testbarcode = "../data/sampleimages/barcode.png"
-
+CHESSBOARD_IMAGE = "../data/sampleimages/CalibImage3.png"
 
 def test_detection_find_corners():
     img = Image(testimage2)
@@ -270,3 +272,70 @@ def test_detection_sort_length():
     assert val
     assert_equals(17, len(val))
     assert all(map(lambda a: isinstance(a, Line), val))
+
+def test_find_skintone_blobs():
+    img = Image('../data/sampleimages/04000.jpg')
+    blobs = img.find_skintone_blobs()
+    for b in blobs:
+        assert_greater(b.area, 0)
+        assert_greater(b.get_perimeter(), 0)
+        assert_greater(b.avg_color[0], 0)
+        assert_greater(b.avg_color[1], 0)
+        assert_greater(b.avg_color[2], 0)
+        assert_less(b.avg_color[0], 255)
+        assert_less(b.avg_color[1], 255)
+        assert_less(b.avg_color[2], 255)
+
+    img = Image((100, 100))
+    blobs = img.find_skintone_blobs()
+    assert_equals(blobs, None)
+
+def test_find_haar_features():
+    img = Image("../data/sampleimages/orson_welles.jpg")
+    img1 = img.copy()
+    face = HaarCascade("face.xml")  # old HaarCascade
+    f = img.find_haar_features(face)
+    f2 = img1.find_haar_features("face_cv2.xml")  # new cv2 HaarCascade
+    assert len(f) > 0
+    assert len(f2) > 0
+    f.draw()
+    f2.draw()
+    f[0].get_width()
+    f[0].get_height()
+    f[0].length()
+    f[0].get_area()
+
+    results = [img, img1]
+    name_stem = "test_find_haar_features"
+    perform_diff(results, name_stem)
+
+    # incorrect cascade name
+    f3 = img.find_haar_features(cascade="incorrect_cascade.xml")
+    assert_equals(f3, None)
+
+    # incorrect cascade object
+    f4 = img.find_haar_features(cascade=img1)
+    assert_equals(f4, None)
+
+    # Empty image
+    img2 = Image((100, 100))
+    f5 = img2.find_haar_features("face_cv2.xml")
+    assert_equals(f5, None)
+
+def test_find_chessboard():
+    img = Image(CHESSBOARD_IMAGE)
+    feat = img.find_chessboard(subpixel=False)
+
+    feat[0].draw()
+    name_stem = "test_chessboard"
+    perform_diff([img], name_stem, 0.0)
+
+    img = Image(CHESSBOARD_IMAGE)
+    feat = img.find_chessboard()
+    assert_equals(feat, None)
+
+    # Empty Image
+    img = Image((100, 100))
+    feat = img.find_chessboard()
+    assert_equals(feat, None)
+    

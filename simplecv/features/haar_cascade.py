@@ -15,6 +15,7 @@ class HaarCascade(object):
     _cache = {}
 
     def __init__(self, fname=None, name=None):
+        self._cascade = None
         if name is None:
             self._name = fname
         else:

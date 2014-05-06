@@ -331,7 +331,7 @@ def find_haar_features(img, cascade, scale_factor=1.2, min_neighbors=2,
         minNeighbors=min_neighbors, minSize=min_size,
         flags=use_canny)
 
-    if objects is not None:
+    if objects is not None and len(objects) != 0:
         return FeatureSet(
             [Factory.HaarFeature(img, o, cascade, True) for o in objects])
 
@@ -533,18 +533,25 @@ def find_chessboard(img, dimensions=(8, 5), subpixel=True):
     """
     gray_array = img.get_gray_ndarray()
     equalized_grayscale_array = cv2.equalizeHist(gray_array)
-    corners = cv2.findChessboardCorners(
+    found, corners = cv2.findChessboardCorners(
         equalized_grayscale_array, patternSize=dimensions,
-        corners=cv2.CALIB_CB_ADAPTIVE_THRESH + cv2.CALIB_CB_NORMALIZE_IMAGE)
-    if len(corners[1]) == dimensions[0] * dimensions[1]:
+        flags=cv2.CALIB_CB_ADAPTIVE_THRESH + cv2.CALIB_CB_NORMALIZE_IMAGE)
+
+    if not found:
+        return None
+
+    if corners is not None and len(corners) == dimensions[0] * dimensions[1]:
         if subpixel:
             sp_corners = cv2.cornerSubPix(
                 gray_array, corners=corners[1], winSize=(11, 11),
                 zeroZone=(-1, -1),
                 criteria=(cv2.TERM_CRITERIA_MAX_ITER | cv2.TERM_CRITERIA_EPS,
                           10, 0.01))
+            if sp_corners is None:
+                logger.warning("subpixel corners not found. Returning None.")
+                return None
         else:
-            sp_corners = corners[1]
+            sp_corners = corners
         return FeatureSet([Factory.Chessboard(img, dimensions, sp_corners)])
     else:
         return None

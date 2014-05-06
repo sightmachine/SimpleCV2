@@ -414,7 +414,7 @@ class Image(object):
         if self.is_gray():
             self._ndarray = np.zeros(self.size, dtype=self.dtype)
         else:
-            self._ndarray = np.zeros((self.width, self.height, 3),
+            self._ndarray = np.zeros((self.height, self.width, 3),
                                      dtype=self.dtype)
         self.clear_cache()
 
