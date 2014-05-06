@@ -1,6 +1,8 @@
 from nose.tools import assert_equals
 
-from simplecv.color import Color
+from simplecv.color import Color, ColorCurve, ColorMap
+from simplecv.image import Image
+from simplecv.tests.utils import perform_diff
 
 
 def test_hue_from_rgb():
@@ -39,3 +41,32 @@ def test_hue_to_bgr():
     assert_equals((255, 0, 128), Color.hue_to_bgr(135))
     assert_equals((255, 0, 255), Color.hue_to_bgr(150))
     assert_equals((128, 0, 255), Color.hue_to_bgr(165))
+
+# def test_color_get_random():
+    
+
+def test_color_get_lightness():
+    # y = Color.YELLOW()
+    retval = Color.get_lightness((255, 255, 0))
+    assert_equals(retval, 127)
+
+def test_color_get_luminosity():
+    retval = Color.get_luminosity((255, 255, 0))
+    assert_equals(retval, 234)
+
+def test_color_ColorMap():
+    img = Image("lenna")
+    blobs = img.find_blobs()
+    cm = ColorMap(Color.YELLOW, min(blobs.get_area()), max(blobs.get_area()))
+    for b in blobs:
+       b.draw(cm[b.get_area()])
+
+    result = [img]
+    name_stem = "test_color_ColorMap"
+    perform_diff(result, name_stem, 0.0)
+
+    retval1 = cm.__getitem__(150000)
+    assert_equals(retval1, (255, 255, 255))
+
+    retval2 = cm.__getitem__(5)
+    assert_equals(retval2, (255, 255, 0))
