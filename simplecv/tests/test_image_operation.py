@@ -1,6 +1,8 @@
 import numpy as np
 import cv2
-from nose.tools import assert_equals, assert_list_equal
+import math
+
+from nose.tools import assert_equals, assert_list_equal, assert_is_none
 
 from simplecv.tests.utils import perform_diff
 from simplecv.image import Image
@@ -45,6 +47,9 @@ def test_color_meancolor():
     if not (84 < h < 85 and 117 < l < 118 and 160 < s < 161):
         assert False
 
+    # incorrect color space
+    assert_is_none(img.mean_color('UNKOWN'))
+
 
 def test_image_edgemap():
     img_a = Image(source='simplecv')
@@ -61,6 +66,10 @@ def test_image_horz_scanline():
     assert sl.shape[0] == img.width
     assert sl.shape[1] == 3
 
+    # incorrect row value
+    assert_is_none(img.get_horz_scanline(-10))
+    assert_is_none(img.get_horz_scanline(img.height+10))
+
 
 def test_image_vert_scanline():
     img = Image(source='simplecv')
@@ -69,12 +78,20 @@ def test_image_vert_scanline():
     assert sl.shape[0] == img.height
     assert sl.shape[1] == 3
 
+    # incorrect column value
+    assert_is_none(img.get_vert_scanline(-10))
+    assert_is_none(img.get_vert_scanline(img.width+10))
+
 
 def test_image_horz_scanline_gray():
     img = Image(source='simplecv')
     sl = img.get_horz_scanline_gray(10)
     assert len(sl.shape) == 1
     assert sl.shape[0] == img.width
+
+    # incorrect row value
+    assert_is_none(img.get_horz_scanline_gray(-10))
+    assert_is_none(img.get_horz_scanline_gray(img.height+10))
 
 
 def test_image_vert_scanline_gray():
@@ -83,15 +100,30 @@ def test_image_vert_scanline_gray():
     assert len(sl.shape) == 1
     assert sl.shape[0] == img.width
 
+    # incorrect column value
+    assert_is_none(img.get_vert_scanline_gray(-10))
+    assert_is_none(img.get_vert_scanline_gray(img.height+10))
+
 
 def test_image_get_pixel():
     img = Image(source='simplecv')
     assert_list_equal([0, 0, 0], img.get_pixel(0, 0))
 
+    # incorrect x, y values
+    assert_is_none(img.get_pixel(-1, 50))
+    assert_is_none(img.get_pixel(50, -1))
+    assert_is_none(img.get_pixel(50, img.height+10))
+    assert_is_none(img.get_pixel(img.width+10, 10))
+
 
 def test_image_get_gray_pixel():
     img = Image(source='simplecv')
     assert_equals(0, img.get_gray_pixel(0, 0))
+    # incorrect x, y values
+    assert_is_none(img.get_gray_pixel(-1, 50))
+    assert_is_none(img.get_gray_pixel(50, -1))
+    assert_is_none(img.get_gray_pixel(50, img.height+10))
+    assert_is_none(img.get_gray_pixel(img.width+10, 10))
 
 
 def test_image_intergralimage():
@@ -110,3 +142,26 @@ def test_image_intergralimage_tilted():
     assert_equals(np.int32, array.dtype)
     assert_equals(img.get_ndarray().shape[0] + 1, array.shape[0])
     assert_equals(img.get_ndarray().shape[1] + 1, array.shape[1])
+
+def test_image_hue_histogram():
+    array = np.arange(0,179,dtype=np.uint8)
+    hsv_array = np.dstack((array, array, array))
+
+    hsv_img = Image(array=hsv_array, color_space=Image.HSV)
+    hist1 = hsv_img.hue_histogram()
+    assert_equals(hist1.data, np.ones((1, 179)).astype(np.uint64).data)
+
+    array1 = np.arange(0, 359, dtype=np.int64)
+    hsv_array1 = np.dstack((array1, array1, array1))
+    hsv_img1 = Image(array=hsv_array1, color_space=Image.HSV)
+    hist2 = hsv_img1.hue_histogram(359,dynamic_range=False)
+
+def test_image_hue_peaks():
+    array = np.arange(0,179,dtype=np.uint8)
+    for i in range(array.shape[0]):
+        if i%8 == 0:
+            array[i] = 80
+    hsv_array = np.dstack((array, array, array))
+    hsv_img = Image(array=hsv_array, color_space=Image.HSV)
+    hist1 = hsv_img.hue_peaks()
+    assert_equals(math.ceil(hist1[0][0]), 80)

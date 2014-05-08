@@ -226,7 +226,8 @@ class Image(object):
             array = cv2.pow(self._ndarray, power)
             return self.__class__(array=array, color_space=self._color_space)
         else:
-            raise ValueError('Cant make exponentiation with this type')
+            logger.warn("Can't make exponentiation with this type.")
+            return None
 
     def __neg__(self):
         array = ~self._ndarray

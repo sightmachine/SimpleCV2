@@ -121,35 +121,35 @@ def test_line_crop_to_image_edges():
 
     l = Line(img, ((-10, -5), (40, 40)))
     l_cr = l.crop_to_image_edges()
-    assert_tuple_equal(((0, 4), (40, 40)), l_cr.end_points)
+    assert_list_equal([(0, 4), (40, 40)], l_cr.end_points)
 
     l = Line(img, ((-5, -5), (140, 140)))
     l_cr = l.crop_to_image_edges()
-    assert_tuple_equal(((0, 0), (100, 100)), l_cr.end_points)
+    assert_list_equal([(0, 0), (100, 100)], l_cr.end_points)
 
     l = Line(img, ((40, 40), (140, 140)))
     l_cr = l.crop_to_image_edges()
-    assert_tuple_equal(((40, 40), (100, 100)), l_cr.end_points)
+    assert_list_equal([(40, 40), (100, 100)], l_cr.end_points)
 
     l = Line(img, ((105, -5), (50, 50)))
     l_cr = l.crop_to_image_edges()
-    assert_tuple_equal(((50, 50), (100, 0)), l_cr.end_points)
+    assert_list_equal([(50, 50), (100, 0)], l_cr.end_points)
 
     l = Line(img, ((105, -5), (-5, 105)))
     l_cr = l.crop_to_image_edges()
-    assert_tuple_equal(((0, 100), (100, 0)), l_cr.end_points)
+    assert_list_equal([(0, 100), (100, 0)], l_cr.end_points)
 
     l = Line(img, ((50, -50), (50, 90)))
     l_cr = l.crop_to_image_edges()
-    assert_tuple_equal(((50, 0), (50, 90)), l_cr.end_points)
+    assert_list_equal([(50, 0), (50, 90)], l_cr.end_points)
 
     l = Line(img, ((50, -50), (50, 150)))
     l_cr = l.crop_to_image_edges()
-    assert_tuple_equal(((50, 0), (50, 100)), l_cr.end_points)
+    assert_list_equal([(50, 0), (50, 100)], l_cr.end_points)
 
     l = Line(img, ((50, 10), (50, 150)))
     l_cr = l.crop_to_image_edges()
-    assert_tuple_equal(((50, 10), (50, 100)), l_cr.end_points)
+    assert_list_equal([(50, 10), (50, 100)], l_cr.end_points)
 
     l = Line(img, ((50, -50), (150, -50)))
     l_cr = l.crop_to_image_edges()
@@ -157,15 +157,15 @@ def test_line_crop_to_image_edges():
 
     l = Line(img, ((50, 50), (150, 50)))
     l_cr = l.crop_to_image_edges()
-    assert_tuple_equal(((50, 50), (100, 50)), l_cr.end_points)
+    assert_list_equal([(50, 50), (100, 50)], l_cr.end_points)
 
     l = Line(img, ((20, 50), (80, 50)))
     l_cr = l.crop_to_image_edges()
-    assert_tuple_equal(((20, 50), (80, 50)), l_cr.end_points)
+    assert_list_equal([(20, 50), (80, 50)], l_cr.end_points)
 
     l = Line(img, ((-50, 50), (50, 50)))
     l_cr = l.crop_to_image_edges()
-    assert_tuple_equal(((0, 50), (50, 50)), l_cr.end_points)
+    assert_list_equal([(0, 50), (50, 50)], l_cr.end_points)
 
 def test_line_extend_to_image_edges():
     img = Image((101, 101))
