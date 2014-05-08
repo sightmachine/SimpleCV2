@@ -823,7 +823,7 @@ def inverse_dft(raw_dft_image):
     Note that this is an example, I don't recommend doing this unless you
     know what you are doing.
 
-    >>> raw = img.getRawDFT()
+    >>> raw = img.raw_dft_image()
     >>> cv2.SomeOperation(raw)
     >>> result = img.inverse_dft(raw)
     >>> result.show()
@@ -843,8 +843,8 @@ def inverse_dft(raw_dft_image):
     :py:meth:`apply_unsharp_mask`
 
     """
-    input = [raw_img.copy() for raw_img in raw_dft_image]
-    return Factory.Image._inverse_dft(input)
+    input_dft = [raw_img.copy() for raw_img in raw_dft_image]
+    return Factory.Image._inverse_dft(input_dft)
 
 
 @image_method

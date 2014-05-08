@@ -484,6 +484,10 @@ def test_apply_dft_filter():
     name_stem = "test_apply_dft_filter"
     perform_diff(results, name_stem)
 
+    # incorrect filter size
+    flt1 = flt.resize(flt.width/2, flt.height/2)
+    assert_is_none(img.apply_dft_filter(flt1))
+
 
 def test_high_pass_filter():
     img = Image("../data/sampleimages/RedDog2.jpg")
@@ -516,7 +520,7 @@ def test_low_pass_filter():
 def test_dft_gaussian():
     img = Image("../data/sampleimages/RedDog2.jpg")
     flt = DFT.create_gaussian_filter(dia=300, size=(300, 300), highpass=False)
-    fltimg = img.filter(flt)
+    fltimg = img.apply_dft_filter(flt)
     fltimggray = img.filter(flt, grayscale=True)
     flt = DFT.create_gaussian_filter(dia=300, size=(300, 300), highpass=True)
     fltimg1 = img.filter(flt)
@@ -525,6 +529,13 @@ def test_dft_gaussian():
     name_stem = "test_dft_gaussian"
     perform_diff(results, name_stem)
 
+def test_apply_gaussain_filter():
+    img = Image("../data/sampleimages/RedDog2.jpg")
+    fltimg = img.apply_gaussian_filter(dia=300,
+                                       highpass=False)
+    fltimggray = img.apply_gaussian_filter(dia=300,
+                                           highpass=True,
+                                           grayscale=True)
 
 def test_dft_butterworth():
     img = Image("../data/sampleimages/RedDog2.jpg")
@@ -540,6 +551,13 @@ def test_dft_butterworth():
     name_stem = "test_dft_butterworth"
     perform_diff(results, name_stem)
 
+def test_apply_butterworth_filter():
+    img = Image("../data/sampleimages/RedDog2.jpg")
+    fltimg = img.apply_butterworth_filter(dia=300,
+                                       highpass=False)
+    fltimggray = img.apply_butterworth_filter(dia=300,
+                                           highpass=True,
+                                           grayscale=True)
 
 def test_dft_lowpass():
     img = Image("../data/sampleimages/RedDog2.jpg")
@@ -589,6 +607,20 @@ def test_band_pass_filter():
     name_stem = "test_band_pass_filter"
     perform_diff(results, name_stem)
 
+def test_inverse_dft():
+    img = Image("simplecv")
+    raw = img.raw_dft_image()
+    result = img.inverse_dft(raw)
+
+def test_apply_unsharp_mask():
+    img = Image("../data/sampleimages/RedDog2.jpg")
+    result = img.apply_unsharp_mask()
+    name_stem = "test_apply_unsharp_mask"
+
+    perform_diff([result], name_stem)
+
+    # incorrect boost value
+    assert_is_none(img.apply_unsharp_mask(-1))
 
 def test_skeletonize():
     img = Image('simplecv')
