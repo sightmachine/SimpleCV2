@@ -1124,7 +1124,10 @@ def _copy_avg(img, src, dst, roi, levels, levels_f, mode):
     if mode:  # get the peak hue for an area
         h = Factory.Image(src_roi).hue_histogram()
         my_hue = np.argmax(h)
-        c = (float(my_hue), float(255), float(255), float(0))
+        if (dst_roi.shape[-1] > 3):
+            c = (float(my_hue), float(255), float(255), float(0))
+        else:
+            c = (float(my_hue), float(255), float(255))
         dst_roi += c
     else:  # get the average value for an area optionally set levels
         avg = cv2.mean(src_roi)

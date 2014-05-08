@@ -335,6 +335,15 @@ def test_normalize():
     name_stem = "test_image_normalize"
     perform_diff(result, name_stem, 5)
 
+    # incorrect values of new_min, new_max
+    assert_is_none(img.normalize(new_min = -10))
+    assert_is_none(img.normalize(new_max = 300))
+    assert_is_none(img.normalize(new_min = 200, new_max=100))
+
+    # incorrect min_cut and max_cut
+    assert_is_none(img.normalize(min_cut = 150))
+    assert_is_none(img.normalize(max_cut = 128))
+
 
 def test_get_lightness():
     img = Image('lenna')
@@ -344,11 +353,16 @@ def test_get_lightness():
     else:
         assert False
 
+    # non bgr image
+    assert_is_none(img.to_rgb().get_lightness())
 
 def test_get_luminosity():
     img = Image('lenna')
     i = img.get_luminosity()
     assert_equals(150, i[27, 42])
+
+    # non bgr image
+    assert_is_none(img.to_rgb().get_luminosity())
 
 
 def test_get_average():
@@ -361,6 +375,9 @@ def test_get_average():
     else:
         assert False
 
+    # non bgr image
+    assert_is_none(img.to_hsv().get_average())
+
 
 # FIXME: the following tests should be merged
 def test_motion_blur():
@@ -368,7 +385,7 @@ def test_motion_blur():
     d = ('n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw')
     i0 = i.motion_blur(intensity=20, direction=d[0])
     i1 = i.motion_blur(intensity=20, direction=d[1])
-    i2 = i.motion_blur(intensity=20, direction=d[2])
+    i2 = i.motion_blur(intensity=19, direction=d[2])
     i3 = i.motion_blur(intensity=20, direction=d[3])
     i4 = i.motion_blur(intensity=10, direction=d[4])
     i5 = i.motion_blur(intensity=10, direction=d[5])
@@ -385,6 +402,9 @@ def test_motion_blur():
         pass
     else:
         assert False
+
+    # incorrect directions
+    assert_is_none(i.motion_blur(intensity=10, direction="UNKOWN"))
 
 
 def test_motion_blur2():
@@ -437,7 +457,7 @@ def test_pixelize():
     img3 = img.pixelize((img.width / 10, img.height))
     img4 = img.pixelize((img.width, img.height / 10))
     img5 = img.pixelize((12, 12), (200, 180, 250, 250))
-    img6 = img.pixelize((12, 12), (600, 80, 250, 250))
+    img6 = img.pixelize((12, 12), (600, 80, 250, 250), levels=1, do_hue=True)
     img7 = img.pixelize((12, 12), (600, 80, 250, 250), levels=4)
     img8 = img.pixelize((12, 12), levels=6)
     #img9 = img.pixelize(4, )
@@ -720,6 +740,10 @@ def test_white_balance():
     output = img.white_balance(method="GrayWorld")
     assert_equals(output.mean_color(), (0.0, 0.0, 85.0))
 
+    # pass gray image
+    gray_img = img.to_gray()
+    assert_is_none(gray_img.white_balance())
+
 def test_binarize_from_palette():
     img = Image(testimageclr)
     img = img.scale(0.1)  # scale down the image to reduce test time
@@ -765,11 +789,67 @@ def test_flood_fill_to_mask():
     omask = img.flood_fill_to_mask(b.coordinates(), tolerance=10)
     # pass color dict
     color_dict = {'R':255, 'B':255, 'G':255}
+    np_color = np.array((255, 255, 255), dtype=np.uint8)
     omask2 = img.flood_fill_to_mask(b.coordinates(), tolerance=(3, 3, 3),
                                     mask=imask, color=color_dict)
     omask3 = img.flood_fill_to_mask(b.coordinates(), tolerance=(3, 3, 3),
-                                    mask=imask, fixed_range=False)
+                                    mask=imask, fixed_range=False,
+                                    color=np_color)
 
     results = [omask, omask2, omask3]
     name_stem = "test_flood_fill_to_mask"
     perform_diff(results, name_stem)
+
+    # tolerance is None
+    omask4 = img.flood_fill_to_mask(b.coordinates())
+
+    # lower/upper is not None
+    omask5 = img.flood_fill_to_mask(b.coordinates(), tolerance=3,
+                                    lower=3, upper=3, mask=imask)
+
+    assert_equals(omask5.get_ndarray().data, omask2.get_ndarray().data)
+
+
+def test_apply_lut():
+    #img = Image((10, 10))
+    np_array = np.arange(0, 256, dtype=np.uint8)
+    np_array = np.dstack((np_array, np_array, np_array))
+
+    r_lut = 255 * np.ones((256, 1), dtype=np.uint8)
+    b_lut = np.zeros((256, 1), dtype=np.uint8)
+    g_lut = 128 * np.ones((256, 1), dtype=np.uint8)
+
+    img = Image(array=np_array)
+    lutimg = img.apply_lut(r_lut, g_lut, b_lut)
+
+    assert_equals(lutimg.mean_color(), (0.0, 128.0, 255.0))
+
+    # non BGR image.
+    assert_is_none(img.to_hsv().apply_lut(r_lut))
+
+def test_sobel():
+    img = Image("simplecv")
+    img1 = img.sobel()
+    img2 = img.sobel(do_gray=False)
+
+    name_stem = "test_sobel"
+    perform_diff([img1, img2], name_stem)
+
+    # incorrect aperture
+    assert_is_none(img.sobel(aperture=9))
+
+def test_channel_mixer():
+    i = Image('lenna')
+    r = i.channel_mixer()
+    g = i.channel_mixer(channel='g', weight=(100, 20, 30))
+    b = i.channel_mixer(channel='b', weight=(30, 200, 10))
+    assert i != r
+    assert i != g
+    assert i != b
+
+    # incorrect values of weight
+    assert_is_none(i.channel_mixer(weight=(300, 0, 200)))
+    assert_is_none(i.channel_mixer(weight=(100, -300, 20)))
+
+    # incorrect channel
+    assert_is_none(i.channel_mixer(channel="UNKOWN"))

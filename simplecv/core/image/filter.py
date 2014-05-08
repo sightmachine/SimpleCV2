@@ -1650,7 +1650,7 @@ def white_balance(img, method="Simple"):
 
 
 @image_method
-def apply_lut(img, r_lut=None, b_lut=None, g_lut=None):
+def apply_lut(img, r_lut=None, g_lut=None, b_lut=None):
     """
     **SUMMARY**
 
@@ -2285,7 +2285,7 @@ def get_lightness(img):
 
     """
     if not img.is_bgr():
-        logger.warnings('Input a BGR image')
+        logger.warning('Input a BGR image')
         return None
     img_mat = np.array(img.get_ndarray(), dtype=np.int)
     ret_val = np.array((np.max(img_mat, 2) + np.min(img_mat, 2)) / 2,
@@ -2320,7 +2320,7 @@ def get_luminosity(img):
 
     """
     if not img.is_bgr():
-        logger.warnings('Input a BGR image')
+        logger.warning('Input a BGR image')
         return None
     img_mat = np.array(img.get_ndarray(), dtype=np.int)
     ret_val = np.array(np.average(img_mat, 2, (0.07, 0.71, 0.21)),
@@ -2355,7 +2355,7 @@ def get_average(img):
 
     """
     if not img.is_bgr():
-        logger.warnings('Input a BGR image')
+        logger.warning('Input a BGR image')
         return None
     img_mat = np.array(img.get_ndarray(), dtype=np.int)
     ret_val = np.array(img_mat.mean(2), dtype=np.uint8)
@@ -2618,10 +2618,11 @@ def sobel(img, xorder=1, yorder=1, do_gray=True, aperture=5):
         ret_val = Factory.Image(t)
 
     else:
-        layers = img.split_channels(grayscale=False)
+        #layers = img.split_channels()
+        layers = np.dsplit(img.get_ndarray(), 3)
         sobel_layers = []
         for layer in layers:
-            dst = cv2.Sobel(layer.get_gray_numpy(), cv2.CV_32F, xorder,
+            dst = cv2.Sobel(layer, cv2.CV_32F, xorder,
                             yorder, ksize=aperture)
 
             minv = np.min(dst)
@@ -2736,7 +2737,7 @@ def motion_blur(img, intensity=15, direction='NW'):
     mid = int(intensity / 2)
     tmp = np.identity(intensity)
 
-    if intensity == 0:
+    if intensity <= 0:
         logger.warn("0 intensity means no blurring")
         return img
 
@@ -2868,8 +2869,8 @@ def channel_mixer(img, channel='r', weight=(100, 100, 100)):
 
     """
     r, g, b = img.split_channels()
-    if weight[0] > 200 or weight[1] > 200 or weight[2] >= 200:
-        if weight[0] < -200 or weight[1] < -200 or weight[2] < -200:
+    if weight[0] > 200 or weight[1] > 200 or weight[2] >= 200 or \
+       weight[0] < -200 or weight[1] < -200 or weight[2] < -200:
             logger.warn('Value of weights can be from -200 to 200%')
             return None
 

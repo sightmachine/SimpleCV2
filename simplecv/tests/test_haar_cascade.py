@@ -44,8 +44,8 @@ def test_haarcascade():
 def test_minneighbors(img_in=testneighbor_in, img_out=testneighbor_out):
     img = Image(img_in)
     faces = img.find_haar_features(FACECASCADE, min_neighbors=20)
-    if faces:
+    if faces is not None:
         faces.draw()
         img.save(img_out)
-    assert len(faces) <= 1, "Haar Cascade is potentially ignoring the " \
+        assert len(faces) <= 1, "Haar Cascade is potentially ignoring the " \
                             "'HIGH' min_neighbors of 20"

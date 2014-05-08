@@ -442,7 +442,6 @@ def test_find_template_once():
 
 def test_find_circles():
     img = Image(circles)
-    img.show()
     circs = img.find_circle(thresh=85)
     assert_equals(5, len(circs))
     circs.draw()
@@ -671,7 +670,6 @@ def test_list_haar_features():
 def test_anonymize():
     img = Image(source="lenna")
     anon_img = img.anonymize()
-    anon_img.show()
 
     # provide features
     anon_img1 = img.anonymize(features=["face.xml", "profile.xml"])

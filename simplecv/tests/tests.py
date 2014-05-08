@@ -1270,17 +1270,6 @@ def test_face_recognize():
 
     assert_list_equal(["male", "male", "female", "female"], label)
 
-
-def test_channel_mixer():
-    i = Image('lenna')
-    r = i.channel_mixer()
-    g = i.channel_mixer(channel='g', weight=(100, 20, 30))
-    b = i.channel_mixer(channel='b', weight=(30, 200, 10))
-    assert i != r
-    assert i != g
-    assert i != b
-
-
 def test_prewitt():
     i = Image('lenna')
     p = i.prewitt()
