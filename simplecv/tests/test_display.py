@@ -28,15 +28,6 @@ trackimgs = ["../data/sampleimages/tracktest0.jpg",
              "../data/sampleimages/tracktest8.jpg",
              "../data/sampleimages/tracktest9.jpg", ]
 
-
-def test_sobel():
-    img = Image("lenna")
-    s = img.sobel()
-    name_stem = "test_sobel"
-    s = [s]
-    perform_diff(s, name_stem)
-
-
 def test_image_new_smooth():
     img = Image(testimage2)
     result = []
