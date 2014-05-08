@@ -543,12 +543,14 @@ def test_find_keypoints():
             kp.draw()
         else:
             print "Found None."
+    img.save("../data/test/standard/test_find_keypoints0.png")
     results = [img]
     name_stem = "test_find_keypoints"
     perform_diff(results, name_stem)
 
     # UNKOWN flavor
     assert_is_none(img.find_keypoints(flavor="UNKOWN"))
+    assert_is_none(img._get_raw_keypoints(flavor="UNKOWN")[0])
 
 def test_find_motion():
     current1 = Image("../data/sampleimages/flow_simple1.png")

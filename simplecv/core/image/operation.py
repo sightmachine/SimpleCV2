@@ -124,10 +124,10 @@ def hue_histogram(img, bins=179, dynamic_range=True):
 
     """
     if dynamic_range:
-        return np.histogram(img.to_hsv().get_ndarray()[:, :, 2],
+        return np.histogram(img.to_hsv().get_ndarray()[:, :, 0],
                             bins=bins)[0]
     else:
-        return np.histogram(img.to_hsv().get_ndarray()[:, :, 2],
+        return np.histogram(img.to_hsv().get_ndarray()[:, :, 0],
                             bins=bins, range=(0.0, 360.0))[0]
 
 
@@ -183,7 +183,7 @@ def hue_peaks(img, bins=179):
     #     to get the average peak value
     #     do 'np.mean(maxtab, 0)[1]' on the results
 
-    y_axis, x_axis = np.histogram(img.to_hsv().get_ndarray()[:, :, 2],
+    y_axis, x_axis = np.histogram(img.to_hsv().get_ndarray()[:, :, 0],
                                   bins=bins)
     x_axis = x_axis[0:bins]
     lookahead = int(bins / 17)

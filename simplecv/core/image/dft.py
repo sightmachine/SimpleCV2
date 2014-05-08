@@ -920,7 +920,7 @@ def apply_butterworth_filter(img, dia=400, order=2, highpass=False,
 
     # numpy arrays are in row-major form...
     # doesn't matter for symmetric filter
-    flt = Factory.Factory.Image(flt)
+    flt = Factory.Image(flt)
     flt_re = flt.resize(w, h)
     return img.apply_dft_filter(flt_re, grayscale)
 
