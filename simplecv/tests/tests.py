@@ -178,65 +178,6 @@ def test_segmentation_color():
     assert blobs
 
 
-def test_blit_regular():
-    top = Image(topImg)
-    bottom = Image(bottomImg)
-    results = []
-    results.append(bottom.blit(top))
-    results.append(bottom.blit(top, pos=(-10, -10)))
-    results.append(bottom.blit(top, pos=(-10, 10)))
-    results.append(bottom.blit(top, pos=(10, -10)))
-    results.append(bottom.blit(top, pos=(10, 10)))
-
-    name_stem = "test_blit_regular"
-    perform_diff(results, name_stem)
-
-
-def test_blit_mask():
-    top = Image(topImg)
-    bottom = Image(bottomImg)
-    mask = Image(maskImg)
-    results = []
-    results.append(bottom.blit(top, mask=mask))
-    results.append(bottom.blit(top, mask=mask, pos=(-50, -50)))
-    results.append(bottom.blit(top, mask=mask, pos=(-50, 50)))
-    results.append(bottom.blit(top, mask=mask, pos=(50, -50)))
-    results.append(bottom.blit(top, mask=mask, pos=(50, 50)))
-
-    name_stem = "test_blit_mask"
-    perform_diff(results, name_stem)
-
-
-def test_blit_alpha():
-    top = Image(topImg)
-    bottom = Image(bottomImg)
-    a = 0.5
-    results = []
-    results.append(bottom.blit(top, alpha=a))
-    results.append(bottom.blit(top, alpha=a, pos=(-50, -50)))
-    results.append(bottom.blit(top, alpha=a, pos=(-50, 50)))
-    results.append(bottom.blit(top, alpha=a, pos=(50, -50)))
-    results.append(bottom.blit(top, alpha=a, pos=(50, 50)))
-    name_stem = "test_blit_alpha"
-    perform_diff(results, name_stem)
-
-
-def test_blit_alpha_mask():
-    top = Image(topImg)
-    bottom = Image(bottomImg)
-    a_mask = Image(alphaMaskImg)
-    results = []
-
-    results.append(bottom.blit(top, alpha_mask=a_mask))
-    results.append(bottom.blit(top, alpha_mask=a_mask, pos=(-10, -10)))
-    results.append(bottom.blit(top, alpha_mask=a_mask, pos=(-10, 10)))
-    results.append(bottom.blit(top, alpha_mask=a_mask, pos=(10, -10)))
-    results.append(bottom.blit(top, alpha_mask=a_mask, pos=(10, 10)))
-
-    name_stem = "test_blit_alpha_mask"
-    perform_diff(results, name_stem)
-
-
 def test_imageset():
     imgs = ImageSet()
     assert isinstance(imgs, ImageSet)

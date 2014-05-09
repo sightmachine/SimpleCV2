@@ -841,6 +841,7 @@ def adaptive_scale(img, resolution, fit=True):
     targeth = resolution[1]
     if img.size == resolution:  # we have to resize
         ret_val = img
+        return ret_val
     elif img_ar == wndw_ar and fit:
         ret_val = img.resize(w=resolution[0], h=resolution[1])
         return ret_val
@@ -947,7 +948,7 @@ def adaptive_scale(img, resolution, fit=True):
 
     ret_val[targety:targety + targeth,
             targetx:targetx + targetw] = img.get_ndarray()
-    ret_val = Factory.Image(ret_val, color_space=img.color_space)
+    ret_val = Factory.Image(array=ret_val, color_space=img.color_space)
     return ret_val
 
 
@@ -1208,6 +1209,9 @@ def embiggen(img, size=None, color=Color.BLACK, pos=None):
 
     if not isinstance(size, tuple) and size > 1:
         size = (img.width * size, img.height * size)
+    elif size < 1:
+        logger.warning("embiggen size must be greater than 1")
+        return None
 
     if size is None or size[0] < img.width or size[1] < img.height:
         logger.warning("Image.embiggen: the size provided is invalid")

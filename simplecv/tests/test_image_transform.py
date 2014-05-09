@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-from nose.tools import assert_equals
+from nose.tools import assert_equals, assert_is_none
 
 
 from simplecv.tests.utils import perform_diff, create_test_image
@@ -10,7 +10,14 @@ from simplecv.core.image.transform import MAX_DIMENSION
 
 testimage = "../data/sampleimages/9dots4lines.png"
 testimage2 = "../data/sampleimages/aerospace.jpg"
-topimg = "../data/sampleimages/RatTop.png"
+
+#alpha masking images
+topImg = "../data/sampleimages/RatTop.png"
+bottomImg = "../data/sampleimages/RatBottom.png"
+maskImg = "../data/sampleimages/RatMask.png"
+alphaMaskImg = "../data/sampleimages/RatAlphaMask.png"
+alphaSrcImg = "../data/sampleimages/GreenMaskSource.png"
+
 
 
 def test_image_flip_vertical():
@@ -177,6 +184,33 @@ def test_image_crop():
     name_stem = "test_image_crop"
     perform_diff(results, name_stem)
 
+    # smart crop
+    img = Image("simplecv")
+    crop_img = img.crop(50, 100, 500, 500, smart=True)
+    np_arr = img.get_ndarray()[100:, 50:].copy()
+    assert_equals(np_arr.data, crop_img.get_ndarray().data)
+
+    # feature crop
+    lines = img.find_lines()
+    crop_img = img.crop(lines[0])
+
+    # tuple and list
+    np_arr = img.get_ndarray()[10:60, :50].copy()
+    crop_img = img.crop(((0, 10), (20, 10), (50, 50), (0, 60)))
+    assert_equals(np_arr.data, crop_img.get_ndarray().data)
+    crop_img = img.crop([(0, 10), (20, 10), (50, 50), (0, 60)])
+    assert_equals(np_arr.data, crop_img.get_ndarray().data)
+    crop_img = img.crop((0, 10, 50, 50))
+    assert_equals(np_arr.data, crop_img.get_ndarray().data)
+    
+    # invalid tuple/list
+    assert_is_none(img.crop(((0, 10), (20, 10, 20),
+                  (50, 50, 30), (0, 60, 40))))
+    assert_is_none(img.crop(x=((0, 10), 2, 3, 4, 5), y=(0, 1, 2, 3, 4, 5)))
+    assert_is_none(img.crop(x=[((0, 10), 0), 1, 2, 3, 4, 5]))
+    assert_is_none(img.crop(x=[(0, 10, 20), (10, 20, 30)]))
+    assert_is_none(img.crop(x=(0, 10, 20), y=(20, 30, 40)))
+    assert_is_none(img.crop(x=50))
 
 def test_image_region_select():
     img = Image(source='simplecv')
@@ -189,6 +223,12 @@ def test_image_region_select():
     results = [crop]
     name_stem = "test_image_region_select"
     perform_diff(results, name_stem)
+
+    # invalid params
+    assert_is_none(img.region_select(0, 10, 10, 10))
+    assert_is_none(img.region_select(10, 10, 0, 10))
+    assert_is_none(img.region_select(0, 10, img.width+10, 10))
+    assert_is_none(img.region_select(0, 10, 10, img.height+20))
 
 
 def test_embiggen():
@@ -210,6 +250,11 @@ def test_embiggen():
     results.append(img.embiggen(size=(w, h), color=Color.RED, pos=(-20, 30)))
     name_stem = "test_embiggen"
     perform_diff(results, name_stem)
+
+    # non bgr/gray image
+    assert_is_none(img.to_hsv().embiggen(size=(w, h), color=Color.RED))
+    assert_is_none(img.embiggen(size=1.2, pos=(1000, 1000)))
+    assert_is_none(img.embiggen(size=0.5))
 
 
 def test_apply_side_by_side():
@@ -268,3 +313,139 @@ def test_resize():
 
     img5 = img.resize(h=MAX_DIMENSION + 1)
     assert img5 is None
+
+    # w/h None
+    assert_is_none(img.resize())
+
+def test_image_scale():
+    img = Image("simplecv")
+    img1 = img.scale(0.5)
+    img2 = img.scale(5.0)
+
+    assert_equals(img1.size, (img.width/2, img.height/2))
+    assert_equals(img2.size, (img.width*5, img.height*5))
+
+    # large/small scale ratio
+    assert_equals(img, img.scale(1000))
+    assert_equals(img, img.scale(0.0001))
+
+def test_image_transpose():
+    img = Image("lenna")
+    new_img = img.resize(w=256, h=512)
+    t_img = new_img.transpose()
+    assert_equals(t_img.size, (512, 256))
+
+def test_image_split():
+    img = Image("lenna")
+    splits = img.split(8, 4)
+    assert_equals(len(splits), 4)
+    assert_equals(len(splits[0]), 8)
+
+    np_array = img.get_ndarray()
+
+    row = 0
+    col = 0
+    for split in splits:
+        col = 0
+        for split_img in split:
+            assert_equals(split_img.size, (64, 128))
+            np_arr = np_array[row:row+128, col:col+64].copy()
+            assert_equals(split_img.get_ndarray().data, np_arr.data)
+            col += 64
+        row += 128
+
+def test_image_adaptive_scale():
+    img = Image("simplecv")
+    w, h = img.size
+
+    new_img = img.adaptive_scale(img.size) # no resize
+    assert_equals(new_img, img)
+    new_img = img.adaptive_scale((img.width/2, img.height/2))
+    
+    new_img = img.adaptive_scale((img.width/3, img.height/4))
+    assert_equals(new_img.size, (img.width/3, img.height/4))
+
+    new_img = img.adaptive_scale((img.width*1.1, img.height*1.2))
+    assert_equals(new_img.size, (img.width*1.1, img.height*1.2))
+
+    new_img = img.adaptive_scale((img.width*1.1, img.height*0.3))
+    assert_equals(new_img.size, (img.width*1.1, img.height*0.3))
+
+    new_img = img.adaptive_scale((img.width*0.5, img.height*1.2))
+    assert_equals(new_img.size, (img.width*0.5, img.height*1.2))
+
+    new_img = img.adaptive_scale((img.width/3, img.height/4), fit=False)
+    assert_equals(new_img.size, (img.width/3, img.height/4))
+
+    new_img = img.adaptive_scale((img.width*1.1, img.height*1.2), fit=False)
+    assert_equals(new_img.size, (img.width*1.1, img.height*1.2))
+
+    new_img = img.adaptive_scale((img.width*1.1, img.height*0.3), fit=False)
+    assert_equals(new_img.size, (img.width*1.1, img.height*0.3))
+
+    new_img = img.adaptive_scale((img.width*0.5, img.height*1.2), fit=False)
+    assert_equals(new_img.size, (img.width*0.5, img.height*1.2))
+
+def test_blit_regular():
+    top = Image(topImg)
+    bottom = Image(bottomImg)
+    results = []
+    results.append(bottom.blit(top))
+    results.append(bottom.blit(top, pos=(-10, -10)))
+    results.append(bottom.blit(top, pos=(-10, 10)))
+    results.append(bottom.blit(top, pos=(10, -10)))
+    results.append(bottom.blit(top, pos=(10, 10)))
+
+    name_stem = "test_blit_regular"
+    perform_diff(results, name_stem)
+
+
+def test_blit_mask():
+    top = Image(topImg)
+    bottom = Image(bottomImg)
+    mask = Image(maskImg)
+    results = []
+    results.append(bottom.blit(top, mask=mask))
+    results.append(bottom.blit(top, mask=mask, pos=(-50, -50)))
+    results.append(bottom.blit(top, mask=mask, pos=(-50, 50)))
+    results.append(bottom.blit(top, mask=mask, pos=(50, -50)))
+    results.append(bottom.blit(top, mask=mask, pos=(50, 50)))
+
+    name_stem = "test_blit_mask"
+    perform_diff(results, name_stem)
+
+    # mask size mismatch
+    assert_is_none(bottom.blit(top, mask=mask.resize(mask.width/2)))
+
+
+def test_blit_alpha():
+    top = Image(topImg)
+    bottom = Image(bottomImg)
+    a = 0.5
+    results = []
+    results.append(bottom.blit(top, alpha=a))
+    results.append(bottom.blit(top, alpha=a, pos=(-50, -50)))
+    results.append(bottom.blit(top, alpha=a, pos=(-50, 50)))
+    results.append(bottom.blit(top, alpha=a, pos=(50, -50)))
+    results.append(bottom.blit(top, alpha=a, pos=(50, 50)))
+    name_stem = "test_blit_alpha"
+    perform_diff(results, name_stem)
+
+
+def test_blit_alpha_mask():
+    top = Image(topImg)
+    bottom = Image(bottomImg)
+    a_mask = Image(alphaMaskImg)
+    results = []
+
+    results.append(bottom.blit(top, alpha_mask=a_mask))
+    results.append(bottom.blit(top, alpha_mask=a_mask, pos=(-10, -10)))
+    results.append(bottom.blit(top, alpha_mask=a_mask, pos=(-10, 10)))
+    results.append(bottom.blit(top, alpha_mask=a_mask, pos=(10, -10)))
+    results.append(bottom.blit(top, alpha_mask=a_mask, pos=(10, 10)))
+
+    name_stem = "test_blit_alpha_mask"
+    perform_diff(results, name_stem)
+
+    # alphas mask size mismatch
+    assert_is_none(bottom.blit(top, alpha_mask=a_mask.resize(a_mask.width/2)))
