@@ -16,7 +16,7 @@ import cv2
 import numpy as np
 from nose.tools import assert_equals, assert_list_equal, assert_tuple_equal, \
     assert_true, assert_false, assert_greater, assert_less, \
-    assert_is_instance, nottest
+    assert_is_instance, nottest, assert_is_none
 
 from simplecv.base import logger
 from simplecv.color import Color, ColorMap
@@ -32,6 +32,8 @@ from simplecv.linescan import LineScan
 from simplecv.segmentation.color_segmentation import ColorSegmentation
 from simplecv.segmentation.diff_segmentation import DiffSegmentation
 from simplecv.segmentation.running_segmentation import RunningSegmentation
+from simplecv.stream import JpegStreamer, VideoStream
+from simplecv.display import Display
 
 from simplecv.tests.utils import perform_diff
 
@@ -528,6 +530,160 @@ def test_save_kwargs():
     os.remove(l80)
     os.remove(l70)
 
+    # invalid path
+    img.save(path="/home/unkown_user/desktop/lena.jpg", temp=True)
+    img.save(filename="lena")
+    assert os.path.exists("lena.png")
+    os.remove('lena.png')
+
+    img.filename = "lena.png"
+    img.save(verbose=True)
+    assert os.path.exists("lena.png")
+    os.remove('lena.png')
+
+    img.filename = None
+    img.filehandle = "lena.png"
+    img.save()
+    assert os.path.exists("lena.png")
+    os.remove('lena.png')
+
+    # JpegStreamer
+    js = JpegStreamer()
+    img.save(js)
+
+    # VideoStreamer
+    vs = VideoStream("video_stream_test.avi")
+    img.save(vs)
+    assert os.path.exists("video_stream_test.avi")
+    os.remove("video_stream_test.avi")
+
+    # Display
+    d = Display()
+    img.save(d)
+    d.quit()
+
+    # ipython notebook
+    d = Display(displaytype="notebook")
+    img.save(d)
+    d.quit()
+
+def test_delete_temp_files():
+    img = Image("lenna")
+    img_paths = []
+    img_paths.append(img.save(temp=True, clean_temp=True))
+    img_paths.append(img.save(temp=True, clean_temp=True))
+    img_paths.append(img.save(temp=True, clean_temp=True))
+
+    for path in img_paths:
+        assert os.path.exists(path)
+    
+    img.delete_temp_files()
+
+    for path in img_paths:
+        assert not os.path.exists(path)
+
+def test_insert_drawing_layer():
+    img = Image("simplecv")
+    dl1 = DrawingLayer((img.width, img.height))
+    dl2 = DrawingLayer((img.width, img.height))
+    img.insert_drawing_layer(dl2, 1)
+    img.insert_drawing_layer(dl1, 2)
+    assert_equals(len(img._layers), 2)
+    assert_equals(img._layers[1], dl1)
+    assert_equals(img._layers[0], dl2)
+
+def test_add_drawing_layer():
+    img = Image("simplecv")
+    dl1 = DrawingLayer((img.width, img.height))
+    dl2 = DrawingLayer((img.width, img.height))
+    img.add_drawing_layer(dl1)
+    img.add_drawing_layer(dl2)
+    assert_is_none(img.add_drawing_layer())
+    assert_is_none(img.add_drawing_layer(1))
+    assert_equals(len(img._layers), 2)
+    assert_equals(img._layers[0], dl1)
+    assert_equals(img._layers[1], dl2)
+
+def test_remove_drawing_layer():
+    img = Image("simplecv")
+    dl1 = DrawingLayer((img.width, img.height))
+    dl2 = DrawingLayer((img.width, img.height))
+    img.add_drawing_layer(dl1)
+    img.add_drawing_layer(dl2)
+    assert_is_none(img.remove_drawing_layer(3))
+    assert_equals(img.remove_drawing_layer(), dl2)
+    assert_equals(img.remove_drawing_layer(), dl1)
+    assert_is_none(img.remove_drawing_layer())
+
+def test_apply_layers():
+    img = Image((100, 100))
+    assert_equals(img, img.apply_layers())
+
+    dl1 = DrawingLayer((img.width, img.height))
+    dl1.rectangle((10, 10), (10, 10), color=(255, 0, 0))
+    dl2 = DrawingLayer((img.width, img.height))
+    dl2.rectangle((30, 30), (10, 10), color=(0, 255, 0))
+    dl3 = DrawingLayer((img.width, img.height))
+    dl3.rectangle((50, 50), (10, 10), color=(0, 0, 255))
+    img.add_drawing_layer(dl1)
+    img.add_drawing_layer(dl2)
+    img.add_drawing_layer(dl3)
+    new_img = img.apply_layers()
+    assert_equals(new_img[10, 10], [255, 0, 0])
+    assert_equals(new_img[30, 30], [0, 255, 0])
+    assert_equals(new_img[50, 50], [0, 0, 255])
+
+    img = Image((100, 100))
+    img.add_drawing_layer(dl1)
+    img.add_drawing_layer(dl2)
+    img.add_drawing_layer(dl3)
+    new_img = img.apply_layers([0, 2])
+
+    assert_equals(new_img[10, 10], [255, 0, 0])
+    assert_equals(new_img[30, 30], [0, 0, 0])
+    assert_equals(new_img[50, 50], [0, 0, 255])
+
+def test_get_drawing_layer():
+    img = Image((100, 100))
+    assert_equals(len(img._layers), 0)
+    img.get_drawing_layer()
+    assert_equals(len(img._layers), 1)
+    dl1 = DrawingLayer((img.width, img.height))
+    dl2 = DrawingLayer((img.width, img.height))
+    dl3 = DrawingLayer((img.width, img.height))
+    img.add_drawing_layer(dl1)
+    img.add_drawing_layer(dl2)
+    img.add_drawing_layer(dl3)
+    
+    assert_equals(img.get_drawing_layer(2), dl2)
+    assert_equals(img.get_drawing_layer(), dl3)
+
+def test_clear_layers():
+    img = Image((100, 100))
+    dl1 = DrawingLayer((img.width, img.height))
+    dl2 = DrawingLayer((img.width*2, img.height))
+    dl3 = DrawingLayer((img.width, img.height*2))
+    img.add_drawing_layer(dl1)
+    img.add_drawing_layer(dl2)
+    img.add_drawing_layer(dl3)
+
+    assert_equals(len(img._layers), 3)
+
+    img.clear_layers()
+    assert_equals(len(img._layers), 0)
+
+def test_layers():
+    img = Image((100, 100))
+    dl1 = DrawingLayer((img.width, img.height))
+    dl2 = DrawingLayer((img.width*2, img.height))
+    dl3 = DrawingLayer((img.width, img.height*2))
+    img.add_drawing_layer(dl1)
+    img.add_drawing_layer(dl2)
+    img.add_drawing_layer(dl3)
+
+    assert_equals(len(img._layers), 3)
+    assert_equals(img.layers(), [dl1, dl2, dl3])
+    
 
 def test_features_on_edge():
     img1 = "./../data/sampleimages/EdgeTest1.png"

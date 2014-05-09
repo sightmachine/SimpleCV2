@@ -454,7 +454,8 @@ class Image(CoreImage):
         """
 
         if not isinstance(layer, DrawingLayer):
-            return "Please pass a DrawingLayer object"
+            logger.warning("Please pass a DrawingLayer object")
+            return None
 
         if not layer:
             layer = DrawingLayer(self.size)
@@ -657,7 +658,8 @@ class Image(CoreImage):
         :py:meth:`blit`
 
         """
-        for i in self._layers:
+        layers = self._layers[:]
+        for i in layers:
             self._layers.remove(i)
 
     def layers(self):
