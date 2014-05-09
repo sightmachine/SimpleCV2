@@ -7,6 +7,8 @@ from nose.tools import assert_equals, assert_list_equal, assert_is_none
 from simplecv.tests.utils import perform_diff
 from simplecv.image import Image
 
+testimageclr = "../data/sampleimages/statue_liberty.jpg"
+bottomImg = "../data/sampleimages/RatBottom.png"
 
 def test_color_meancolor():
     a = np.arange(0, 256)
@@ -165,3 +167,346 @@ def test_image_hue_peaks():
     hsv_img = Image(array=hsv_array, color_space=Image.HSV)
     hist1 = hsv_img.hue_peaks()
     assert_equals(math.ceil(hist1[0][0]), 80)
+
+def test_image_re_palette():
+    img = Image(testimageclr)
+    img = img.scale(0.1)  # scale down the image to reduce test time
+    img2 = Image(bottomImg)
+    img2 = img2.scale(0.1)  # scale down the image to reduce test time
+    p = img.get_palette()
+    img3 = img2.to_hsv().re_palette(p)
+    p = img.get_palette(hue=True)
+    img4 = img2.re_palette(p, hue=True)
+    assert all(map(lambda a: isinstance(a, Image), [img3, img4]))
+
+def test_image_get_threshold_crossing():
+    np_array = np.arange(0, 256, dtype=np.uint8).reshape(16,16)
+    img = Image(array=np_array)
+    pt1 = (1, 5)
+    pt2 = (13, 13)
+    threshold = 140
+
+    retval = img.get_threshold_crossing(pt1, pt2, threshold)
+    assert_equals(retval, (6, 8))
+
+    retval = img.get_threshold_crossing(pt1, pt2, threshold,
+                                       departurethreshold=5)
+    assert_equals(retval, (6, 8))
+
+    retval = img.get_threshold_crossing(pt1, pt2, threshold, False)
+    assert_equals(retval, (-1, -1))
+
+    retval = img.get_threshold_crossing(pt2, pt1, threshold, False)
+    assert_equals(retval, (7, 9))
+
+def test_image_get_diagonal_scanline_grey():
+    np_array = np.arange(0, 256, dtype=np.uint8).reshape(16,16)
+    img = Image(array=np_array)
+    pt1 = (5, 5)
+    pt2 = (8, 8)
+
+    scanline = img.get_diagonal_scanline_grey(pt1, pt2)
+    expected_scanline = np.array([85, 85, 102, 119]).astype(img.dtype)
+    assert_equals(scanline.data, expected_scanline.data)
+
+def test_image_get_line_scan():
+    def lsstuff(ls):
+        def a_line(x, m, b):
+            return m * x + b
+
+        ls2 = ls.smooth(degree=4)
+        ls2 = ls2.normalize()
+        ls2 = ls2.scale(value_range=[-1, 1])
+        ls2 = ls2.derivative()
+        ls2 = ls2.resample(100)
+        ls2 = ls2.convolve([.25, 0.25, 0.25, 0.25])
+        ls2.minima()
+        ls2.maxima()
+        ls2.local_minima()
+        ls2.local_maxima()
+        fft, f = ls2.fft()
+        ls3 = ls2.ifft(fft)
+        ls4 = ls3.fit_to_model(a_line)
+        ls4.get_model_parameters(a_line)
+
+    img = Image("lenna")
+    ls = img.get_line_scan(x=128, channel=1)
+    lsstuff(ls)
+    ls = img.get_line_scan(y=128)
+    lsstuff(ls)
+    ls = img.get_line_scan(pt1=(0, 0), pt2=(128, 128), channel=2)
+    lsstuff(ls)
+
+    # incorrect scanline params
+    assert_is_none(img.get_line_scan(x=-10))
+    assert_is_none(img.get_line_scan(x=img.width))
+    assert_is_none(img.get_line_scan(x=img.width+10))
+
+    assert_is_none(img.get_line_scan(y=-10))
+    assert_is_none(img.get_line_scan(y=img.height))
+    assert_is_none(img.get_line_scan(y=img.height+10))
+
+    assert_is_none(img.get_line_scan())
+
+def test_image_set_line_scan():
+
+    # grey linescan
+    np_array = np.arange(0, 256, dtype=np.uint8).reshape(16,16)
+    img = Image(array=np_array)
+
+    # x linescan
+    x_linescan = img.get_line_scan(x=10)
+    x_linescan.reverse()
+    new_img = img.set_line_scan(x_linescan, x=8)
+    new_linescan = new_img.get_line_scan(x=8)
+    assert_equals(x_linescan, new_linescan)
+
+    #incorrect x value
+    assert_is_none(img.set_line_scan(x_linescan, x=-1))
+    assert_is_none(img.set_line_scan(x_linescan, x=img.width))
+    assert_is_none(img.set_line_scan(x_linescan, x=img.width+5))
+
+    #provide no params
+    new_img = img.set_line_scan(x_linescan)
+    new_linescan = new_img.get_line_scan(x=10)
+    assert_equals(x_linescan, new_linescan)
+
+    # y linescan
+    y_linescan = img.get_line_scan(y=5)
+    y_linescan.reverse()
+    new_img = img.set_line_scan(y_linescan, y=10)
+    new_linescan = new_img.get_line_scan(y=10)
+    assert_equals(y_linescan, new_linescan)
+
+    #incorrect y value
+    assert_is_none(img.set_line_scan(y_linescan, y=-1))
+    assert_is_none(img.set_line_scan(y_linescan, y=img.height))
+    assert_is_none(img.set_line_scan(y_linescan, y=img.height+5))
+
+    #provide no params
+    new_img = img.set_line_scan(y_linescan)
+    new_linescan = new_img.get_line_scan(y=5)
+    assert_equals(y_linescan, new_linescan)
+
+    # provide points
+    linescan = img.get_line_scan(pt1=(5, 5), pt2=(8, 8))
+    linescan.reverse()
+    new_img = img.set_line_scan(linescan, pt1=(8, 8), pt2=(11, 5)) # no resampling
+    new_linescan = new_img.get_line_scan(pt1=(8, 8), pt2=(11, 5))
+    assert_equals(linescan, new_linescan)
+
+    resampled_linecan = linescan.resample(img.height)
+    new_img = img.set_line_scan(linescan, x=5)
+    new_linescan = new_img.get_line_scan(x=5)
+    resampled_linecan = [int(x) for x in resampled_linecan]
+    assert_equals(resampled_linecan, new_linescan)
+
+    # provide no params
+    new_img = img.set_line_scan(linescan)
+    new_linescan = new_img.get_line_scan(pt1=linescan.pt1, pt2=linescan.pt2)
+    assert_equals(linescan, new_linescan)
+
+    # make linescan points None
+    linescan.pt1 = None
+    linescan.pt2 = None
+    assert_is_none(new_img.set_line_scan(linescan))
+
+    # For color image
+    np_array = np.arange(0, 256, dtype=np.uint8).reshape(16,16)
+    np_arr = np.arange(255, -1, -1, dtype=np.uint8).reshape(16, 16)
+    np_array = np.dstack((np_array, np_arr, np_array))
+    img = Image(array=np_array)
+
+    x_linescan = img.get_line_scan(x=10, channel=0)
+    x_linescan.reverse()
+    new_img = img.set_line_scan(x_linescan, x=8, channel=1)
+    new_linescan = new_img.get_line_scan(x=8, channel=1)
+    assert_equals(x_linescan, new_linescan)
+
+def test_image_replace_line_scan():
+    np_array = np.arange(0, 256, dtype=np.uint8).reshape(16,16)
+    img = Image(array=np_array)
+
+    # x linescan
+    x_linescan = img.get_line_scan(x=10)
+    x_linescan.reverse()
+    new_img = img.replace_line_scan(x_linescan)
+
+    new_linescan = new_img.get_line_scan(x=10)
+    assert_equals(x_linescan, new_linescan)
+
+    # size mismatch
+    r_linescan = x_linescan.resample(40)
+    assert_is_none(img.replace_line_scan(r_linescan))
+
+    # y linescan
+    y_linescan = img.get_line_scan(y=5)
+    y_linescan.reverse()
+    new_img = img.replace_line_scan(y_linescan)
+
+    new_linescan = new_img.get_line_scan(y=5)
+    assert_equals(y_linescan, new_linescan)
+
+    # size mismatch
+    r_linescan = y_linescan.resample(5)
+    assert_is_none(img.replace_line_scan(r_linescan))
+
+    #provide points
+    linescan = img.get_line_scan(pt1=(5, 5), pt2=(8, 2))
+    new_img = img.replace_line_scan(linescan)
+    new_linescan = img.get_line_scan(pt1=(5, 5), pt2=(8, 2))
+    assert_equals(linescan, new_linescan)
+
+    # resampling
+    r_linescan = linescan.resample(15)
+    rr_linescan = r_linescan.resample(4) # lenght of points
+
+    new_img = img.replace_line_scan(r_linescan)
+    new_linescan = new_img.get_line_scan(pt1=(5, 5), pt2=(8, 2))
+    rr_linescan = [int(x) for x in rr_linescan]
+    assert_equals(rr_linescan, new_linescan)
+
+    # provide params
+    new_img = img.replace_line_scan(x_linescan, x=5)
+    new_linescan = new_img.get_line_scan(x=5)
+    assert_equals(x_linescan, new_linescan)
+
+    new_img = img.replace_line_scan(y_linescan, y=9)
+    new_linescan = new_img.get_line_scan(y=9)
+    assert_equals(y_linescan, new_linescan)
+
+    new_img = img.replace_line_scan(linescan, pt1=(11, 11), pt2=(8, 14))
+    new_linescan = new_img.get_line_scan(pt1=(11, 11), pt2=(8, 14))
+    assert_equals(linescan, new_linescan)
+
+    # provide channels in color images
+    np_array = np.arange(0, 256, dtype=np.uint8).reshape(16,16)
+    np_arr = np.arange(255, -1, -1, dtype=np.uint8).reshape(16, 16)
+    np_array = np.dstack((np_array, np_arr, np_array))
+    img = Image(array=np_array)
+
+    x_linescan = img.get_line_scan(x=10, channel=0)
+    x_linescan.reverse()
+    new_img = img.replace_line_scan(x_linescan)
+    new_linescan = new_img.get_line_scan(x=10, channel=0)
+    assert_equals(x_linescan, new_linescan)
+
+def test_image_get_pixels_online():
+    np_array = np.arange(0, 256, dtype=np.uint8).reshape(16,16)
+    img = Image(array=np_array)
+    pts = img.get_pixels_online(pt1=(5, 5), pt2=(2, 8))
+    assert_equals(len(pts), 4)
+    assert_equals(pts, [85, 100, 115, 130])
+
+    # invlaid points
+    assert_is_none(img.get_pixels_online(5, 6))
+    assert_is_none(img.get_pixels_online((5, 5, 1), (6, 6, 0)))
+
+def test_image_logical_and():
+    img = Image("lenna")
+    img1 = img.logical_and(img.invert())
+    assert not img1.get_ndarray().all()
+
+    img2 = img.logical_and(img.invert(), grayscale=False)
+    assert not img2.get_ndarray().all()
+
+    # size mismatch
+    assert_is_none(img.logical_and(img.resize(img.width/2, img.height/2)))
+
+def test_image_logical_or():
+    img = Image("lenna")
+    img1 = img.logical_or(img.invert())
+    assert img1.get_ndarray().all()
+
+    img2 = img.logical_or(img.invert(), grayscale=False)
+    assert img2.get_ndarray().all()
+
+    # size mismatch
+    assert_is_none(img.logical_or(img.resize(img.width/2, img.height/2)))
+
+def test_image_logical_nand():
+    img = Image("lenna")
+    img1 = img.logical_nand(img.invert())
+    assert img1.get_ndarray().all()
+
+    img2 = img.logical_nand(img.invert(), grayscale=False)
+    assert img2.get_ndarray().all()
+
+    # size mismatch
+    assert_is_none(img.logical_nand(img.resize(img.width/2, img.height/2)))
+
+def test_image_logical_xor():
+    img = Image("lenna")
+    img1 = img.logical_xor(img.invert())
+    assert img1.get_ndarray().all()
+
+    img2 = img.logical_xor(img.invert(), grayscale=False)
+    assert img2.get_ndarray().all()
+
+    # size mismatch
+    assert_is_none(img.logical_xor(img.resize(img.width/2, img.height/2)))
+
+def test_image_histograms():
+    img = Image('lenna')
+    h = img.vertical_histogram()
+    assert_list_equal([14529, 5660,  4727,  7878,  12915,
+                       21381, 17274, 15408, 16442, 15384], h.tolist())
+    h = img.horizontal_histogram()
+    assert_list_equal([14115, 12981, 15231, 15310, 12256,
+                       13430, 13668, 11019, 12914, 10674], h.tolist())
+
+    h = img.vertical_histogram(bins=3)
+    assert_list_equal([27401, 51905, 52292], h.tolist())
+    h = img.horizontal_histogram(bins=3)
+    assert_list_equal([48418, 44229, 38951], h.tolist())
+
+    h = img.vertical_histogram(threshold=10)
+    assert_list_equal([26624, 26112, 26112, 26112, 26112,
+                       26624, 26112, 26112, 26112, 26112], h.tolist())
+    h = img.horizontal_histogram(threshold=255)
+    assert_list_equal([0, 0, 0, 0, 0, 0, 0, 0, 0, 0], h.tolist())
+
+    h = img.vertical_histogram(normalize=True)
+    assert_list_equal([0.0021563362000182377, 0.0008400346129880394,
+                       0.0007015624762534386, 0.0011692213217526103,
+                       0.0019167927609082206, 0.0031732826961655956,
+                       0.0025637381457165004, 0.0022867938722472988,
+                       0.002440256025927446,  0.0022832318880226144],
+                      h.tolist())
+    h = img.horizontal_histogram(normalize=True)
+    assert_list_equal([0.002094891972142434,  0.0019265882175261023,
+                       0.0022605242385902525, 0.002272249103329838,
+                       0.0018189866107387652, 0.0019932270057295707,
+                       0.0020285500159576897, 0.0016353960071581635,
+                       0.0019166443448988587, 0.0015841924839283272],
+                      h.tolist())
+
+    h = img.vertical_histogram(for_plot=True, normalize=True)
+    assert_equals(3, len(h))
+    assert_list_equal([0.0, 51.2, 102.4, 153.60000000000002, 204.8,
+                       256.0, 307.20000000000005, 358.40000000000003,
+                       409.6, 460.8], h[0].tolist())
+    assert_list_equal([0.0021563362000182377, 0.0008400346129880394,
+                       0.0007015624762534386, 0.0011692213217526103,
+                       0.0019167927609082206, 0.0031732826961655956,
+                       0.0025637381457165004, 0.0022867938722472988,
+                       0.002440256025927446,  0.0022832318880226144],
+                      h[1].tolist())
+    assert_equals(51, h[2])
+    h = img.horizontal_histogram(for_plot=True, normalize=True)
+    assert_list_equal([0.0, 51.2, 102.4, 153.60000000000002, 204.8,
+                       256.0, 307.20000000000005, 358.40000000000003,
+                       409.6, 460.8], h[0].tolist())
+    assert_list_equal([0.002094891972142434,  0.0019265882175261023,
+                       0.0022605242385902525, 0.002272249103329838,
+                       0.0018189866107387652, 0.0019932270057295707,
+                       0.0020285500159576897, 0.0016353960071581635,
+                       0.0019166443448988587, 0.0015841924839283272],
+                      h[1].tolist())
+    assert_equals(51, h[2])
+
+    # incorrect bin values
+    assert_is_none(img.vertical_histogram(bins=0))
+    assert_is_none(img.vertical_histogram(bins=-3))
+    assert_is_none(img.horizontal_histogram(bins=0))
+    assert_is_none(img.horizontal_histogram(bins=-3))

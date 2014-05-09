@@ -1431,13 +1431,13 @@ def get_diagonal_scanline_grey(img, pt1, pt2):
 
     width = round(math.sqrt(
         math.pow(pt2[0] - pt1[0], 2) + math.pow(pt2[1] - pt1[1], 2)))
-    ret_val = np.zeros(width)
+    ret_val = np.zeros(width).astype(img.dtype)
 
     for x in range(0, ret_val.size):
         xind = pt1[0] + int(round((pt2[0] - pt1[0]) * x / ret_val.size))
         yind = pt1[1] + int(round((pt2[1] - pt1[1]) * x / ret_val.size))
         current_pixel = img.get_pixel(xind, yind)
-        ret_val[x] = current_pixel[0]
+        ret_val[x] = current_pixel
     return ret_val
 
 
@@ -1613,7 +1613,7 @@ def set_line_scan(img, linescan, x=None, y=None, pt1=None, pt2=None,
                 linescan = linescan.resample(img.height)
             #check for number of points
             #linescan = np.array(linescan)
-            img_array[x, :] = np.clip(linescan[:], 0, 255)
+            img_array[:, x] = np.clip(linescan[:], 0, 255)
         else:
             logger.warn("ImageClass.set_line_scan: No coordinates to "
                         "re-insert linescan.")
@@ -1624,7 +1624,7 @@ def set_line_scan(img, linescan, x=None, y=None, pt1=None, pt2=None,
                 linescan = linescan.resample(img.width)
             #check for number of points
             #linescan = np.array(linescan)
-            img_array[:, y] = np.clip(linescan[:], 0, 255)
+            img_array[y, :] = np.clip(linescan[:], 0, 255)
         else:
             logger.warn("ImageClass.set_line_scan: No coordinates to "
                         "re-insert linescan.")
@@ -1640,7 +1640,7 @@ def set_line_scan(img, linescan, x=None, y=None, pt1=None, pt2=None,
         linescan = np.clip(linescan[:], 0, 255)
         idx = 0
         for pt in pts:
-            img_array[pt[0], pt[1]] = linescan[idx]
+            img_array[pt[1], pt[0]] = linescan[idx]
             idx = idx + 1
     else:
         logger.warn("ImageClass.set_line_scan: No coordinates to "
@@ -1731,7 +1731,7 @@ def replace_line_scan(img, linescan, x=None, y=None, pt1=None, pt2=None,
             ls = np.clip(linescan[:], 0, 255)
             idx = 0
             for pt in pts:
-                img_array[pt[0], pt[1]] = ls[idx]
+                img_array[pt[1], pt[0]] = ls[idx]
                 idx = idx + 1
 
         if linescan.channel == -1:
@@ -2057,7 +2057,8 @@ def vertical_histogram(img, bins=10, threshold=128, normalize=False,
 
     """
     if bins <= 0:
-        raise Exception("Not enough bins")
+        logger.warning("number of bins should be positive")
+        return None
 
     img_array = img.get_gray_ndarray()
     pts = np.where(img_array > threshold)
@@ -2125,7 +2126,8 @@ def horizontal_histogram(img, bins=10, threshold=128, normalize=False,
 
     """
     if bins <= 0:
-        raise Exception("Not enough bins")
+        logger.warning("number of bins should be positive")
+        return None
 
     img_array = img.get_gray_ndarray()
     pts = np.where(img_array > threshold)

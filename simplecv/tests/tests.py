@@ -371,19 +371,6 @@ def test_palettize():
     # huge tolerance
     assert all(map(lambda a: isinstance(a, Image), [img2, img3, img4, img5]))
 
-
-def test_repalette():
-    img = Image(testimageclr)
-    img = img.scale(0.1)  # scale down the image to reduce test time
-    img2 = Image(bottomImg)
-    img2 = img2.scale(0.1)  # scale down the image to reduce test time
-    p = img.get_palette()
-    img3 = img2.re_palette(p)
-    p = img.get_palette(hue=True)
-    img4 = img2.re_palette(p, hue=True)
-    assert all(map(lambda a: isinstance(a, Image), [img3, img4]))
-
-
 def test_draw_palette():
     img = Image(testimageclr)
     img = img.scale(0.1)  # scale down the image to reduce test time
@@ -852,66 +839,6 @@ def test_builtin_rotations():
     assert_equals(Color.BLACK, r5.mean_color())
 
 
-def test_histograms():
-    img = Image('lenna')
-    h = img.vertical_histogram()
-    assert_list_equal([14529, 5660,  4727,  7878,  12915,
-                       21381, 17274, 15408, 16442, 15384], h.tolist())
-    h = img.horizontal_histogram()
-    assert_list_equal([14115, 12981, 15231, 15310, 12256,
-                       13430, 13668, 11019, 12914, 10674], h.tolist())
-
-    h = img.vertical_histogram(bins=3)
-    assert_list_equal([27401, 51905, 52292], h.tolist())
-    h = img.horizontal_histogram(bins=3)
-    assert_list_equal([48418, 44229, 38951], h.tolist())
-
-    h = img.vertical_histogram(threshold=10)
-    assert_list_equal([26624, 26112, 26112, 26112, 26112,
-                       26624, 26112, 26112, 26112, 26112], h.tolist())
-    h = img.horizontal_histogram(threshold=255)
-    assert_list_equal([0, 0, 0, 0, 0, 0, 0, 0, 0, 0], h.tolist())
-
-    h = img.vertical_histogram(normalize=True)
-    assert_list_equal([0.0021563362000182377, 0.0008400346129880394,
-                       0.0007015624762534386, 0.0011692213217526103,
-                       0.0019167927609082206, 0.0031732826961655956,
-                       0.0025637381457165004, 0.0022867938722472988,
-                       0.002440256025927446,  0.0022832318880226144],
-                      h.tolist())
-    h = img.horizontal_histogram(normalize=True)
-    assert_list_equal([0.002094891972142434,  0.0019265882175261023,
-                       0.0022605242385902525, 0.002272249103329838,
-                       0.0018189866107387652, 0.0019932270057295707,
-                       0.0020285500159576897, 0.0016353960071581635,
-                       0.0019166443448988587, 0.0015841924839283272],
-                      h.tolist())
-
-    h = img.vertical_histogram(for_plot=True, normalize=True)
-    assert_equals(3, len(h))
-    assert_list_equal([0.0, 51.2, 102.4, 153.60000000000002, 204.8,
-                       256.0, 307.20000000000005, 358.40000000000003,
-                       409.6, 460.8], h[0].tolist())
-    assert_list_equal([0.0021563362000182377, 0.0008400346129880394,
-                       0.0007015624762534386, 0.0011692213217526103,
-                       0.0019167927609082206, 0.0031732826961655956,
-                       0.0025637381457165004, 0.0022867938722472988,
-                       0.002440256025927446,  0.0022832318880226144],
-                      h[1].tolist())
-    assert_equals(51, h[2])
-    h = img.horizontal_histogram(for_plot=True, normalize=True)
-    assert_list_equal([0.0, 51.2, 102.4, 153.60000000000002, 204.8,
-                       256.0, 307.20000000000005, 358.40000000000003,
-                       409.6, 460.8], h[0].tolist())
-    assert_list_equal([0.002094891972142434,  0.0019265882175261023,
-                       0.0022605242385902525, 0.002272249103329838,
-                       0.0018189866107387652, 0.0019932270057295707,
-                       0.0020285500159576897, 0.0016353960071581635,
-                       0.0019166443448988587, 0.0015841924839283272],
-                      h[1].tolist())
-    assert_equals(51, h[2])
-
-
 def test_blob_full_masks():
     img = Image('lenna')
     b = img.find_blobs()
@@ -944,36 +871,6 @@ def test_blob_edge_images():
     m4 = b[-1].get_full_hull_edge_image()
     assert_is_instance(m4, Image)
     assert_equals(m4.size, img.size)
-
-
-def test_line_scan():
-    def lsstuff(ls):
-        def a_line(x, m, b):
-            return m * x + b
-
-        ls2 = ls.smooth(degree=4)
-        ls2 = ls2.normalize()
-        ls2 = ls2.scale(value_range=[-1, 1])
-        ls2 = ls2.derivative()
-        ls2 = ls2.resample(100)
-        ls2 = ls2.convolve([.25, 0.25, 0.25, 0.25])
-        ls2.minima()
-        ls2.maxima()
-        ls2.local_minima()
-        ls2.local_maxima()
-        fft, f = ls2.fft()
-        ls3 = ls2.ifft(fft)
-        ls4 = ls3.fit_to_model(a_line)
-        ls4.get_model_parameters(a_line)
-
-    img = Image("lenna")
-    ls = img.get_line_scan(x=128, channel=1)
-    lsstuff(ls)
-    ls = img.get_line_scan(y=128)
-    lsstuff(ls)
-    ls = img.get_line_scan(pt1=(0, 0), pt2=(128, 128), channel=2)
-    lsstuff(ls)
-
 
 def test_uncrop():
     img = Image('lenna')
@@ -1009,30 +906,6 @@ def test_cluster():
     clusters2 = blobs.cluster(method="hierarchical")
     assert clusters2
 
-
-def test_logical_and():
-    img = Image("lenna")
-    img1 = img.logical_and(img.invert())
-    assert not img1.get_ndarray().all()
-
-
-def test_logical_or():
-    img = Image("lenna")
-    img1 = img.logical_or(img.invert())
-    assert img1.get_ndarray().all()
-
-
-def test_logical_nand():
-    img = Image("lenna")
-    img1 = img.logical_nand(img.invert())
-    assert img1.get_ndarray().all()
-
-
-def test_logical_xor():
-    img = Image("lenna")
-    img1 = img.logical_xor(img.invert())
-    assert img1.get_ndarray().all()
-
 def test_color_map():
     img = Image('../data/sampleimages/mtest.png')
     blobs = img.find_blobs()
@@ -1059,18 +932,6 @@ def test_minmax():
     assert_equals(245, max)
     for p in points:
         assert_equals(245, gray_img[p])
-
-def test_replace_line_scan():
-    img = Image("lenna")
-    ls = img.get_line_scan(x=100)
-    ls[50] = 0
-    newimg = img.replace_line_scan(ls)
-    assert_equals(0, newimg[50, 100])
-    ls = img.get_line_scan(x=100, channel=1)
-    ls[50] = 0
-    new_img = img.replace_line_scan(ls)
-    assert_equals(0, new_img[50, 100][1])
-
 
 def test_running_average():
     img = Image('lenna')
