@@ -1137,41 +1137,11 @@ def test_prewitt():
     assert i != p
 
 
-def test_edge_snap():
-    img = Image('shapes.png', sample=True).edges()
-
-    list1 = [(129, 32), (19, 88), (124, 135)]
-    list2 = [(484, 294), (297, 437)]
-    list3 = [(158, 357), (339, 82)]
-
-    for l in list1, list2, list3:
-        edge_lines = img.edge_snap(l)
-        edge_lines.draw(color=Color.YELLOW, width=4)
-
-    name_stem = "test_edge_snap"
-    result = [img]
-    perform_diff(result, name_stem)
-
-
 def test_grayscalmatrix():
     img = Image("lenna")
     graymat = img.get_gray_ndarray()
     newimg = Image(graymat, color_space=Image.GRAY)
     assert np.array_equal(img.get_gray_ndarray(), newimg.get_gray_ndarray())
-
-
-def test_smart_rotate():
-    img = Image('kptest2.png', sample=True)
-
-    st1 = img.smart_rotate(auto=False, fixed=False).resize(500, 500)
-    st2 = img.rotate(27, fixed=False).resize(500, 500)
-    diff = np.average((st1 - st2).get_ndarray())
-    assert diff <= 1.7
-    if diff > 1.7:
-        print diff
-        assert False
-    else:
-        assert True
 
 
 def test_get_normalized_hue_histogram():

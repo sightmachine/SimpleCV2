@@ -393,7 +393,13 @@ def find_lines(img, threshold=80, minlinelength=30, maxlinegap=10,
     if use_standard:
         lines = cv2.HoughLines(em, rho=1.0, theta=math.pi/180.0,
                                threshold=threshold, srn=minlinelength,
-                               stn=maxlinegap)[0]
+                               stn=maxlinegap)
+        if lines is not None:
+            lines = lines[0]
+        else:
+            logger.warn("no lines found.")
+            return []
+
         if nlines == -1:
             nlines = lines.shape[0]
         # All white points (edges) in Canny edge image
@@ -483,7 +489,13 @@ def find_lines(img, threshold=80, minlinelength=30, maxlinegap=10,
         lines = cv2.HoughLinesP(em, rho=1.0, theta=math.pi/180.0,
                                 threshold=threshold,
                                 minLineLength=minlinelength,
-                                maxLineGap=maxlinegap)[0]
+                                maxLineGap=maxlinegap)
+        if lines is not None:
+            lines = lines[0]
+        else:
+            logger.warn("no lines found.")
+            return []
+
         if nlines == -1:
             nlines = lines.shape[0]
 

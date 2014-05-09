@@ -3,6 +3,7 @@ import pickle
 import cv2
 import os
 import numpy as np
+import math
 from nose.tools import assert_equals, assert_is_instance, assert_greater \
                       , assert_less, assert_is_none, assert_is_not_none
 
@@ -11,6 +12,7 @@ from simplecv.tests.utils import perform_diff
 from simplecv.features.blobmaker import BlobMaker
 from simplecv.features.blob import Blob
 from simplecv.features.features import FeatureSet, Feature
+from simplecv.features.facerecognizer import FaceRecognizer
 from simplecv.features.detection import Corner, Line
 from simplecv.features.haar_cascade import HaarCascade
 from simplecv.color import Color
@@ -373,12 +375,18 @@ def test_find_template():
     fs = source.find_template(template, threshold=3, method="CCOEFF")
     assert_is_not_none(fs)
 
+    # method = "CCOEFF_NORM"
+    fs = source.find_template(template, threshold=3, method="CCOEFF_NORM", 
+                              rawmatches=True)
+    assert_is_not_none(fs)
+
     # method = "CCORR"
     fs = source.find_template(template, threshold=3, method="CCORR")
     assert_is_not_none(fs)
 
     # method = "CCORR_NORM"
-    fs = source.find_template(template, threshold=3, method="CCORR_NORM", rawmatches=True)
+    fs = source.find_template(template, threshold=3, method="CCORR_NORM",
+                              rawmatches=True)
     assert_is_not_none(fs)
 
     # method = "UNKOWN"
@@ -417,6 +425,9 @@ def test_find_template_once():
     fs = source.find_template_once(template, threshold=3, method="CCOEFF")
     assert_is_not_none(fs)
 
+    # method = "CCOEFF_NORM"
+    fs = source.find_template_once(template, threshold=3, method="CCOEFF_NORM")
+    assert_is_not_none(fs)    
     # method = "CCORR"
     fs = source.find_template_once(template, threshold=3, method="CCORR")
     assert_is_not_none(fs)
@@ -753,3 +764,106 @@ def test_get_freak_descriptor():
             assert_greater(len(f), 0)
             assert_equals(len(f), d.shape[0])
             assert_equals(64, d.shape[1])
+"""
+def test_image_fit_edge():
+    np_array = np.zeros((32, 32), dtype=np.uint8)
+    img = Image(array=np_array)
+
+    #coords = img.bresenham_line((5, 6), (30, 25))
+    linescan = img.get_line_scan(pt1=(5, 6), pt2=(28, 25))
+    list1 = [255]*len(linescan)
+    linescan = linescan + list1
+    
+    new_img = img.replace_line_scan(linescan)
+    print new_img.get_ndarray()
+    new_img.show()
+    guess = [(5, 6), (28, 25)]
+    print new_img.fit_edge(guess, window=2)
+""" 
+
+def test_image_fit_lines():
+    np_array = np.zeros((32, 32), dtype=np.uint8)
+    img = Image(array=np_array)
+
+    linescan = img.get_line_scan(pt1=(5, 6), pt2=(23, 25))
+    list1 = [255]*len(linescan)
+    linescan = linescan + list1
+    
+    new_img = img.replace_line_scan(linescan)
+    guess = [((4, 6), (22, 26))]
+    line = new_img.fit_lines(guess, window=2)
+
+    pt1 = line[0].end_points[0]
+    pt2 = line[0].end_points[1]
+
+    thresh1 = math.pow(pt1[0]-5, 2) + math.pow(pt1[1]-6,2)
+    thresh2 = math.pow(pt2[0]-23, 2) + math.pow(pt2[1]-25,2)
+
+    if thresh1 > 5 or thresh2 > 5:
+        assert False
+
+def test_image_fit_line_points():
+    np_array = np.zeros((32, 32), dtype=np.uint8)
+    img = Image(array=np_array)
+
+    linescan = img.get_line_scan(pt1=(5, 6), pt2=(23, 25))
+    list1 = [255]*len(linescan)
+    linescan = linescan + list1
+    
+    new_img = img.replace_line_scan(linescan)
+    guess = [((4, 6), (22, 26))]
+    new_img.fit_line_points(guess, window=(2,2))
+
+def test_image_recognize_face():
+    img = Image("lenna")
+    recognizer = FaceRecognizer()
+    faces = img.find_haar_features("face.xml")
+    face = faces[0].crop()
+    recognizer.load("../data/Features/FaceRecognizer/GenderData.xml")
+    assert_equals(face.recognize_face(recognizer)[0], 0)
+
+    # invalid recognizer
+    assert_is_none(img.recognize_face(2))
+
+def test_image_find_and_recognize_faces():
+    img = Image("lenna")
+    recognizer = FaceRecognizer()
+    recognizer.load("../data/Features/FaceRecognizer/GenderData.xml")
+    assert_equals(img.find_and_recognize_faces(recognizer, "face.xml")[0][1],
+                  0)
+
+def test_edge_snap():
+    img = Image('shapes.png', sample=True).edges()
+
+    list1 = [(129, 32), (19, 88), (124, 135)]
+    list2 = [(484, 294), (297, 437)]
+    list3 = [(158, 357), (339, 82)]
+
+    for l in list1, list2, list3:
+        edge_lines = img.edge_snap(l)
+        edge_lines.draw(color=Color.YELLOW, width=4)
+
+    name_stem = "test_edge_snap"
+    result = [img]
+    perform_diff(result, name_stem)
+
+    # non binary image
+    img = Image('shapes.png', sample=True)
+    assert_is_none(img.edge_snap(l))
+
+def test_smart_rotate():
+    img = Image('kptest2.png', sample=True)
+
+    st1 = img.smart_rotate(auto=False, fixed=False).resize(500, 500)
+    st2 = img.rotate(27, fixed=False).resize(500, 500)
+    diff = np.average((st1 - st2).get_ndarray())
+    assert diff <= 1.7
+    if diff > 1.7:
+        print diff
+        assert False
+    else:
+        assert True
+
+    # give empty image
+    img = Image((100, 100))
+    assert_equals(img.smart_rotate().get_ndarray().data, img.get_ndarray().data)
