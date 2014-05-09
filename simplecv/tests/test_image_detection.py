@@ -666,8 +666,7 @@ def test_find_flood_fill_blobs():
 def test_list_haar_features():
     features_directory = os.path.join(DATA_DIR, 'Features/HaarCascades')
     features = os.listdir(features_directory)
-    img = Image((10, 10))
-    assert_equals(features, img.list_haar_features())
+    assert_equals(features, Image.list_haar_features())
 
 def test_anonymize():
     img = Image(source="lenna")

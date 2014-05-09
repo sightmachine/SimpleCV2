@@ -10,7 +10,7 @@ import scipy.linalg as nla  # for linear algebra / least squares
 from simplecv import DATA_DIR
 from simplecv.base import logger
 from simplecv.color import Color
-from simplecv.core.image import image_method
+from simplecv.core.image import image_method, static_image_method
 from simplecv.factory import Factory
 from simplecv.features.blobmaker import BlobMaker
 from simplecv.features.facerecognizer import FaceRecognizer
@@ -1497,8 +1497,8 @@ def find_flood_fill_blobs(img, points, tolerance=None, lower=None,
                                   fixed_range=fixed_range)
     return img.find_blobs_from_mask(mask, minsize, maxsize)
 
-@image_method
-def list_haar_features(img):
+@static_image_method
+def list_haar_features():
     '''
     This is used to list the built in features available for HaarCascade
     feature detection.  Just run this function as:

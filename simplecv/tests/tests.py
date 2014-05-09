@@ -1185,19 +1185,6 @@ def test_get_normalized_hue_histogram():
     assert_tuple_equal((180, 256), c.shape)
 
 
-def test_back_project_hue_histogram():
-    img = Image('lenna')
-    img2 = Image('lyle')
-    a = img2.get_normalized_hue_histogram()
-    img_a = img.back_project_hue_histogram(a)
-    img_b = img.back_project_hue_histogram((10, 10, 50, 50), smooth=False,
-                                           full_color=True)
-    img_c = img.back_project_hue_histogram(img2, threshold=1)
-    result = [img_a, img_b, img_c]
-    name_stem = "test_image_hist_back_proj"
-    perform_diff(result, name_stem, 5)
-
-
 def test_find_blobs_from_hue_histogram():
     img = Image('lenna')
     img2 = Image('lyle')

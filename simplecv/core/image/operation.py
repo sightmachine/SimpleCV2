@@ -2396,7 +2396,10 @@ def back_project_hue_histogram(img, model, smooth=True, full_color=False,
     if isinstance(model, Factory.Image):
         model = model.get_normalized_hue_histogram()
     if not isinstance(model, np.ndarray) or model.shape != (180, 256):
-        model = img.get_normalized_hue_histogram(model)
+        try:
+            model = img.get_normalized_hue_histogram(model)
+        except (ValueError, AttributeError) as e:
+            pass
     if isinstance(model, np.ndarray) and model.shape == (180, 256):
         hsv = img.to_hsv().get_ndarray()
         dst = cv2.calcBackProject(images=[hsv], channels=[0, 1],

@@ -34,7 +34,7 @@ def img_diffs(test_imgs, name_stem, tolerance, path):
             if diff_pixels_sum > 0:
                 num_img_pixels = lhs.size
                 percent_diff_pixels = diff_pixels_sum / num_img_pixels
-                print "{0:.2f}% difference".format(percent_diff_pixels * 100)
+                print "id: {0:}. {1:.2f}% difference".format(idx, percent_diff_pixels * 100)
                 if (percent_diff_pixels * 100 < tolerance):
                     ret_val = False
                 else:

@@ -391,6 +391,14 @@ def test_image_replace_line_scan():
     new_linescan = new_img.get_line_scan(x=10, channel=0)
     assert_equals(x_linescan, new_linescan)
 
+    new_img = img.replace_line_scan(x_linescan, channel=2)
+    new_linescan = new_img.get_line_scan(x=10, channel=2)
+    assert_equals(x_linescan, new_linescan)
+
+    #invalid channel
+    x_linescan.channel = 5
+    assert_is_none(img.replace_line_scan(x_linescan))
+
 def test_image_get_pixels_online():
     np_array = np.arange(0, 256, dtype=np.uint8).reshape(16,16)
     img = Image(array=np_array)
@@ -510,3 +518,32 @@ def test_image_histograms():
     assert_is_none(img.vertical_histogram(bins=-3))
     assert_is_none(img.horizontal_histogram(bins=0))
     assert_is_none(img.horizontal_histogram(bins=-3))
+
+def test_image_gray_peaks():
+    np_array = np.arange(0, 256, dtype=np.uint8)
+    for i in range(np_array.shape[0]):
+        if i%5==0:
+            np_array[i] = 127
+
+    np_array = np_array.reshape(16,16)
+    img = Image(array=np_array)
+    peak = img.gray_peaks()[0][0]
+    assert_equals(peak, 127)
+
+def test_image_back_project_hue_histogram():
+    img = Image('lenna')
+    img2 = Image('lyle')
+    a = img2.get_normalized_hue_histogram()
+    img_a = img.back_project_hue_histogram(a)
+    img_b = img.back_project_hue_histogram((10, 10, 50, 50), smooth=False,
+                                           full_color=True)
+    img_c = img.back_project_hue_histogram(img2, threshold=1)
+    result = [img_a, img_b, img_c]
+    name_stem = "test_image_hist_back_proj"
+    perform_diff(result, name_stem, 5)
+
+    # invalid params
+    assert_is_none(img.back_project_hue_histogram(model=None))
+    assert_is_none(img.back_project_hue_histogram(model=1.0))
+    assert_is_none(img.back_project_hue_histogram(model=img.get_ndarray()))
+

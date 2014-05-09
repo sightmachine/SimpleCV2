@@ -447,7 +447,7 @@ def test_watershed():
     blobs = img.find_blobs_from_watershed(mask=my_mask, use_my_mask=True)
     result = [img1, img2, img3, img4]
     name_stem = "test_watershed"
-    perform_diff(result, name_stem)
+    perform_diff(result, name_stem, 1.0)
 
 
 def test_pixelize():
