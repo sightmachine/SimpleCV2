@@ -531,7 +531,8 @@ def test_save_kwargs():
     os.remove(l70)
 
     # invalid path
-    img.save(path="/home/unkown_user/desktop/lena.jpg", temp=True)
+    assert_is_none(img.save(path="/home/unkown_user/desktop/lena.jpg",
+                            temp=True))
     img.save(filename="lena")
     assert os.path.exists("lena.png")
     os.remove('lena.png')

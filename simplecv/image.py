@@ -208,6 +208,7 @@ class Image(CoreImage):
                 return self._temp_files[-1][0]
             else:
                 print "Path does not exist!"
+                return None
 
         else:
             if filename:
