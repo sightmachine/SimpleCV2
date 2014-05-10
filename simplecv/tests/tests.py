@@ -1277,3 +1277,45 @@ def test_drawing_layer_to_svg():
              'xmlns:xlink="http://www.w3.org/1999/xlink"><defs />' \
              '<line x1="0" x2="100" y1="0" y2="100" /></svg>'
     assert_equals(result, svg)
+
+def test_draw():
+    simg = Image("simplecv")
+    img = Image((250, 250))
+    img1 = Image((250, 250))
+
+    lines = simg.find_lines()
+    img.draw(lines, width=3)
+    
+    for line in lines:
+        img1.draw(line, width=3)
+    
+    assert_equals(img.apply_layers().get_ndarray().data,
+                  img1.apply_layers().get_ndarray().data)
+    
+    # incorrect params
+    assert_is_none(img.draw(simg))
+    assert_is_none(img.draw((100, 100)))
+
+def test_draw_points():
+    img = Image((100, 100))
+    pts = [(10, 10), (30, 60)]
+    img.draw_points(pts)
+    pts = [(80, 20)]
+    img.draw_points(pts, Color.BLUE)
+    img1 = img.apply_layers()
+    np_arr = img1.get_ndarray()
+    assert_equals(img1[10, 10], [255, 0, 0])
+    assert_equals(img1[60, 30], [255, 0, 0])
+    assert_equals(img1[20, 80], [0, 0, 255])
+
+def test_draw_sift_key_point_match():
+    template = Image("../data/sampleimages/KeypointTemplate2.png")
+    match0 = Image("../data/sampleimages/kptest0.png")
+
+    img = match0.draw_sift_key_point_match(template, distance=100, num=15)
+    img = img.apply_layers()
+    name_stem = "test_draw_key_point_matches"
+    perform_diff([img], name_stem, 3.0)
+
+    img = match0.draw_sift_key_point_match(template, distance=100)
+    assert_is_none(match0.draw_sift_key_point_match(None))

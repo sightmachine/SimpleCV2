@@ -1500,8 +1500,10 @@ class Image(CoreImage):
         for i in range(num):
             skp = sfs[i]
             tkp = tfs[i]
-            pt_a = (int(tkp.y), int(tkp.x) + hdif)
-            pt_b = (int(skp.y) + template.width, int(skp.x))
+            pt_a = (int(tkp.x), int(tkp.y) + hdif)
+            pt_b = (int(skp.x) + template.width, int(skp.y))
+            #pt_a = (int(tkp.y), int(tkp.x) + hdif)
+            #pt_b = (int(skp.y) + template.width, int(skp.x))
             result_img.draw_line(pt_a, pt_b, color=Color.get_random(),
                                  thickness=width)
         return result_img
