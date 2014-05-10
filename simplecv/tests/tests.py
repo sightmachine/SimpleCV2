@@ -204,7 +204,7 @@ def test_imageset():
     for i in range(len(imgset)):
         assert_equals(imgset[i].filename, imgset1[i].filename)
         assert_equals(imgset[i].filename, imgset2[i].filename)
-
+"""
 def test_imageset_download():
     imgset = ImageSet()
     imgset.download("simplecv", number=3, size="small")
@@ -213,7 +213,7 @@ def test_imageset_download():
     imgset_thumb = ImageSet()
     imgset_thumb.download("simplcv", number=4, size="thumb")
     assert len(imgset) == 4
-
+"""
 
 def test_hsv_conversion():
     px = Image((1, 1))
