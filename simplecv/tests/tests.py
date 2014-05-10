@@ -183,6 +183,36 @@ def test_segmentation_color():
 def test_imageset():
     imgs = ImageSet()
     assert isinstance(imgs, ImageSet)
+    files = os.listdir("../data/sampleimages/")
+    files1 = []
+    for f in files:
+        if ".gif" not in f and ".mov" not in f:
+            files1.append(os.path.abspath(
+                          os.path.join("..", "data", "sampleimages", f)))
+
+    imgset = ImageSet(files1)
+    imgset1 = ImageSet("samples")
+    imgset2 = ImageSet(os.path.abspath("../data/sampleimages"))
+
+    imgset.sort(key=lambda x:x.filename)
+    imgset1.sort(key=lambda x:x.filename)
+    imgset2.sort(key=lambda x:x.filename)
+
+    assert_equals(len(imgset), len(imgset1))
+    assert_equals(len(imgset), len(imgset2))
+
+    for i in range(len(imgset)):
+        assert_equals(imgset[i].filename, imgset1[i].filename)
+        assert_equals(imgset[i].filename, imgset2[i].filename)
+
+def test_imageset_download():
+    imgset = ImageSet()
+    imgset.download("simplecv", number=3, size="small")
+    assert len(imgset) == 3
+
+    imgset_thumb = ImageSet()
+    imgset_thumb.download("simplcv", number=4, size="thumb")
+    assert len(imgset) == 4
 
 
 def test_hsv_conversion():
