@@ -159,7 +159,6 @@ class HttpImageLoader(ImageLoaderBase):
     @staticmethod
     def load(**kwargs):
         source = kwargs.get('source')
-        print source
         if isinstance(source, basestring):
             source_lower = source.lower()
             if source_lower.startswith("http://") \

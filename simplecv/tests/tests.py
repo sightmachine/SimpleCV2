@@ -577,7 +577,7 @@ def test_save_kwargs():
     img.save()
     assert os.path.exists("lena.png")
     os.remove('lena.png')
-
+    """
     # JpegStreamer
     js = JpegStreamer()
     img.save(js)
@@ -597,6 +597,7 @@ def test_save_kwargs():
     d = Display(displaytype="notebook")
     img.save(d)
     d.quit()
+    """
 
 def test_delete_temp_files():
     img = Image("lenna")
