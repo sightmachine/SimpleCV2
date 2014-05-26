@@ -695,15 +695,14 @@ class LineScan(list):
             lut = np.array(lut, dtype='uint8')
             lut = lut.tolist()
         elif default_val == 0:
-            lut = np.zeros([1, 256]).tolist()[0]
+            lut = np.zeros([1, 256], np.uint8).tolist()[0]
         elif default_val > 0:
             default_val = np.clip(default_val, 1, 255)
             lut = np.ones([1, 256]) * default_val
             lut = np.array(lut, dtype='uint8')
             lut = lut.tolist()[0]
         elif default_val < 0:
-            lut = np.linspace(0, 256, 256)
-            lut = np.array(lut, dtype='uint8')
+            lut = np.arange(0, 256, dtype=np.uint8)
             lut = lut.tolist()
         return lut
 
@@ -745,7 +744,7 @@ class LineScan(list):
         # for the love of god keep this small
         # for some reason isInstance is being persnickety
         if idxs.__class__.__name__ == 'Image':
-            npg = idxs.get_gray_numpy()
+            npg = idxs.get_gray_ndarray()
             npg = npg.reshape([npg.shape[0] * npg.shape[1]])
             idxs = npg.tolist()
         value = np.clip(value, 0, 255)
@@ -1019,7 +1018,8 @@ class LineScan(list):
         **SUMMARY**
 
         Find the index of the first element of the linescan that has
-        a value equal to value. If nothing is found None is returned.
+        a value greater than provided value.
+        If nothing is found None is returned.
 
         **PARAMETERS**
 
@@ -1037,7 +1037,7 @@ class LineScan(list):
         >>>> idx = ls.find_first_idx_equal_to()
 
         """
-        vals = np.where(np.array(self) >= value)[0]
+        vals = np.where(np.array(self) > value)[0]
         ret_value = None
         if len(vals) > 0:
             ret_value = vals[0]
