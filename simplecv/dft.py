@@ -322,11 +322,11 @@ class DFT(object):
         if isinstance(y_cutoff, list):
             y_cutoff = y_cutoff[0]
         y_cutoff = np.clip(int(y_cutoff), 0, h / 2)
-        flt = np.zeros((w, h))
-        flt[0:x_cutoff, 0:y_cutoff] = 255
-        flt[0:x_cutoff, h - y_cutoff:h] = 255
-        flt[w - x_cutoff:w, 0:y_cutoff] = 255
-        flt[w - x_cutoff:w, h - y_cutoff:h] = 255
+        flt = np.zeros((h, w), np.uint8)
+        flt[0:y_cutoff, 0:x_cutoff] = 255
+        flt[h - y_cutoff:h, 0:x_cutoff] = 255
+        flt[0:y_cutoff, w - x_cutoff:w] = 255
+        flt[h - y_cutoff:h, w - x_cutoff:w] = 255
         img = Factory.Image(flt)
         lowpass_filter = DFT(size=size, numpyarray=flt, image=img,
                              type="Lowpass", x_cutoff_low=x_cutoff,
@@ -571,26 +571,26 @@ class DFT(object):
         if cen is None:
             cen = (w / 2, h / 2)
         a, b = cen
-        y, x = np.ogrid[-a:w - a, -b:h - b]
+        y, x = np.ogrid[-b:h - b, -a:w - a]
         r = dia1 / 2
         mask = x * x + y * y <= r * r
-        flt = np.ones((w, h))
+        flt = np.ones((h, w), np.uint8)
         flt[mask] = 255
         if ftype == "highpass":
             flt = 255 - flt
         if dia2 is not None:
             a, b = cen
-            y, x = np.ogrid[-a:w - a, -b:h - b]
+            y, x = np.ogrid[-b:h - b, -a:w - a]
             r = dia2 / 2
             mask = x * x + y * y <= r * r
-            flt1 = np.ones((w, h))
+            flt1 = np.ones((h, w), np.uint8)
             flt1[mask] = 255
             flt1 = 255 - flt1
             flt += flt1
             np.clip(flt, 0, 255)
             ftype = "bandpass"
         img = Factory.Image(flt)
-        notch_filter = DFT(size=size, numpyarray=flt, image=img, dia=dia1,
+        notch_filter = DFT(size=size, numpyarray=flt.astype(np.uint8), image=img, dia=dia1,
                            type="Notch", frequency=ftype)
         return notch_filter
 
@@ -652,6 +652,7 @@ class DFT(object):
         if self._image is None:
             if self._numpy is None:
                 logger.warn("Filter doesn't contain any image")
+                return None
             self._image = Factory.Image(self._numpy)
         return self._image
 
@@ -674,6 +675,7 @@ class DFT(object):
         if self._numpy is None:
             if self._image is None:
                 logger.warn("Filter doesn't contain any image")
+                return None
             self._numpy = self._image.get_ndarray()
         return self._numpy
 

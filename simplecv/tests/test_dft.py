@@ -12,11 +12,11 @@ def test_dft():
     assert_equals(dft.width, 200)
     assert_equals(dft.height, 300)
     assert_equals(dft.channels, 2)
-    assert_equals(dft._dia, 100)
-    assert_equals(dft._type, "gaussian")
+    assert_equals(dft.get_dia(), 100)
+    assert_equals(dft.get_type(), "gaussian")
     assert_equals(dft._numpy, None)
     assert_equals(dft._image, None)
-    assert_equals(dft._order, 0)
+    assert_equals(dft.get_order(), 0)
     assert_equals(dft._freqpass, "")
     assert_equals(dft._x_cutoff_low, 100)
     assert_equals(dft._y_cutoff_low, 0)
@@ -118,6 +118,8 @@ def test_dft_create_lowpass_filter():
     filter7 = DFT.create_lowpass_filter(x_cutoff=[75, 125, 80], y_cutoff=[25, 25, 25],
                                          size=(280, 320))
 
+    assert_equals(filter7._image.size, (280, 320))
+
     assert_equals(filter1._numpy.data, filter2._numpy.data)
     assert_equals(filter1._numpy.data, filter3._numpy[:, :, 0].copy().data)
     assert_equals(filter4._numpy.data, filter5._numpy.data)
@@ -141,6 +143,8 @@ def test_dft_create_highpass_filter():
                                          size=(280, 320))
     filter7 = DFT.create_highpass_filter(x_cutoff=[75, 125, 80], y_cutoff=[25, 25, 25],
                                          size=(280, 320))
+
+    assert_equals(filter7._image.size, (280, 320))
 
     assert_equals(filter1._numpy.data, filter2._numpy.data)
     assert_equals(filter1._numpy.data, filter3._numpy[:, :, 0].copy().data)
@@ -171,3 +175,63 @@ def test_dft_create_bandpass_filter():
 
     assert_equals(filter1._numpy.data, filter2._numpy.data)
     assert_equals(filter3._numpy.data, (filter4._numpy + filter5._numpy).data)
+
+def test_dft_create_notch_filter():
+    filter1 = DFT.create_notch_filter([100], [100], [(20, 20)])
+    filter2 = DFT.create_notch_filter(100)
+    filter3 = DFT.create_notch_filter([100, 80, 75], [100], (20, 20),
+                                      size=(200, 80), ftype="highpass")
+
+    assert_equals(filter1._numpy.data, filter2._numpy.data)
+    assert_equals(filter3._numpy.shape, (80, 200, 3))
+    assert_equals(filter3._type, "Notch")
+
+    # invalid params
+    assert_is_none(DFT.create_notch_filter([100, 80]))
+
+def test_dft_get_image():
+    flt1 = DFT()
+    flt2 = DFT(numpyarray=np.zeros((100, 80), np.uint8))
+    flt3 = DFT(image=Image("simplecv"))
+
+    img = Image("simplecv")
+
+    assert_is_none(flt1.get_image())
+    assert_equals(flt2.get_image().size, (80, 100))
+    assert_equals(flt3.get_image().get_ndarray().data, img.get_ndarray().data)
+
+def test_dft_get_numpy():
+    flt1 = DFT()
+    flt2 = DFT(numpyarray=np.zeros((100, 80), np.uint8))
+    flt3 = DFT(image=Image("simplecv"))
+
+    img = Image("simplecv")
+
+    assert_is_none(flt1.get_numpy())
+    assert_equals(flt2.get_numpy().shape, (100, 80))
+    assert_equals(flt3.get_numpy().data, img.get_ndarray().data)
+
+def test_dft_stack_filters():
+    filter1 = DFT.create_highpass_filter(x_cutoff=75, size=(320, 280))
+    filter2 = DFT.create_lowpass_filter(x_cutoff=75, size=(320, 280))
+    filter3 = DFT.create_notch_filter([100], [100], size=(320, 280))
+
+    flt = filter1.stack_filters(filter2, filter3)
+
+    np_res = np.dstack((filter1._numpy, filter2._numpy, filter3._numpy))
+
+    assert_equals(flt._image.get_ndarray().data, np_res.data)
+
+    # multiple channele
+    filter4 = DFT.create_notch_filter([100, 80, 75], [100], (20, 20),
+                                      size=(320, 280), ftype="highpass")
+
+    assert_is_none(filter1.stack_filters(filter2, filter4))
+
+    # different sizes
+    filter5 = DFT.create_notch_filter([100], [100])
+    assert_is_none(filter1.stack_filters(filter3, filter5))
+
+    flt = DFT()
+    fltr = flt._stack_filters(filter1)
+    assert_equals(fltr, filter1)
