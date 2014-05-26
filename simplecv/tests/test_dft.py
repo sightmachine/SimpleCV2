@@ -178,7 +178,7 @@ def test_dft_create_bandpass_filter():
 
 def test_dft_create_notch_filter():
     filter1 = DFT.create_notch_filter([100], [100], [(20, 20)])
-    filter2 = DFT.create_notch_filter(100)
+    filter2 = DFT.create_notch_filter([100])
     filter3 = DFT.create_notch_filter([100, 80, 75], [100], (20, 20),
                                       size=(200, 80), ftype="highpass")
 
@@ -188,6 +188,9 @@ def test_dft_create_notch_filter():
 
     # invalid params
     assert_is_none(DFT.create_notch_filter([100, 80]))
+    assert_is_none(DFT.create_notch_filter([100], [100, 80]))
+    assert_is_none(DFT.create_notch_filter([100], [100], 
+                                          [(100, 60), (90, 100)]))
 
 def test_dft_get_image():
     flt1 = DFT()
@@ -235,3 +238,11 @@ def test_dft_stack_filters():
     flt = DFT()
     fltr = flt._stack_filters(filter1)
     assert_equals(fltr, filter1)
+
+    assert_is_none(filter1._stack_filters(filter5))
+
+def test_dft_apply_filter():
+    dft = DFT()
+    img = Image("simplecv")
+    retval = dft.apply_filter(img)
+    assert_equals(retval, img)

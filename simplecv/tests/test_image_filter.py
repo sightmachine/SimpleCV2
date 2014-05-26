@@ -564,6 +564,8 @@ def test_dft_lowpass():
     flt = DFT.create_lowpass_filter(x_cutoff=150, size=(600, 600))
     fltimg = img.filter(flt)
     fltimggray = img.filter(flt, grayscale=True)
+    fltimg.save("../data/test/standard/test_dft_lowpass0.png")
+    fltimggray.save("../data/test/standard/test_dft_lowpass1.png")
     results = [fltimg, fltimggray]
     name_stem = "test_dft_lowpass"
     perform_diff(results, name_stem)
@@ -574,6 +576,8 @@ def test_dft_highpass():
     flt = DFT.create_lowpass_filter(x_cutoff=10, size=(600, 600))
     fltimg = img.filter(flt)
     fltimggray = img.filter(flt, grayscale=True)
+    fltimg.save("../data/test/standard/test_dft_highpass0.png")
+    fltimggray.save("../data/test/standard/test_dft_highpass1.png")
     results = [fltimg, fltimggray]
     name_stem = "test_dft_highpass"
     perform_diff(results, name_stem)

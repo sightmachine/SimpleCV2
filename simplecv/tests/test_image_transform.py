@@ -291,7 +291,7 @@ def test_apply_side_by_side():
 
 
 def test_resize():
-    img = Image(source=topimg)
+    img = Image(source=topImg)
     w = img.width
     h = img.height
 

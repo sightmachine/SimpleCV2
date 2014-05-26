@@ -129,7 +129,7 @@ def test_detection_blobs_appx():
     result.append(img2)
 
     name_stem = "test_detection_blobs_appx"
-    perform_diff(result, name_stem)
+    perform_diff(result, name_stem, tolerance=0.5)
     assert blobs is not None
 
 
