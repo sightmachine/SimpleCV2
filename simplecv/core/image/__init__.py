@@ -595,7 +595,7 @@ class Image(object):
 
 
 # Registers builtin image methods
-from simplecv.core.image import (operation, filter, transform, detection,
-                                 dft, track)
+from simplecv.core.image import (filter, transform, detection,
+                                 dft, track, operation)
 # Registers builtin plugins
 from simplecv.plugins import barcode, denoise, ocr, stega, uploader

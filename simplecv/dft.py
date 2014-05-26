@@ -66,8 +66,8 @@ class DFT(object):
         self._y_cutoff_high = kwargs.get('y_cutoff_high', 0)
 
     def __repr__(self):
-        return "<simplecv.DFT Object: %s %s filter of size:(%d, %d) \
-                and channels: %d>" % (self._type, self._freqpass, self.width,
+        return "<simplecv.DFT Object: %s %s filter of size:(%d, %d)" \
+                " and channels: %d>" % (self._type, self._freqpass, self.width,
                                       self.height, self.channels)
 
     def __add__(self, flt):
@@ -78,9 +78,9 @@ class DFT(object):
             logger.warn("Both SimpleCV.DFT object must have the same size")
             return None
         flt_numpy = self._numpy + flt._numpy
-        flt_image = Factory.Image(flt_numpy)
+        flt_image = Factory.Image(array=flt_numpy)
         ret_value = DFT(numpyarray=flt_numpy, image=flt_image,
-                        size=flt_image.size())
+                        size=flt_image.size)
         return ret_value
 
     def __invert__(self):
@@ -311,7 +311,7 @@ class DFT(object):
             ret_value = DFT(numpyarray=stacked_filter._numpy, image=image,
                             x_cutoff_low=x_cutoff, y_cutoff_low=y_cutoff,
                             channels=len(x_cutoff), size=size,
-                            type=stacked_filter._type, order=self._order,
+                            type=stacked_filter._type,
                             frequency=stacked_filter._freqpass)
             return ret_value
 
@@ -319,6 +319,8 @@ class DFT(object):
         x_cutoff = np.clip(int(x_cutoff), 0, w / 2)
         if y_cutoff is None:
             y_cutoff = x_cutoff
+        if isinstance(y_cutoff, list):
+            y_cutoff = y_cutoff[0]
         y_cutoff = np.clip(int(y_cutoff), 0, h / 2)
         flt = np.zeros((w, h))
         flt[0:x_cutoff, 0:y_cutoff] = 255
@@ -399,7 +401,7 @@ class DFT(object):
             ret_value = DFT(numpyarray=stacked_filter._numpy, image=image,
                             x_cutoff_high=x_cutoff, y_cutoff_high=y_cutoff,
                             channels=len(x_cutoff), size=size,
-                            type=stacked_filter._type, order=self._order,
+                            type=stacked_filter._type,
                             frequency=stacked_filter._freqpass)
             return ret_value
 
