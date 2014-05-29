@@ -82,10 +82,15 @@ class Cv2ImageLoader(ImageLoaderBase):
     @staticmethod
     def load(**kwargs):
         source = kwargs.get('source')
-        array = cv2.imread(source)
+        color_space = kwargs.get('color_space')
+        if (color_space = Image.GRAY):
+            array = cv2.imread(source, 0)
+        else:
+            array = cv2.imread(source)
+            color_space = Image.BGR
         if array is None:
             raise Exception('Failed to create an image array')
-        return array, Image.BGR, source
+        return array, color_space, source
 
 
 class SampleImageLoader(ImageLoaderBase):
