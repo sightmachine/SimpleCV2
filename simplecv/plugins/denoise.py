@@ -1,7 +1,7 @@
 from simplecv.base import logger
 from simplecv.factory import Factory
 from simplecv.core.image import image_method
-
+import numpy as np
 
 @image_method
 def tv_denoising(img, gray=False, weight=50, eps=0.0002, max_iter=200,
@@ -60,7 +60,7 @@ def tv_denoising(img, gray=False, weight=50, eps=0.0002, max_iter=200,
         img = img.resize(int(img.width * resize), int(img.height * resize))
 
     if gray is True:
-        img = img.get_gray_numpy()
+        img = img.get_gray_ndarray()
         multichannel = False
     elif gray is False:
         img = img.get_ndarray()
@@ -73,7 +73,7 @@ def tv_denoising(img, gray=False, weight=50, eps=0.0002, max_iter=200,
                                        multichannel)
     ret_val = img * denoise_mat
 
-    ret_val = Factory.Image(ret_val)
+    ret_val = Factory.Image(ret_val.astype(np.uint8))
     if resize != 1:
         return ret_val.resize(int(ret_val.width / resize),
                               int(ret_val.width / resize))

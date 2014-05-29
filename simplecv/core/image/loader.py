@@ -83,7 +83,7 @@ class Cv2ImageLoader(ImageLoaderBase):
     def load(**kwargs):
         source = kwargs.get('source')
         color_space = kwargs.get('color_space')
-        if (color_space = Image.GRAY):
+        if (color_space == Image.GRAY):
             array = cv2.imread(source, 0)
         else:
             array = cv2.imread(source)
