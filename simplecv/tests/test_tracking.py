@@ -7,19 +7,20 @@ from simplecv.tracking.surf_tracker import surfTracker
 from simplecv.tracking.track_class import Track
 import time
 
-def test_tracking_mf_tracker():
-    iset = ImageSet()
-    iset.append(Image("./../data/sampleimages/tracktest0.jpg"))
-    iset.append(Image("./../data/sampleimages/tracktest1.jpg"))
-    iset.append(Image("./../data/sampleimages/tracktest2.jpg"))
-    iset.append(Image("./../data/sampleimages/tracktest3.jpg"))
-    iset.append(Image("./../data/sampleimages/tracktest4.jpg"))
-    iset.append(Image("./../data/sampleimages/tracktest5.jpg"))
-    iset.append(Image("./../data/sampleimages/tracktest6.jpg"))
-    iset.append(Image("./../data/sampleimages/tracktest7.jpg"))
-    iset.append(Image("./../data/sampleimages/tracktest8.jpg"))
-    iset.append(Image("./../data/sampleimages/tracktest9.jpg"))
+iset = []
+iset.append(Image("./../data/sampleimages/tracktest0.jpg"))
+iset.append(Image("./../data/sampleimages/tracktest1.jpg"))
+iset.append(Image("./../data/sampleimages/tracktest2.jpg"))
+iset.append(Image("./../data/sampleimages/tracktest3.jpg"))
+iset.append(Image("./../data/sampleimages/tracktest4.jpg"))
+iset.append(Image("./../data/sampleimages/tracktest5.jpg"))
+iset.append(Image("./../data/sampleimages/tracktest6.jpg"))
+iset.append(Image("./../data/sampleimages/tracktest7.jpg"))
+iset.append(Image("./../data/sampleimages/tracktest8.jpg"))
+iset.append(Image("./../data/sampleimages/tracktest9.jpg"))
 
+
+def test_tracking_mf_tracker():
     bb = (190, 152, 70, 70)
     ts = []
 
@@ -35,18 +36,6 @@ def test_tracking_mf_tracker():
 
 
 def test_tracking_surf_tracker():
-    iset = ImageSet()
-    iset.append(Image("./../data/sampleimages/tracktest0.jpg"))
-    iset.append(Image("./../data/sampleimages/tracktest1.jpg"))
-    iset.append(Image("./../data/sampleimages/tracktest2.jpg"))
-    iset.append(Image("./../data/sampleimages/tracktest3.jpg"))
-    iset.append(Image("./../data/sampleimages/tracktest4.jpg"))
-    iset.append(Image("./../data/sampleimages/tracktest5.jpg"))
-    iset.append(Image("./../data/sampleimages/tracktest6.jpg"))
-    iset.append(Image("./../data/sampleimages/tracktest7.jpg"))
-    iset.append(Image("./../data/sampleimages/tracktest8.jpg"))
-    iset.append(Image("./../data/sampleimages/tracktest9.jpg"))
-
     bb = (120, 150, 130, 80)
     ts = []
 
@@ -66,14 +55,34 @@ def test_tracking_surf_tracker():
     assert_is_not_none(surfts.getTemplateDescriptor())
     assert_is_not_none(surfts.getTemplateImage())
 
+def test_tracking_camshift_tracker():
+    ts = []
+    bb = (195, 160, 49, 46)
+    imgs = iset
+    ts = imgs[0].track("camshift", ts, imgs[1:], bb)
+    assert ts
+
+
+def test_tracking_lk_tracker():
+    ts = []
+    bb = (195, 160, 49, 46)
+    imgs = iset
+    ts = imgs[0].track("LK", ts, imgs[1:], bb)
+    assert ts
+
+
 def test_tracking_Track_test():
     img = Image("simplecv")
     bb = [20, 40, 60, 50]
 
-    tr = Track(img, bb)
+    class track_test(Track):
+        def __init__(self, img, bb):
+            self = Track.__init__(self, img, bb)
 
     def meanc(img):
         return img.mean_color()
+
+    tr = track_test(img, bb)
 
     assert_equals(tr.getCenter(), (50, 65))
     assert_equals(tr.get_area(), 3000)

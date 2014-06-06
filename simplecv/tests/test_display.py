@@ -47,19 +47,3 @@ def test_image_new_smooth():
         img.gaussian_blur((7, 9), sigma_x=10, sigma_y=12, grayscale=True))
     name_stem = "test_image_new_smooth"
     perform_diff(result, name_stem)
-
-
-def test_camshift():
-    ts = []
-    bb = (195, 160, 49, 46)
-    imgs = [Image(img) for img in trackimgs]
-    ts = imgs[0].track("camshift", ts, imgs[1:], bb)
-    assert ts
-
-
-def test_lk():
-    ts = []
-    bb = (195, 160, 49, 46)
-    imgs = [Image(img) for img in trackimgs]
-    ts = imgs[0].track("LK", ts, imgs[1:], bb)
-    assert ts

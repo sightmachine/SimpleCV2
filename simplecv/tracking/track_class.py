@@ -48,7 +48,7 @@ class Track(Feature):
         self.cv2numpy = self.image.get_ndarray()
         self.predict_pt = (0, 0)
         self.state_pt = (0, 0)
-        #return self
+        return self
 
     def getCenter(self):
         """
