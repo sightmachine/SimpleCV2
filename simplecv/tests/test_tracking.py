@@ -4,6 +4,7 @@ from simplecv.image import Image
 from simplecv.image_set import ImageSet
 from simplecv.tracking.mf_tracker import mfTracker
 from simplecv.tracking.surf_tracker import surfTracker
+from simplecv.tracking.track_class import Track
 import time
 
 def test_tracking_mf_tracker():
@@ -64,3 +65,28 @@ def test_tracking_surf_tracker():
     assert_is_not_none(surfts.getTemplateKeyPoints())
     assert_is_not_none(surfts.getTemplateDescriptor())
     assert_is_not_none(surfts.getTemplateImage())
+
+def test_tracking_Track_test():
+    img = Image("simplecv")
+    bb = [20, 40, 60, 50]
+
+    tr = Track(img, bb)
+
+    def meanc(img):
+        return img.mean_color()
+
+    assert_equals(tr.getCenter(), (50, 65))
+    assert_equals(tr.get_area(), 3000)
+    assert_equals(tr.getImage(), img)
+    assert_equals(tr.getBB(), bb)
+    assert_equals(tr.processTrack(meanc), img.mean_color())
+    tr.draw()
+    tr.drawBB()
+    tr.showCoordinates()
+    tr.showSizeRatio()
+    tr.showPixelVelocity()
+    tr.showPixelVelocityRT()
+    tr.drawPredicted()
+    tr.showPredictedCoordinates()
+    tr.showCorrectedCoordinates()
+    tr.drawCorrected()
