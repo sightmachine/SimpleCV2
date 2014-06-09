@@ -82,7 +82,7 @@ def camshiftTracker(img, bb, ts, **kwargs):
             upper = np.array(tuple(kwargs[key]))
         elif key == 'mask':
             mask = kwargs[key]
-            mask = mask.get_numpy_cv2()
+            mask = mask.get_ndarray()
         elif key == 'num_frames':
             num_frames = kwargs[key]
 
@@ -102,7 +102,7 @@ def camshiftTracker(img, bb, ts, **kwargs):
     imgs = [hsv]
     if len(ts) > num_frames and num_frames > 1:
         for feat in ts[-num_frames:]:
-            imgs.append(feat.image.to_hsv().get_numpy_cv2())
+            imgs.append(feat.image.to_hsv().get_ndarray())
     elif len(ts) < num_frames and num_frames > 1:
         for feat in ts:
             imgs.append(feat.image.to_hsv().get_ndarray())

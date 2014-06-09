@@ -346,7 +346,7 @@ class TrackSet(FeatureSet):
         dt = ts[-1].time - ts[-2].time
         return float(dx) / dt, float(dy) / dt
 
-    def pixleVelocityRealTime(self):
+    def pixelVelocityRealTime(self):
         """
         **SUMMARY**
 
@@ -396,7 +396,7 @@ class TrackSet(FeatureSet):
         f = ts[-1]
         img = f.image
         if not pos:
-            imgsize = img.size()
+            imgsize = img.size
             pos = (imgsize[0] - 120, 10)
         if not size:
             size = 16
@@ -431,7 +431,7 @@ class TrackSet(FeatureSet):
         f = ts[-1]
         img = f.image
         if not pos:
-            imgsize = img.size()
+            imgsize = img.size
             pos = (imgsize[0] - 120, 30)
         if not size:
             size = 16
@@ -468,7 +468,7 @@ class TrackSet(FeatureSet):
         img = f.image
         vel = f.vel
         if not pos:
-            imgsize = img.size()
+            imgsize = img.size
             pos = (imgsize[0] - 120, 50)
         if not size:
             size = 16
@@ -506,7 +506,7 @@ class TrackSet(FeatureSet):
         img = f.image
         vel_rt = f.rt_vel
         if not pos:
-            imgsize = img.size()
+            imgsize = img.size
             pos = (imgsize[0] - 120, 90)
         if not size:
             size = 16
@@ -812,7 +812,7 @@ class TrackSet(FeatureSet):
         f = ts[-1]
         img = f.image
         if not pos:
-            imgsize = img.size()
+            imgsize = img.size
             pos = (5, 10)
         if not size:
             size = 16
@@ -847,7 +847,7 @@ class TrackSet(FeatureSet):
         f = ts[-1]
         img = f.image
         if not pos:
-            imgsize = img.size()
+            imgsize = img.size
             pos = (5, 40)
         if not size:
             size = 16
