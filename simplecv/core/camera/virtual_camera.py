@@ -165,7 +165,7 @@ class VirtualCamera(FrameSource):
 
         """
         if self.sourcetype == 'video':
-            if not start:
+            if start is None:
                 self.capture.set(cv2.cv.CV_CAP_PROP_POS_FRAMES, self.start - 1)
             else:
                 if start == 0:

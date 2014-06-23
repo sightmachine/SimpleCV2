@@ -38,8 +38,11 @@ pair4 = ("../data/sampleimages/stereo2_real_left.png",
 pair5 = ("../data/sampleimages/stereo3_real_left.png",
          "../data/sampleimages/stereo3_real_right.png")
 
-correct_pairs = [pair1, pair2, pair3, pair4, pair5]
+pair6 = ("../data/sampleimages/simplecv.png",
+         "../data/sampleimages/lenna.png")
 
+correct_pairs = [pair1, pair2, pair3, pair4, pair5]
+incorrect_pairs = [pair6]
 
 def test_find_fundamental_mat():
     for pairs in correct_pairs:
@@ -78,7 +81,7 @@ def test_find_disparity_map_sgbm():
         stereo_img = StereoImage(img1, img2)
         dips.append(stereo_img.find_disparity_map(method="SGBM"))
     name_stem = "test_disparitymap_sgbm"
-    perform_diff(dips, name_stem)
+    perform_diff(dips, name_stem, tolerance=3.0)
 
 
 def test_eline():
@@ -147,3 +150,9 @@ def test_get_images_undistort():
     rect_left, rect_right = cam.get_images_undistort(img1, img2,
                                                      calib, rectify)
     assert rect_left and rect_right
+
+def test_incorrect_pairs():
+    img1 = Image(incorrect_pairs[0][0])
+    img2 = Image(incorrect_pairs[0][1])
+
+    simage = StereoImage(img1, img2)
