@@ -88,7 +88,7 @@ def test_tracking_lk_tracker():
 
 def test_tracking_Track_test():
     img = Image("simplecv")
-    bb = [26, 90, 60, 50]
+    bb = [20, 40, 60, 50]
 
     class track_test(Track):
         def __init__(self, img, bb):
@@ -120,7 +120,7 @@ def test_tracking_Track_test():
 def test_tracking_track_set_test():
     ts = TrackSet()
     img = Image("simplecv")
-    bb = [20, 40, 60, 50]
+    bb = [60, 90, 60, 50]
     shift = 0
     for i in range(80):
         posx = random.random()
@@ -174,4 +174,7 @@ def test_tracking_track_set_test():
     ts.showPredictedCoordinates()
     ts.showCorrectedCoordinates()
     ts.drawCorrectedPath()
+
+    ts[-1].image.show()
+    
 
