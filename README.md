@@ -325,7 +325,7 @@ Commands (for Snow Leopard)::
 If you want a streamlined install which gives you all the dependencies, we
 recommend using the Windows Superpack, available at <http://www.simplecv.org/download/>
 
-If you already have Python, OpenCV or SciPy installed and want to keep things the way you like them, follow the directions below.
+If you already have Python, OpenCV or SciPy installed and want to keep things the way you like them, follow the directions below
 
 
 #### Install Prerequisties if they aren't already installed on your system:
