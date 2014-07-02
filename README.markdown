@@ -1,6 +1,5 @@
---------------------------
-# SimpleCV
---------------------------
+SimpleCV
+=====
 
 [![Build Status](https://travis-ci.org/sightmachine/SimpleCV.png?branch=develop)](https://travis-ci.org/sightmachine/SimpleCV)
 
