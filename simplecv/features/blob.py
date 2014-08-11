@@ -9,12 +9,14 @@ import scipy.stats as sps
 
 from simplecv.base import LazyProperty
 from simplecv.color import Color
+from simplecv.core.pluginsystem import apply_plugins
+from simplecv.factory import Factory
 from simplecv.features.detection import Line, Corner
 from simplecv.features.detection import ShapeContextDescriptor
 from simplecv.features.features import Feature, FeatureSet
-from simplecv.factory import Factory
 
 
+@apply_plugins
 class Blob(Feature):
     """
     **SUMMARY**

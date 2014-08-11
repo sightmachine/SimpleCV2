@@ -1,13 +1,12 @@
 from nose.tools import nottest, assert_equals
 
 from simplecv.factory import Factory
-from simplecv.core.image import image_method, cached_method
+from simplecv.core.image import cached_method
 
 img_method_called = False
 
 
 @nottest
-@image_method
 @cached_method
 def img_method(img, arg1=2, arg2=4, arg3=8, arg4=16):
     global img_method_called
@@ -16,6 +15,8 @@ def img_method(img, arg1=2, arg2=4, arg3=8, arg4=16):
 
     img_method_called = True
     return arg1 + arg2 + arg3 + arg4
+
+Factory.Image.img_method = img_method
 
 
 def test_cached_method():

@@ -6,6 +6,7 @@ import sys
 import tempfile
 import urllib2
 import zipfile
+import re
 
 try:
     import cv2
@@ -64,6 +65,11 @@ try:
 
 except ImportError:
     ORANGE_ENABLED = False
+
+
+def convert_camel_case_to_underscore(name):
+    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
 
 class InitOptionsHandler(object):

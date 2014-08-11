@@ -43,5 +43,22 @@ setup(name="simplecv",
           'console_scripts': [
               'simplecv = simplecv.shell:main',
           ],
+          'simplecv.image': [
+              # built-in image modules
+              'convert = simplecv.core.image.convert',
+              'detection = simplecv.core.image.detection',
+              'dft = simplecv.core.image.dft',
+              'filter = simplecv.core.image.filter',
+              'operation = simplecv.core.image.operation',
+              'track = simplecv.core.image.track',
+              'transform = simplecv.core.image.transform',
+
+              # built-in plugins
+              'barcode = simplecv.plugins.barcode',
+              'denoise = simplecv.plugins.denoise',
+              'ocr = simplecv.plugins.ocr',
+              'stega = simplecv.plugins.stega',
+              'uploader = simplecv.plugins.uploader',
+          ]
       },
       )

@@ -25,6 +25,7 @@ import scipy.spatial.distance as spsd
 
 from simplecv.base import logger
 from simplecv.color import Color
+from simplecv.core.pluginsystem import apply_plugins
 
 
 class FeatureSet(list):
@@ -1213,6 +1214,7 @@ class FeatureSet(list):
 ### ----------------------------FEATURE CLASS----------------------------------
 ### ---------------------------------------------------------------------------
 ### ---------------------------------------------------------------------------
+@apply_plugins
 class Feature(object):
     """
     **SUMMARY**

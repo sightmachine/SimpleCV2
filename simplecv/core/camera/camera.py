@@ -5,10 +5,11 @@ import time
 import cv2
 import pygame as pg
 
-from simplecv.factory import Factory
-from simplecv.core.camera.frame_source import FrameSource
 from simplecv.base import logger, SYSTEM
 from simplecv.color import Color
+from simplecv.core.camera.frame_source import FrameSource
+from simplecv.core.pluginsystem import apply_plugins
+from simplecv.factory import Factory
 
 # Globals
 _cameras = []
@@ -41,6 +42,7 @@ class FrameBufferThread(threading.Thread):
             time.sleep(0.04)  # max 25 fps, if you're lucky
 
 
+@apply_plugins
 class Camera(FrameSource):
     """
     **SUMMARY**

@@ -7,6 +7,7 @@ from pygame import gfxdraw
 import svgwrite
 
 from simplecv.color import Color
+from simplecv.core.pluginsystem import apply_plugins
 
 #DOCS
 #TESTS
@@ -15,6 +16,7 @@ from simplecv.color import Color
 #ADD IMAGE INTERFACE
 
 
+@apply_plugins
 class DrawingLayer(object):
     """
     DrawingLayer gives you a way to mark up Image classes without changing

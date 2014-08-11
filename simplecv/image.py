@@ -15,16 +15,18 @@ import numpy as np
 from simplecv import exif
 from simplecv.base import logger, init_options_handler
 from simplecv.color import Color
-from simplecv.core.image import Image as CoreImage
 from simplecv.core.image import cached_method
+from simplecv.core.image import convert
+from simplecv.core.image import Image as CoreImage
 from simplecv.core.image.loader import ImageLoader
+from simplecv.core.pluginsystem import apply_plugins
 from simplecv.display import Display
 from simplecv.drawing_layer import DrawingLayer
 from simplecv.features.features import FeatureSet
 from simplecv.stream import JpegStreamer, VideoStream
-from simplecv.core.image import convert
 
 
+@apply_plugins
 class Image(CoreImage):
     """
     **SUMMARY**

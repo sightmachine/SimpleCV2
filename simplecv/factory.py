@@ -1,3 +1,8 @@
+import pkg_resources
+
+from simplecv.base import logger
+
+
 class FactoryException(Exception):
     pass
 
@@ -76,3 +81,8 @@ Factory.register('ShapeContextDescriptor',
 Factory.register('ROI', module='simplecv.features.detection')
 
 Factory.register('DFT', module='simplecv.dft')
+
+
+for plugin in pkg_resources.iter_entry_points('simplecv.factory'):
+    logger.info('Registering factory class from plugin "{}"'.format(plugin.name))
+    Factory.register(plugin.name, module=plugin.module_name)

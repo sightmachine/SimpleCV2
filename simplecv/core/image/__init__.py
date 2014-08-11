@@ -1,23 +1,15 @@
+import functools
 import types
 
 import cv2
 import numpy as np
 
 from simplecv.base import logger
+from simplecv.core.pluginsystem import plugin_method
 
 
-def image_method(func):
-    """ Decorator for image methods declared outside of the class
-    """
-    Image.register_method(func)
-    return func
-
-
-def static_image_method(func):
-    """ Decorator for image methods declared outside of the class
-    """
-    Image.register_static_method(func)
-    return func
+image_method = functools.partial(plugin_method, 'Image', False)
+static_image_method = functools.partial(plugin_method, 'Image', True)
 
 
 def cached_method(func):
@@ -73,20 +65,6 @@ class Image(object):
         XYZ: 'XYZ',
         YCR_CB: 'YCR_CB'
     }
-
-    @classmethod
-    def register_method(cls, func):
-        func_name = func.__name__
-        if hasattr(cls, func_name):
-            raise ValueError('Method {} already exists'.format(func_name))
-        setattr(cls, func_name, func)
-
-    @classmethod
-    def register_static_method(cls, func):
-        func_name = func.__name__
-        if hasattr(cls, func_name):
-            raise ValueError('Method {} already exists'.format(func_name))
-        setattr(cls, func_name, staticmethod(func))
 
     def __repr__(self):
         return "<simplecv.Image Object size:(%d, %d), dtype: %s, " \
@@ -592,10 +570,3 @@ class Image(object):
         tw = abs(br[0] - tl[0])
         th = abs(br[1] - tl[1])
         return (tx, ty, tw, th), (bx, by, bw, bh)
-
-
-# Registers builtin image methods
-from simplecv.core.image import (filter, transform, detection,
-                                 dft, track, operation)
-# Registers builtin plugins
-from simplecv.plugins import barcode, denoise, ocr, stega, uploader

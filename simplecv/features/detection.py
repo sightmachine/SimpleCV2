@@ -18,10 +18,12 @@ import scipy.spatial.distance as spsd
 
 from simplecv.base import logger
 from simplecv.color import Color
+from simplecv.core.pluginsystem import apply_plugins
 from simplecv.factory import Factory
 from simplecv.features.features import Feature, FeatureSet
 
 
+@apply_plugins
 class Corner(Feature):
     """
     **SUMMARY**
@@ -65,6 +67,7 @@ class Corner(Feature):
 
 
 ######################################################################
+@apply_plugins
 class Line(Feature):
     """
     **SUMMARY**
@@ -612,6 +615,7 @@ class Line(Feature):
 
 
 ######################################################################
+@apply_plugins
 class Barcode(Feature):
     """
     **SUMMARY**
@@ -764,6 +768,7 @@ class Barcode(Feature):
 
 
 ######################################################################
+@apply_plugins
 class HaarFeature(Feature):
     """
     **SUMMARY**
@@ -875,6 +880,7 @@ class HaarFeature(Feature):
 
 
 ######################################################################
+@apply_plugins
 class Chessboard(Feature):
     """
     **SUMMARY**
@@ -958,6 +964,7 @@ class Chessboard(Feature):
 
 
 ######################################################################
+@apply_plugins
 class TemplateMatch(Feature):
     """
     **SUMMARY**
@@ -1060,6 +1067,7 @@ class TemplateMatch(Feature):
 
 
 ######################################################################
+@apply_plugins
 class Circle(Feature):
     """
     **SUMMARY**
@@ -1293,6 +1301,7 @@ class Circle(Feature):
 
 
 ###############################################################################
+@apply_plugins
 class KeyPoint(Feature):
     """
     **SUMMARY**
@@ -1566,6 +1575,7 @@ class KeyPoint(Feature):
 
 
 ######################################################################
+@apply_plugins
 class Motion(Feature):
     """
     **SUMMARY**
@@ -1718,6 +1728,7 @@ class Motion(Feature):
 
 
 ######################################################################
+@apply_plugins
 class KeypointMatch(Feature):
     """
     This class encapsulates a keypoint match between images of an object.
@@ -1870,6 +1881,7 @@ class KeypointMatch(Feature):
 
 
 ######################################################################
+@apply_plugins
 class ShapeContextDescriptor(Feature):
     """
     Create a shape context descriptor.
@@ -1924,6 +1936,7 @@ class ShapeContextDescriptor(Feature):
 
 
 ######################################################################
+@apply_plugins
 class ROI(Feature):
     """
     This class creates a region of interest that inherit from one
