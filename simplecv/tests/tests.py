@@ -22,18 +22,12 @@ from simplecv.base import logger
 from simplecv.color import Color, ColorMap
 from simplecv.drawing_layer import DrawingLayer
 from simplecv.features.blobmaker import BlobMaker
-from simplecv.features.detection import Line, ROI
-from simplecv.features.facerecognizer import FaceRecognizer
 from simplecv.features.features import FeatureSet
-from simplecv.features.haar_cascade import HaarCascade
 from simplecv.image import Image
 from simplecv.image_set import ImageSet
-from simplecv.linescan import LineScan
 from simplecv.segmentation.color_segmentation import ColorSegmentation
 from simplecv.segmentation.diff_segmentation import DiffSegmentation
 from simplecv.segmentation.running_segmentation import RunningSegmentation
-from simplecv.stream import JpegStreamer, VideoStream
-from simplecv.display import Display
 
 from simplecv.tests.utils import perform_diff
 
@@ -1105,55 +1099,6 @@ def test_line_scan_div():
     a = int(ls[20]) / int(ls[20])
     assert_equals(a, l[20])
 
-
-def test_face_recognize():
-    if not hasattr(cv2, "createFisherFaceRecognizer"):
-        return
-
-    f = FaceRecognizer()
-    images1 = ["../data/sampleimages/ff1.jpg",
-               "../data/sampleimages/ff2.jpg",
-               "../data/sampleimages/ff3.jpg",
-               "../data/sampleimages/ff4.jpg",
-               "../data/sampleimages/ff5.jpg"]
-
-    images2 = ["../data/sampleimages/fm1.jpg",
-               "../data/sampleimages/fm2.jpg",
-               "../data/sampleimages/fm3.jpg",
-               "../data/sampleimages/fm4.jpg",
-               "../data/sampleimages/fm5.jpg"]
-
-    images3 = ["../data/sampleimages/fi1.jpg",
-               "../data/sampleimages/fi2.jpg",
-               "../data/sampleimages/fi3.jpg",
-               "../data/sampleimages/fi4.jpg"]
-
-    imgset1 = []
-    imgset2 = []
-    imgset3 = []
-
-    for img in images1:
-        imgset1.append(Image(img))
-    label1 = ["female"] * len(imgset1)
-
-    for img in images2:
-        imgset2.append(Image(img))
-    label2 = ["male"] * len(imgset2)
-
-    imgset = imgset1 + imgset2
-    labels = label1 + label2
-    imgset[4] = imgset[4].resize(400, 400)
-    f.train(imgset, labels)
-
-    for img in images3:
-        imgset3.append(Image(img))
-    imgset[2].resize(300, 300)
-    label = []
-    for img in imgset3:
-        name, confidence = f.predict(img)
-        label.append(name)
-
-    assert_list_equal(["male", "male", "female", "female"], label)
 
 def test_prewitt():
     i = Image('lenna')

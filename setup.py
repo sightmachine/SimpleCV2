@@ -1,7 +1,10 @@
 from setuptools import setup, find_packages
 
+import simplecv
+
+
 setup(name="simplecv",
-      version=2.0,
+      version=simplecv.__version__,
       download_url='https://github.com/sightmachine/SimpleCV/zipball/1.3',
       description="Make Computers See with simplecv, the Python Framework for Machine Vision",
       long_description=("Framework for computer (machine) vision in Python, providing a unified, pythonic interface "
@@ -28,8 +31,6 @@ setup(name="simplecv",
       requires=['cv2', 'cv', 'numpy', 'scipy', 'pygame', 'pil', 'svgwrite'],
       package_data={  # DO NOT REMOVE, NEEDED TO LOAD INLINE FILES i = Image('simplecv')
                       'simplecv': ['data/sampleimages/*',
-                                   'data/Features/HaarCascades/*',
-                                   'data/Features/FaceRecognizer/*'
                                    'examples/arduino/*',
                                    'examples/detection/*',
                                    'examples/display/*',

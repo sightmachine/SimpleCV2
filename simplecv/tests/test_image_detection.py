@@ -1,7 +1,6 @@
 import pickle
 
 import cv2
-import os
 import numpy as np
 import math
 from nose.tools import assert_equals, assert_is_instance, assert_greater \
@@ -12,11 +11,9 @@ from simplecv.tests.utils import perform_diff
 from simplecv.features.blobmaker import BlobMaker
 from simplecv.features.blob import Blob
 from simplecv.features.features import FeatureSet, Feature
-from simplecv.features.facerecognizer import FaceRecognizer
 from simplecv.features.detection import Corner, Line
-from simplecv.features.haar_cascade import HaarCascade
 from simplecv.color import Color
-from simplecv import DATA_DIR
+
 
 #images
 contour_hiearachy = "../data/sampleimages/contour_hiearachy.png"
@@ -31,6 +28,7 @@ circles = "../data/sampleimages/circles.png"
 
 #alpha masking images
 topImg = "../data/sampleimages/RatTop.png"
+
 
 def test_detection_find_corners():
     img = Image(testimage2)
@@ -301,37 +299,6 @@ def test_find_skintone_blobs():
     blobs = img.find_skintone_blobs()
     assert_equals(blobs, None)
 
-def test_find_haar_features():
-    img = Image("../data/sampleimages/orson_welles.jpg")
-    img1 = img.copy()
-    face = HaarCascade("face.xml")  # old HaarCascade
-    f = img.find_haar_features(face)
-    f2 = img1.find_haar_features("face_cv2.xml")  # new cv2 HaarCascade
-    assert len(f) > 0
-    assert len(f2) > 0
-    f.draw()
-    f2.draw()
-    f[0].get_width()
-    f[0].get_height()
-    f[0].length()
-    f[0].get_area()
-
-    results = [img, img1]
-    name_stem = "test_find_haar_features"
-    perform_diff(results, name_stem)
-
-    # incorrect cascade name
-    f3 = img.find_haar_features(cascade="incorrect_cascade.xml")
-    assert_equals(f3, None)
-
-    # incorrect cascade object
-    f4 = img.find_haar_features(cascade=img1)
-    assert_equals(f4, None)
-
-    # Empty image
-    img2 = Image((100, 100))
-    f5 = img2.find_haar_features("face_cv2.xml")
-    assert_equals(f5, None)
 
 def test_find_chessboard():
     img = Image(CHESSBOARD_IMAGE)
@@ -674,36 +641,6 @@ def test_find_flood_fill_blobs():
     results = [img]
     perform_diff(results, name_stem)
 
-def test_list_haar_features():
-    features_directory = os.path.join(DATA_DIR, 'Features/HaarCascades')
-    features = os.listdir(features_directory)
-    assert_equals(features, Image.list_haar_features())
-
-def test_anonymize():
-    img = Image(source="lenna")
-    anon_img = img.anonymize()
-
-    # provide features
-    anon_img1 = img.anonymize(features=["face.xml", "profile.xml"])
-
-    # match both images
-    assert_equals(anon_img.get_ndarray().data, anon_img1.get_ndarray().data)
-
-    # transform function
-    def transform_blur(img, rect):
-        np_array = img.get_ndarray()
-        x, y, w, h = rect
-        crop_np_array = np_array[y:y+h, x:x+w]
-        crop_img = Image(array=crop_np_array)
-        blur_img = crop_img.blur((15, 15))
-        blur_np_array = blur_img.get_ndarray()
-        np_array[y:y+h, x:x+w] = blur_np_array
-        return Image(array=np_array)
-
-    # apply tranform function
-    anon_img2 = img.anonymize(transform=transform_blur)
-
-    perform_diff([anon_img1, anon_img2], "test_anonymize")
 
 def test_find_grid_lines():
     img = Image("simplecv")
@@ -814,23 +751,6 @@ def test_image_fit_line_points():
     guess = [((4, 6), (22, 26))]
     new_img.fit_line_points(guess, window=(2,2))
 
-def test_image_recognize_face():
-    img = Image("lenna")
-    recognizer = FaceRecognizer()
-    faces = img.find_haar_features("face.xml")
-    face = faces[0].crop()
-    recognizer.load("../data/Features/FaceRecognizer/GenderData.xml")
-    assert_equals(face.recognize_face(recognizer)[0], 0)
-
-    # invalid recognizer
-    assert_is_none(img.recognize_face(2))
-
-def test_image_find_and_recognize_faces():
-    img = Image("lenna")
-    recognizer = FaceRecognizer()
-    recognizer.load("../data/Features/FaceRecognizer/GenderData.xml")
-    assert_equals(img.find_and_recognize_faces(recognizer, "face.xml")[0][1],
-                  0)
 
 def test_edge_snap():
     img = Image('shapes.png', sample=True).edges()

@@ -21,7 +21,7 @@ def img_diffs(test_imgs, name_stem, tolerance, path):
     for idx in range(0, count):
         lhs = test_imgs[idx].apply_layers()  # this catches drawing methods
         lhs = lhs.to_bgr().get_ndarray()
-        fname = standard_path + name_stem + str(idx)
+        fname = os.path.join(standard_path, name_stem + str(idx))
         fname_png = fname + ".png"
         if os.path.exists(fname_png):
             rhs = cv2.imread(fname_png)
