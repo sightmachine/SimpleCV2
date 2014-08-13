@@ -205,25 +205,6 @@ def test_detection_blobs_convexity_defects():
     assert_greater(len(points), 0)
 
 
-def test_detection_barcode():
-    try:
-        import zbar
-    except:
-        return
-
-    img1 = Image(testimage)
-    img2 = Image(testbarcode)
-
-    nocode = img1.find_barcode()
-    assert nocode is None  # we should find no barcode in our test image
-    code = img2.find_barcode()
-    code.draw()
-    assert code[0].points
-    result = [img1, img2]
-    name_stem = "test_detection_barcode"
-    perform_diff(result, name_stem)
-
-
 def test_detection_x():
     img = Image(testimage)
     tmp_x = img.find_lines().x()[0]

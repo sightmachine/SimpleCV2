@@ -55,7 +55,6 @@ setup(name="simplecv",
               'transform = simplecv.core.image.transform',
 
               # built-in plugins
-              'barcode = simplecv.plugins.barcode',
               'denoise = simplecv.plugins.denoise',
               'ocr = simplecv.plugins.ocr',
               'stega = simplecv.plugins.stega',

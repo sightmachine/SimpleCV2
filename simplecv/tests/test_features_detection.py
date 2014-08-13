@@ -7,11 +7,10 @@ import cv2
 from math import pi
 
 from simplecv.image import Image
-from simplecv.features.detection import Line, Barcode, Chessboard, Circle, \
+from simplecv.features.detection import Line, Chessboard, Circle, \
                                         Motion, ROI
 from simplecv.tests.utils import perform_diff
 
-BARCODE_IMAGE = "../data/sampleimages/barcode.png"
 CHESSBOARD_IMAGE = "../data/sampleimages/CalibImage3.png"
 KEYPOINT_IMAGE = "../data/sampleimages/KeypointTemplate2.png"
 testimageclr = "../data/sampleimages/statue_liberty.jpg"
@@ -204,17 +203,6 @@ def test_line_get_y_intercept():
     assert_equals(l2.get_y_intercept(), 50)
     assert_equals(l1.get_y_intercept(), float("-inf"))
 
-def test_barcode():
-    img = Image(BARCODE_IMAGE)
-    barcode = img.find_barcode()[0]
-    repr_str = "%s.%s at (%d,%d), read data: %s" % (
-            barcode.__class__.__module__, barcode.__class__.__name__, barcode.x, barcode.y,
-        barcode.data)
-    assert_equals(barcode.__repr__(), repr_str)
-    barcode.draw(color=(255, 0, 0), width=5)
-    assert_equals(barcode.length(),[262.0])
-    assert_almost_equals(barcode.get_area(), 68644.0)
-    perform_diff([img], "test_barcode", 0.0)
 
 def test_chessboard():
     img = Image(CHESSBOARD_IMAGE)

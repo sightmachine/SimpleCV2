@@ -14,7 +14,7 @@ from simplecv.core.camera.stereo_camera import StereoCamera, StereoImage
 from simplecv.core.camera.virtual_camera import VirtualCamera
 from simplecv.factory import Factory
 from simplecv.features.blobmaker import BlobMaker
-from simplecv.features.detection import Line, ROI, Corner, Line, Barcode, \
+from simplecv.features.detection import Line, ROI, Corner, Line, \
     Circle, KeyPoint, KeypointMatch, Motion, TemplateMatch, \
     ShapeContextDescriptor
 from simplecv.features.features import FeatureSet, Feature

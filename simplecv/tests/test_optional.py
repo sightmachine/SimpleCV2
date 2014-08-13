@@ -51,25 +51,6 @@ alphaMaskImg = "../data/sampleimages/RatAlphaMask.png"
 alphaSrcImg = "../data/sampleimages/GreenMaskSource.png"
 
 
-def test_detection_barcode():
-    try:
-        import zbar
-    except:
-        return
-
-    img1 = Image(testimage)
-    img2 = Image(testbarcode)
-
-    nocode = img1.find_barcode()
-    if nocode:  # we should find no barcode in our test image
-        assert False
-    code = img2.find_barcode()
-    code.draw()
-    result = [img1, img2]
-    name_stem = "test_detection_barcode"
-    perform_diff(result, name_stem)
-
-
 def test_detection_ocr():
     img = Image(ocrimage)
 
