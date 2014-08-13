@@ -33,7 +33,7 @@ def test_running_segmentation_reset_error():
 
 def test_running_segmentation_reset():
     r = RunningSegmentation()
-    r.model_img = Image("../data/sampleimages/ocr-test.png")    # random image, snice it doesn't matter - they're going to beset to None anyway
+    r.model_img = Image("../data/sampleimages/black.png")    # random image, snice it doesn't matter - they're going to beset to None anyway
     r.diff_img = Image("../data/sampleimages/black.png")
 
     r.reset()

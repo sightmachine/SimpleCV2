@@ -39,7 +39,6 @@ tmpimg = "../data/sampleimages/tmpimg.jpg"
 greyscaleimage = "../data/sampleimages/greyscale.jpg"
 logo = "../data/sampleimages/simplecv.png"
 logo_inverted = "../data/sampleimages/simplecv_inverted.png"
-ocrimage = "../data/sampleimages/ocr-test.png"
 circles = "../data/sampleimages/circles.png"
 webp = "../data/sampleimages/simplecv.webp"
 
@@ -49,13 +48,6 @@ bottomImg = "../data/sampleimages/RatBottom.png"
 maskImg = "../data/sampleimages/RatMask.png"
 alphaMaskImg = "../data/sampleimages/RatAlphaMask.png"
 alphaSrcImg = "../data/sampleimages/GreenMaskSource.png"
-
-
-def test_detection_ocr():
-    img = Image(ocrimage)
-
-    foundtext = img.read_text()
-    assert len(foundtext) > 1
 
 
 def test_image_webp_load():

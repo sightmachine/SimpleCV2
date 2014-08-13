@@ -56,7 +56,6 @@ setup(name="simplecv",
 
               # built-in plugins
               'denoise = simplecv.plugins.denoise',
-              'ocr = simplecv.plugins.ocr',
               'stega = simplecv.plugins.stega',
               'uploader = simplecv.plugins.uploader',
           ]

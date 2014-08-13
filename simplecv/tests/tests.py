@@ -64,7 +64,6 @@ tmpimg = "../data/sampleimages/tmpimg.jpg"
 greyscaleimage = "../data/sampleimages/greyscale.jpg"
 logo = "../data/sampleimages/simplecv.png"
 logo_inverted = "../data/sampleimages/simplecv_inverted.png"
-ocrimage = "../data/sampleimages/ocr-test.png"
 circles = "../data/sampleimages/circles.png"
 webp = "../data/sampleimages/simplecv.webp"
 
