@@ -2,7 +2,6 @@
     also can be used to import all classes: from simplecv.api import *
 """
 from simplecv.color import Color, ColorMap
-from simplecv.core.camera.avt_camera import AVTCamera
 from simplecv.core.camera.camera import Camera
 from simplecv.core.camera.digital_camera import DigitalCamera
 from simplecv.core.camera.frame_source import FrameSource
