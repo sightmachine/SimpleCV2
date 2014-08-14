@@ -32,16 +32,6 @@ except ImportError:
     except ImportError:
         PIL_ENABLED = False
 
-ORANGE_ENABLED = True
-try:
-    try:
-        import orange
-    except ImportError:
-        import Orange
-
-except ImportError:
-    ORANGE_ENABLED = False
-
 
 def convert_camel_case_to_underscore(name):
     s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
@@ -307,10 +297,6 @@ def system():
             print "PIL version : ", PilImage.VERSION
         else:
             print "PIL module not installed"
-        if ORANGE_ENABLED:
-            print "Orange Version : " + orange.version
-        else:
-            print "Orange module not installed"
         try:
             import pygame as pg
 

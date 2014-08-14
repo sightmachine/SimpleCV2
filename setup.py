@@ -48,7 +48,6 @@ setup(name="simplecv",
               'data/test/standard/*',
               'data/test/animation/*',
               'data/sampleimages/*',
-              'data/Features/*'
           ],
       },
       entry_points={
