@@ -72,8 +72,14 @@ def test_camera_calibration():
     assert isinstance(mat, np.ndarray)
 
     #we're also going to test load in save in the same pass
-    matname = "../data/test/StereoVision/TestCalibration"
+    matname = os.path.join(tempfile.gettempdir(), "TestCalibration")
     fake_camera.save_calibration(matname)
-    assert os.path.exists(matname + "Intrinsic.bin")
-    assert os.path.exists(matname + "Distortion.bin")
-    assert fake_camera.load_calibration(matname)
+    intrinsic = matname + "Intrinsic.bin"
+    distortion = matname + "Distortion.bin"
+    assert os.path.exists(intrinsic)
+    assert os.path.exists(distortion)
+    result =  fake_camera.load_calibration(matname)
+    os.remove(intrinsic)
+    os.remove(distortion)
+
+    assert result

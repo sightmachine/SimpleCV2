@@ -564,8 +564,6 @@ def test_dft_lowpass():
     flt = DFT.create_lowpass_filter(x_cutoff=150, size=(600, 600))
     fltimg = img.filter(flt)
     fltimggray = img.filter(flt, grayscale=True)
-    fltimg.save("../data/test/standard/test_dft_lowpass0.png")
-    fltimggray.save("../data/test/standard/test_dft_lowpass1.png")
     results = [fltimg, fltimggray]
     name_stem = "test_dft_lowpass"
     perform_diff(results, name_stem)
@@ -576,8 +574,6 @@ def test_dft_highpass():
     flt = DFT.create_lowpass_filter(x_cutoff=10, size=(600, 600))
     fltimg = img.filter(flt)
     fltimggray = img.filter(flt, grayscale=True)
-    fltimg.save("../data/test/standard/test_dft_highpass0.png")
-    fltimggray.save("../data/test/standard/test_dft_highpass1.png")
     results = [fltimg, fltimggray]
     name_stem = "test_dft_highpass"
     perform_diff(results, name_stem)
@@ -717,10 +713,7 @@ def test_get_skintone_mask():
     masks.append(img_set[0].get_skintone_mask(dilate_iter=1))
     masks.append(img_set[0].get_skintone_mask(dilate_iter=2))
     masks.append(img_set[0].get_skintone_mask(dilate_iter=3))
-    
-    masks[0].save("../data/test/standard/test_skintone0.png")
-    masks[1].save("../data/test/standard/test_skintone1.png")
-    masks[2].save("../data/test/standard/test_skintone2.png")
+
     perform_diff(masks, name_stem, tolerance=2.0)
 
 def test_color_distance():

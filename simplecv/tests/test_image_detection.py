@@ -502,7 +502,6 @@ def test_find_keypoints():
             kp.draw()
         else:
             print "Found None."
-    img.save("../data/test/standard/test_find_keypoints0.png")
     results = [img]
     name_stem = "test_find_keypoints"
     perform_diff(results, name_stem)
