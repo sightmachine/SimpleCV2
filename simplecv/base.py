@@ -32,30 +32,6 @@ except ImportError:
     except ImportError:
         PIL_ENABLED = False
 
-# FREENECT_ENABLED = True
-# try:
-#     import freenect
-# except ImportError:
-#     FREENECT_ENABLED = False
-
-# ZXING_ENABLED = True
-# try:
-#     import zxing
-# except ImportError:
-#     ZXING_ENABLED = False
-#
-# OCR_ENABLED = True
-# try:
-#     import tesseract
-# except ImportError:
-#     OCR_ENABLED = False
-
-# PYSCREENSHOT_ENABLED = True
-# try:
-#     import pyscreenshot
-# except ImportError:
-#     PYSCREENSHOT_ENABLED = False
-#
 ORANGE_ENABLED = True
 try:
     try:

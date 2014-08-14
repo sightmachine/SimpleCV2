@@ -7,7 +7,6 @@ from simplecv.core.camera.camera import Camera
 from simplecv.core.camera.digital_camera import DigitalCamera
 from simplecv.core.camera.frame_source import FrameSource
 from simplecv.core.camera.gige_camera import GigECamera
-from simplecv.core.camera.kinect import Kinect
 from simplecv.core.camera.scanner import Scanner
 from simplecv.core.camera.screen_camera import ScreenCamera
 from simplecv.core.camera.stereo_camera import StereoCamera, StereoImage
