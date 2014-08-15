@@ -1,6 +1,7 @@
 import os
+import functools
 
-from nose.tools import nottest, assert_equals
+from nose.tools import assert_equals
 import cv2
 import numpy as np
 
@@ -14,10 +15,9 @@ standard_path = "../data/test/standard/"
 
 
 #Given a set of images, a path, and a tolerance do the image diff.
-@nottest
 def img_diffs(test_imgs, name_stem, tolerance, path):
     count = len(test_imgs)
-    ret_val = False
+    ret_val = []
     for idx in range(0, count):
         lhs = test_imgs[idx].apply_layers()  # this catches drawing methods
         lhs = lhs.to_bgr().get_ndarray()
@@ -26,6 +26,9 @@ def img_diffs(test_imgs, name_stem, tolerance, path):
         if os.path.exists(fname_png):
             rhs = cv2.imread(fname_png)
         else:
+            # Uncomment this to save new standard images
+            # cv2.imwrite(fname_png, lhs)
+            # continue
             raise Exception('Cannot load standard image')
         if lhs.shape == rhs.shape:
             diff = cv2.absdiff(lhs, rhs)
@@ -36,9 +39,9 @@ def img_diffs(test_imgs, name_stem, tolerance, path):
                 percent_diff_pixels = diff_pixels_sum / num_img_pixels
                 print "id: {0:}. {1:.2f}% difference".format(idx, percent_diff_pixels * 100)
                 if (percent_diff_pixels * 100 < tolerance):
-                    ret_val = False
+                    ret_val.append(False)
                 else:
-                    ret_val = True
+                    ret_val.append(True)
                 # Uncomment this to save result and diff images
                 # cv2.imwrite(fname + "_RESULT.png", lhs)
                 # cv2.imwrite(fname + "_DIFF.png",
@@ -49,12 +52,11 @@ def img_diffs(test_imgs, name_stem, tolerance, path):
                                                                 rhs.shape)
             # Uncomment this to save result image with wrong size
             # cv2.imwrite(fname + "_WRONG_SIZE.png", lhs)
-            ret_val = True
-    return ret_val
+            ret_val.append(True)
+    return any(ret_val)
 
 
 #Save a list of images to a standard path.
-@nottest
 def img_saves(test_imgs, name_stem, path=standard_path):
     count = len(test_imgs)
     for idx in range(0, count):
@@ -63,7 +65,6 @@ def img_saves(test_imgs, name_stem, path=standard_path):
 
 
 #perform the actual image save and image diffs.
-@nottest
 def perform_diff(result, name_stem, tolerance=0.03, path=standard_path):
     if VISUAL_TEST:  # save the correct images for a visual test
         img_saves(result, name_stem, path)
@@ -71,7 +72,6 @@ def perform_diff(result, name_stem, tolerance=0.03, path=standard_path):
         assert not img_diffs(result, name_stem, tolerance, path)
 
 
-@nottest
 def create_test_array():
     """ Returns array 2 x 2 pixels, 8 bit and BGR color space
         pixels are colored so:
@@ -83,13 +83,11 @@ def create_test_array():
                     dtype=np.uint8)
 
 
-@nottest
 def create_test_image():
     bgr_array = create_test_array()
     return Image(array=bgr_array, color_space=Image.BGR)
 
 
-@nottest
 def perform_diff_blobs(blob1, blob2):
     assert_equals(blob1.m00, blob2.m00)
     assert_equals(blob1.m01, blob2.m01)
@@ -113,3 +111,11 @@ def perform_diff_blobs(blob1, blob2):
                   blob2.image.get_ndarray().data)
     assert_equals(blob1.points, blob2.points)
     assert_equals(blob1.hole_contour, blob2.hole_contour)
+
+
+def skipped(func):
+    from nose.plugins.skip import SkipTest
+    @functools.wraps(func)
+    def raise_skip_error():
+        raise SkipTest("Test %s is skipped" % func.__name__)
+    return raise_skip_error
