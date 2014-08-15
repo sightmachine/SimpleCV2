@@ -36,6 +36,7 @@ class ImageLoader(object):
     @staticmethod
     def register(loader_cls):
         ImageLoader.loaders.append(loader_cls)
+        return loader_cls
 
     @staticmethod
     def load(**kwargs):
@@ -47,6 +48,7 @@ class ImageLoader(object):
         raise ValueError(msg)
 
 
+@ImageLoader.register
 class Cv2ImageLoader(ImageLoaderBase):
     """
     Image loader that uses cv2 to load an image
@@ -67,7 +69,7 @@ class Cv2ImageLoader(ImageLoaderBase):
     @staticmethod
     def can_load(**kwargs):
         source = kwargs.get('source')
-        if isinstance(source, str):
+        if isinstance(source, basestring):
             if source == '':
                 return False
             elif not os.path.exists(source):
@@ -93,6 +95,7 @@ class Cv2ImageLoader(ImageLoaderBase):
         return array, color_space, source
 
 
+@ImageLoader.register
 class SampleImageLoader(ImageLoaderBase):
 
     SUPPORTED_SAMPLE_IMAGES = (
@@ -145,6 +148,7 @@ class SampleImageLoader(ImageLoaderBase):
             raise Exception('Cannot load image from {}'.format(source))
 
 
+@ImageLoader.register
 class HttpImageLoader(ImageLoaderBase):
 
     USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_4) " \
@@ -181,6 +185,7 @@ class HttpImageLoader(ImageLoaderBase):
         raise Exception('Cannot load image from {}'.format(source))
 
 
+@ImageLoader.register
 class RawPngImageLoader(ImageLoaderBase):
 
     @staticmethod
@@ -206,6 +211,7 @@ class RawPngImageLoader(ImageLoaderBase):
             raise Exception('Cannot load image from {}'.format(source))
 
 
+@ImageLoader.register
 class ListTupleImageLoader(ImageLoaderBase):
 
     @staticmethod
@@ -233,6 +239,7 @@ class ListTupleImageLoader(ImageLoaderBase):
             raise Exception('Cannot load image from {}'.format(source))
 
 
+@ImageLoader.register
 class WebpImageLoader(ImageLoaderBase):
 
     @staticmethod
@@ -241,7 +248,7 @@ class WebpImageLoader(ImageLoaderBase):
         webp = kwargs.get('webp')
         if webp is True:
             return True
-        if isinstance(source, str):
+        if isinstance(source, basestring):
             if source == '':
                 return False
             elif not os.path.exists(source):
@@ -256,7 +263,7 @@ class WebpImageLoader(ImageLoaderBase):
     @staticmethod
     def load(**kwargs):
         source = kwargs.get('source')
-        if isinstance(source, str):
+        if isinstance(source, basestring):
             if source == '':
                 raise IOError("No filename provided to Image constructor")
             elif not os.path.exists(source):
@@ -291,6 +298,7 @@ class WebpImageLoader(ImageLoaderBase):
             raise Exception('Cannot load image from {}'.format(source))
 
 
+@ImageLoader.register
 class PygameImageLoader(ImageLoaderBase):
 
     @staticmethod
@@ -311,6 +319,7 @@ class PygameImageLoader(ImageLoaderBase):
             raise Exception('Cannot load image from {}'.format(source))
 
 
+@ImageLoader.register
 class PilImageLoader(ImageLoaderBase):
 
     @staticmethod
@@ -331,13 +340,3 @@ class PilImageLoader(ImageLoaderBase):
             return array, Image.RGB, None
         else:
             raise Exception('Cannot load image from {}'.format(source))
-
-
-ImageLoader.register(ListTupleImageLoader)
-ImageLoader.register(Cv2ImageLoader)
-ImageLoader.register(PygameImageLoader)
-ImageLoader.register(PilImageLoader)
-ImageLoader.register(WebpImageLoader)
-ImageLoader.register(SampleImageLoader)
-ImageLoader.register(HttpImageLoader)
-ImageLoader.register(RawPngImageLoader)
