@@ -526,7 +526,7 @@ def binarize(img, thresh=None, maxv=255, blocksize=0, p=5, inverted=False):
                           type=thresh_type)[1]
         b = cv2.threshold(b, thresh=thresh[2], maxval=maxv,
                           type=thresh_type)[1]
-        array = r + g + b
+        array = cv2.add(cv2.add(r, g), b)
         return Factory.Image(array)
 
     elif thresh is None:
