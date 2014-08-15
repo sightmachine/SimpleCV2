@@ -20,7 +20,7 @@ for idx in range(len(packblobs)):
     pack = packblobs[idx].crop()
 
     pills = pack.hue_distance(pillcolor, minsaturation = saturation_threshold)
-    pills = pills.binarize(127)
+    pills = pills.binarize(127, inverted=True)
 
     bm = BlobMaker()
     pills = bm.extract_from_binary(pills,pills,minsize=pill_size)

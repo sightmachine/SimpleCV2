@@ -122,17 +122,18 @@ def test_image_gamma_correct():
 
 def test_image_binarize():
     img = Image(source=testimage2)
-    binary = img.binarize()
-    binary2 = img.binarize((60, 100, 200))
+    binary = img.binarize(inverted=True)
+    binary2 = img.binarize((60, 100, 200), inverted=True)
+    binary3 = img.binarize((60, 100, 200), inverted=False)
 
-    result = [binary, binary2]
+    result = [binary, binary2, binary3]
     name_stem = "test_image_binarize"
     perform_diff(result, name_stem)
 
 
 def test_image_binarize_adaptive():
     img = Image(source=testimage2)
-    binary = img.binarize()
+    binary = img.binarize(inverted=True)
     result = [binary]
     name_stem = "test_image_binarize_adaptive"
     perform_diff(result, name_stem)

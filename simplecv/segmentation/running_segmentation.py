@@ -96,9 +96,9 @@ class RunningSegmentation(SegmentationBase):
         """
         img = self._float_to_int(self.diff_img)
         if white_fg:
-            ret_val = img.binarize(thresh=self.thresh)
+            ret_val = img.binarize(thresh=self.thresh, inverted=True)
         else:
-            ret_val = img.binarize(thresh=self.thresh).invert()
+            ret_val = img.binarize(thresh=self.thresh, inverted=True).invert()
         return ret_val
 
     def get_segmented_blobs(self):
@@ -109,7 +109,7 @@ class RunningSegmentation(SegmentationBase):
         if self.color_img is not None and self.diff_img is not None:
             eight_bit = self._float_to_int(self.diff_img)
             ret_val = self.blobmaker.extract_from_binary(
-                eight_bit.binarize(thresh=self.thresh), self.color_img)
+                eight_bit.binarize(thresh=self.thresh, inverted=True), self.color_img)
         return ret_val
 
     @staticmethod

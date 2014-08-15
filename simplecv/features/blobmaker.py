@@ -64,7 +64,7 @@ class BlobMaker(object):
 
         blobs = self.extract_from_binary(
             img.binarize(thresh=threshval, maxv=255, blocksize=threshblocksize,
-                         p=threshconstant).invert(), color_img=img,
+                         p=threshconstant, inverted=True).invert(), color_img=img,
             minsize=minsize, maxsize=maxsize)
         ret_value = sorted(blobs, key=lambda x: x.area, reverse=True)
         return FeatureSet(ret_value)

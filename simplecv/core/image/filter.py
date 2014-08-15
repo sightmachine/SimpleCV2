@@ -450,7 +450,7 @@ def gamma_correct(img, gamma=1):
 
 
 @image_method
-def binarize(img, thresh=None, maxv=255, blocksize=0, p=5):
+def binarize(img, thresh=None, maxv=255, blocksize=0, p=5, inverted=False):
     """
     **SUMMARY**
 
@@ -513,17 +513,19 @@ def binarize(img, thresh=None, maxv=255, blocksize=0, p=5):
     :py:meth:`erode`
 
     """
+    thresh_type = cv2.THRESH_BINARY_INV if inverted else cv2.THRESH_BINARY
+
     if is_tuple(thresh):
         b = img.get_ndarray()[:, :, 0].copy()
         g = img.get_ndarray()[:, :, 1].copy()
         r = img.get_ndarray()[:, :, 2].copy()
 
         r = cv2.threshold(r, thresh=thresh[0], maxval=maxv,
-                          type=cv2.THRESH_BINARY_INV)[1]
+                          type=thresh_type)[1]
         g = cv2.threshold(g, thresh=thresh[1], maxval=maxv,
-                          type=cv2.THRESH_BINARY_INV)[1]
+                          type=thresh_type)[1]
         b = cv2.threshold(b, thresh=thresh[2], maxval=maxv,
-                          type=cv2.THRESH_BINARY_INV)[1]
+                          type=thresh_type)[1]
         array = r + g + b
         return Factory.Image(array)
 
@@ -532,17 +534,17 @@ def binarize(img, thresh=None, maxv=255, blocksize=0, p=5):
             array = cv2.adaptiveThreshold(
                 img.get_gray_ndarray(), maxValue=maxv,
                 adaptiveMethod=cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                thresholdType=cv2.THRESH_BINARY_INV,
+                thresholdType=thresh_type,
                 blockSize=blocksize, C=p)
         else:
             array = cv2.threshold(
                 img.get_gray_ndarray(), -1, float(maxv),
-                cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
+                thresh_type + cv2.THRESH_OTSU)[1]
         return Factory.Image(array)
     else:
         # desaturate the image, and apply the new threshold
         array = cv2.threshold(img.get_gray_ndarray(), thresh=thresh,
-                              maxval=maxv, type=cv2.THRESH_BINARY_INV)[1]
+                              maxval=maxv, type=thresh_type)[1]
         return Factory.Image(array)
 
 
@@ -594,8 +596,8 @@ def get_skintone_mask(img, dilate_iter=0):
     array = np.dstack((y_array, cr_array, cb_array))
 
     mask = Factory.Image(array, color_space=Factory.Image.YCR_CB)
-    mask = mask.binarize(thresh=(128, 128, 128))
-    mask = mask.to_rgb().binarize()
+    mask = mask.binarize(thresh=(128, 128, 128), inverted=True)
+    mask = mask.to_rgb().binarize(inverted=True)
     return mask.dilate(iterations=dilate_iter)
 
 
@@ -2687,7 +2689,7 @@ def watershed(img, mask=None, erode=2, dilate=2, use_my_mask=False):
     mask.
     """
     if mask is None:
-        mask = img.binarize().invert()
+        mask = img.binarize(inverted=True).invert()
     if not use_my_mask:
         newmask = Factory.Image((img.width, img.height))
         newmask = newmask.flood_fill((0, 0), color=Color.WATERSHED_BG)

@@ -591,7 +591,7 @@ def test_smart_find_blobs():
 
 def test_find_blobs_from_mask():
     img = Image(testimage2)
-    mask = img.binarize().invert()
+    mask = img.binarize(inverted=True).invert()
     b1 = img.find_blobs_from_mask(mask)
     b2 = img.find_blobs()
     b1.draw()

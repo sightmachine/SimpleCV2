@@ -155,7 +155,7 @@ def find_blobs(img, threshval=None, minsize=10, maxsize=0,
     blobmaker = BlobMaker()
     blobs = blobmaker.extract_from_binary(
         img.binarize(thresh=threshval, maxv=255, blocksize=threshblocksize,
-                     p=threshconstant).invert(),
+                     p=threshconstant, inverted=True).invert(),
         img, minsize=minsize, maxsize=maxsize, appx_level=appx_level)
 
     if not len(blobs):
