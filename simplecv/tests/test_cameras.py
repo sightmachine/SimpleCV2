@@ -7,7 +7,7 @@ from simplecv.core.camera.camera import Camera
 from simplecv.core.camera.frame_source import FrameSource
 from simplecv.core.camera.virtual_camera import VirtualCamera
 from simplecv.image import Image
-from simplecv.tests.utils import perform_diff
+from simplecv.tests.utils import perform_diff, skipped
 
 testoutput = os.path.join(tempfile.gettempdir(), 'cam.jpg')
 
@@ -21,6 +21,7 @@ def test_virtual_camera_constructor():
         print str(i) + ": " + str(props[i]) + "\n"
 
 
+@skipped  # rewrite with mock
 def test_camera_image():
     mycam = Camera(0)
 
@@ -28,6 +29,7 @@ def test_camera_image():
     img.save(testoutput)
 
 
+@skipped  # rewrite with mock
 def test_camera_multiple_instances():
     cam1 = Camera()
     img1 = cam1.get_image()

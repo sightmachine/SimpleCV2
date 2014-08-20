@@ -1509,3 +1509,6 @@ class Image(CoreImage):
             result_img.draw_line(pt_a, pt_b, color=Color.get_random(),
                                  thickness=width)
         return result_img
+
+    def find(self, feature_class, *args, **kwargs):
+        return feature_class.find(self, *args, **kwargs)

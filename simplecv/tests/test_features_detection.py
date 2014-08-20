@@ -5,10 +5,11 @@ from nose.tools import assert_equals, assert_almost_equals, \
 import cv2
 
 from math import pi
+from simplecv.features.blob import Blob
 
 from simplecv.image import Image
 from simplecv.features.detection import Line, Chessboard, Circle, \
-                                        Motion, ROI
+    Motion, ROI, KeyPoint
 from simplecv.tests.utils import perform_diff
 
 CHESSBOARD_IMAGE = "../data/sampleimages/CalibImage3.png"
@@ -27,12 +28,12 @@ def test_line_draw():
     assert_equals(img.get_ndarray().data, img1.get_ndarray().data)
 
 def test_line_length():
-    line = Line(None, ((20, 20), (20,80)))
+    line = Line(None, ((20, 20), (20, 80)))
     assert_equals(line.length(), 60)
 
 def test_line_crop():
     img = Image("../data/sampleimages/EdgeTest2.png")
-    l = img.find_lines().sort_area()
+    l = img.find(Line).sort_area()
     l = l[-5:-1]
     results = []
     for ls in l:
@@ -261,7 +262,7 @@ def test_circle_crop():
 
 def test_keypoint():
     img = Image(KEYPOINT_IMAGE)
-    kp  = img.find_keypoints()
+    kp = img.find(KeyPoint)
 
     assert_equals(190, len(kp))
 
@@ -325,7 +326,7 @@ def test_shape_context_descriptor():
     np_array = img.get_ndarray()
     np_array[50:150, 30:80] = (255, 255, 255)
 
-    blobs = img.find_blobs()
+    blobs = img.find(Blob)
     blob = blobs[-1]
 
     shape_context_descriptors = blob.get_shape_context()
@@ -337,7 +338,7 @@ def test_roi():
     from simplecv.color import Color
     img = Image(testimageclr)
     mask = img.threshold(248).dilate(5)
-    blobs = img.find_blobs_from_mask(mask, minsize=1)
+    blobs = Blob.find_from_mask(img, mask, minsize=1)
     y, x = np.where(mask.get_gray_ndarray() > 0)
     xmin = np.min(x)
     xmax = np.max(x)

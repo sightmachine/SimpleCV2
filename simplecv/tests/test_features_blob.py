@@ -3,7 +3,7 @@ from nose.tools import assert_equals, assert_almost_equals
 from simplecv.color import Color
 from simplecv.features.blob import Blob
 from simplecv.image import Image
-from simplecv.tests.utils import perform_diff, perform_diff_blobs
+from simplecv.tests.utils import perform_diff, perform_diff_blobs, skipped
 
 
 def test_setstate():
@@ -20,19 +20,19 @@ def test_setstate():
 
 def test_hull():
     img = Image(source="lenna")
-    blobs = img.find_blobs()
+    blobs = img.find(Blob)
     blob = blobs[-1]
     chull = blob.hull()
 
 
 def test_blob_draw_rect():
     img = Image(source="lenna")
-    blobs = img.find_blobs()
+    blobs = img.find(Blob)
     blob = blobs[-1]
     blob.draw_rect(color=Color.BLUE, width=-1, alpha=128)
 
     img1 = Image(source="simplecv")
-    blobs = img1.find_blobs()
+    blobs = img1.find(Blob)
     blob = blobs[-1]
     blob.draw_rect(color=Color.RED, width=2, alpha=255)
 
@@ -43,13 +43,13 @@ def test_blob_draw_rect():
 
 def test_blob_rectify_major_axis():
     img = Image(source="lenna")
-    blobs = img.find_blobs()
+    blobs = img.find(Blob)
     blobs_1 = blobs[-1]
     blobs_1.rectify_major_axis()
     blobs_2 = blobs[-2]
     blobs_2.rectify_major_axis(1)
 
-    blobs1 = img.find_blobs()
+    blobs1 = img.find(Blob)
     blobs1_1 = blobs1[-1]
     blobs1_1.rotate(blobs1_1.get_angle())
     blobs1_2 = blobs[-2]
@@ -64,12 +64,12 @@ def test_blob_draw_appx():
     nblob.draw_appx()
 
     img = Image(source="simplecv")
-    blobs = img.find_blobs()
+    blobs = img.find(Blob)
     blob = blobs[-1]
     blob.draw_appx(color=Color.GREEN, width=-1, alpha=128)
 
     img1 = Image(source="lenna")
-    blobs1 = img1.find_blobs()
+    blobs1 = img1.find(Blob)
     blob1 = blobs1[-2]
     blob1.draw_appx(color=Color.RED, width=3, alpha=255)
 
@@ -81,12 +81,12 @@ def test_blob_draw_appx():
 
 def test_blob_draw_outline():
     img = Image(source="simplecv")
-    blobs = img.find_blobs()
+    blobs = img.find(Blob)
     blob = blobs[-2]
     blob.draw_outline(color=Color.GREEN, width=3, alpha=128)
 
     img1 = Image(source="lenna")
-    blobs1 = img1.find_blobs()
+    blobs1 = img1.find(Blob)
     blob1 = blobs1[-2]
     blob1.draw_outline(color=Color.RED, width=-1, alpha=255)
 
@@ -98,12 +98,12 @@ def test_blob_draw_outline():
 
 def test_blob_draw_holes():
     img = Image(source="simplecv")
-    blobs = img.find_blobs()
+    blobs = img.find(Blob)
     blob = blobs[-1]
     blob.draw_holes(color=Color.YELLOW, width=-1, alpha=200)
 
     img1 = Image(source="lenna")
-    blobs1 = img1.find_blobs()
+    blobs1 = img1.find(Blob)
     blob1 = blobs1[-1]
     blob1.draw_holes(color=Color.BLUE, width=5, alpha=255)
 
@@ -115,12 +115,12 @@ def test_blob_draw_holes():
 
 def test_blob_draw_hull():
     img = Image(source="simplecv")
-    blobs = img.find_blobs()
+    blobs = img.find(Blob)
     blob = blobs[-1]
     blob.draw_hull(color=Color.AZURE, width=3, alpha=255)
 
     img1 = Image(source="lenna")
-    blobs1 = img1.find_blobs()
+    blobs1 = img1.find(Blob)
     blob1 = blobs1[-1]
     blob1.draw_hull(color=Color.PLUM, width=-1, alpha=100)
 
@@ -135,14 +135,14 @@ def test_blob_is_square():
     nparray = img.get_ndarray()
     nparray[100:300, 100:300] = (255, 255, 255)
 
-    blobs = img.find_blobs()
+    blobs = img.find(Blob)
     blob = blobs[0]
     assert blob.is_square()
 
     img1 = Image((400, 400))
     nparray1 = img1.get_ndarray()
     nparray1[50:350, 100:300] = (255, 255, 255)
-    blobs1 = img1.find_blobs()
+    blobs1 = img1.find(Blob)
     blob1 = blobs1[0]
     assert not blob1.is_square()
 
@@ -152,7 +152,7 @@ def test_blob_centroid():
     nparray = img.get_ndarray()
     nparray[100:300, 100:300] = (255, 255, 255)
 
-    blobs = img.find_blobs()
+    blobs = img.find(Blob)
     blob = blobs[0]
 
     assert_equals(blob.centroid(), (199.5, 199.5))
@@ -163,7 +163,7 @@ def test_blob_radius():
     nparray = img.get_ndarray()
     nparray[100:300, 100:300] = (255, 255, 255)
 
-    blobs = img.find_blobs()
+    blobs = img.find(Blob)
     blob = blobs[0]
 
     assert_equals(int(blob.radius()), 140)
@@ -174,7 +174,7 @@ def test_blob_hull_radius():
     nparray = img.get_ndarray()
     nparray[100:300, 100:300] = (255, 255, 255)
 
-    blobs = img.find_blobs()
+    blobs = img.find(Blob)
     blob = blobs[0]
 
     assert_equals(int(blob.hull_radius()), 140)
@@ -188,7 +188,7 @@ def test_blob_match():
     nparray[200:300, 50:150] = (255, 255, 255)
     nparray[250:300, 150:250] = (255, 255, 255)
 
-    blobs = img.find_blobs()
+    blobs = img.find(Blob)
     blob = blobs[0]
     blob1 = blobs[1]
 
@@ -202,7 +202,7 @@ def test_blob_repr():
     nparray[50:150, 50:150] = (255, 255, 255)
     nparray[100:150, 150:250] = (255, 255, 255)
 
-    blobs = img.find_blobs()
+    blobs = img.find(Blob)
     blob = blobs[0]
 
     bstr = "simplecv.features.blob.Blob object at (150, 100) with " \
@@ -217,7 +217,7 @@ def test_blob_get_sc_descriptors():
     nparray[50:150, 50:150] = (255, 255, 255)
     nparray[250:350, 150:250] = (255, 255, 255)
 
-    blobs = img.find_blobs()
+    blobs = img.find(Blob)
     blob0 = blobs[0]
     blob1 = blobs[1]
 
@@ -241,17 +241,16 @@ def test_blob_get_sc_descriptors():
         assert_equals(scd0[index].data, scd1[index].data)
 
 # broken utility
-"""
+@skipped
 def test_blob_show_correspondence():
     img = Image((400,400))
     nparray = img.get_ndarray()
     nparray[50:150, 50:150] = (255, 255, 255)
     nparray[250:350, 150:250] = (255, 255, 255)
 
-    blobs = img.find_blobs()
+    blobs = img.find(Blob)
     blob0 = blobs[0]
     blob1 = blobs[1]
-"""
 
 
 def test_get_shape_context():
@@ -260,6 +259,6 @@ def test_get_shape_context():
     nparray[50:150, 50:150] = (255, 255, 255)
     nparray[250:350, 150:250] = (255, 255, 255)
 
-    blobs = img.find_blobs()
+    blobs = img.find(Blob)
     blob0 = blobs[0]
     blob0.get_shape_context()

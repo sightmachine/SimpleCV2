@@ -6,9 +6,9 @@ import mock
 
 from simplecv.base import logger
 from simplecv.color import Color
-from simplecv.image import Image
 from simplecv.core.camera.screen_camera import ScreenCamera
-from simplecv.tests.utils import perform_diff
+from simplecv.image import Image
+from simplecv.tests.utils import perform_diff, skipped
 
 #colors
 black = Color.BLACK
@@ -135,6 +135,8 @@ def test_steganograpy():
     assert_equals(msg, msg2)
 
 
+# TODO: Rewrite with mock
+@skipped
 def test_upload_dropbox():
     try:
         import dropbox

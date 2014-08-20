@@ -66,6 +66,7 @@ Factory = FactoryBase()
 
 Factory.register('Image', module='simplecv.image')
 
+Factory.register('Blob', module='simplecv.features.blob')
 Factory.register('Corner', module='simplecv.features.detection')
 Factory.register('Line', module='simplecv.features.detection')
 Factory.register('Circle', module='simplecv.features.detection')

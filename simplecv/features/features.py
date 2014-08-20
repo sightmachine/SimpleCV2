@@ -2579,3 +2579,77 @@ class Feature(object):
         (cen, rad) = cv2.minEnclosingCircle(points)
 
         return cen[0], cen[1], rad
+
+    @classmethod
+    def find(cls, img, method="szeliski", threshold=1000):
+        """
+        **SUMMARY**
+
+        Find szeilski or Harris features in the image.
+        Harris features correspond to Harris corner detection in the image.
+
+        Read more:
+
+        Harris Features: http://en.wikipedia.org/wiki/Corner_detection
+        szeliski Features: http://research.microsoft.com/en-us/um/people/
+        szeliski/publications.htm
+
+        **PARAMETERS**
+
+        * *method* - Features type
+        * *threshold* - threshold val
+
+        **RETURNS**
+
+        A list of Feature objects corrseponding to the feature points.
+
+        **EXAMPLE**
+
+        >>> img = Image("corner_sample.png")
+        >>> fpoints = img.find(Feature, "harris", 2000)
+        >>> for f in fpoints:
+        ...     f.draw()
+        >>> img.show()
+
+        **SEE ALSO**
+
+        :py:meth:`draw_keypoint_matches`
+        :py:meth:`find_keypoints`
+        :py:meth:`find_keypoint_match`
+
+        """
+        if method not in ["harris", "szeliski"]:
+            raise ValueError("Invalid method: {}.".format(method))
+
+        img_array = img.get_gray_ndarray()
+        blur = cv2.GaussianBlur(img_array, ksize=(3, 3), sigmaX=0)
+
+        ix = cv2.Sobel(blur, ddepth=cv2.CV_32F, dx=1, dy=0)
+        iy = cv2.Sobel(blur, ddepth=cv2.CV_32F, dx=0, dy=1)
+
+        ix_ix = np.multiply(ix, ix)
+        iy_iy = np.multiply(iy, iy)
+        ix_iy = np.multiply(ix, iy)
+
+        ix_ix_blur = cv2.GaussianBlur(ix_ix, ksize=(5, 5), sigmaX=0)
+        iy_iy_blur = cv2.GaussianBlur(iy_iy, ksize=(5, 5), sigmaX=0)
+        ix_iy_blur = cv2.GaussianBlur(ix_iy, ksize=(5, 5), sigmaX=0)
+
+        harris_thresh = threshold * 5000
+        alpha = 0.06
+        det_a = ix_ix_blur * iy_iy_blur - ix_iy_blur ** 2
+        trace_a = ix_ix_blur + iy_iy_blur
+        feature_list = []
+        if method == "szeliski":
+            harmonic_mean = det_a / trace_a
+            for j, i in np.argwhere(harmonic_mean > threshold):
+                feature_list.append(
+                    Feature(img, i, j, ((i, j), (i, j), (i, j), (i, j))))
+
+        elif method == "harris":
+            harris_function = det_a - (alpha * trace_a * trace_a)
+            for j, i in np.argwhere(harris_function > harris_thresh):
+                feature_list.append(
+                    Feature(img, i, j, ((i, j), (i, j), (i, j), (i, j))))
+
+        return feature_list

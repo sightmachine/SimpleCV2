@@ -1,6 +1,7 @@
 from nose.tools import assert_equals
 
 from simplecv.color import Color, ColorCurve, ColorMap
+from simplecv.features.blob import Blob
 from simplecv.image import Image
 from simplecv.tests.utils import perform_diff
 
@@ -56,7 +57,7 @@ def test_color_get_luminosity():
 
 def test_color_ColorMap():
     img = Image("lenna")
-    blobs = img.find_blobs()
+    blobs = img.find(Blob)
     cm = ColorMap(Color.YELLOW, min(blobs.get_area()), max(blobs.get_area()))
     for b in blobs:
        b.draw(cm[b.get_area()])

@@ -3,6 +3,7 @@ import sys
 import warnings
 
 import numpy as np
+from simplecv.features.blob import Blob
 
 
 class ShapeContextClassifier(object):
@@ -54,7 +55,7 @@ class ShapeContextClassifier(object):
         #IMAGES MUST BE WHITE ON BLACK!
         fulllist = []
         raw_descriptors = []
-        blobs = img.find_blobs(minsize=50)
+        blobs = img.find(Blob, minsize=50)
         count = 0
         if blobs is not None:
             count = len(blobs)

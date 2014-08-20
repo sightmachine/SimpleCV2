@@ -1,4 +1,6 @@
+import numpy as np
 from nose.tools import assert_equals, assert_is_none
+
 from simplecv.core.image.loader import ImageLoader, Cv2ImageLoader, \
                                        SampleImageLoader, HttpImageLoader, \
                                        RawPngImageLoader, \
@@ -7,7 +9,8 @@ from simplecv.core.image.loader import ImageLoader, Cv2ImageLoader, \
                                        PygameImageLoader, \
                                        PilImageLoader
 from simplecv.image import Image
-import numpy as np
+from simplecv.tests.utils import skipped
+
 
 def test_Cv2ImageLoader():
     assert not Cv2ImageLoader.can_load()
@@ -28,6 +31,8 @@ def test_SampleImageLoader():
     for img in sample_images:
         SampleImageLoader.load(source=img, sample=True)
 
+# TODO: rewrite with mock
+@skipped
 def test_HttpImageLoader():
     assert HttpImageLoader.can_load(source="http://simplecv.org/sites/all/"\
                                     "themes/kalypso/images/SM_logo_color.png")

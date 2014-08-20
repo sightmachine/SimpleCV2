@@ -2,11 +2,11 @@ import numpy as np
 import cv2
 from nose.tools import assert_equals, assert_is_none
 
-
-from simplecv.tests.utils import perform_diff, create_test_image
-from simplecv.image import Image
 from simplecv.color import Color
 from simplecv.core.image.transform import MAX_DIMENSION
+from simplecv.features.detection import Line
+from simplecv.image import Image
+from simplecv.tests.utils import perform_diff, create_test_image
 
 testimage = "../data/sampleimages/9dots4lines.png"
 testimage2 = "../data/sampleimages/aerospace.jpg"
@@ -191,7 +191,7 @@ def test_image_crop():
     assert_equals(np_arr.data, crop_img.get_ndarray().data)
 
     # feature crop
-    lines = img.find_lines()
+    lines = img.find(Line)
     crop_img = img.crop(lines[0])
 
     # tuple and list

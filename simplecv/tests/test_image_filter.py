@@ -5,6 +5,7 @@ import numpy as np
 
 from simplecv.color import Color, ColorCurve
 from simplecv.dft import DFT
+from simplecv.features.blob import Blob
 from simplecv.features.detection import Corner
 from simplecv.image import Image
 from simplecv.tests.utils import perform_diff
@@ -439,13 +440,13 @@ def test_watershed():
     my_mask = my_mask - mask.dilate(2).to_bgr()
     my_mask = my_mask + mask.erode(2).to_bgr()
     img4 = img.watershed(mask=my_mask, use_my_mask=True)
-    blobs = img.find_blobs_from_watershed(dilate=3, erode=2)
-    blobs = img.find_blobs_from_watershed()
-    blobs = img.find_blobs_from_watershed(mask=img.threshold(128), erode=1,
-                                          dilate=1)
-    blobs = img.find_blobs_from_watershed(mask=img.threshold(128), erode=1,
-                                          dilate=1, invert=True)
-    blobs = img.find_blobs_from_watershed(mask=my_mask, use_my_mask=True)
+    blobs = Blob.find_from_watershed(img, dilate=3, erode=2)
+    blobs = Blob.find_from_watershed(img)
+    blobs = Blob.find_from_watershed(img, mask=img.threshold(128), erode=1,
+                                     dilate=1)
+    blobs = Blob.find_from_watershed(img, mask=img.threshold(128), erode=1,
+                                     dilate=1, invert=True)
+    blobs = Blob.find_from_watershed(img, mask=my_mask, use_my_mask=True)
     result = [img1, img2, img3, img4]
     name_stem = "test_watershed"
     perform_diff(result, name_stem, 1.0)
@@ -790,7 +791,7 @@ def test_binarize_from_palette():
 def test_biblical_flood_fill():
     results = []
     img = Image(testimage2)
-    b = img.find_blobs()
+    b = img.find(Blob)
     results.append(img.flood_fill(b.coordinates(), tolerance=3,
                                   color=Color.RED))
 
@@ -814,7 +815,7 @@ def test_biblical_flood_fill():
 
 def test_flood_fill_to_mask():
     img = Image(testimage2)
-    b = img.find_blobs()
+    b = img.find(Blob)
     imask = img.edges()
     omask = img.flood_fill_to_mask(b.coordinates(), tolerance=10)
     # pass color dict

@@ -2,12 +2,13 @@ import os
 import tempfile
 
 from mock import patch
-from nose.tools import assert_equals, raises
+from nose.tools import assert_equals, raises, assert_is_none
 import cv2
 import numpy as np
 
 from simplecv import DATA_DIR
 from simplecv.color import Color
+from simplecv.features.detection import Line
 from simplecv.image import Image
 from simplecv.tests.utils import (perform_diff, create_test_image,
                                   create_test_array)
@@ -451,13 +452,12 @@ def test_image_multiply_int_float():
     assert isinstance(img, Image)
 
 
-@raises(ValueError)
 def test_image_pow_image():
     array1 = np.ones((2, 2, 3), dtype=np.uint8) * 50
     img1 = Image(array=array1)
     array2 = np.ones((2, 2, 3), dtype=np.uint8) * 2
     img2 = Image(array=array2)
-    img = img1 ** img2
+    assert_is_none(img1 ** img2)
 
 
 def test_image_pow_int_float():
@@ -562,7 +562,7 @@ def test_image_drawing():
 def test_image_draw():
     img = Image(source="lenna")
     newimg = Image(source="simplecv")
-    lines = img.find_lines()
+    lines = img.find(Line)
     newimg.draw(lines)
     lines.draw()
     result = [newimg, img]

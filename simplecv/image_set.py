@@ -14,6 +14,7 @@ import numpy as np
 
 from simplecv import DATA_DIR
 from simplecv.base import logger, int_to_bin, IMAGE_FORMATS
+from simplecv.core.pluginsystem import apply_plugins
 from simplecv.image import Image
 
 PIL_ENABLED = True
@@ -28,6 +29,7 @@ except ImportError:
         PIL_ENABLED = False
 
 
+@apply_plugins
 class ImageSet(list):
     """
     **SUMMARY**
@@ -89,6 +91,7 @@ class ImageSet(list):
         else:
             self.load(directory)
 
+    # TODO: move to plugin
     def download(self, tag=None, number=10, size='thumb'):
         """
         **SUMMARY**
@@ -217,6 +220,7 @@ class ImageSet(list):
 
         self.extend(add_set)
 
+    # TODO: move to plugin
     def upload(self, dest, api_key=None, api_secret=None, verbose=True):
         """
 

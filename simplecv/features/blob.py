@@ -7,10 +7,11 @@ import numpy as np
 import scipy.spatial.distance as spsd
 import scipy.stats as sps
 
-from simplecv.base import LazyProperty
+from simplecv.base import LazyProperty, logger
 from simplecv.color import Color
 from simplecv.core.pluginsystem import apply_plugins
 from simplecv.factory import Factory
+from simplecv.features.blobmaker import BlobMaker
 from simplecv.features.detection import Line, Corner
 from simplecv.features.detection import ShapeContextDescriptor
 from simplecv.features.features import Feature, FeatureSet
@@ -1477,3 +1478,543 @@ class Blob(Feature):
                  points])
             features = FeatureSet([lines, farpoints])
             return features
+
+    @classmethod
+    def find(cls, img, threshval=None, minsize=10, maxsize=0,
+             threshblocksize=0, threshconstant=5, appx_level=3):
+        """
+
+        **SUMMARY**
+
+        Find blobs  will look for continuous
+        light regions and return them as Blob features in a FeatureSet.
+        Parameters specify the binarize filter threshold value, and minimum and
+        maximum size for blobs. If a threshold value is -1, it will use an
+        adaptive threshold.  See binarize() for more information about
+        thresholding.  The threshblocksize and threshconstant parameters are
+        only used for adaptive threshold.
+
+
+        **PARAMETERS**
+
+        * *threshval* - the threshold as an integer or an (r,g,b) tuple , where
+          pixels below (darker) than thresh are set to to max value,
+          and all values above this value are set to black. If this parameter
+          is -1 we use Otsu's method.
+
+        * *minsize* - the minimum size of the blobs, in pixels, of the returned
+         blobs. This helps to filter out noise.
+
+        * *maxsize* - the maximim size of the blobs, in pixels, of the returned
+         blobs.
+
+        * *threshblocksize* - the size of the block used in the adaptive
+          binarize operation. *TODO - make this match binarize*
+
+        * *appx_level* - The blob approximation level - an integer for the
+          maximum distance between the true edge and the
+          approximation edge - lower numbers yield better approximation.
+
+          .. warning::
+            This parameter must be an odd number.
+
+        * *threshconstant* - The difference from the local mean to use for
+         thresholding in Otsu's method. *TODO - make this match binarize*
+
+
+        **RETURNS**
+
+        Returns a featureset (basically a list) of :py:class:`blob` features.
+        If no blobs are found this method returns None.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> fs = img.find(Blobs)
+        >>> if fs is not None:
+        >>>     fs.draw()
+
+        **NOTES**
+
+        .. Warning::
+          For blobs that live right on the edge of the image OpenCV reports the
+          position and width height as being one over for the true position.
+          E.g. if a blob is at (0,0) OpenCV reports its position as (1,1).
+          Likewise the width and height for the other corners is reported as
+          being one less than the width and height. This is a known bug.
+
+        **SEE ALSO**
+        :py:meth:`threshold`
+        :py:meth:`binarize`
+        :py:meth:`invert`
+        :py:meth:`dilate`
+        :py:meth:`erode`
+        :py:meth:`find_blobs_from_palette`
+        :py:meth:`smart_find_blobs`
+        """
+        if maxsize == 0:
+            maxsize = img.width * img.height
+        #create a single channel image, thresholded to parameters
+
+        blobmaker = BlobMaker()
+        blobs = blobmaker.extract_from_binary(
+            img.binarize(thresh=threshval, maxv=255, blocksize=threshblocksize,
+                         p=threshconstant, inverted=True).invert(),
+            img, minsize=minsize, maxsize=maxsize, appx_level=appx_level)
+
+        if not len(blobs):
+            return None
+
+        return FeatureSet(blobs).sort_area()
+
+    @classmethod
+    def find_from_skintone(cls, img, minsize=10, maxsize=0, dilate_iter=1):
+        """
+        **SUMMARY**
+
+        Find Skintone blobs will look for continuous
+        regions of Skintone in a color image and return them as Blob features
+        in a FeatureSet. Parameters specify the binarize filter threshold
+        value, and minimum and maximum size for blobs. If a threshold value is
+        -1, it will use an adaptive threshold.  See binarize() for more
+        information about thresholding.  The threshblocksize and threshconstant
+        parameters are only used for adaptive threshold.
+
+
+        **PARAMETERS**
+
+        * *minsize* - the minimum size of the blobs, in pixels, of the returned
+         blobs. This helps to filter out noise.
+
+        * *maxsize* - the maximim size of the blobs, in pixels, of the returned
+         blobs.
+
+        * *dilate_iter* - the number of times to run the dilation operation.
+
+        **RETURNS**
+
+        Returns a featureset (basically a list) of :py:class:`blob` features.
+        If no blobs are found this method returns None.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> fs = Blob.find_from_skintone(img)
+        >>> if fs is not None:
+        >>>     fs.draw()
+
+        **NOTES**
+        It will be really awesome for making UI type stuff, where you want to
+        track a hand or a face.
+
+        **SEE ALSO**
+        :py:meth:`threshold`
+        :py:meth:`binarize`
+        :py:meth:`invert`
+        :py:meth:`dilate`
+        :py:meth:`erode`
+        :py:meth:`find_blobs_from_palette`
+        :py:meth:`smart_find_blobs`
+        """
+        if maxsize == 0:
+            maxsize = img.width * img.height
+        mask = img.get_skintone_mask(dilate_iter)
+        blobmaker = BlobMaker()
+        blobs = blobmaker.extract_from_binary(mask, img, minsize=minsize,
+                                              maxsize=maxsize)
+        if not len(blobs):
+            return None
+        return FeatureSet(blobs).sort_area()
+
+    @classmethod
+    def find_from_palette(cld, img, palette_selection, dilate=0, minsize=5,
+                          maxsize=0, appx_level=3):
+        """
+        **SUMMARY**
+
+        This method attempts to use palettization to do segmentation and
+        behaves similar to the find_blobs blob in that it returs a feature set
+        of blob objects. Once a palette has been extracted using get_palette()
+        we can then select colors from that palette to be labeled white within
+        our blobs.
+
+        **PARAMETERS**
+
+        * *palette_selection* - color triplets selected from our palette that
+          will serve turned into blobs. These values can either be a 3xN numpy
+          array, or a list of RGB triplets.
+        * *dilate* - the optional number of dilation operations to perform on
+          the binary image prior to performing blob extraction.
+        * *minsize* - the minimum blob size in pixels
+        * *maxsize* - the maximim blob size in pixels.
+        * *appx_level* - The blob approximation level - an integer for the
+          maximum distance between the true edge and the approximation edge -
+          lower numbers yield better approximation.
+
+        **RETURNS**
+
+        If the method executes successfully a FeatureSet of Blobs is returned
+        from the image. If the method fails a value of None is returned.
+
+       **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> p = img.get_palette()
+        >>> blobs = Blob.find_from_palette(img, (p[0], p[1], p[6]))
+        >>> blobs.draw()
+        >>> img.show()
+
+        **SEE ALSO**
+
+        :py:meth:`re_palette`
+        :py:meth:`draw_palette_colors`
+        :py:meth:`palettize`
+        :py:meth:`get_palette`
+        :py:meth:`binarize_from_palette`
+        :py:meth:`find_blobs_from_palette`
+
+        """
+
+        #we get the palette from find palete
+        #ASSUME: GET PALLETE WAS CALLED!
+        bwimg = img.binarize_from_palette(palette_selection)
+        if dilate > 0:
+            bwimg = bwimg.dilate(dilate)
+
+        if maxsize == 0:
+            maxsize = img.width * img.height
+        #create a single channel image, thresholded to parameters
+
+        blobmaker = BlobMaker()
+        blobs = blobmaker.extract_from_binary(bwimg,
+                                              img, minsize=minsize,
+                                              maxsize=maxsize,
+                                              appx_level=appx_level)
+        if not len(blobs):
+            return None
+        return blobs
+
+    @classmethod
+    def smart_find(cls, img, mask=None, rect=None, thresh_level=2,
+                   appx_level=3):
+        """
+        **SUMMARY**
+
+        smart_find_blobs uses a method called grabCut, also called graph cut,
+        to  automagically determine the boundary of a blob in the image. The
+        dumb find blobs just uses color threshold to find the boundary,
+        smart_find_blobs looks at both color and edges to find a blob. To work
+        smart_find_blobs needs either a rectangle that bounds the object you
+        want to find, or a mask. If you use a rectangle make sure it holds the
+        complete object. In the case of a mask, it need not be a normal binary
+        mask, it can have the normal white foreground and black background, but
+        also a light and dark gray values that correspond to areas that are
+        more likely to be foreground and more likely to be background. These
+        values can be found in the color class as Color.BACKGROUND,
+        Color.FOREGROUND, Color.MAYBE_BACKGROUND, and Color.MAYBE_FOREGROUND.
+
+        **PARAMETERS**
+
+        * *mask* - A grayscale mask the same size as the image using the 4 mask
+         color values
+        * *rect* - A rectangle tuple of the form (x_position, y_position,
+         width, height)
+        * *thresh_level* - This represents what grab cut values to use in the
+         mask after the graph cut algorithm is run,
+
+          * 1  - means use the foreground, maybe_foreground, and
+            maybe_background values
+          * 2  - means use the foreground and maybe_foreground values.
+          * 3+ - means use just the foreground
+
+        * *appx_level* - The blob approximation level - an integer for the
+          maximum distance between the true edge and the approximation edge -
+          lower numbers yield better approximation.
+
+
+        **RETURNS**
+
+        A featureset of blobs. If everything went smoothly only a couple of
+        blobs should be present.
+
+        **EXAMPLE**
+
+        >>> img = Image("RatTop.png")
+        >>> mask = Image((img.width,img.height))
+        >>> mask.dl().circle((100, 100), 80, color=Color.MAYBE_BACKGROUND,
+            ...              filled=True
+        >>> mask.dl().circle((100, 100), 60, color=Color.MAYBE_FOREGROUND,
+            ...              filled=True)
+        >>> mask.dl().circle((100, 100), 40, color=Color.FOREGROUND,
+            ...              filled=True)
+        >>> mask = mask.apply_layers()
+        >>> blobs = Blob.smart_find(img, mask=mask)
+        >>> blobs.draw()
+        >>> blobs.show()
+
+        **NOTES**
+
+        http://en.wikipedia.org/wiki/Graph_cuts_in_computer_vision
+
+        **SEE ALSO**
+
+        :py:meth:`smart_threshold`
+
+        """
+        result = img.smart_threshold(mask, rect)
+        binary = None
+        ret_val = None
+
+        if result:
+            if thresh_level == 1:
+                result = result.threshold(192)
+            elif thresh_level == 2:
+                result = result.threshold(128)
+            elif thresh_level > 2:
+                result = result.threshold(1)
+            bm = BlobMaker()
+            ret_val = bm.extract_from_binary(result, img, appx_level)
+
+        return ret_val
+
+    @classmethod
+    def find_from_mask(cls, img, mask, threshold=128, minsize=10, maxsize=0,
+                       appx_level=3):
+        """
+        **SUMMARY**
+
+        This method acts like find_blobs, but it lets you specifiy blobs
+        directly by providing a mask image. The mask image must match the size
+        of this image, and the mask should have values > threshold where you
+        want the blobs selected. This method can be used with binarize, dialte,
+        erode, flood_fill, edges etc to get really nice segmentation.
+
+        **PARAMETERS**
+
+        * *mask* - The mask image, areas lighter than threshold will be counted
+          as blobs. Mask should be the same size as this image.
+        * *threshold* - A single threshold value used when we binarize the
+          mask.
+        * *minsize* - The minimum size of the returned blobs.
+        * *maxsize*  - The maximum size of the returned blobs, if none is
+          specified we peg this to the image size.
+        * *appx_level* - The blob approximation level - an integer for the
+          maximum distance between the true edge and the approximation edge -
+          lower numbers yield better approximation.
+
+
+        **RETURNS**
+
+        A featureset of blobs. If no blobs are found None is returned.
+
+        **EXAMPLE**
+
+        >>> img = Image("Foo.png")
+        >>> mask = img.binarize().dilate(2)
+        >>> blobs = Blob.find_from_mask(img, mask)
+        >>> blobs.show()
+
+        **SEE ALSO**
+
+        :py:meth:`find_blobs`
+        :py:meth:`binarize`
+        :py:meth:`threshold`
+        :py:meth:`dilate`
+        :py:meth:`erode`
+        """
+        if maxsize == 0:
+            maxsize = img.width * img.height
+        #create a single channel image, thresholded to parameters
+        if mask.size != img.size:
+            logger.warning("Image.find_blobs_from_mask - your mask does "
+                           "not match the size of your image")
+            return None
+
+        blobmaker = BlobMaker()
+        gray = mask.get_gray_ndarray()
+        val, result = cv2.threshold(gray, thresh=threshold, maxval=255,
+                                    type=cv2.THRESH_BINARY)
+        blobs = blobmaker.extract_from_binary(
+            Factory.Image(result), img,
+            minsize=minsize, maxsize=maxsize, appx_level=appx_level)
+        if not len(blobs):
+            return None
+        return FeatureSet(blobs).sort_area()
+
+    @classmethod
+    def find_from_flood_fill(cls, img, points, tolerance=None, lower=None,
+                             upper=None,
+                             fixed_range=True, minsize=30, maxsize=-1):
+        """
+
+        **SUMMARY**
+
+        This method lets you use a flood fill operation and pipe the results to
+        find_blobs. You provide the points to seed flood_fill and the rest is
+        taken care of.
+
+        flood_fill works just like ye olde paint bucket tool in your favorite
+        image manipulation program. You select a point (or a list of points),
+        a color, and a tolerance, and flood_fill will start at that point,
+        looking for pixels within the tolerance from your intial pixel. If the
+        pixel is in tolerance, we will convert it to your color, otherwise the
+        method will leave the pixel alone. The method accepts both single
+        values, and triplet tuples for the tolerance values. If you require
+        more control over your tolerance you can use the upper and lower
+        values. The fixed range parameter let's you toggle between setting the
+        tolerance with repect to the seed pixel, and using a tolerance that is
+        relative to the adjacent pixels. If fixed_range is true the method will
+        set its tolerance with respect to the seed pixel, otherwise the
+        tolerance will be with repsect to adjacent pixels.
+
+        **PARAMETERS**
+
+        * *points* - A tuple, list of tuples, or np.array of seed points for
+          flood fill.
+        * *tolerance* - The color tolerance as a single value or a triplet.
+        * *color* - The color to replace the flood_fill pixels with
+        * *lower* - If tolerance does not provide enough control you can
+          optionally set the upper and lower values around the seed pixel.
+          This value can be a single value or a triplet. This will override
+          the tolerance variable.
+        * *upper* - If tolerance does not provide enough control you can
+          optionally set the upper and lower values around the seed pixel.
+           This value can be a single value or a triplet. This will override
+          the tolerance variable.
+        * *fixed_range* - If fixed_range is true we use the seed_pixel +/-
+          tolerance. If fixed_range is false, the tolerance is +/- tolerance
+          of the values of the adjacent pixels to the pixel under test.
+        * *minsize* - The minimum size of the returned blobs.
+        * *maxsize* - The maximum size of the returned blobs, if none is
+          specified we peg this to the image size.
+
+        **RETURNS**
+
+        A featureset of blobs. If no blobs are found None is returned.
+
+        An Image where the values similar to the seed pixel have been replaced
+        by the input color.
+
+        **EXAMPLE**
+
+        >>> img = Image("lenna")
+        >>> blerbs = Blob.find_from_flood_fill(img, ((10, 10), (20, 20), (30, 30)),
+        ...                                    tolerance=30)
+        >>> blerbs.show()
+
+        **SEE ALSO**
+
+        :py:meth:`find_blobs`
+        :py:meth:`flood_fill`
+
+        """
+        mask = img.flood_fill_to_mask(points, tolerance, color=Color.WHITE,
+                                      lower=lower, upper=upper,
+                                      fixed_range=fixed_range)
+        return cls.find_from_mask(img, mask, minsize, maxsize)
+
+    @classmethod
+    def find_from_watershed(cls, img, mask=None, erode=2, dilate=2,
+                            use_my_mask=False, invert=False, minsize=20,
+                            maxsize=None):
+        """
+        **SUMMARY**
+
+        Implements the watershed algorithm on the input image with an optional
+        mask and then uses the mask to find blobs.
+
+        Read more:
+
+        Watershed: "http://en.wikipedia.org/wiki/Watershed_(image_processing)"
+
+        **PARAMETERS**
+
+        * *mask* - an optional binary mask. If none is provided we do a
+          binarize and invert.
+        * *erode* - the number of times to erode the mask to find the
+          foreground.
+        * *dilate* - the number of times to dilate the mask to find possible
+          background.
+        * *use_my_mask* - if this is true we do not modify the mask.
+        * *invert* - invert the resulting mask before finding blobs.
+        * *minsize* - minimum blob size in pixels.
+        * *maxsize* - the maximum blob size in pixels.
+
+        **RETURNS**
+
+        A feature set of blob features.
+
+        **EXAMPLE**
+
+        >>> img = Image("/data/sampleimages/wshed.jpg")
+        >>> mask = img.threshold(100).dilate(3)
+        >>> blobs = Blob.find_from_watershed(img, mask)
+        >>> blobs.show()
+
+        **SEE ALSO**
+        Color.WATERSHED_FG - The watershed foreground color
+        Color.WATERSHED_BG - The watershed background color
+        Color.WATERSHED_UNSURE - The watershed not sure if fg or bg color.
+
+        """
+        newmask = img.watershed(mask, erode, dilate, use_my_mask)
+        if invert:
+            newmask = mask.invert()
+        return cls.find_from_mask(img, newmask, minsize=minsize,
+                                  maxsize=maxsize)
+
+    @classmethod
+    def find_from_hue_histogram(cls, img, model, threshold=1, smooth=True,
+                                minsize=10, maxsize=None):
+        """
+        **SUMMARY**
+
+        This method performs hue histogram back projection on the image and
+        uses the results to generate a FeatureSet of blob objects. This is a
+        very quick and easy way of matching objects based on color. Given a hue
+        histogram taken from another image or an roi within the image we
+        attempt to find all pixels that are similar to the colors inside the
+        histogram.
+
+        **PARAMETERS**
+
+        * *model* - The histogram to use for pack projection. This can either
+        be a histogram, anything that can be converted into an ROI for the
+        image (like an x,y,w,h tuple or a feature, or another image.
+
+        * *smooth* - A bool, True means apply a smoothing operation after doing
+        the back project to improve the results.
+
+        * *threshold* - If this value is not None, we apply a threshold to the
+        result of back projection to yield a binary image. Valid values are
+        from 1 to 255.
+
+        * *minsize* - the minimum blob size in pixels.
+
+        * *maxsize* - the maximum blob size in pixels.
+
+        **RETURNS**
+
+        A FeatureSet of blob objects or None if no blobs are found.
+
+        **EXAMPLE**
+
+        >>>> img = Image('lenna')
+
+        Generate a hist
+
+        >>>> hist = img.get_normalized_hue_histogram((0, 0, 50, 50))
+        >>>> blobs = Blob.find_from_hue_histogram(img, hist)
+        >>>> blobs.show()
+
+        **SEE ALSO**
+
+        ImageClass.get_normalized_hue_histogram()
+        ImageClass.back_project_hue_histogram()
+
+        """
+        new_mask = img.back_project_hue_histogram(model=model, smooth=smooth,
+                                                  full_color=False,
+                                                  threshold=threshold)
+        return cls.find_from_mask(img, new_mask, minsize=minsize,
+                                  maxsize=maxsize)

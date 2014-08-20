@@ -1,11 +1,8 @@
-import sys
 import warnings
 
 import cv2
 import numpy as np
 
-from simplecv.base import logger
-from simplecv.features.blob import Blob
 from simplecv.features.features import FeatureSet
 from simplecv.factory import Factory
 
@@ -165,7 +162,7 @@ class BlobMaker(object):
         if area < minsize or area > maxsize:
             return None
 
-        ret_value = Blob()
+        ret_value = Factory.Blob()
         ret_value.image = color_img
         ret_value.area = area
 
