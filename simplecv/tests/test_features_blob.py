@@ -132,7 +132,7 @@ def test_blob_draw_hull():
 
 def test_blob_is_square():
     img = Image((400, 400))
-    nparray = img.get_ndarray()
+    nparray = img.ndarray
     nparray[100:300, 100:300] = (255, 255, 255)
 
     blobs = img.find(Blob)
@@ -140,7 +140,7 @@ def test_blob_is_square():
     assert blob.is_square()
 
     img1 = Image((400, 400))
-    nparray1 = img1.get_ndarray()
+    nparray1 = img1.ndarray
     nparray1[50:350, 100:300] = (255, 255, 255)
     blobs1 = img1.find(Blob)
     blob1 = blobs1[0]
@@ -149,7 +149,7 @@ def test_blob_is_square():
 
 def test_blob_centroid():
     img = Image((400, 400))
-    nparray = img.get_ndarray()
+    nparray = img.ndarray
     nparray[100:300, 100:300] = (255, 255, 255)
 
     blobs = img.find(Blob)
@@ -160,7 +160,7 @@ def test_blob_centroid():
 
 def test_blob_radius():
     img = Image((400, 400))
-    nparray = img.get_ndarray()
+    nparray = img.ndarray
     nparray[100:300, 100:300] = (255, 255, 255)
 
     blobs = img.find(Blob)
@@ -171,7 +171,7 @@ def test_blob_radius():
 
 def test_blob_hull_radius():
     img = Image((400, 400))
-    nparray = img.get_ndarray()
+    nparray = img.ndarray
     nparray[100:300, 100:300] = (255, 255, 255)
 
     blobs = img.find(Blob)
@@ -182,7 +182,7 @@ def test_blob_hull_radius():
 
 def test_blob_match():
     img = Image((400, 400))
-    nparray = img.get_ndarray()
+    nparray = img.ndarray
     nparray[50:150, 50:150] = (255, 255, 255)
     nparray[100:150, 150:250] = (255, 255, 255)
     nparray[200:300, 50:150] = (255, 255, 255)
@@ -198,7 +198,7 @@ def test_blob_match():
 
 def test_blob_repr():
     img = Image((400, 400))
-    nparray = img.get_ndarray()
+    nparray = img.ndarray
     nparray[50:150, 50:150] = (255, 255, 255)
     nparray[100:150, 150:250] = (255, 255, 255)
 
@@ -213,7 +213,7 @@ def test_blob_repr():
 
 def test_blob_get_sc_descriptors():
     img = Image((400, 400))
-    nparray = img.get_ndarray()
+    nparray = img.ndarray
     nparray[50:150, 50:150] = (255, 255, 255)
     nparray[250:350, 150:250] = (255, 255, 255)
 
@@ -244,7 +244,7 @@ def test_blob_get_sc_descriptors():
 @skipped
 def test_blob_show_correspondence():
     img = Image((400,400))
-    nparray = img.get_ndarray()
+    nparray = img.ndarray
     nparray[50:150, 50:150] = (255, 255, 255)
     nparray[250:350, 150:250] = (255, 255, 255)
 
@@ -255,7 +255,7 @@ def test_blob_show_correspondence():
 
 def test_get_shape_context():
     img = Image((400, 400))
-    nparray = img.get_ndarray()
+    nparray = img.ndarray
     nparray[50:150, 50:150] = (255, 255, 255)
     nparray[250:350, 150:250] = (255, 255, 255)
 

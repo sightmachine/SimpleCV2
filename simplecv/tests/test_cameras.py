@@ -70,8 +70,7 @@ def test_camera_calibration():
 
     fake_camera.calibrate(imgs)
     #we're just going to check that the function doesn't puke
-    mat = fake_camera.get_camera_matrix()
-    assert isinstance(mat, np.ndarray)
+    assert isinstance(fake_camera.camera_matrix, np.ndarray)
 
     #we're also going to test load in save in the same pass
     matname = os.path.join(tempfile.gettempdir(), "TestCalibration")

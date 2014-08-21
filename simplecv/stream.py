@@ -252,19 +252,19 @@ class VideoStream(object):
                 lastframes = framesbehind / 2
                 for i in range(0, lastframes):
                     self.framecount += 1
-                    self.writer.write(self.lastframe.get_ndarray())
+                    self.writer.write(self.lastframe.ndarray)
 
                 theseframes = framesbehind - lastframes
                 for i in range(0, theseframes):
                     self.framecount += 1
-                    self.writer.write(img.get_ndarray())
+                    self.writer.write(img.ndarray)
                     # split missing frames evenly between
                     # the prior and current frame
             else:  # we are on track
                 self.framecount += 1
-                self.writer.write(img.get_ndarray())
+                self.writer.write(img.ndarray)
         else:
-            self.writer.write(img.get_ndarray())
+            self.writer.write(img.ndarray)
             self.framecount += 1
 
         self.lastframe = img

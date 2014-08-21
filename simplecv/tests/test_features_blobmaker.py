@@ -8,7 +8,7 @@ from simplecv.image import Image
 
 def test_blobmaker_extract():
     img = Image((400, 400))
-    nparray = img.get_ndarray()
+    nparray = img.ndarray
     nparray[50:100, 50:100] = (255, 255, 255)
     nparray[150:225, 150:225] = (255, 255, 255)
     nparray[250:350, 250:350] = (255, 255, 255)
@@ -33,7 +33,7 @@ def test_blobmaker_extract_using_model():
     cm.add(Color.GREEN)
 
     img = Image((400, 400))
-    nparray = img.get_ndarray()
+    nparray = img.ndarray
     nparray[:, :] = (0, 0, 255)
     nparray[50:100, 50:100] = (255, 0, 0)
     nparray[150:225, 150:225] = (0, 255, 0)

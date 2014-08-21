@@ -2621,7 +2621,7 @@ class Feature(object):
         if method not in ["harris", "szeliski"]:
             raise ValueError("Invalid method: {}.".format(method))
 
-        img_array = img.get_gray_ndarray()
+        img_array = img.gray_ndarray
         blur = cv2.GaussianBlur(img_array, ksize=(3, 3), sigmaX=0)
 
         ix = cv2.Sobel(blur, ddepth=cv2.CV_32F, dx=1, dy=0)

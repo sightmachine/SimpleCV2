@@ -82,11 +82,11 @@ def camshiftTracker(img, bb, ts, **kwargs):
             upper = np.array(tuple(kwargs[key]))
         elif key == 'mask':
             mask = kwargs[key]
-            mask = mask.get_ndarray()
+            mask = mask.ndarray
         elif key == 'num_frames':
             num_frames = kwargs[key]
 
-    hsv = cv2.cvtColor(img.get_ndarray(), cv2.cv.CV_BGR2HSV)
+    hsv = cv2.cvtColor(img.ndarray, cv2.cv.CV_BGR2HSV)
     if mask is None:
         mask = cv2.inRange(hsv, lower, upper)
 
@@ -102,10 +102,10 @@ def camshiftTracker(img, bb, ts, **kwargs):
     imgs = [hsv]
     if len(ts) > num_frames and num_frames > 1:
         for feat in ts[-num_frames:]:
-            imgs.append(feat.image.to_hsv().get_ndarray())
+            imgs.append(feat.image.to_hsv().ndarray)
     elif len(ts) < num_frames and num_frames > 1:
         for feat in ts:
-            imgs.append(feat.image.to_hsv().get_ndarray())
+            imgs.append(feat.image.to_hsv().ndarray)
 
     prob = cv2.calcBackProject(imgs, [0], hist_flat, [0, 180], 1)
     prob &= mask

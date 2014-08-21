@@ -112,7 +112,7 @@ class Image(CoreImage):
 
     def __getstate__(self):
         return dict(color_space=self._color_space,
-                    array=self.apply_layers().get_ndarray())
+                    array=self.apply_layers().ndarray)
 
     def __setstate__(self, d):
         self.__init__(**d)
@@ -345,18 +345,18 @@ class Image(CoreImage):
 
         if filename:
             if self.is_gray():
-                cv2.imwrite(filename, saveimg.get_ndarray())
+                cv2.imwrite(filename, saveimg.ndarray)
             else:
-                cv2.imwrite(filename, saveimg.to_bgr().get_ndarray())
+                cv2.imwrite(filename, saveimg.to_bgr().ndarray)
 
             # set the filename for future save operations
             self.filename = filename
             self.filehandle = ""
         elif self.filename:
             if self.is_gray():
-                cv2.imwrite(filename, saveimg.get_ndarray())
+                cv2.imwrite(filename, saveimg.ndarray)
             else:
-                cv2.imwrite(filename, saveimg.to_bgr().get_ndarray())
+                cv2.imwrite(filename, saveimg.to_bgr().ndarray)
         else:
             return 0
 

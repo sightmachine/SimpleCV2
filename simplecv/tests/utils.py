@@ -20,7 +20,7 @@ def img_diffs(test_imgs, name_stem, tolerance, path):
     ret_val = []
     for idx in range(0, count):
         lhs = test_imgs[idx].apply_layers()  # this catches drawing methods
-        lhs = lhs.to_bgr().get_ndarray()
+        lhs = lhs.to_bgr().ndarray
         fname = os.path.join(standard_path, name_stem + str(idx))
         fname_png = fname + ".png"
         if os.path.exists(fname_png):
@@ -46,7 +46,7 @@ def img_diffs(test_imgs, name_stem, tolerance, path):
                 # cv2.imwrite(fname + "_RESULT.png", lhs)
                 # cv2.imwrite(fname + "_DIFF.png",
                 #             (diff_pixels * (0, 0, 255)).astype(np.uint8))
-                
+
         else:
             print "images have different size {} and {}".format(lhs.shape,
                                                                 rhs.shape)
@@ -107,8 +107,8 @@ def perform_diff_blobs(blob1, blob2):
     assert_equals(blob1.contour, blob2.contour)
     assert_equals(blob1.convex_hull, blob2.convex_hull)
     assert_equals(blob1.contour_appx, blob2.contour_appx)
-    assert_equals(blob1.image.get_ndarray().data,
-                  blob2.image.get_ndarray().data)
+    assert_equals(blob1.image.ndarray.data,
+                  blob2.image.ndarray.data)
     assert_equals(blob1.points, blob2.points)
     assert_equals(blob1.hole_contour, blob2.hole_contour)
 

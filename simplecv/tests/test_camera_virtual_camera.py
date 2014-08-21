@@ -4,7 +4,7 @@ from nose.tools import assert_equals
 
 def test_camera_VirtualCamera_video():
     vc = VirtualCamera("../data/sampleimages/ball.mov", "video", 10)
-    
+
     assert_equals(vc.get_frame_number(), 9)
     assert_equals(vc.get_current_play_time(), 300)
 
@@ -21,8 +21,8 @@ def test_camera_VirtualCamera_video():
     vc.skip_frames(100)
     img2 = vc.get_frame(10)
 
-    assert_equals(img.get_ndarray().data, img1.get_ndarray().data)
-    assert_equals(img.get_ndarray().data, img2.get_ndarray().data)
+    assert_equals(img.ndarray.data, img1.ndarray.data)
+    assert_equals(img.ndarray.data, img2.ndarray.data)
 
 def test_camera_VirtualCamera_image():
     vc = VirtualCamera("../data/sampleimages/simplecv.png", "image")
@@ -32,5 +32,5 @@ def test_camera_VirtualCamera_image():
     vc.rewind()
     img2 = vc.get_image()
 
-    assert_equals(img.get_ndarray().data, img1.get_ndarray().data)
-    assert_equals(img.get_ndarray().data, img2.get_ndarray().data)
+    assert_equals(img.ndarray.data, img1.ndarray.data)
+    assert_equals(img.ndarray.data, img2.ndarray.data)

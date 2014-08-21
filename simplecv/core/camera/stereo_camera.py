@@ -215,8 +215,8 @@ class StereoImage(object):
         >>> stereoImg = StereoImage(img1,img2)
         >>> disp = stereoImg.find_disparity_map(method="BM")
         """
-        gray_left = self.image_left.get_gray_ndarray()
-        gray_right = self.image_right.get_gray_ndarray()
+        gray_left = self.image_left.gray_ndarray
+        gray_right = self.image_right.gray_ndarray
         (rows, colums) = self.size
         #scale = int(self.image_left.depth)
         if n_disparity % 16 != 0:
@@ -409,8 +409,8 @@ class StereoImage(object):
         >>> stereo.get_3d_image(rpj_mat, "BM", state).show()
         >>> stereo.get_3d_image(rpj_mat, "SGBM", state).show()
         """
-        gray_left = self.image_left.get_gray_ndarray()
-        gray_right = self.image_right.get_gray_ndarray()
+        gray_left = self.image_left.gray_ndarray
+        gray_right = self.image_right.gray_ndarray
 
         if method == "BM":
             sbm = cv2.StereoBM()

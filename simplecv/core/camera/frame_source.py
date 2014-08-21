@@ -98,7 +98,7 @@ class FrameSource(object):
         while successes < n_boards:
             img = image_list[img_idx]
             retval, corners = cv2.findChessboardCorners(
-                image=img.get_gray_ndarray(),
+                image=img.gray_ndarray,
                 patternSize=board_sz,
                 flags=cv2.CALIB_CB_ADAPTIVE_THRESH |
                 cv2.CALIB_CB_FILTER_QUADS)
@@ -106,7 +106,7 @@ class FrameSource(object):
             #if not retval:
             #FIXME: check retval should be implemented
 
-            cv2.cornerSubPix(img.get_gray_ndarray(),
+            cv2.cornerSubPix(img.gray_ndarray,
                              corners, (11, 11), (-1, -1),
                              (cv2.cv.CV_TERMCRIT_EPS +
                               cv2.cv.CV_TERMCRIT_ITER, 30, 0.1))
@@ -157,7 +157,8 @@ class FrameSource(object):
         self._dist_coeff = dist_cft
         return cam_matrix
 
-    def get_camera_matrix(self):
+    @property
+    def camera_matrix(self):
         """
         **SUMMARY**
 
@@ -202,7 +203,7 @@ class FrameSource(object):
 
         if isinstance(image_or_2darray, Factory.Image):
             in_img = image_or_2darray  # we have an image
-            ret_val = cv2.undistort(in_img.get_ndarray(), self._calib_matrix,
+            ret_val = cv2.undistort(in_img.ndarray, self._calib_matrix,
                                     self._dist_coeff)
             return Factory.Image(ret_val)
         elif isinstance(image_or_2darray, np.ndarray):

@@ -91,7 +91,7 @@ def surfTracker(img, bb, ts, **kwargs):
         detector = cv2.FeatureDetector_create("SURF")
         descriptor = cv2.DescriptorExtractor_create("SURF")
 
-        templateImg_cv2 = templateImg.get_ndarray()[bb[1]:bb[1] + bb[3],
+        templateImg_cv2 = templateImg.ndarray[bb[1]:bb[1] + bb[3],
                                                       bb[0]:bb[0] + bb[2]]
         tkp = detector.detect(templateImg_cv2)
         tkp, td = descriptor.compute(templateImg_cv2, tkp)
@@ -103,7 +103,7 @@ def surfTracker(img, bb, ts, **kwargs):
         detector = ts[-1].detector
         descriptor = ts[-1].descriptor
 
-    newimg = img.get_ndarray()
+    newimg = img.ndarray
 
     # Get image keypoints
     skp = detector.detect(newimg)

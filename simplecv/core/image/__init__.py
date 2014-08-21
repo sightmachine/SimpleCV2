@@ -133,7 +133,7 @@ class Image(object):
                 logger.warn("Both images should have same dimensions. "
                             "Returning None.")
                 return None
-            array = cv2.subtract(self._ndarray, other.get_ndarray())
+            array = cv2.subtract(self._ndarray, other.ndarray)
             return self.__class__(array=array, color_space=self._color_space)
         else:
             array = (self._ndarray - other).astype(self.dtype)
@@ -145,7 +145,7 @@ class Image(object):
                 logger.warn("Both images should have same dimensions. "
                             "Returning None.")
                 return None
-            array = cv2.add(self._ndarray, other.get_ndarray())
+            array = cv2.add(self._ndarray, other.ndarray)
             return self.__class__(array=array, color_space=self._color_space)
         else:
             array = self._ndarray + other
@@ -157,7 +157,7 @@ class Image(object):
                 logger.warn("Both images should have same dimensions. "
                             "Returning None.")
                 return None
-            array = self._ndarray & other.get_ndarray()
+            array = self._ndarray & other.ndarray
             return self.__class__(array=array, color_space=self._color_space)
         else:
             array = self._ndarray & other
@@ -169,7 +169,7 @@ class Image(object):
                 logger.warn("Both images should have same dimensions. "
                             "Returning None.")
                 return None
-            array = self._ndarray | other.get_ndarray()
+            array = self._ndarray | other.ndarray
             return self.__class__(array=array, color_space=self._color_space)
         else:
             array = self._ndarray | other
@@ -181,7 +181,7 @@ class Image(object):
                 logger.warn("Both images should have same dimensions. "
                             "Returning None.")
                 return None
-            array = cv2.divide(self._ndarray, other.get_ndarray())
+            array = cv2.divide(self._ndarray, other.ndarray)
             return self.__class__(array=array, color_space=self._color_space)
         else:
             array = (self._ndarray / other).astype(self.dtype)
@@ -193,7 +193,7 @@ class Image(object):
                 logger.warn("Both images should have same dimensions. "
                             "Returning None.")
                 return None
-            array = cv2.multiply(self._ndarray, other.get_ndarray())
+            array = cv2.multiply(self._ndarray, other.ndarray)
             return self.__class__(array=array, color_space=self._color_space)
         else:
             array = (self._ndarray * other).astype(self.dtype)
@@ -214,7 +214,8 @@ class Image(object):
     def __invert__(self):
         return self.__neg__()
 
-    def get_ndarray(self):
+    @property
+    def ndarray(self):
         """
         Get a Numpy array of the image in width x height x channels dimensions
         compatible with OpenCV >= 2.3
@@ -223,7 +224,8 @@ class Image(object):
         """
         return self._ndarray
 
-    def get_gray_ndarray(self):
+    @property
+    def gray_ndarray(self):
         """
         Returns the image, converted first to grayscale and then converted to
         a 2D numpy array.
@@ -232,7 +234,8 @@ class Image(object):
         """
         return Image.convert(self._ndarray, self._color_space, Image.GRAY)
 
-    def get_fp_ndarray(self):
+    @property
+    def fp_ndarray(self):
         """
         Converts the standard numpy uint8 array to float32 array.
         This is handy for some OpenCV functions.
@@ -500,9 +503,9 @@ class Image(object):
             c3 = self.__class__(array=self.get_empty(1),
                                 color_space=Image.GRAY)
 
-        array = np.dstack((c1.get_ndarray(),
-                           c2.get_ndarray(),
-                           c3.get_ndarray()))
+        array = np.dstack((c1.ndarray,
+                           c2.ndarray,
+                           c3.ndarray))
         return self.__class__(array=array, color_space=color_space)
 
     @staticmethod

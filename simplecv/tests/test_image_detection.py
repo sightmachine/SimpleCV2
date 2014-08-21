@@ -708,9 +708,9 @@ def test_image_fit_edge():
     linescan = img.get_line_scan(pt1=(5, 6), pt2=(28, 25))
     list1 = [255]*len(linescan)
     linescan = linescan + list1
-    
+
     new_img = img.replace_line_scan(linescan)
-    print new_img.get_ndarray()
+    print new_img.ndarray
     new_img.show()
     guess = [(5, 6), (28, 25)]
     print new_img.fit_edge(guess, window=2)
@@ -723,7 +723,7 @@ def test_image_fit_lines():
     linescan = img.get_line_scan(pt1=(5, 6), pt2=(23, 25))
     list1 = [255]*len(linescan)
     linescan = linescan + list1
-    
+
     new_img = img.replace_line_scan(linescan)
     guess = [((4, 6), (22, 26))]
     line = new_img.fit_lines(guess, window=2)
@@ -746,7 +746,7 @@ def test_image_fit_line_points():
     linescan = img.get_line_scan(pt1=(5, 6), pt2=(23, 25))
     list1 = [255]*len(linescan)
     linescan = linescan + list1
-    
+
     new_img = img.replace_line_scan(linescan)
     guess = [((4, 6), (22, 26))]
     new_img.fit_line_points(guess, window=(2, 2))
@@ -777,7 +777,7 @@ def test_smart_rotate():
 
     st1 = img.smart_rotate(auto=False, fixed=False).resize(500, 500)
     st2 = img.rotate(27, fixed=False).resize(500, 500)
-    diff = np.average((st1 - st2).get_ndarray())
+    diff = np.average((st1 - st2).ndarray)
     assert diff <= 1.7
     if diff > 1.7:
         print diff
@@ -787,4 +787,4 @@ def test_smart_rotate():
 
     # give empty image
     img = Image((100, 100))
-    assert_equals(img.smart_rotate().get_ndarray().data, img.get_ndarray().data)
+    assert_equals(img.smart_rotate().ndarray.data, img.ndarray.data)

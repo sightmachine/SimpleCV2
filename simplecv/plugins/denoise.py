@@ -60,10 +60,10 @@ def tv_denoising(img, gray=False, weight=50, eps=0.0002, max_iter=200,
         img = img.resize(int(img.width * resize), int(img.height * resize))
 
     if gray is True:
-        img = img.get_gray_ndarray()
+        img = img.gray_ndarray
         multichannel = False
     elif gray is False:
-        img = img.get_ndarray()
+        img = img.ndarray
         multichannel = True
     else:
         logger.warn('gray value not valid')

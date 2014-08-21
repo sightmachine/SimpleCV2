@@ -41,24 +41,24 @@ def mean_color(img, color_space=None):
 
     """
     if color_space is None:
-        array = img.get_ndarray()
+        array = img.ndarray
         if len(array.shape) == 2:
             return np.average(array)
     elif color_space == 'BGR':
-        array = img.to_bgr().get_ndarray()
+        array = img.to_bgr().ndarray
     elif color_space == 'RGB':
-        array = img.to_rgb().get_ndarray()
+        array = img.to_rgb().ndarray
     elif color_space == 'HSV':
-        array = img.to_hsv().get_ndarray()
+        array = img.to_hsv().ndarray
     elif color_space == 'XYZ':
-        array = img.to_xyz().get_ndarray()
+        array = img.to_xyz().ndarray
     elif color_space == 'Gray':
-        array = img.get_gray_ndarray()
+        array = img.gray_ndarray
         return np.average(array)
     elif color_space == 'YCrCb':
-        array = img.to_ycrcb().get_ndarray()
+        array = img.to_ycrcb().ndarray
     elif color_space == 'HLS':
-        array = img.to_hls().get_ndarray()
+        array = img.to_hls().ndarray
     else:
         logger.warning("Image.meanColor: There is no supported conversion "
                        "to the specified colorspace. Use one of these as "
@@ -98,7 +98,7 @@ def histogram(img, numbins=50):
     :py:meth:`hue_histogram`
 
     """
-    hist, bin_edges = np.histogram(img.get_gray_ndarray(), bins=numbins)
+    hist, bin_edges = np.histogram(img.gray_ndarray, bins=numbins)
     return hist.tolist()
 
 
@@ -124,10 +124,10 @@ def hue_histogram(img, bins=179, dynamic_range=True):
 
     """
     if dynamic_range:
-        return np.histogram(img.to_hsv().get_ndarray()[:, :, 0],
+        return np.histogram(img.to_hsv().ndarray[:, :, 0],
                             bins=bins)[0]
     else:
-        return np.histogram(img.to_hsv().get_ndarray()[:, :, 0],
+        return np.histogram(img.to_hsv().ndarray[:, :, 0],
                             bins=bins, range=(0.0, 360.0))[0]
 
 
@@ -183,7 +183,7 @@ def hue_peaks(img, bins=179):
     #     to get the average peak value
     #     do 'np.mean(maxtab, 0)[1]' on the results
 
-    y_axis, x_axis = np.histogram(img.to_hsv().get_ndarray()[:, :, 0],
+    y_axis, x_axis = np.histogram(img.to_hsv().ndarray[:, :, 0],
                                   bins=bins)
     x_axis = x_axis[0:bins]
     lookahead = int(bins / 17)
@@ -279,7 +279,7 @@ def get_edge_map(img, t1=50, t2=100):
     http://opencv.willowgarage.com/documentation/python/
     imgproc_feature_detection.html?highlight=canny#Canny
     """
-    return cv2.Canny(img.get_gray_ndarray(), threshold1=t1, threshold2=t2)
+    return cv2.Canny(img.gray_ndarray, threshold1=t1, threshold2=t2)
 
 
 @image_method
@@ -362,7 +362,7 @@ def get_gray_pixel(img, x, y):
     elif y < 0 or y >= img.height:
         logger.warning("get_gray_pixel: Y value is not valid.")
     else:
-        ret_val = img.get_gray_ndarray()[y, x].tolist()
+        ret_val = img.gray_ndarray[y, x].tolist()
     return ret_val
 
 
@@ -405,7 +405,7 @@ def get_vert_scanline(img, column):
     if column < 0 or column >= img.width:
         logger.warning("get_vert_scanline: column value is not valid.")
     else:
-        ret_val = img.get_ndarray()[column, :]
+        ret_val = img.ndarray[column, :]
     return ret_val
 
 
@@ -447,7 +447,7 @@ def get_horz_scanline(img, row):
     if row < 0 or row >= img.height:
         logger.warning("get_horz_scanline: row value is not valid.")
     else:
-        ret_val = img.get_ndarray()[:, row]
+        ret_val = img.ndarray[:, row]
     return ret_val
 
 
@@ -489,7 +489,7 @@ def get_vert_scanline_gray(img, column):
     if column < 0 or column >= img.width:
         logger.warning("getHorzRGBScanline: row value is not valid.")
     else:
-        ret_val = img.get_gray_ndarray()[column, :]
+        ret_val = img.gray_ndarray[column, :]
     return ret_val
 
 
@@ -532,7 +532,7 @@ def get_horz_scanline_gray(img, row):
     if row < 0 or row >= img.height:
         logger.warning("get_horz_scanline_gray: row value is not valid.")
     else:
-        ret_val = img.get_gray_ndarray()[:, row]
+        ret_val = img.gray_ndarray[:, row]
     return ret_val
 
 
@@ -567,9 +567,9 @@ def integral_image(img, tilted=False):
     http://en.wikipedia.org/wiki/Summed_area_table
     """
     if tilted:
-        array = cv2.integral3(img.get_gray_ndarray())[2]
+        array = cv2.integral3(img.gray_ndarray)[2]
     else:
-        array = cv2.integral(img.get_gray_ndarray())
+        array = cv2.integral(img.gray_ndarray)
     return array
 
 
@@ -700,7 +700,7 @@ def _get_raw_keypoints(img, thresh=500.00, flavor="SURF", highquality=1,
             #          nOctaveLayers, extended, upright)
             detector = cv2.SURF(thresh, 4, 2, highquality, 1)
             img._key_points, img._kp_descriptors = \
-                detector.detectAndCompute(img.get_gray_ndarray(), None, False)
+                detector.detectAndCompute(img.gray_ndarray, None, False)
             if len(img._key_points) == 0:
                 return None, None
             if highquality == 1:
@@ -713,33 +713,33 @@ def _get_raw_keypoints(img, thresh=500.00, flavor="SURF", highquality=1,
         elif flavor in _descriptors:
             detector = getattr(cv2, flavor)()
             img._key_points, img._kp_descriptors = \
-                detector.detectAndCompute(img.get_gray_ndarray(), None,
+                detector.detectAndCompute(img.gray_ndarray, None,
                                           False)
         elif flavor == "MSER":
             if hasattr(cv2, "FeatureDetector_create"):
                 detector = cv2.FeatureDetector_create("MSER")
-                img._key_points = detector.detect(img.get_gray_ndarray())
+                img._key_points = detector.detect(img.gray_ndarray)
     elif flavor == "STAR":
         detector = cv2.StarDetector()
-        img._key_points = detector.detect(img.get_gray_ndarray())
+        img._key_points = detector.detect(img.gray_ndarray)
     elif flavor == "FAST":
         if not hasattr(cv2, "FastFeatureDetector"):
             logger.warn("You need OpenCV >= 2.4.0 to support FAST")
             return None, None
         detector = cv2.FastFeatureDetector(int(thresh), True)
-        img._key_points = detector.detect(img.get_gray_ndarray(), None)
+        img._key_points = detector.detect(img.gray_ndarray, None)
     elif hasattr(cv2, "FeatureDetector_create"):
         if flavor in _descriptors:
             extractor = cv2.DescriptorExtractor_create(flavor)
             if flavor == "FREAK":
                 flavor = "SIFT"
             detector = cv2.FeatureDetector_create(flavor)
-            img._key_points = detector.detect(img.get_gray_ndarray())
+            img._key_points = detector.detect(img.gray_ndarray)
             img._key_points, img._kp_descriptors = extractor.compute(
-                img.get_gray_ndarray(), img._key_points)
+                img.gray_ndarray, img._key_points)
         else:
             detector = cv2.FeatureDetector_create(flavor)
-            img._key_points = detector.detect(img.get_gray_ndarray())
+            img._key_points = detector.detect(img.gray_ndarray)
     else:
         logger.warn("simplecv can't seem to find appropriate function "
                     "with your OpenCV version.")
@@ -876,7 +876,7 @@ def generate_palette(img, bins, hue, centroids=None):
         result = None
         if not hue:
             # reshape our matrix to 1xN
-            pixels = np.array(img.get_ndarray()).reshape(-1, 3)
+            pixels = np.array(img.ndarray).reshape(-1, 3)
             if centroids is None:
                 result = scv.kmeans(pixels, bins)
             else:
@@ -1012,7 +1012,7 @@ def re_palette(img, palette, hue=False):
         else:
             hsv = img.copy()
 
-        h = hsv.get_ndarray()[:, :, 0]
+        h = hsv.ndarray[:, :, 0]
         pixels = h.reshape(-1, 1)
         result = scv.vq(pixels, palette)
         derp = palette[result[0]]
@@ -1024,13 +1024,13 @@ def re_palette(img, palette, hue=False):
         ret_val._palette_members = result[0]
 
     else:
-        result = scv.vq(img.get_ndarray().reshape(-1, 3), palette)
+        result = scv.vq(img.ndarray.reshape(-1, 3), palette)
         ret_val = Factory.Image(
             palette[result[0]].reshape(img.width, img.height, 3))
         ret_val._do_hue_palette = False
         ret_val._palette_bins = len(palette)
         ret_val._palette = palette
-        pixels = np.array(img.get_ndarray()).reshape(-1, 3)
+        pixels = np.array(img.ndarray).reshape(-1, 3)
         ret_val._palette_members = scv.vq(pixels, palette)[0]
 
     percentages = []
@@ -1069,9 +1069,9 @@ def max_value(img, locations=False):
     >>> img2 = img.stretch(min,max)
 
     """
-    val = np.max(img.get_gray_ndarray())
+    val = np.max(img.gray_ndarray)
     if locations:
-        y, x = np.where(img.get_gray_ndarray() == val)
+        y, x = np.where(img.gray_ndarray == val)
         locs = zip(y.tolist(), x.tolist())
         return int(val), locs
     else:
@@ -1104,9 +1104,9 @@ def min_value(img, locations=False):
     >>> img2 = img.stretch(min,max)
 
     """
-    val = np.min(img.get_gray_ndarray())
+    val = np.min(img.gray_ndarray)
     if locations:
-        y, x = np.where(img.get_gray_ndarray() == val)
+        y, x = np.where(img.gray_ndarray == val)
         locs = zip(y.tolist(), x.tolist())
         return int(val), locs
     else:
@@ -1119,7 +1119,7 @@ def _copy_avg(img, src, dst, roi, levels, levels_f, mode):
     Take the value in an ROI, calculate the average / peak hue
     and then set the output image roi to the value.
     '''
-    src_roi = src.get_ndarray()[src.roi_to_slice(roi)]
+    src_roi = src.ndarray[src.roi_to_slice(roi)]
     dst_roi = dst[src.roi_to_slice(roi)]
     if mode:  # get the peak hue for an area
         h = Factory.Image(src_roi).hue_histogram()
@@ -1480,10 +1480,10 @@ def get_line_scan(img, x=None, y=None, pt1=None, pt2=None, channel=-1):
     """
 
     if channel == -1:
-        img_array = img.get_gray_ndarray()
+        img_array = img.gray_ndarray
     else:
         try:
-            img_array = img.get_ndarray()[:, :, channel]
+            img_array = img.ndarray[:, :, channel]
         except IndexError:
             logger.warning('Channel missing!')
             return None
@@ -1579,10 +1579,10 @@ def set_line_scan(img, linescan, x=None, y=None, pt1=None, pt2=None,
     """
     #retVal = self.to_gray()
     if channel == -1:
-        img_array = np.copy(img.get_gray_ndarray())
+        img_array = np.copy(img.gray_ndarray)
     else:
         try:
-            img_array = np.copy(img.get_ndarray()[:, :, channel])
+            img_array = np.copy(img.ndarray[:, :, channel])
         except IndexError:
             logger.warn('Channel missing!')
             return None
@@ -1649,7 +1649,7 @@ def set_line_scan(img, linescan, x=None, y=None, pt1=None, pt2=None,
     if channel == -1:
         ret_val = Factory.Image(img_array)
     else:
-        temp = np.copy(img.get_ndarray())
+        temp = np.copy(img.ndarray)
         temp[:, :, channel] = img_array
         ret_val = Factory.Image(temp)
     return ret_val
@@ -1701,10 +1701,10 @@ def replace_line_scan(img, linescan, x=None, y=None, pt1=None, pt2=None,
             and pt1 is None and pt2 is None and channel is None:
 
         if linescan.channel == -1:
-            img_array = img.get_gray_ndarray().copy()
+            img_array = img.gray_ndarray.copy()
         else:
             try:
-                img_array = np.copy(img.get_ndarray()[:, :, linescan.channel])
+                img_array = np.copy(img.ndarray[:, :, linescan.channel])
             except IndexError:
                 logger.warn('Channel missing!')
                 return None
@@ -1737,7 +1737,7 @@ def replace_line_scan(img, linescan, x=None, y=None, pt1=None, pt2=None,
         if linescan.channel == -1:
             ret_val = Factory.Image(img_array)
         else:
-            temp = np.copy(img.get_ndarray())
+            temp = np.copy(img.ndarray)
             temp[:, :, linescan.channel] = img_array
             ret_val = Factory.Image(temp)
 
@@ -1891,10 +1891,10 @@ def logical_and(self, img, grayscale=True):
         logger.warning("Both images must have same sizes")
         return None
     if grayscale:
-        retval = cv2.bitwise_and(self.get_gray_ndarray(),
-                                 img.get_gray_ndarray())
+        retval = cv2.bitwise_and(self.gray_ndarray,
+                                 img.gray_ndarray)
     else:
-        retval = cv2.bitwise_and(self.get_ndarray(), img.get_ndarray())
+        retval = cv2.bitwise_and(self.ndarray, img.ndarray)
     return Factory.Image(retval)
 
 
@@ -1926,10 +1926,10 @@ def logical_nand(self, img, grayscale=True):
         logger.warning("Both images must have same sizes")
         return None
     if grayscale:
-        retval = cv2.bitwise_and(self.get_gray_ndarray(),
-                                 img.get_gray_ndarray())
+        retval = cv2.bitwise_and(self.gray_ndarray,
+                                 img.gray_ndarray)
     else:
-        retval = cv2.bitwise_and(self.get_ndarray(), img.get_ndarray())
+        retval = cv2.bitwise_and(self.ndarray, img.ndarray)
     retval = cv2.bitwise_not(retval)
     return Factory.Image(retval)
 
@@ -1962,10 +1962,10 @@ def logical_or(self, img, grayscale=True):
         logger.warning("Both images must have same sizes")
         return None
     if grayscale:
-        retval = cv2.bitwise_or(self.get_gray_ndarray(),
-                                img.get_gray_ndarray())
+        retval = cv2.bitwise_or(self.gray_ndarray,
+                                img.gray_ndarray)
     else:
-        retval = cv2.bitwise_or(self.get_ndarray(), img.get_ndarray())
+        retval = cv2.bitwise_or(self.ndarray, img.ndarray)
     return Factory.Image(retval)
 
 
@@ -1997,10 +1997,10 @@ def logical_xor(self, img, grayscale=True):
         logger.warning("Both images must have same sizes")
         return None
     if grayscale:
-        retval = cv2.bitwise_xor(self.get_gray_ndarray(),
-                                 img.get_gray_ndarray())
+        retval = cv2.bitwise_xor(self.gray_ndarray,
+                                 img.gray_ndarray)
     else:
-        retval = cv2.bitwise_xor(self.get_ndarray(), img.get_ndarray())
+        retval = cv2.bitwise_xor(self.ndarray, img.ndarray)
     return Factory.Image(retval)
 
 
@@ -2060,7 +2060,7 @@ def vertical_histogram(img, bins=10, threshold=128, normalize=False,
         logger.warning("number of bins should be positive")
         return None
 
-    img_array = img.get_gray_ndarray()
+    img_array = img.gray_ndarray
     pts = np.where(img_array > threshold)
     y = pts[1]
     hist = np.histogram(y, bins=bins, range=(0, img.height),
@@ -2129,7 +2129,7 @@ def horizontal_histogram(img, bins=10, threshold=128, normalize=False,
         logger.warning("number of bins should be positive")
         return None
 
-    img_array = img.get_gray_ndarray()
+    img_array = img.gray_ndarray
     pts = np.where(img_array > threshold)
     x = pts[0]
     hist = np.histogram(x, bins=bins, range=(0, img.width),
@@ -2222,7 +2222,7 @@ def gray_peaks(img, bins=255, delta=0, lookahead=15):
     # As range() function is exclusive,
     # hence bins+2 is passed as parameter.
 
-    y_axis, x_axis = np.histogram(img.get_gray_ndarray(),
+    y_axis, x_axis = np.histogram(img.gray_ndarray,
                                   bins=range(bins + 2))
     x_axis = x_axis[0:bins + 1]
     maxtab = []
@@ -2330,9 +2330,9 @@ def get_normalized_hue_histogram(img, roi=None):
 
     if roi:  # roi is anything that can be taken to be an roi
         roi = ROI(roi, img)
-        hsv = roi.crop().to_hsv().get_ndarray()
+        hsv = roi.crop().to_hsv().ndarray
     else:
-        hsv = img.to_hsv().get_ndarray()
+        hsv = img.to_hsv().ndarray
     hist = cv2.calcHist(images=[hsv], channels=[0, 1], mask=None,
                         histSize=[180, 256], ranges=[0, 180, 0, 256])
     hist = cv2.normalize(hist, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
@@ -2401,7 +2401,7 @@ def back_project_hue_histogram(img, model, smooth=True, full_color=False,
         except (ValueError, AttributeError) as e:
             pass
     if isinstance(model, np.ndarray) and model.shape == (180, 256):
-        hsv = img.to_hsv().get_ndarray()
+        hsv = img.to_hsv().ndarray
         dst = cv2.calcBackProject(images=[hsv], channels=[0, 1],
                                   hist=model, ranges=[0, 180, 0, 256], scale=1)
         if smooth:

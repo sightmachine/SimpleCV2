@@ -30,7 +30,7 @@ def test_image_max_int():
     array = np.ones((2, 2, 3), dtype=np.uint8) * 20
 
     img = img1.maximum(20)
-    assert_equals(array.data, img.get_ndarray().data)
+    assert_equals(array.data, img.ndarray.data)
 
 
 def test_image_max_image():
@@ -41,7 +41,7 @@ def test_image_max_image():
     array = np.ones((2, 2, 3), dtype=np.uint8) * 3
 
     img = img1.maximum(img2)
-    assert_equals(array.data, img.get_ndarray().data)
+    assert_equals(array.data, img.ndarray.data)
 
     # different image sizes
     img2 = img2.resize(5, 5)
@@ -54,7 +54,7 @@ def test_image_min_int():
     array = np.ones((2, 2, 3), dtype=np.uint8) * 5
 
     img = img1.minimum(20)
-    assert_equals(array.data, img.get_ndarray().data)
+    assert_equals(array.data, img.ndarray.data)
 
 def test_image_min_image():
     array1 = np.ones((2, 2, 3), dtype=np.uint8) * 2
@@ -64,7 +64,7 @@ def test_image_min_image():
     array = np.ones((2, 2, 3), dtype=np.uint8) * 2
 
     img = img1.minimum(img2)
-    assert_equals(array.data, img.get_ndarray().data)
+    assert_equals(array.data, img.ndarray.data)
 
     # different image sizes
     img2 = img2.resize(5, 5)
@@ -179,7 +179,7 @@ def test_color_curve_rgb():
     y = [[0, 0], [64, 128], [192, 128], [255, 255]]
     img4 = img.apply_rgb_curve(y, y, y)
 
-    assert_equals(img2.get_ndarray().data, img4.get_ndarray().data)
+    assert_equals(img2.ndarray.data, img4.ndarray.data)
 
 
 def test_color_curve_gray():
@@ -262,7 +262,7 @@ def test_image_convolve():
     img3 = img.convolve()
     kernel = np.array(((1, 0, 0), (0, 1, 0), (0, 0, 1)))
     img4 = img.convolve(kernel)
-    assert_equals(img3.get_ndarray().data, img4.get_ndarray().data)
+    assert_equals(img3.ndarray.data, img4.ndarray.data)
 
     # pass invalid kernel
     assert_is_none(img.convolve(3))
@@ -720,7 +720,7 @@ def test_get_skintone_mask():
 
 def test_color_distance():
     img = Image(array=np.array([[(255, 128, 255), (0, 128, 0)]]))
-    np_array = img.color_distance().get_ndarray().astype(np.uint8)
+    np_array = img.color_distance().ndarray.astype(np.uint8)
     array_dis = np.array([[254],[85]], dtype=np.uint8)
     assert_equals(np_array.data, array_dis.data)
 
@@ -732,12 +732,12 @@ def test_hue_distance():
 
     color1 = (255, 0, 0)
     color2 = 120
-    dist1 = img.hue_distance(color1).get_ndarray().astype(np.uint8)
-    dist2 = img.hue_distance(color2).get_ndarray().astype(np.uint8)
+    dist1 = img.hue_distance(color1).ndarray.astype(np.uint8)
+    dist2 = img.hue_distance(color2).ndarray.astype(np.uint8)
 
     array_dis1 = np.array([[212, 147, 212]], dtype=np.uint8)
     array_dis2 = np.array([[126, 22, 126]],dtype=np.uint8)
-    
+
     assert_equals(dist1.data, array_dis1.data)
     assert_equals(dist2.data, array_dis2.data)
 
@@ -752,21 +752,21 @@ def test_white_balance():
 
     # pass blue image
     img = Image((100, 100))
-    np_array = img.get_ndarray()
+    np_array = img.ndarray
     np_array[:, :, 0] = 255
     output = img.white_balance(method="GrayWorld")
     assert_equals(output.mean_color(), (85.0, 0.0, 0.0))
 
     # pass green image
     img = Image((100, 100))
-    np_array = img.get_ndarray()
+    np_array = img.ndarray
     np_array[:, :, 1] = 255
     output = img.white_balance(method="GrayWorld")
     assert_equals(output.mean_color(), (0.0, 85.0, 0.0))
 
     # pass red image
     img = Image((100, 100))
-    np_array = img.get_ndarray()
+    np_array = img.ndarray
     np_array[:, :, 2] = 255
     output = img.white_balance(method="GrayWorld")
     assert_equals(output.mean_color(), (0.0, 0.0, 85.0))
@@ -838,7 +838,7 @@ def test_flood_fill_to_mask():
     omask5 = img.flood_fill_to_mask(b.coordinates(), tolerance=3,
                                     lower=3, upper=3, mask=imask)
 
-    assert_equals(omask5.get_ndarray().data, omask2.get_ndarray().data)
+    assert_equals(omask5.ndarray.data, omask2.ndarray.data)
 
 
 def test_apply_lut():

@@ -45,7 +45,7 @@ class Track(Feature):
         self.rt_vel = (0, 0)
         self.area = self.get_area()
         self.time = time.time()
-        self.cv2numpy = self.image.get_ndarray()
+        self.cv2numpy = self.image.ndarray
         self.predict_pt = (0, 0)
         self.state_pt = (0, 0)
         return self

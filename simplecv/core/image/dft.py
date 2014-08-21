@@ -53,14 +53,14 @@ def do_dft(img, grayscale=False):
     width, height = img.size
     dft = []
     if grayscale:
-        img_array = img.get_gray_ndarray()
+        img_array = img.gray_ndarray
         data = img_array.astype(np.float64)
         blank = np.zeros((height, width))
         src = np.dstack((data, blank))
         dst = cv2.dft(src)
         dft.append(dst)
     else:
-        img_array = img.get_ndarray().copy()
+        img_array = img.ndarray.copy()
         if len(img_array.shape) == 3:
             b = img_array[:, :, 0]
             g = img_array[:, :, 1]
@@ -314,12 +314,12 @@ def apply_dft_filter(img, flt, grayscale=False):
         return None
     dft = img._get_dft_clone(grayscale)
     if grayscale:
-        flt64f = flt.get_gray_ndarray().astype(np.float64)
+        flt64f = flt.gray_ndarray.astype(np.float64)
         final_filt = np.dstack((flt64f, flt64f))
         for i in range(len(dft)):
             dft[i] = cv2.mulSpectrums(dft[i], final_filt, flags=0)
     else:  # break down the filter and then do each channel
-        flt = flt.get_ndarray()
+        flt = flt.ndarray
         if len(flt.shape) == 3:
             b = flt[:, :, 0]
             g = flt[:, :, 1]

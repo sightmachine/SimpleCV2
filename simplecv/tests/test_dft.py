@@ -189,7 +189,7 @@ def test_dft_create_notch_filter():
     # invalid params
     assert_is_none(DFT.create_notch_filter([100, 80]))
     assert_is_none(DFT.create_notch_filter([100], [100, 80]))
-    assert_is_none(DFT.create_notch_filter([100], [100], 
+    assert_is_none(DFT.create_notch_filter([100], [100],
                                           [(100, 60), (90, 100)]))
 
 def test_dft_get_image():
@@ -201,7 +201,7 @@ def test_dft_get_image():
 
     assert_is_none(flt1.get_image())
     assert_equals(flt2.get_image().size, (80, 100))
-    assert_equals(flt3.get_image().get_ndarray().data, img.get_ndarray().data)
+    assert_equals(flt3.get_image().ndarray.data, img.ndarray.data)
 
 def test_dft_get_numpy():
     flt1 = DFT()
@@ -212,7 +212,7 @@ def test_dft_get_numpy():
 
     assert_is_none(flt1.get_numpy())
     assert_equals(flt2.get_numpy().shape, (100, 80))
-    assert_equals(flt3.get_numpy().data, img.get_ndarray().data)
+    assert_equals(flt3.get_numpy().data, img.ndarray.data)
 
 def test_dft_stack_filters():
     filter1 = DFT.create_highpass_filter(x_cutoff=75, size=(320, 280))
@@ -223,7 +223,7 @@ def test_dft_stack_filters():
 
     np_res = np.dstack((filter1._numpy, filter2._numpy, filter3._numpy))
 
-    assert_equals(flt._image.get_ndarray().data, np_res.data)
+    assert_equals(flt._image.ndarray.data, np_res.data)
 
     # multiple channele
     filter4 = DFT.create_notch_filter([100, 80, 75], [100], (20, 20),

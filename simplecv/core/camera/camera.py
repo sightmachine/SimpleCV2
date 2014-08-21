@@ -38,7 +38,7 @@ class FrameBufferThread(threading.Thread):
                 else:
                     if cam.capture.isOpened():
                         cam.capture.grab()
-                cam.set_thread_capture_time = time.time()
+                cam._thread_capture_time = time.time()
             time.sleep(0.04)  # max 25 fps, if you're lucky
 
 

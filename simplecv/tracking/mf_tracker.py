@@ -90,8 +90,8 @@ def mfTracker(img, bb, ts, oldimg, **kwargs):
         elif key == 'winsize_lk':
             winsize_lk = kwargs[key]
 
-    oldg = oldimg.get_gray_ndarray()
-    newg = img.get_gray_ndarray()
+    oldg = oldimg.gray_ndarray
+    newg = img.gray_ndarray
     bb = [bb[0], bb[1], bb[0] + bb[2], bb[1] + bb[3]]
     bb, shift = fbtrack(oldg, newg, bb, numM, numN,
                         margin, winsize_ncc, winsize_lk)

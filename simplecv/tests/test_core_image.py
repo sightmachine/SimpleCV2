@@ -1,8 +1,4 @@
-import os
-import tempfile
-
-import cv2
-from nose.tools import assert_equals, nottest, raises
+from nose.tools import assert_equals, raises
 import numpy as np
 
 from simplecv.core.image import Image as CoreImage
@@ -39,6 +35,7 @@ def test_core_image_wrong_array():
 def test_core_image_wrong_color_space():
     CoreImage(array=create_test_array(), color_space=999)
 
+
 def test_core_sub():
     np_array = np.array([[255, 255, 255], [255, 255, 255], [255, 255, 255]],
                         dtype=np.uint8)
@@ -55,8 +52,9 @@ def test_core_sub():
     np_res2 = np.array([[127, 127, 127],[127, 127, 127], [127, 127, 127]], dtype=np.uint8)
 
     assert_equals((img - img1), None)
-    assert_equals((img - img2).get_ndarray().data, np_res1.data)
-    assert_equals((img - 128).get_ndarray().data, np_res2.data)
+    assert_equals((img - img2).ndarray.data, np_res1.data)
+    assert_equals((img - 128).ndarray.data, np_res2.data)
+
 
 def test_core_add():
     np_array = np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0]],
@@ -74,8 +72,9 @@ def test_core_add():
     np_res2 = np.array([[127, 127, 127],[127, 127, 127], [127, 127, 127]], dtype=np.uint8)
 
     assert_equals((img + img1), None)
-    assert_equals((img + img2).get_ndarray().data, np_res1.data)
-    assert_equals((img + 127).get_ndarray().data, np_res2.data)
+    assert_equals((img + img2).ndarray.data, np_res1.data)
+    assert_equals((img + 127).ndarray.data, np_res2.data)
+
 
 def test_core_and():
     np_array = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]],
@@ -91,10 +90,11 @@ def test_core_and():
 
     np_res1 = np.array([[1, 0, 1],[1, 0, 1], [1, 0, 1]], dtype=np.uint8)
     np_res2 = np.array([[1, 1, 1],[1, 1, 1], [1, 1, 1]], dtype=np.uint8)
-    
+
     assert_equals((img & img1), None)
-    assert_equals((img & img2).get_ndarray().data, np_res1.data)
-    assert_equals((img & 127).get_ndarray().data, np_res2.data)
+    assert_equals((img & img2).ndarray.data, np_res1.data)
+    assert_equals((img & 127).ndarray.data, np_res2.data)
+
 
 def test_core_or():
     np_array = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]],
@@ -112,8 +112,9 @@ def test_core_or():
     np_res2 = np.array([[127, 127, 127],[127, 127, 127], [127, 127, 127]], dtype=np.uint8)
 
     assert_equals((img | img1), None)
-    assert_equals((img | img2).get_ndarray().data, np_res1.data)
-    assert_equals((img | 127).get_ndarray().data, np_res2.data)
+    assert_equals((img | img2).ndarray.data, np_res1.data)
+    assert_equals((img | 127).ndarray.data, np_res2.data)
+
 
 def test_core_div():
     np_array = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]],
@@ -131,8 +132,9 @@ def test_core_div():
     np_res2 = np.array([[127, 0, 127],[127, 0, 127], [127, 0, 127]], dtype=np.uint8)
 
     assert_equals((img/img1), None)
-    assert_equals((img2/img).get_ndarray().data, np_res1.data)
-    assert_equals((img2/2).get_ndarray().data, np_res2.data)
+    assert_equals((img2/img).ndarray.data, np_res1.data)
+    assert_equals((img2/2).ndarray.data, np_res2.data)
+
 
 def test_core_mul():
     np_array = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]],
@@ -150,8 +152,9 @@ def test_core_mul():
     np_res2 = np.array([[127, 127, 127],[127, 127, 127], [127, 127, 127]], dtype=np.uint8)
 
     assert_equals((img*img1), None)
-    assert_equals((img2*img).get_ndarray().data, np_res1.data)
-    assert_equals((img*127).get_ndarray().data, np_res2.data)
+    assert_equals((img2*img).ndarray.data, np_res1.data)
+    assert_equals((img*127).ndarray.data, np_res2.data)
+
 
 def test_core_pow():
     np_array = np.array([[2, 3, 2], [3, 2, 3], [7, 2, 1]],
@@ -160,8 +163,9 @@ def test_core_pow():
 
     np_res1 = np.array([[16, 81, 16],[81, 16, 81], [255, 16, 1]], dtype=np.uint8)
 
-    assert_equals((img**4).get_ndarray().data, np_res1.data)
+    assert_equals((img**4).ndarray.data, np_res1.data)
     assert_equals((img**2.3), None)
+
 
 def test_core_neg():
     np_array = np.array([[2, 127, 128], [50, 100, 150], [7, 2, 0]],
@@ -169,15 +173,17 @@ def test_core_neg():
     img = CoreImage(array=np_array)
     np_res1 = np.array([[253, 128, 127],[205, 155, 105], [248, 253, 255]], dtype=np.uint8)
 
-    assert_equals((~img).get_ndarray().data, np_res1.data)
+    assert_equals((~img).ndarray.data, np_res1.data)
 
-def test_core_get_ndarray():
+
+def test_core_ndarray():
     np_array = np.array([[2, 127, 128], [50, 100, 150], [7, 2, 0]],
                         dtype=np.uint8)
     img = CoreImage(array=np_array)
-    assert_equals(img.get_ndarray().data, np_array.data)
+    assert_equals(img.ndarray.data, np_array.data)
 
-def test_core_get_gray_ndarray():
+
+def test_core_gray_ndarray():
     np_array = np.array([[[2, 127, 128], [50, 100, 150], [7, 2, 0]],
                         [[253, 128, 127],[205, 155, 105], [248, 253, 255]],
                         [[16, 81, 16],[81, 16, 81], [255, 16, 1]]],
@@ -185,14 +191,16 @@ def test_core_get_gray_ndarray():
     img = CoreImage(array=np_array)
     gray = img.to_gray()
 
-    assert_equals(img.get_gray_ndarray().data, gray.get_ndarray().data)
+    assert_equals(img.gray_ndarray.data, gray.ndarray.data)
 
-def test_core_get_fp_ndarray():
+
+def test_core_fp_ndarray():
     np_array = np.array([[2, 127, 128], [50, 100, 150], [7, 2, 0]],
                         dtype=np.uint8)
     img = CoreImage(array=np_array)
     fp_array = np_array.astype(np.float32)
-    assert_equals(img.get_fp_ndarray().data, fp_array.data)
+    assert_equals(img.fp_ndarray.data, fp_array.data)
+
 
 def test_core_get_empty():
     np_array = np.ones((10, 10, 3), np.uint8)
@@ -205,6 +213,7 @@ def test_core_get_empty():
     assert_equals(img.get_empty(2).data, empty2.data)
     assert_equals(img.get_empty(3).data, empty3.data)
 
+
 def test_core_convert():
     np_array = np.array([[[2, 127, 128], [50, 100, 150], [7, 2, 0]],
                         [[253, 128, 127],[205, 155, 105], [248, 253, 255]],
@@ -215,12 +224,13 @@ def test_core_convert():
                         [[16, 81, 16],[81, 16, 81], [1, 16, 255]]],
                         dtype=np.uint8)
     img = CoreImage(array=np_array)
-    
+
     res1 = CoreImage.convert(np_array, img._color_space, img._color_space)
     res2 = CoreImage.convert(np_array, img._color_space, CoreImage.RGB)
 
     assert_equals(res1.data, np_array.data)
     assert_equals(res2.data, np_array2.data)
+
 
 def test_core_to_color_space():
     np_array = np.array([[[2, 127, 128], [50, 100, 150], [7, 2, 0]],
@@ -232,13 +242,14 @@ def test_core_to_color_space():
                         [[16, 81, 16],[81, 16, 81], [1, 16, 255]]],
                         dtype=np.uint8)
     img = CoreImage(array=np_array)
-    
+
     res1 = img.to_color_space(img._color_space)
     res2 = img.to_color_space(img.RGB)
 
-    assert_equals(res1.get_ndarray().data, np_array.data)
-    assert_equals(res2.get_ndarray().data, np_array2.data)
+    assert_equals(res1.ndarray.data, np_array.data)
+    assert_equals(res2.ndarray.data, np_array2.data)
     assert_equals(res2.is_rgb(), True)
+
 
 def test_core_to_string():
     np_array = np.array([[[2, 127, 128], [50, 100, 150], [7, 2, 0]],
@@ -248,6 +259,7 @@ def test_core_to_string():
     img = CoreImage(array=np_array)
 
     assert_equals(img.to_string(), np_array.tostring())
+
 
 def test_core_clear():
     np_array = np.array([[[2, 127, 128], [50, 100, 150]],
@@ -265,8 +277,9 @@ def test_core_clear():
     img.clear()
     gray_img.clear()
 
-    assert_equals(img.get_ndarray().data, zero_array.data)
-    assert_equals(gray_img.get_ndarray().data, zero_gray_array.data)
+    assert_equals(img.ndarray.data, zero_array.data)
+    assert_equals(gray_img.ndarray.data, zero_gray_array.data)
+
 
 def test_core_is_empty():
     img = CoreImage(array=np.zeros((0,0), dtype=np.uint8))
@@ -275,9 +288,11 @@ def test_core_is_empty():
     assert_equals(img.is_empty(), True)
     assert_equals(img1.is_empty(), False)
 
+
 def test_core_get_area():
     img1 = CoreImage(array=np.zeros((10,10), dtype=np.uint8))
     assert_equals(img1.get_area(), 100)
+
 
 def test_core_split_channels():
     np_array = np.array([[[2, 127, 128], [50, 100, 150]],
@@ -287,9 +302,10 @@ def test_core_split_channels():
     img = CoreImage(array=np_array)
 
     c1, c2, c3 = img.split_channels()
-    assert_equals(c1.get_ndarray().data, np_array[:, :, 0].copy().data)
-    assert_equals(c2.get_ndarray().data, np_array[:, :, 1].copy().data)
-    assert_equals(c3.get_ndarray().data, np_array[:, :, 2].copy().data)
+    assert_equals(c1.ndarray.data, np_array[:, :, 0].copy().data)
+    assert_equals(c2.ndarray.data, np_array[:, :, 1].copy().data)
+    assert_equals(c3.ndarray.data, np_array[:, :, 2].copy().data)
+
 
 def test_core_merge_channels():
     np_array = np.array([[[2, 127, 128], [50, 100, 150]],
@@ -304,6 +320,6 @@ def test_core_merge_channels():
     c3 = c1 - c2
 
     img_new = img.merge_channels(c1, c2, c3)
-    np_array_new = np.dstack((c1.get_ndarray(), c2.get_ndarray(), c3.get_ndarray()))
+    np_array_new = np.dstack((c1.ndarray, c2.ndarray, c3.ndarray))
 
-    assert_equals(img_new.get_ndarray().data, np_array_new.data)
+    assert_equals(img_new.ndarray.data, np_array_new.data)

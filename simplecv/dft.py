@@ -676,7 +676,7 @@ class DFT(object):
             if self._image is None:
                 logger.warn("Filter doesn't contain any image")
                 return None
-            self._numpy = self._image.get_ndarray()
+            self._numpy = self._image.ndarray
         return self._numpy
 
     def get_order(self):

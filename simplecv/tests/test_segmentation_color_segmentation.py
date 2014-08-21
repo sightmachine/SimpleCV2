@@ -7,11 +7,11 @@ from simplecv.color_model import ColorModel
 def test_color_segmentation_add_image():
     c = ColorSegmentation()
     filename = "../data/sampleimages/04000.jpg"
-    img = Image("../data/sampleimages/04000.jpg")    
+    img = Image("../data/sampleimages/04000.jpg")
 
     c.add_image(filename)
-    
-    assert_equals(c.truth_img.get_ndarray().data, img.get_ndarray().data)
+
+    assert_equals(c.truth_img.ndarray.data, img.ndarray.data)
 
 def test_color_segmentation_is_ready():
     c = ColorSegmentation()
@@ -28,19 +28,19 @@ def test_color_segmentation_reset_error():     # beta function (?)
 def test_color_segmentation_get_raw_image():
     c = ColorSegmentation()
     img = c.get_raw_image()
-    
+
     assert_equals(img, None)
 
     c.cur_img = Image("../data/sampleimages/04000.jpg")
     img1 = c.get_raw_image()
-    assert_equals(c.cur_img.get_ndarray().data, img1.get_ndarray().data)
+    assert_equals(c.cur_img.ndarray.data, img1.ndarray.data)
 
 def test_color_segmentation_get_segmented_image():
     c = ColorSegmentation()
     c.cur_img = Image("../data/sampleimages/RatMask.png")
-    
+
     img = c.get_segmented_image()
-    assert_equals(c.cur_img.get_ndarray().data, img.get_ndarray().data)
+    assert_equals(c.cur_img.ndarray.data, img.ndarray.data)
 
 def test_color_segmentation_reset():
     c = ColorSegmentation()
@@ -49,7 +49,7 @@ def test_color_segmentation_reset():
     assert_equals(len(c.color_model.data), 2)
     c.reset()
     assert_equals(c.color_model.data, {})
-    
+
 def test_color_segmentation_add_to_model():
     c = ColorSegmentation()
     c.add_to_model((255, 0, 0))
@@ -85,6 +85,6 @@ def test_color_segmentation_state():
     mydict['error'] = True
 
     c.__setstate__(mydict)
-    assert_equals(c.cur_img.get_ndarray().data, img.get_ndarray().data)
+    assert_equals(c.cur_img.ndarray.data, img.ndarray.data)
     assert_equals(c.color_model, cm)
     assert_equals(c.error, True)

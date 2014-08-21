@@ -37,7 +37,7 @@ def test_running_segmentation_reset():
     r.diff_img = Image("../data/sampleimages/black.png")
 
     r.reset()
-    
+
     assert_equals(r.model_img, None)
     assert_equals(r.diff_img, None)
 
@@ -53,7 +53,7 @@ def test_running_segmentation_get_raw_image():
 
     result = r.get_raw_image()
 
-    assert_equals(result.get_ndarray().data, img.get_ndarray().data)
+    assert_equals(result.ndarray.data, img.ndarray.data)
 
 def test_running_segmentation_get_segmented_image():
     r = RunningSegmentation()
@@ -84,8 +84,8 @@ def test_running_segmentation_state():
     final = r.get_segmented_image()
 
     mydict = r.__getstate__()
-    assert_equals(mydict['color_img'].get_ndarray().data, 
-                  img.get_ndarray().data)
+    assert_equals(mydict['color_img'].ndarray.data,
+                  img.ndarray.data)
     assert_equals(mydict['alpha'], 0.5)
     assert_equals(mydict['thresh'], (40, 20, 30))
 
@@ -99,4 +99,4 @@ def test_running_segmentation_state():
 
     assert_equals(r.alpha, 0.3)
     assert_equals(r.thresh, (30, 20, 50))
-    assert_equals(r.color_img.get_ndarray().data, newimg.get_ndarray().data)
+    assert_equals(r.color_img.ndarray.data, newimg.ndarray.data)

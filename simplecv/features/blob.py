@@ -596,7 +596,7 @@ class Blob(Feature):
         if width == -1:
             # copy the mask into 3 channels and
             # multiply by the appropriate color
-            gs_bitmap = self.mask.get_gray_ndarray()
+            gs_bitmap = self.mask.gray_ndarray
             maskred = cv2.convertScaleAbs(gs_bitmap, alpha=color[0] / 255.0)
             maskgrn = cv2.convertScaleAbs(gs_bitmap, alpha=color[1] / 255.0)
             maskblu = cv2.convertScaleAbs(gs_bitmap, alpha=color[2] / 255.0)
@@ -957,9 +957,9 @@ class Blob(Feature):
         tlc = self.top_left_corner()
         roi = (tlc[0], tlc[1], self.get_width(), self.get_height())
         roi_img = self.image.crop(*roi)
-        mask = self.mask.get_gray_ndarray() != 0  # binary mask
+        mask = self.mask.gray_ndarray != 0  # binary mask
         array = np.zeros((self.height, self.width, 3), dtype=np.uint8)
-        array[mask] = roi_img.get_ndarray()[mask]
+        array[mask] = roi_img.ndarray[mask]
         return Factory.Image(array)
 
     @LazyProperty
@@ -989,8 +989,8 @@ class Blob(Feature):
     def hull_img(self):
         tlc = self.top_left_corner()
         roi = (tlc[0], tlc[1], self.get_width(), self.get_height())
-        roi_img = self.image.crop(*roi).get_ndarray()
-        mask = self.hull_mask.get_gray_ndarray() != 0  # binary mask
+        roi_img = self.image.crop(*roi).ndarray
+        mask = self.hull_mask.gray_ndarray != 0  # binary mask
         array = np.zeros((self.get_height(), self.get_width(), 3), np.uint8)
         array[mask] = roi_img[mask]
         return Factory.Image(array)
@@ -1146,8 +1146,8 @@ class Blob(Feature):
                              dtype=np.uint8)
         tlc = self.top_left_corner()
         roi = (tlc[0], tlc[1], self.get_width(), self.get_height())
-        img_roi = self.image.crop(*roi).get_ndarray()
-        mask = self.mask.get_gray_ndarray() != 0  # binary mask
+        img_roi = self.image.crop(*roi).ndarray
+        mask = self.mask.gray_ndarray != 0  # binary mask
         ret_value_roi = ret_value[Factory.Image.roi_to_slice(roi)]
         ret_value_roi[mask] = img_roi[mask]
         return Factory.Image(ret_value)
@@ -1160,8 +1160,8 @@ class Blob(Feature):
                              dtype=np.uint8)
         tlc = self.top_left_corner()
         roi = (tlc[0], tlc[1], self.get_width(), self.get_height())
-        img_roi = self.image.crop(*roi).get_ndarray()
-        mask = self.hull_mask.get_gray_ndarray() != 0  # binary mask
+        img_roi = self.image.crop(*roi).ndarray
+        mask = self.hull_mask.gray_ndarray != 0  # binary mask
         ret_value_roi = ret_value[Factory.Image.roi_to_slice(roi)]
         ret_value_roi[mask] = img_roi[mask]
         return Factory.Image(ret_value)
@@ -1174,7 +1174,7 @@ class Blob(Feature):
                              dtype=np.uint8)
         tlc = self.top_left_corner()
         roi = (tlc[0], tlc[1], self.get_width(), self.get_height())
-        mask = self.mask.get_gray_ndarray()
+        mask = self.mask.gray_ndarray
         ret_value[Factory.Image.roi_to_slice(roi)] = mask
         return Factory.Image(ret_value)
 
@@ -1186,7 +1186,7 @@ class Blob(Feature):
                              dtype=np.uint8)
         tlc = self.top_left_corner()
         roi = (tlc[0], tlc[1], self.get_width(), self.get_height())
-        mask = self.hull_mask.get_gray_ndarray()
+        mask = self.hull_mask.gray_ndarray
         ret_value[Factory.Image.roi_to_slice(roi)] = mask
         return Factory.Image(ret_value)
 
@@ -1831,7 +1831,7 @@ class Blob(Feature):
             return None
 
         blobmaker = BlobMaker()
-        gray = mask.get_gray_ndarray()
+        gray = mask.gray_ndarray
         val, result = cv2.threshold(gray, thresh=threshold, maxval=255,
                                     type=cv2.THRESH_BINARY)
         blobs = blobmaker.extract_from_binary(

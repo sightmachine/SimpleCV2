@@ -25,7 +25,7 @@ def test_image_flip_vertical():
     img = img.flip_vertical()
     flip_array = np.array([[[255, 0, 0], [255, 255, 255]],
                            [[0, 0, 255], [0, 255, 0]]], dtype=np.uint8)
-    assert_equals(flip_array.data, img.get_ndarray().data)
+    assert_equals(flip_array.data, img.ndarray.data)
 
 
 def test_image_flip_horizontal():
@@ -33,7 +33,7 @@ def test_image_flip_horizontal():
     img = img.flip_horizontal()
     flip_array = np.array([[[0, 255, 0], [0, 0, 255]],
                            [[255, 255, 255], [255, 0, 0]]], dtype=np.uint8)
-    assert_equals(flip_array.data, img.get_ndarray().data)
+    assert_equals(flip_array.data, img.ndarray.data)
 
 
 def test_image_resize():
@@ -187,22 +187,22 @@ def test_image_crop():
     # smart crop
     img = Image("simplecv")
     crop_img = img.crop(50, 100, 500, 500, smart=True)
-    np_arr = img.get_ndarray()[100:, 50:].copy()
-    assert_equals(np_arr.data, crop_img.get_ndarray().data)
+    np_arr = img.ndarray[100:, 50:].copy()
+    assert_equals(np_arr.data, crop_img.ndarray.data)
 
     # feature crop
     lines = img.find(Line)
     crop_img = img.crop(lines[0])
 
     # tuple and list
-    np_arr = img.get_ndarray()[10:60, :50].copy()
+    np_arr = img.ndarray[10:60, :50].copy()
     crop_img = img.crop(((0, 10), (20, 10), (50, 50), (0, 60)))
-    assert_equals(np_arr.data, crop_img.get_ndarray().data)
+    assert_equals(np_arr.data, crop_img.ndarray.data)
     crop_img = img.crop([(0, 10), (20, 10), (50, 50), (0, 60)])
-    assert_equals(np_arr.data, crop_img.get_ndarray().data)
+    assert_equals(np_arr.data, crop_img.ndarray.data)
     crop_img = img.crop((0, 10, 50, 50))
-    assert_equals(np_arr.data, crop_img.get_ndarray().data)
-    
+    assert_equals(np_arr.data, crop_img.ndarray.data)
+
     # invalid tuple/list
     assert_is_none(img.crop(((0, 10), (20, 10, 20),
                   (50, 50, 30), (0, 60, 40))))
@@ -341,7 +341,7 @@ def test_image_split():
     assert_equals(len(splits), 4)
     assert_equals(len(splits[0]), 8)
 
-    np_array = img.get_ndarray()
+    np_array = img.ndarray
 
     row = 0
     col = 0
@@ -350,7 +350,7 @@ def test_image_split():
         for split_img in split:
             assert_equals(split_img.size, (64, 128))
             np_arr = np_array[row:row+128, col:col+64].copy()
-            assert_equals(split_img.get_ndarray().data, np_arr.data)
+            assert_equals(split_img.ndarray.data, np_arr.data)
             col += 64
         row += 128
 
@@ -361,7 +361,7 @@ def test_image_adaptive_scale():
     new_img = img.adaptive_scale(img.size) # no resize
     assert_equals(new_img, img)
     new_img = img.adaptive_scale((img.width/2, img.height/2))
-    
+
     new_img = img.adaptive_scale((img.width/3, img.height/4))
     assert_equals(new_img.size, (img.width/3, img.height/4))
 

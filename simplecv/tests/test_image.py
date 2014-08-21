@@ -25,7 +25,7 @@ def test_image_init_path_to_png():
     assert_equals(Image.BGR, img1.color_space)
     assert img1.is_color_space(Image.BGR)
 
-    img_ndarray = img1.get_ndarray()
+    img_ndarray = img1.ndarray
 
     assert isinstance(img_ndarray, np.ndarray)
     assert_equals(3, len(img_ndarray.shape))
@@ -111,7 +111,7 @@ def test_image_init_path_to_webp():
 
     assert_equals((250, 250), img.size)
     assert img.is_color_space(Image.RGB)
-    img_ndarray = img.get_ndarray()
+    img_ndarray = img.ndarray
     assert isinstance(img_ndarray, np.ndarray)
     assert_equals(3, len(img_ndarray.shape))
     assert_equals(np.uint8, img.dtype)
@@ -140,7 +140,7 @@ def test_image_init_ndarray_color():
     assert_equals(Image.BGR, img1.color_space)
     assert img1.is_color_space(Image.BGR)
 
-    img_ndarray = img1.get_ndarray()
+    img_ndarray = img1.ndarray
 
     assert isinstance(img_ndarray, np.ndarray)
     assert_equals(3, len(img_ndarray.shape))
@@ -155,7 +155,7 @@ def test_image_init_ndarray_grayscale():
     assert_equals(Image.GRAY, img1.color_space)
     assert img1.is_color_space(Image.GRAY)
 
-    img_ndarray = img1.get_ndarray()
+    img_ndarray = img1.ndarray
 
     assert isinstance(img_ndarray, np.ndarray)
     assert_equals(2, len(img_ndarray.shape))
@@ -165,8 +165,8 @@ def test_image_numpy_constructor():
     img = Image(source=LENNA_PATH)
     grayimg = img.to_color_space(Image.GRAY)
 
-    chan3_array = np.array(img.get_ndarray())
-    chan1_array = np.array(img.get_gray_ndarray())
+    chan3_array = np.array(img.ndarray)
+    chan1_array = np.array(img.gray_ndarray)
 
     img2 = Image(array=chan3_array, color_space=Image.BGR)
     grayimg2 = Image(array=chan1_array)
@@ -187,14 +187,14 @@ def test_image_init_tuple_bgr():
     img1 = Image(source=[5, 10], color_space=Image.BGR)
     assert img1.is_bgr()
     assert_equals((5, 10), img1.size)
-    assert_equals(np.zeros((5, 10, 3), np.uint8).data, img1.get_ndarray().data)
+    assert_equals(np.zeros((5, 10, 3), np.uint8).data, img1.ndarray.data)
 
 
 def test_image_init_tuple_gray():
     img1 = Image(source=[5, 10], color_space=Image.GRAY)
     assert img1.is_gray()
     assert_equals((5, 10), img1.size)
-    assert_equals(np.zeros((5, 10), np.uint8).data, img1.get_ndarray().data)
+    assert_equals(np.zeros((5, 10), np.uint8).data, img1.ndarray.data)
 
 
 def test_image_convert_bgr_to_bgr():
@@ -209,12 +209,12 @@ def test_image_bgr_to_rbg_to_bgr():
     rgb_img = bgr_img.to_rgb()
     rgb_array = np.array([[[255, 0, 0], [0, 255, 0]],
                           [[0, 0, 255], [255, 255, 255]]], dtype=np.uint8)
-    assert_equals(rgb_array.data, rgb_img.get_ndarray().data)
+    assert_equals(rgb_array.data, rgb_img.ndarray.data)
     assert rgb_img.is_rgb()
 
     new_bgr_img = rgb_img.to_bgr()
 
-    assert_equals(bgr_img.get_ndarray().data, new_bgr_img.get_ndarray().data)
+    assert_equals(bgr_img.ndarray.data, new_bgr_img.ndarray.data)
     assert new_bgr_img.is_bgr()
 
 
@@ -223,7 +223,7 @@ def test_image_bgr_to_gray():
     gray_img = bgr_img.to_gray()
     gray_array = np.array([[76, 150],
                            [29, 255]], dtype=np.uint8)
-    assert_equals(gray_array.data, gray_img.get_ndarray().data)
+    assert_equals(gray_array.data, gray_img.ndarray.data)
     assert gray_img.is_gray()
 
 
@@ -232,7 +232,7 @@ def test_image_bgr_to_hsv():
     hsv_img = bgr_img.to_hsv()
     hsv_array = np.array([[[0, 255, 255], [60, 255, 255]],
                           [[120, 255, 255], [0, 0, 255]]], dtype=np.uint8)
-    assert_equals(hsv_array.data, hsv_img.get_ndarray().data)
+    assert_equals(hsv_array.data, hsv_img.ndarray.data)
     assert hsv_img.is_hsv()
 
 
@@ -241,7 +241,7 @@ def test_image_bgr_to_ycrcb():
     ycrcb_img = bgr_img.to_ycrcb()
     ycrcb_array = np.array([[[76, 255, 85], [150, 21, 43]],
                             [[29, 107, 255], [255, 128, 128]]], dtype=np.uint8)
-    assert_equals(ycrcb_array.data, ycrcb_img.get_ndarray().data)
+    assert_equals(ycrcb_array.data, ycrcb_img.ndarray.data)
     assert ycrcb_img.is_ycrcb()
 
 
@@ -250,7 +250,7 @@ def test_image_bgr_to_zyx():
     xyz_img = bgr_img.to_xyz()
     xyz_array = np.array([[[105, 54, 5], [91, 182, 30]],
                           [[46, 18, 242], [242, 255, 255]]], dtype=np.uint8)
-    assert_equals(xyz_array.data, xyz_img.get_ndarray().data)
+    assert_equals(xyz_array.data, xyz_img.ndarray.data)
     assert xyz_img.is_xyz()
 
 
@@ -259,7 +259,7 @@ def test_image_bgr_to_hls():
     hls_img = bgr_img.to_hls()
     hls_array = np.array([[[0, 128, 255], [60, 128, 255]],
                           [[120, 128, 255], [0, 255, 0]]], dtype=np.uint8)
-    assert_equals(hls_array.data, hls_img.get_ndarray().data)
+    assert_equals(hls_array.data, hls_img.ndarray.data)
     assert hls_img.is_hls()
 
 
@@ -271,7 +271,7 @@ def test_image_hsv_to_gray():
                            [29, 255]], dtype=np.uint8)
     gray_img = hsv_img.to_gray()
 
-    assert_equals(gray_array.data, gray_img.get_ndarray().data)
+    assert_equals(gray_array.data, gray_img.ndarray.data)
     assert gray_img.is_gray()
 
 
@@ -281,7 +281,7 @@ def test_image_copy():
 
     assert img is not copy_img
     assert_equals(img.size, copy_img.size)
-    assert_equals(img.get_ndarray().data, copy_img.get_ndarray().data)
+    assert_equals(img.ndarray.data, copy_img.ndarray.data)
     assert_equals(img.color_space, copy_img.color_space)
 
 
@@ -317,7 +317,7 @@ def test_image_sub_image():
     array = np.zeros((2, 2, 3), dtype=np.uint8)
 
     img = img1 - img2
-    assert_equals(array.data, img.get_ndarray().data)
+    assert_equals(array.data, img.ndarray.data)
     assert isinstance(img, Image)
 
 
@@ -327,7 +327,7 @@ def test_image_sub_int():
     array = np.zeros((2, 2, 3), dtype=np.uint8)
 
     img = img1 - 5
-    assert_equals(array.data, img.get_ndarray().data)
+    assert_equals(array.data, img.ndarray.data)
     assert isinstance(img, Image)
 
 
@@ -339,7 +339,7 @@ def test_image_add_image():
     array = np.ones((2, 2, 3), dtype=np.uint8) * 10
 
     img = img1 + img2
-    assert_equals(array.data, img.get_ndarray().data)
+    assert_equals(array.data, img.ndarray.data)
     assert isinstance(img, Image)
 
 
@@ -350,7 +350,7 @@ def test_image_add_int():
     array = np.ones((2, 2, 3), dtype=np.uint8) * 10
 
     img = img1 + 5
-    assert_equals(array.data, img.get_ndarray().data)
+    assert_equals(array.data, img.ndarray.data)
     assert isinstance(img, Image)
 
 
@@ -362,7 +362,7 @@ def test_image_and_image():
     array = np.ones((2, 2, 3), dtype=np.uint8)
 
     img = img1 & img2
-    assert_equals(array.data, img.get_ndarray().data)
+    assert_equals(array.data, img.ndarray.data)
     assert isinstance(img, Image)
 
 
@@ -372,7 +372,7 @@ def test_image_and_int():
     array = np.ones((2, 2, 3), dtype=np.uint8)
 
     img = img1 & 3
-    assert_equals(array.data, img.get_ndarray().data)
+    assert_equals(array.data, img.ndarray.data)
     assert isinstance(img, Image)
 
 
@@ -384,7 +384,7 @@ def test_image_or_image():
     array = np.ones((2, 2, 3), dtype=np.uint8) * 7
 
     img = img1 | img2
-    assert_equals(array.data, img.get_ndarray().data)
+    assert_equals(array.data, img.ndarray.data)
     assert isinstance(img, Image)
 
 
@@ -394,7 +394,7 @@ def test_image_or_int():
     array = np.ones((2, 2, 3), dtype=np.uint8) * 7
 
     img = img1 | 3
-    assert_equals(array.data, img.get_ndarray().data)
+    assert_equals(array.data, img.ndarray.data)
     assert isinstance(img, Image)
 
 
@@ -406,7 +406,7 @@ def test_image_div_image():
     array = np.ones((2, 2, 3), dtype=np.uint8) * 25
 
     img = img1 / img2
-    assert_equals(array.data, img.get_ndarray().data)
+    assert_equals(array.data, img.ndarray.data)
     assert isinstance(img, Image)
 
 
@@ -416,12 +416,12 @@ def test_image_div_int_float():
     array = np.ones((2, 2, 3), dtype=np.uint8) * 25
 
     img = img1 / 2
-    assert_equals(array.data, img.get_ndarray().data)
+    assert_equals(array.data, img.ndarray.data)
     assert isinstance(img, Image)
 
     array = np.ones((2, 2, 3), dtype=np.uint8) * 20
     img = img1 / 2.5
-    assert_equals(array.data, img.get_ndarray().data)
+    assert_equals(array.data, img.ndarray.data)
     assert isinstance(img, Image)
 
 
@@ -433,7 +433,7 @@ def test_image_multiply_image():
     array = np.ones((2, 2, 3), dtype=np.uint8) * 100
 
     img = img1 * img2
-    assert_equals(array.data, img.get_ndarray().data)
+    assert_equals(array.data, img.ndarray.data)
     assert isinstance(img, Image)
 
 
@@ -443,12 +443,12 @@ def test_image_multiply_int_float():
     array = np.ones((2, 2, 3), dtype=np.uint8) * 100
 
     img = img1 * 2
-    assert_equals(array.data, img.get_ndarray().data)
+    assert_equals(array.data, img.ndarray.data)
     assert isinstance(img, Image)
 
     array = np.ones((2, 2, 3), dtype=np.uint8) * 125
     img = img1 * 2.5
-    assert_equals(array.data, img.get_ndarray().data)
+    assert_equals(array.data, img.ndarray.data)
     assert isinstance(img, Image)
 
 
@@ -466,11 +466,11 @@ def test_image_pow_int_float():
     array = np.ones((2, 2, 3), dtype=np.uint8) * 255
 
     img = img1 ** 20
-    assert_equals(array.data, img.get_ndarray().data)
+    assert_equals(array.data, img.ndarray.data)
     assert isinstance(img, Image)
 
     img = img1 ** 20
-    assert_equals(array.data, img.get_ndarray().data)
+    assert_equals(array.data, img.ndarray.data)
     assert isinstance(img, Image)
 
 
@@ -480,10 +480,10 @@ def test_image_neg_invert():
     array = np.ones((2, 2, 3), dtype=np.uint8) * 250
 
     img = ~img1
-    assert_equals(array.data, img.get_ndarray().data)
+    assert_equals(array.data, img.ndarray.data)
     assert isinstance(img, Image)
     img = -img1
-    assert_equals(array.data, img.get_ndarray().data)
+    assert_equals(array.data, img.ndarray.data)
     assert isinstance(img, Image)
 
 
@@ -492,7 +492,7 @@ def test_image_clear():
     bgr_img.clear()
     clear_array = np.zeros((bgr_img.width, bgr_img.height, 3), dtype=np.uint8)
 
-    assert_equals(clear_array.data, bgr_img.get_ndarray().data)
+    assert_equals(clear_array.data, bgr_img.ndarray.data)
 
 
 def test_image_gray_clear():
@@ -500,7 +500,7 @@ def test_image_gray_clear():
     gray_img.clear()
     clear_array = np.zeros((gray_img.width, gray_img.height), dtype=np.uint8)
 
-    assert_equals(clear_array.data, gray_img.get_ndarray().data)
+    assert_equals(clear_array.data, gray_img.ndarray.data)
 
 
 def test_image_getitem():
@@ -512,9 +512,9 @@ def test_image_getitem():
     assert_equals([9, 10, 11], img[1, 0])
     assert_equals([12, 13, 14], img[1, 1])
 
-    assert_equals(array[:, :].tolist(), img[:, :].get_ndarray().tolist())
+    assert_equals(array[:, :].tolist(), img[:, :].ndarray.tolist())
     assert_equals(array[1:2, 1:2].tolist(),
-                  img[1:2, 1:2].get_ndarray().tolist())
+                  img[1:2, 1:2].ndarray.tolist())
 
 
 def test_image_setitem():
@@ -526,18 +526,18 @@ def test_image_setitem():
 
     img[0:2, 0:2] = [50, 50, 50]
     array = np.ones((2, 2, 3), dtype=np.uint8) * 50
-    assert_equals(array.tolist(), img[0:2, 0:2].get_ndarray().tolist())
+    assert_equals(array.tolist(), img[0:2, 0:2].ndarray.tolist())
 
 
 def test_image_split_merge_channels():
     img = create_test_image()
     b, g, r = img.split_channels()
-    assert_equals([[0, 0], [255, 255]], b.get_ndarray().tolist())
-    assert_equals([[0, 255], [0, 255]], g.get_ndarray().tolist())
-    assert_equals([[255, 0], [0, 255]], r.get_ndarray().tolist())
+    assert_equals([[0, 0], [255, 255]], b.ndarray.tolist())
+    assert_equals([[0, 255], [0, 255]], g.ndarray.tolist())
+    assert_equals([[255, 0], [0, 255]], r.ndarray.tolist())
 
     img1 = img.merge_channels(b, g, r)
-    assert_equals(img1.get_ndarray().tolist(), img.get_ndarray().tolist())
+    assert_equals(img1.ndarray.tolist(), img.ndarray.tolist())
 
 
 def test_image_drawing():

@@ -605,7 +605,7 @@ def test_delete_temp_files():
 
     for path in img_paths:
         assert os.path.exists(path)
-    
+
     img.delete_temp_files()
 
     for path in img_paths:
@@ -668,9 +668,9 @@ def test_apply_layers():
     img.add_drawing_layer(dl3)
     new_img = img.apply_layers([0, 2])
 
-    assert_equals(new_img[15, 15], [255, 0, 0])
-    assert_equals(new_img[35, 35], [0, 0, 0])
-    assert_equals(new_img[55, 55], [0, 0, 255])
+    assert_equals(new_img[10, 10], [255, 0, 0])
+    assert_equals(new_img[30, 30], [0, 0, 0])
+    assert_equals(new_img[50, 50], [0, 0, 255])
 
 def test_get_drawing_layer():
     img = Image((100, 100))
@@ -683,7 +683,7 @@ def test_get_drawing_layer():
     img.add_drawing_layer(dl1)
     img.add_drawing_layer(dl2)
     img.add_drawing_layer(dl3)
-    
+
     assert_equals(img.get_drawing_layer(2), dl2)
     assert_equals(img.get_drawing_layer(), dl3)
 
@@ -712,7 +712,7 @@ def test_layers():
 
     assert_equals(len(img._layers), 3)
     assert_equals(img.layers(), [dl1, dl2, dl3])
-    
+
 
 @skipped  # FIXME
 def test_features_on_edge():
@@ -1119,9 +1119,9 @@ def test_prewitt():
 
 def test_grayscalmatrix():
     img = Image("lenna")
-    graymat = img.get_gray_ndarray()
+    graymat = img.gray_ndarray
     newimg = Image(graymat, color_space=Image.GRAY)
-    assert np.array_equal(img.get_gray_ndarray(), newimg.get_gray_ndarray())
+    assert np.array_equal(img.gray_ndarray, newimg.gray_ndarray)
 
 
 def test_get_normalized_hue_histogram():
@@ -1168,13 +1168,13 @@ def test_draw():
 
     lines = simg.find(Line)
     img.draw(lines, width=3)
-    
+
     for line in lines:
         img1.draw(line, width=3)
-    
-    assert_equals(img.apply_layers().get_ndarray().data,
-                  img1.apply_layers().get_ndarray().data)
-    
+
+    assert_equals(img.apply_layers().ndarray.data,
+                  img1.apply_layers().ndarray.data)
+
     # incorrect params
     assert_is_none(img.draw(simg))
     assert_is_none(img.draw((100, 100)))
@@ -1186,7 +1186,7 @@ def test_draw_points():
     pts = [(80, 20)]
     img.draw_points(pts, Color.BLUE)
     img1 = img.apply_layers()
-    np_arr = img1.get_ndarray()
+    np_arr = img1.ndarray
     assert_equals(img1[10, 10], [255, 0, 0])
     assert_equals(img1[60, 30], [255, 0, 0])
     assert_equals(img1[20, 80], [0, 0, 255])

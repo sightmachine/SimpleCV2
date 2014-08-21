@@ -116,7 +116,7 @@ class Corner(Feature):
         :py:meth:`find_keypoints`
 
         """
-        corner_coordinates = cv2.goodFeaturesToTrack(img.get_gray_ndarray(),
+        corner_coordinates = cv2.goodFeaturesToTrack(img.gray_ndarray,
                                                      maxCorners=maxnum,
                                                      qualityLevel=minquality,
                                                      minDistance=mindistance)
@@ -278,7 +278,7 @@ class Line(Feature):
         d_err = d_y / d_x
         px = []
         weights = []
-        
+
         if d_err < 1:
             y = miny
             #iterate over X
@@ -887,7 +887,7 @@ class Chessboard(Feature):
         drawing layer.
 
         """
-        cv2.drawChessboardCorners(self.image.get_ndarray(),
+        cv2.drawChessboardCorners(self.image.ndarray,
                                   patternSize=self.dimensions,
                                   corners=self.sp_corners, patternWasFound=1)
 
@@ -962,7 +962,7 @@ class Chessboard(Feature):
         :py:class:`Chessboard`
 
         """
-        gray_array = img.get_gray_ndarray()
+        gray_array = img.gray_ndarray
         equalized_grayscale_array = cv2.equalizeHist(gray_array)
         found, corners = cv2.findChessboardCorners(
             equalized_grayscale_array, patternSize=dimensions,
@@ -1181,11 +1181,11 @@ class TemplateMatch(Feature):
 
         #choose template matching method to be used
         if grayscale:
-            img_array = img.get_gray_ndarray()
-            template_array = template_image.get_gray_ndarray()
+            img_array = img.gray_ndarray
+            template_array = template_image.gray_ndarray
         else:
-            img_array = img.get_ndarray()
-            template_array = template_image.get_ndarray()
+            img_array = img.ndarray
+            template_array = template_image.ndarray
 
         matches = cv2.matchTemplate(img_array, templ=template_array, method=method)
         mean = np.mean(matches)
@@ -1301,11 +1301,11 @@ class TemplateMatch(Feature):
             return None
         #choose template matching method to be used
         if grayscale:
-            img_array = img.get_gray_ndarray()
-            template_array = template_image.get_gray_ndarray()
+            img_array = img.gray_ndarray
+            template_array = template_image.gray_ndarray
         else:
-            img_array = img.get_ndarray()
-            template_array = template_image.get_ndarray()
+            img_array = img.ndarray
+            template_array = template_image.ndarray
 
         matches = cv2.matchTemplate(img_array, templ=template_array, method=method)
         if check > 0:
@@ -1456,7 +1456,7 @@ class Circle(Feature):
             mask = self.image.get_empty(1)
             cv2.circle(mask, center=(self.x, self.y), radius=self.r,
                        color=(255, 255, 255), thickness=-1)
-            temp = cv2.mean(self.image.get_ndarray(), mask=mask)
+            temp = cv2.mean(self.image.ndarray, mask=mask)
             self.avg_color = (temp[0], temp[1], temp[2])
         return self.avg_color
 
@@ -1554,7 +1554,7 @@ class Circle(Feature):
             # the crop before the blit
             cv2.circle(mask, center=(self.x, self.y), radius=self.r,
                        color=(255, 255, 255), thickness=-1)
-            np.where(mask, self.image.get_ndarray(), result)
+            np.where(mask, self.image.ndarray, result)
             ret_value = Factory.Image(result)
             ret_value = ret_value.crop(self.x, self.y, self.get_width(),
                                        self.get_height(), centered=True)
@@ -1599,7 +1599,7 @@ class Circle(Feature):
         if distance < 0:
             distance = 1 + max(img.width, img.height) / 50
 
-        circs = cv2.HoughCircles(img.get_gray_ndarray(),
+        circs = cv2.HoughCircles(img.gray_ndarray,
                                  method=cv2.cv.CV_HOUGH_GRADIENT,
                                  dp=2, minDist=distance,
                                  param1=canny, param2=thresh)
@@ -1796,7 +1796,7 @@ class KeyPoint(Feature):
             cv2.circle(mask, center=(int(self.x), int(self.y)),
                        radius=int(self._r), color=(255, 255, 255),
                        thickness=-1)
-            temp = cv2.mean(self.image.get_ndarray(), mask)
+            temp = cv2.mean(self.image.ndarray, mask)
             self._avg_color = (temp[0], temp[1], temp[2])
         return self._avg_color
 
@@ -1879,7 +1879,7 @@ class KeyPoint(Feature):
             cv2.circle(mask, center=(int(self.x), int(self.y)),
                        radius=int(self._r), color=(255, 255, 255),
                        thickness=-1)
-            np.where(mask, self.image.get_ndarray(), result)
+            np.where(mask, self.image.ndarray, result)
             ret_value = Factory.Image(source=result)
             ret_value = ret_value.crop(self.x, self.y, self.get_width(),
                                        self.get_height(), centered=True)
@@ -2216,8 +2216,8 @@ class Motion(Feature):
                            "and previous frames must match")
             return None
 
-        flow = cv2.calcOpticalFlowFarneback(prev=previous_frame.get_gray_ndarray(),
-                                            next=img.get_gray_ndarray(),
+        flow = cv2.calcOpticalFlowFarneback(prev=previous_frame.gray_ndarray,
+                                            next=img.gray_ndarray,
                                             pyr_scale=0.5, levels=1,
                                             winsize=window, iterations=1,
                                             poly_n=7, poly_sigma=1.5, flags=0,
@@ -2387,8 +2387,8 @@ class KeypointMatch(Feature):
             mask.dl().polygon(self._min_rect, color=Color.WHITE,
                               filled=pickle.TRUE)
             mask = mask.apply_layers()
-            ret_value = cv2.mean(raw.get_ndarray(),
-                                 mask.get_gray_ndarray())
+            ret_value = cv2.mean(raw.ndarray,
+                                 mask.gray_ndarray)
             self._avg_color = ret_value
         else:
             ret_value = self._avg_color

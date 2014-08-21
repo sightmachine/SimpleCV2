@@ -133,8 +133,8 @@ def test_image_intergralimage():
     array = img.integral_image()
     assert isinstance(array, np.ndarray)
     assert_equals(np.int32, array.dtype)
-    assert_equals(img.get_ndarray().shape[0] + 1, array.shape[0])
-    assert_equals(img.get_ndarray().shape[1] + 1, array.shape[1])
+    assert_equals(img.ndarray.shape[0] + 1, array.shape[0])
+    assert_equals(img.ndarray.shape[1] + 1, array.shape[1])
 
 
 def test_image_intergralimage_tilted():
@@ -142,8 +142,8 @@ def test_image_intergralimage_tilted():
     array = img.integral_image(tilted=True)
     assert isinstance(array, np.ndarray)
     assert_equals(np.int32, array.dtype)
-    assert_equals(img.get_ndarray().shape[0] + 1, array.shape[0])
-    assert_equals(img.get_ndarray().shape[1] + 1, array.shape[1])
+    assert_equals(img.ndarray.shape[0] + 1, array.shape[0])
+    assert_equals(img.ndarray.shape[1] + 1, array.shape[1])
 
 def test_image_hue_histogram():
     array = np.arange(0,179,dtype=np.uint8)
@@ -413,10 +413,10 @@ def test_image_get_pixels_online():
 def test_image_logical_and():
     img = Image("lenna")
     img1 = img.logical_and(img.invert())
-    assert not img1.get_ndarray().all()
+    assert not img1.ndarray.all()
 
     img2 = img.logical_and(img.invert(), grayscale=False)
-    assert not img2.get_ndarray().all()
+    assert not img2.ndarray.all()
 
     # size mismatch
     assert_is_none(img.logical_and(img.resize(img.width/2, img.height/2)))
@@ -424,10 +424,10 @@ def test_image_logical_and():
 def test_image_logical_or():
     img = Image("lenna")
     img1 = img.logical_or(img.invert())
-    assert img1.get_ndarray().all()
+    assert img1.ndarray.all()
 
     img2 = img.logical_or(img.invert(), grayscale=False)
-    assert img2.get_ndarray().all()
+    assert img2.ndarray.all()
 
     # size mismatch
     assert_is_none(img.logical_or(img.resize(img.width/2, img.height/2)))
@@ -435,10 +435,10 @@ def test_image_logical_or():
 def test_image_logical_nand():
     img = Image("lenna")
     img1 = img.logical_nand(img.invert())
-    assert img1.get_ndarray().all()
+    assert img1.ndarray.all()
 
     img2 = img.logical_nand(img.invert(), grayscale=False)
-    assert img2.get_ndarray().all()
+    assert img2.ndarray.all()
 
     # size mismatch
     assert_is_none(img.logical_nand(img.resize(img.width/2, img.height/2)))
@@ -446,10 +446,10 @@ def test_image_logical_nand():
 def test_image_logical_xor():
     img = Image("lenna")
     img1 = img.logical_xor(img.invert())
-    assert img1.get_ndarray().all()
+    assert img1.ndarray.all()
 
     img2 = img.logical_xor(img.invert(), grayscale=False)
-    assert img2.get_ndarray().all()
+    assert img2.ndarray.all()
 
     # size mismatch
     assert_is_none(img.logical_xor(img.resize(img.width/2, img.height/2)))
@@ -545,5 +545,5 @@ def test_image_back_project_hue_histogram():
     # invalid params
     assert_is_none(img.back_project_hue_histogram(model=None))
     assert_is_none(img.back_project_hue_histogram(model=1.0))
-    assert_is_none(img.back_project_hue_histogram(model=img.get_ndarray()))
+    assert_is_none(img.back_project_hue_histogram(model=img.ndarray))
 
