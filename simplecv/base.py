@@ -329,6 +329,23 @@ class LazyProperty(object):
         result = obj.__dict__[self.__name__] = self._func(obj)
         return result
 
+
+def lazyproperty(fn):
+    attr_name = '_lazy_' + fn.__name__
+    @property
+    def _lazyprop(self):
+        if not hasattr(self, attr_name):
+            setattr(self, attr_name, fn(self))
+        return getattr(self, attr_name)
+    return _lazyprop
+
+
+def force_update_lazyproperties(obj):
+    for p in dir(obj):
+        if p.startswith('_lazy_'):
+            delattr(obj, p)
+
+
 #supported image formats regular expression ignoring case
 IMAGE_FORMATS = ('*.[bB][mM][Pp]', '*.[Gg][Ii][Ff]',     '*.[Jj][Pp][Gg]',
                  '*.[jJ][pP][eE]', '*.[jJ][Pp][Ee][Gg]', '*.[pP][nN][gG]',

@@ -123,6 +123,20 @@ class Blob(Feature):
             realkey = key[:-len("__string")]
             self.__dict__[realkey] = mydict[key]
 
+    @property
+    def aspect_ratio(self):
+        """
+        **SUMMARY**
+
+        Return the aspect ratio of the blob
+
+        **RETURNS**
+
+        A single floating point value of the aspect ration.
+
+        """
+        return self.min_rectangle[1][0] / self.min_rectangle[1][1]
+
     def get_perimeter(self):
         """
         **SUMMARY**
@@ -204,27 +218,6 @@ class Blob(Feature):
         box_img = self.image.crop(*self.bounding_box)
         return box_img.mean_color()
 
-    def get_area(self):
-        """
-        **SUMMARY**
-
-        This method returns the area of the blob in terms of the number of
-        pixels inside the get_contour.
-
-        **RETURNS**
-
-        An integer of the area of the blob in pixels.
-
-        **EXAMPLE**
-
-        >>> img = Image("lenna")
-        >>> blobs = img.find_blobs()
-        >>> print blobs[-1].get_area()
-        >>> print blobs[0].get_area()
-
-        """
-        return self.area
-
     def min_rect(self):
         """
         Returns the corners for the smallest rotated rectangle to enclose the
@@ -292,12 +285,12 @@ class Blob(Feature):
             layer = self.image.dl()
 
         if width < 1:
-            layer.rectangle(self.top_left_corner(),
-                            (self.get_width(), self.get_height()), color,
+            layer.rectangle(self.top_left_corner,
+                            (self.width, self.height), color,
                             width, filled=True, alpha=alpha)
         else:
-            layer.rectangle(self.top_left_corner(),
-                            (self.get_width(), self.get_height()), color,
+            layer.rectangle(self.top_left_corner,
+                            (self.width, self.height), color,
                             width, filled=False, alpha=alpha)
 
     def draw_min_rect(self, layer=None, color=Color.DEFAULT,
@@ -606,7 +599,7 @@ class Blob(Feature):
             masksurface.set_colorkey(Color.BLACK)
             if alpha != -1:
                 masksurface.set_alpha(alpha)
-            layer.surface.blit(masksurface, self.top_left_corner())  # KAT HERE
+            layer.surface.blit(masksurface, self.top_left_corner)
         else:
             self.draw_outline(color, alpha, width, layer)
             self.draw_holes(color, alpha, width, layer)
@@ -813,7 +806,7 @@ class Blob(Feature):
         >>>     print "it is hip to be square."
 
         """
-        aspect_ratio = abs(1 - self.get_aspect_ratio())
+        aspect_ratio = abs(1 - self.aspect_ratio)
         if self.is_rectangle(tolerance) and aspect_ratio < ratiotolerance:
             return True
         return False
@@ -954,8 +947,8 @@ class Blob(Feature):
     def img(self):
         #  NOTE THAT THIS IS NOT PERFECT - ISLAND WITH A LAKE WITH AN ISLAND
         #  WITH A LAKE STUFF
-        tlc = self.top_left_corner()
-        roi = (tlc[0], tlc[1], self.get_width(), self.get_height())
+        tlc = self.top_left_corner
+        roi = (tlc[0], tlc[1], self.width, self.height)
         roi_img = self.image.crop(*roi)
         mask = self.mask.gray_ndarray != 0  # binary mask
         array = np.zeros((self.height, self.width, 3), dtype=np.uint8)
@@ -966,8 +959,8 @@ class Blob(Feature):
     def mask(self):
         # TODO: FIX THIS SO THAT THE INTERIOR CONTOURS GET SHIFTED AND DRAWN
 
-        ret_value = np.zeros((self.get_height(), self.get_width()), np.uint8)
-        l, t = self.top_left_corner()
+        ret_value = np.zeros((self.height, self.width), np.uint8)
+        l, t = self.top_left_corner
 
         # construct the exterior get_contour - these are tuples
         array = np.array([[(p[0] - l, p[1] - t) for p in self.contour]],
@@ -987,19 +980,19 @@ class Blob(Feature):
 
     @LazyProperty
     def hull_img(self):
-        tlc = self.top_left_corner()
-        roi = (tlc[0], tlc[1], self.get_width(), self.get_height())
+        tlc = self.top_left_corner
+        roi = (tlc[0], tlc[1], self.width, self.height)
         roi_img = self.image.crop(*roi).ndarray
         mask = self.hull_mask.gray_ndarray != 0  # binary mask
-        array = np.zeros((self.get_height(), self.get_width(), 3), np.uint8)
+        array = np.zeros((self.height, self.width, 3), np.uint8)
         array[mask] = roi_img[mask]
         return Factory.Image(array)
 
     @LazyProperty
     def hull_mask(self):
-        ret_value = np.zeros((self.get_height(), self.get_width(), 3),
+        ret_value = np.zeros((self.height, self.width, 3),
                              dtype=np.uint8)
-        l, t = self.top_left_corner()
+        l, t = self.top_left_corner
 
         array = np.array([[(p[0] - l, p[1] - t) for p in self.convex_hull]],
                          dtype=np.int32)
@@ -1144,8 +1137,8 @@ class Blob(Feature):
         """
         ret_value = np.zeros((self.image.height, self.image.width, 3),
                              dtype=np.uint8)
-        tlc = self.top_left_corner()
-        roi = (tlc[0], tlc[1], self.get_width(), self.get_height())
+        tlc = self.top_left_corner
+        roi = (tlc[0], tlc[1], self.width, self.height)
         img_roi = self.image.crop(*roi).ndarray
         mask = self.mask.gray_ndarray != 0  # binary mask
         ret_value_roi = ret_value[Factory.Image.roi_to_slice(roi)]
@@ -1158,8 +1151,8 @@ class Blob(Feature):
         """
         ret_value = np.zeros((self.image.height, self.image.width, 3),
                              dtype=np.uint8)
-        tlc = self.top_left_corner()
-        roi = (tlc[0], tlc[1], self.get_width(), self.get_height())
+        tlc = self.top_left_corner
+        roi = (tlc[0], tlc[1], self.width, self.height)
         img_roi = self.image.crop(*roi).ndarray
         mask = self.hull_mask.gray_ndarray != 0  # binary mask
         ret_value_roi = ret_value[Factory.Image.roi_to_slice(roi)]
@@ -1172,8 +1165,8 @@ class Blob(Feature):
         """
         ret_value = np.zeros((self.image.height, self.image.width),
                              dtype=np.uint8)
-        tlc = self.top_left_corner()
-        roi = (tlc[0], tlc[1], self.get_width(), self.get_height())
+        tlc = self.top_left_corner
+        roi = (tlc[0], tlc[1], self.width, self.height)
         mask = self.mask.gray_ndarray
         ret_value[Factory.Image.roi_to_slice(roi)] = mask
         return Factory.Image(ret_value)
@@ -1184,8 +1177,8 @@ class Blob(Feature):
         """
         ret_value = np.zeros((self.image.height, self.image.width),
                              dtype=np.uint8)
-        tlc = self.top_left_corner()
-        roi = (tlc[0], tlc[1], self.get_width(), self.get_height())
+        tlc = self.top_left_corner
+        roi = (tlc[0], tlc[1], self.width, self.height)
         mask = self.hull_mask.gray_ndarray
         ret_value[Factory.Image.roi_to_slice(roi)] = mask
         return Factory.Image(ret_value)
@@ -1193,7 +1186,7 @@ class Blob(Feature):
     def get_hull_edge_image(self):
         ret_value = np.zeros((self.image.height, self.image.width, 3),
                              dtype=np.uint8)
-        tlc = self.top_left_corner()
+        tlc = self.top_left_corner
         translate = [(cs[0] - tlc[0], cs[1] - tlc[1])
                      for cs in self.convex_hull]
 
@@ -1214,7 +1207,7 @@ class Blob(Feature):
         """
         ret_value = np.zeros((self.image.height, self.image.width, 3),
                              dtype=np.uint8)
-        tlc = self.top_left_corner()
+        tlc = self.top_left_corner
         translate = [[cs[0] - tlc[0], cs[1] - tlc[1]] for cs in self.contour]
         cv2.polylines(ret_value, [np.int32(translate)], 1, (255, 255, 255))
         return Factory.Image(ret_value)
@@ -1232,7 +1225,7 @@ class Blob(Feature):
 
     def __repr__(self):
         return "simplecv.features.blob.Blob object at (%d, %d) with area %d"\
-               % (self.x, self.y, self.get_area())
+               % (self.x, self.y, self.area)
 
     @staticmethod
     def _respace_points(contour, min_distance=1, max_distance=5):
@@ -1478,6 +1471,37 @@ class Blob(Feature):
                  points])
             features = FeatureSet([lines, farpoints])
             return features
+
+    def bounding_circle(self):
+        """
+        **SUMMARY**
+
+        This function calculates the minimum bounding circle of the blob in the
+        image as an (x,y,r) tuple
+
+        **RETURNS**
+
+        An (x,y,r) tuple where (x,y) is the center of the circle and r is the
+        radius
+
+        **EXAMPLE**
+
+        >>> img = Image("RatMask.png")
+        >>> blobs = img.find_blobs()
+        >>> print blobs[-1].bounding_circle()
+
+        """
+        points = []
+        # list of contour points converted to suitable format to pass
+        # into cv2.minEnclosingCircle()
+        for pair in self.contour:
+            points.append([[pair[0], pair[1]]])
+
+        points = np.array(points)
+
+        (cen, rad) = cv2.minEnclosingCircle(points)
+
+        return cen[0], cen[1], rad
 
     @classmethod
     def find(cls, img, threshval=None, minsize=10, maxsize=0,

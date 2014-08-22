@@ -79,7 +79,7 @@ class Image(object):
         if isinstance(ndarray, np.ndarray):
             self._ndarray = ndarray
         else:
-            raise AttributeError('array is not a numpy.ndarray')
+            raise ValueError('array is not a numpy.ndarray')
         if len(self._ndarray.shape) == 2:
             self._color_space = Image.GRAY
         else:
@@ -87,7 +87,7 @@ class Image(object):
             if color_space is None:
                 self._color_space = Image.BGR
             elif color_space not in Image.color_space_to_string:
-                raise AttributeError('Unknown color space')
+                raise ValueError('Unknown color space')
             else:
                 self._color_space = color_space
         self._cache = {}

@@ -768,16 +768,16 @@ def test_feature_angles():
     k = img3.find(KeyPoint)
 
     for bs in b:
-        tl = bs.top_left_corner()
-        img.draw_text(str(bs.get_angle()), tl[0], tl[1], color=Color.RED)
+        tl = bs.top_left_corner
+        img.draw_text(str(bs.angle), tl[0], tl[1], color=Color.RED)
 
     for ls in l:
-        tl = ls.top_left_corner()
-        img2.draw_text(str(ls.get_angle()), tl[0], tl[1], color=Color.GREEN)
+        tl = ls.top_left_corner
+        img2.draw_text(str(ls.angle), tl[0], tl[1], color=Color.GREEN)
 
     for ks in k:
-        tl = ks.top_left_corner()
-        img3.draw_text(str(ks.get_angle()), tl[0], tl[1], color=Color.BLUE)
+        tl = ks.top_left_corner
+        img3.draw_text(str(ks.angle), tl[0], tl[1], color=Color.BLUE)
 
     results = [img, img2, img3]
     name_stem = "test_feature_angles"
@@ -1046,7 +1046,7 @@ def test_color_map():
     cm = ColorMap((Color.RED, Color.YELLOW, Color.BLUE), min(blobs.get_area()),
                   max(blobs.get_area()))
     for b in blobs:
-        b.draw(cm[b.get_area()])
+        b.draw(cm[b.area])
     result = [img]
     name_stem = "test_color_map"
     perform_diff(result, name_stem)

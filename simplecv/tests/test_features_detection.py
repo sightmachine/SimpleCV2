@@ -29,7 +29,7 @@ def test_line_draw():
 
 def test_line_length():
     line = Line(None, ((20, 20), (20, 80)))
-    assert_equals(line.length(), 60)
+    assert_equals(line.length, 60)
 
 def test_line_crop():
     img = Image("../data/sampleimages/EdgeTest2.png")
@@ -50,16 +50,16 @@ def test_line_mean_color():
 
     l1 = Line(img, ((10, 10), (80, 10)))
     expected_mean_color = (255*20/70.0, 255*30/70.0, 255*20/70.0)
-    assert_equals(l1.mean_color(), expected_mean_color)
+    assert_equals(l1.mean_color, expected_mean_color)
 
     l2 = Line(img, ((10, 10), (10, 80)))
     expected_mean_color = (255.0, 0.0, 0.0)
-    assert_equals(l2.mean_color(), expected_mean_color)
+    assert_equals(l2.mean_color, expected_mean_color)
 
     l3 = Line(img, ((25, 25), (35, 35)))
     expected_mean_color = (255.0/2.0, 255.0/2.0, 0.0)
     l3.draw(color=(255, 255, 255), width=2)
-    assert_equals(l3.mean_color(), expected_mean_color)
+    assert_equals(l3.mean_color, expected_mean_color)
 
 def test_line_find_intersection():
     l1 = Line(None, ((50, 10), (50, 80)))
@@ -113,8 +113,8 @@ def test_line_img_intersection():
 def test_line_get_angle():
     l1 = Line(None, ((50, 10), (50, 80)))
     l2 = Line(None, ((80, 50), (10, 50)))
-    assert_equals(l1.get_angle(), 90.0)
-    assert_equals(l2.get_angle(), 0.0)
+    assert_equals(l1.angle, 90.0)
+    assert_equals(l2.angle, 0.0)
 
 def test_line_crop_to_image_edges():
     img = Image((101, 101))
@@ -185,7 +185,7 @@ def test_line_extend_to_image_edges():
 def test_line_get_vector():
     l1 = Line(None, ((50, 10), (50, 80)))
     l2 = Line(None, ((10, 50), (80, 50)))
-    assert_equals(l1.get_vector(), [0.0, 70.0])
+    assert_equals(l1.vector, [0.0, 70.0])
 
 def test_line_dot():
     l1 = Line(None, ((50, 10), (50, 80)))
@@ -201,8 +201,8 @@ def test_line_get_y_intercept():
     l1 = Line(None, ((50, 10), (50, 80)))
     l2 = Line(None, ((10, 50), (80, 50)))
 
-    assert_equals(l2.get_y_intercept(), 50)
-    assert_equals(l1.get_y_intercept(), float("-inf"))
+    assert_equals(l2.y_intercept, 50)
+    assert_equals(l1.y_intercept, float("-inf"))
 
 
 def test_chessboard():
@@ -211,7 +211,7 @@ def test_chessboard():
     res, cor = cv2.findChessboardCorners(img.ndarray, chessboard_patent)
 
     chessboard = Chessboard(img, chessboard_patent, cor)
-    chessboard.get_area()
+    chessboard.area
     chessboard.draw()
 
     perform_diff([img], "test_chessboard", 0.0)
@@ -236,18 +236,18 @@ def test_circle_mean_color():
     np_array[:, 101:] = (0, 0, 255)
 
     circ = Circle(image, 100, 100, 100)
-    assert_almost_equal(circ.mean_color()[0], 126.68, 2)
-    assert_equals(circ.mean_color()[1], 0.0)
-    assert_almost_equal(circ.mean_color()[2], 126.68, 2)
+    assert_almost_equal(circ.mean_color[0], 126.68, 2)
+    assert_equals(circ.mean_color[1], 0.0)
+    assert_almost_equal(circ.mean_color[2], 126.68, 2)
 
 def test_circle_properties():
     circ = Circle(None, 100, 100, 100)
-    assert_almost_equal(circ.get_area(), 100*100*pi, 3)
-    assert_almost_equal(circ.get_perimeter(), 100*2*pi, 3)
-    assert_equals(circ.get_width(), 100*2)
-    assert_equals(circ.get_height(), 100*2)
-    assert_equals(circ.radius(), 100)
-    assert_equals(circ.diameter(), 200)
+    assert_almost_equal(circ.area, 100*100*pi, 3)
+    assert_almost_equal(circ.perimeter, 100*2*pi, 3)
+    assert_equals(circ.width, 100*2)
+    assert_equals(circ.height, 100*2)
+    assert_equals(circ.radius, 100)
+    assert_equals(circ.diameter, 200)
 
 def test_circle_crop():
     image = Image("simplecv")
@@ -267,24 +267,24 @@ def test_keypoint():
     assert_equals(190, len(kp))
 
     keypoint = kp[0]
-    keypoint_object = keypoint.get_object()
+    keypoint_object = keypoint.object
 
-    assert_equals(keypoint_object.angle, keypoint.get_angle())
-    assert_equals(keypoint_object.octave, keypoint.get_octave())
-    assert_equals(keypoint_object.response, keypoint.quality())
-    assert_equals(keypoint.get_flavor(), "SURF")
-    assert_equals(keypoint.get_perimeter(), 2*pi*keypoint_object.size/2.0)
-    assert_equals(keypoint.get_width(), keypoint_object.size)
-    assert_equals(keypoint.get_height(), keypoint_object.size)
-    assert_equals(keypoint.radius(), keypoint_object.size/2.0)
-    assert_equals(keypoint.diameter(), keypoint_object.size)
+    assert_equals(keypoint_object.angle, keypoint.angle)
+    assert_equals(keypoint_object.octave, keypoint.octave)
+    assert_equals(keypoint_object.response, keypoint.quality)
+    assert_equals(keypoint.flavor, "SURF")
+    assert_equals(keypoint.perimeter, 2*pi*keypoint_object.size/2.0)
+    assert_equals(keypoint.width, keypoint_object.size)
+    assert_equals(keypoint.height, keypoint_object.size)
+    assert_equals(keypoint.radius, keypoint_object.size/2.0)
+    assert_equals(keypoint.diameter, keypoint_object.size)
 
     assert_equals(keypoint.distance_from(keypoint_object.pt), 0.0)
     dist = ((keypoint_object.pt[0]-img.size[0]/2)**2 +
             (keypoint_object.pt[1]-img.size[1]/2)**2)**0.5
     assert_equals(keypoint.distance_from(), dist)
 
-    m_color = keypoint.mean_color()
+    m_color = keypoint.mean_color
     color_dist = (m_color[0]**2 + m_color[1]**2 + m_color[2]**2)**0.5
     assert_equals(keypoint.color_distance(), color_dist)
 
@@ -299,11 +299,11 @@ def test_motion():
 
     motion = Motion(img, 30, 50, 2, 3, 10)
 
-    assert_equals(motion.magnitude(), 13.0**0.5)
-    assert_equals(motion.unit_vector(), (2/(13.0**0.5), 3/(13.0**0.5)))
-    assert_equals(motion.vector(), (2, 3))
-    assert_equals(motion.mean_color(), (255.0/4, 0, 255.0/4))
-    assert_equals(motion.window_sz(), 10)
+    assert_equals(motion.magnitude, 13.0**0.5)
+    assert_equals(motion.unit_vector, (2/(13.0**0.5), 3/(13.0**0.5)))
+    assert_equals(motion.vector, (2, 3))
+    assert_equals(motion.mean_color, (255.0/4, 0, 255.0/4))
+    assert_equals(motion.window, 10)
     assert_equals(motion.normalize_to(0), None)
     motion.normalize_to(2)
     assert_equals(motion.norm_dx, 2/(13.0**0.5)*13.0**0.5/2.0)
@@ -319,7 +319,7 @@ def test_motion():
     motion.draw()
 
     motion = Motion(img, 30, 50, 0, 0, 10)
-    assert_equals(motion.unit_vector(), (0.0, 0.0))
+    assert_equals(motion.unit_vector, (0.0, 0.0))
 
 def test_shape_context_descriptor():
     img = Image((200, 200))

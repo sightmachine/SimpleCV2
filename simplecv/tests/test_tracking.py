@@ -100,7 +100,7 @@ def test_tracking_Track_test():
     tr = track_test(img, bb)
 
     assert_equals(tr.getCenter(), (50, 65))
-    assert_equals(tr.get_area(), 3000)
+    assert_equals(tr.area, 3000)
     assert_equals(tr.getImage(), img)
     assert_equals(tr.getBB(), bb)
     assert_equals(tr.processTrack(meanc), img.mean_color())

@@ -80,18 +80,18 @@ def test_detection_feature_measures():
     fs.extend(result)
 
     for f in fs:
-        c = f.mean_color()
+        c = f.mean_color
         assert_equals(3, len(c))
         assert all(map(lambda a: isinstance(a, (float, int)), c))
 
-        pts = f.coordinates()
-        assert_is_instance(pts, np.ndarray)
+        pts = f.coordinates
+        assert_is_instance(pts, tuple)
         assert_equals((2, ), pts.shape)
 
-        assert_is_instance(f.get_area(), (float, int))
-        assert_is_instance(f.length(), (float, int))
+        assert_is_instance(f.area, (float, int))
+        assert_is_instance(f.length, (float, int))
         assert_is_instance(f.color_distance(), (float, int))
-        assert_is_instance(f.get_angle(), (float, int))
+        assert_is_instance(f.angle, (float, int))
         # distance from center of image
         assert_is_instance(f.distance_from(), (float, int))
 
@@ -225,7 +225,7 @@ def test_detection_area():
     bm = BlobMaker()
     result = bm.extract(img)
     for b in result:
-        assert_greater(b.get_area(), 0)
+        assert_greater(b.area, 0)
 
 
 def test_detection_angle():
@@ -410,15 +410,15 @@ def test_find_circles():
     assert_greater(len(circs), 0)
     circs.draw()
     assert circs[0] >= 1
-    circs[0].coordinates()
-    circs[0].get_width()
-    circs[0].get_area()
-    circs[0].get_perimeter()
-    circs[0].get_height()
-    circs[0].radius()
-    circs[0].diameter()
+    circs[0].coordinates
+    circs[0].width
+    circs[0].area
+    circs[0].perimeter
+    circs[0].height
+    circs[0].radius
+    circs[0].diameter
     circs[0].color_distance()
-    circs[0].mean_color()
+    circs[0].mean_color
     circs[0].distance_from(point=(0, 0))
     circs[0].draw()
     assert circs[0].crop()
@@ -452,11 +452,11 @@ def test_find_keypoint_match():
         f = fs[0]
         f.draw_rect()
         f.draw()
-        f.get_homography()
-        f.get_min_rect()
-        f.coordinates()
+        f.homography
+        f.min_rect
+        f.coordinates
         f.crop()
-        f.mean_color()
+        f.mean_color
 
     match3 = Image("../data/sampleimages/aerospace.jpg")
     fs3 = match3.find(KeypointMatch, template, quality=500.00, min_dist=0.2,
@@ -490,21 +490,21 @@ def test_find_keypoints():
         if kp is not None:
             print "Found: " + str(len(kp))
             for k in kp:
-                k.get_object()
-                k.get_descriptor()
-                k.quality()
-                k.get_octave()
-                k.get_flavor()
-                k.get_angle()
-                k.coordinates()
+                k.object
+                k.descriptor
+                k.quality
+                k.octave
+                k.flavor
+                k.angle
+                k.coordinates
                 k.draw()
                 k.distance_from()
-                k.mean_color()
-                k.get_area()
-                k.get_perimeter()
-                k.get_width()
-                k.get_height()
-                k.radius()
+                k.mean_color
+                k.area
+                k.perimeter
+                k.width
+                k.height
+                k.radius
             kp[0].crop()
             kp.draw()
         else:
@@ -514,7 +514,7 @@ def test_find_keypoints():
     perform_diff(results, name_stem)
 
     # UNKOWN flavor
-    assert_is_none(img.find_keypoints(flavor="UNKOWN"))
+    assert_is_none(img.find(KeyPoint, flavor="UNKOWN"))
     assert_is_none(img._get_raw_keypoints(flavor="UNKOWN")[0])
 
 
@@ -526,33 +526,33 @@ def test_find_motion():
     assert_greater(len(fs), 0)
     fs[0].draw(color=Color.RED)
     img = fs[0].crop()
-    color = fs[1].mean_color()
-    wndw = fs[1].window_sz()
+    color = fs[1].mean_color
+    wndw = fs[1].window
     for f in fs:
-        f.vector()
-        f.magnitude()
+        f.vector
+        f.magnitude
 
     current2 = Image("../data/sampleimages/flow_simple1.png")
     fs = current2.find(Motion, prev, window=7)
     assert_greater(len(fs), 0)
     fs[0].draw(color=Color.RED)
     img = fs[0].crop()
-    color = fs[1].mean_color()
-    wndw = fs[1].window_sz()
+    color = fs[1].mean_color
+    wndw = fs[1].window
     for f in fs:
-        f.vector()
-        f.magnitude()
+        f.vector
+        f.magnitude
 
     current3 = Image("../data/sampleimages/flow_simple1.png")
     fs = current3.find(Motion, prev, window=7, aggregate=False)
     assert_greater(len(fs), 0)
     fs[0].draw(color=Color.RED)
     img = fs[0].crop()
-    color = fs[1].mean_color()
-    wndw = fs[1].window_sz()
+    color = fs[1].mean_color
+    wndw = fs[1].window
     for f in fs:
-        f.vector()
-        f.magnitude()
+        f.vector
+        f.magnitude
 
     # different frame sizes
     current4 = current3.resize(current3.width/2, current3.height/2)

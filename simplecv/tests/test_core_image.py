@@ -26,12 +26,12 @@ def test_init_core_image_grayscale():
     assert False == img.is_color_space(CoreImage.BGR)
 
 
-@raises(AttributeError)
+@raises(ValueError)
 def test_core_image_wrong_array():
     CoreImage(array=None, color_space=CoreImage.BGR)
 
 
-@raises(AttributeError)
+@raises(ValueError)
 def test_core_image_wrong_color_space():
     CoreImage(array=create_test_array(), color_space=999)
 

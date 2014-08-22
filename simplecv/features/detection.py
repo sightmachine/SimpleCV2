@@ -17,7 +17,7 @@ import pickle
 import scipy.spatial.distance as spsd
 import math
 
-from simplecv.base import logger
+from simplecv.base import logger, lazyproperty, force_update_lazyproperties
 from simplecv.color import Color
 from simplecv.core.pluginsystem import apply_plugins
 from simplecv.factory import Factory
@@ -150,8 +150,6 @@ class Line(Feature):
 
     def __init__(self, i, line):
         self.image = i
-        self.vector = None
-        self.y_intercept = None
         self.end_points = list(copy(line))
 
         if self.end_points[1][0] - self.end_points[0][0] == 0:
@@ -191,12 +189,13 @@ class Line(Feature):
         self.image.draw_line(self.end_points[0], self.end_points[1], color,
                              width)
 
+    @property
     def length(self):
         """
 
         **SUMMARY**
 
-        This method returns the length of the line.
+        This property returns the length of the line.
 
         **RETURNS**
 
@@ -207,7 +206,7 @@ class Line(Feature):
         >>> img = Image("OWS.jpg")
         >>> lines = img.find_lines
         >>> for l in lines:
-        >>>    if l.length() > 100:
+        >>>    if l.length > 100:
         >>>       print "OH MY! - WHAT A BIG LINE YOU HAVE!"
         >>>       print "---I bet you say that to all the lines."
 
@@ -232,10 +231,11 @@ class Line(Feature):
         >>> myLine = l[0].crop()
 
         """
-        tlc = self.top_left_corner()
-        return self.image.crop(tlc[0], tlc[1], self.get_width(),
-                               self.get_height())
+        tlc = self.top_left_corner
+        return self.image.crop(tlc[0], tlc[1], self.width,
+                               self.height)
 
+    @property
     def mean_color(self):
         """
         **SUMMARY**
@@ -253,13 +253,13 @@ class Line(Feature):
 
         >>> img = Image("lenna")
         >>> l = img.find_lines()
-        >>> c = l[0].mean_color()
+        >>> c = l[0].mean_color
 
         """
         (pt1, _) = self.end_points
         #we're going to walk the line, and take the mean color from all the px
         #points -- there's probably a much more optimal way to do this
-        (maxx, minx, maxy, miny) = self.get_extents()
+        (maxx, minx, maxy, miny) = self.extents
 
         d_x = maxx - minx
         d_y = maxy - miny
@@ -471,7 +471,8 @@ class Line(Feature):
 
         return matched_pixels
 
-    def get_angle(self):
+    @lazyproperty
+    def angle(self):
         """
         **SUMMARY**
 
@@ -577,21 +578,19 @@ class Line(Feature):
 
         return Line(self.image, (pt1, pt2))
 
-    def get_vector(self):
-        # this should be a lazy property
-        if self.vector is None:
-            self.vector = [
-                float(self.end_points[1][0] - self.end_points[0][0]),
+    @lazyproperty
+    def vector(self):
+        return [float(self.end_points[1][0] - self.end_points[0][0]),
                 float(self.end_points[1][1] - self.end_points[0][1])]
-        return self.vector
 
     def dot(self, other):
-        return np.dot(self.get_vector(), other.get_vector())
+        return np.dot(self.vector, other.vector)
 
     def cross(self, other):
-        return np.cross(self.get_vector(), other.get_vector())
+        return np.cross(self.vector, other.vector)
 
-    def get_y_intercept(self):
+    @lazyproperty
+    def y_intercept(self):
         """
         **SUMMARY**
 
@@ -606,13 +605,11 @@ class Line(Feature):
 
         >>> img = Image("lenna")
         >>> l = Line(img, ((50, 150), (2, 225))
-        >>> b = l.get_y_intercept()
+        >>> b = l.y_intercept
         """
-        if self.y_intercept is None:
-            pt1, _ = self.end_points
-            #y = mx + b | b = y-mx
-            self.y_intercept = pt1[1] - self.slope * pt1[0]
-        return self.y_intercept
+        pt1, _ = self.end_points
+        #y = mx + b | b = y-mx
+        return pt1[1] - self.slope * pt1[0]
 
     def extend_to_image_edges(self):
         """
@@ -850,8 +847,6 @@ class Chessboard(Feature):
     This class is used for Calibration, it uses a chessboard
     to calibrate from pixels to real world measurements.
     """
-    sp_corners = []
-    dimensions = ()
 
     def __init__(self, i, dim, subpixel_corners):
         self.dimensions = dim
@@ -891,7 +886,8 @@ class Chessboard(Feature):
                                   patternSize=self.dimensions,
                                   corners=self.sp_corners, patternWasFound=1)
 
-    def get_area(self):
+    @lazyproperty
+    def area(self):
         """
         **SUMMARY**
 
@@ -907,7 +903,7 @@ class Chessboard(Feature):
 
         >>> img = Image("corners.jpg")
         >>> feats = img.find_chessboard_corners()
-        >>> print feats[-1].get_area()
+        >>> print feats[-1].area
 
         """
         #note, copying this from barcode means we probably need a subclass of
@@ -1021,7 +1017,7 @@ class TemplateMatch(Feature):
         """
         Returns true if this feature overlaps another template feature.
         """
-        (maxx, minx, maxy, miny) = self.get_extents()
+        (maxx, minx, maxy, miny) = self.extents
         overlap = False
         for pnt in other.points:
             if maxx >= pnt[0] >= minx and maxy >= pnt[1] >= miny:
@@ -1035,8 +1031,8 @@ class TemplateMatch(Feature):
         Given another template feature, make this feature the size of the two
         features combined.
         """
-        (maxx, minx, maxy, miny) = self.get_extents()
-        (maxx0, minx0, maxy0, miny0) = other.get_extents()
+        (maxx, minx, maxy, miny) = self.extents
+        (maxx0, minx0, maxy0, miny0) = other.extents
 
         maxx = max(maxx, maxx0)
         minx = min(minx, minx0)
@@ -1045,14 +1041,14 @@ class TemplateMatch(Feature):
         self.x = minx
         self.y = miny
         self.points = [(minx, miny), (minx, maxy), (maxx, maxy), (maxx, miny)]
-        self._update_extents()
+        force_update_lazyproperties(self)
 
     def rescale(self, w, h):
         """
         This method keeps the feature's center the same but sets a new width
         and height
         """
-        (maxx, minx, maxy, miny) = self.get_extents()
+        (maxx, minx, maxy, miny) = self.extents
         xc = minx + ((maxx - minx) / 2)
         yc = miny + ((maxy - miny) / 2)
         x = xc - (w / 2)
@@ -1063,10 +1059,10 @@ class TemplateMatch(Feature):
                        (x + w, y),
                        (x + w, y + h),
                        (x, y + h)]
-        self._update_extents()
+        force_update_lazyproperties(self)
 
     def crop(self):
-        (maxx, minx, maxy, miny) = self.get_extents()
+        (maxx, minx, maxy, miny) = self.extents
         return self.image.crop(minx, miny, maxx - minx, maxy - miny)
 
     def draw(self, color=Color.GREEN, width=1):
@@ -1087,7 +1083,7 @@ class TemplateMatch(Feature):
         drawing layer.
         """
         self.image.dl().rectangle((self.x, self.y),
-                                  (self.get_width(), self.get_height()),
+                                  (self.width, self.height),
                                   color=color, width=width)
 
     @classmethod
@@ -1336,16 +1332,9 @@ class Circle(Feature):
     Class for a general circle feature with a center at (x,y) and a radius r
 
     """
-    x = 0.00
-    y = 0.00
-    r = 0.00
-    image = ""  # parent image
-    points = []
-    avg_color = None
 
     def __init__(self, i, at_x, at_y, r):
         self.r = r
-        self.avg_color = None
         points = [(at_x - r, at_y - r), (at_x + r, at_y - r),
                   (at_x + r, at_y + r), (at_x - r, at_y + r)]
         super(Circle, self).__init__(i, at_x, at_y, points)
@@ -1378,60 +1367,7 @@ class Circle(Feature):
         """
         self.image.dl().circle((self.x, self.y), self.r, color, width)
 
-    def show(self, color=Color.GREEN):
-        """
-        **SUMMARY**
-
-        This function will automatically draw the features on the image and
-        show it. It is a basically a shortcut function for development and is
-        the same as:
-
-        **PARAMETERS**
-
-        * *color* - the color of the feature as an rgb triplet.
-
-        **RETURNS**
-
-        Nothing - this is an inplace operation that modifies the source images
-        drawing layer.
-
-        **EXAMPLE**
-
-        >>> img = Image("logo")
-        >>> feat = img.find_circle()
-        >>> feat[0].show()
-
-        """
-        self.draw(color)
-        self.image.show()
-
-    def distance_from(self, point=(-1, -1)):
-        """
-        **SUMMARY**
-
-        Given a point (default to center of the image), return the euclidean
-        distance of x,y from this point.
-
-        **PARAMETERS**
-
-        * *point* - The point, as an (x,y) tuple on the image to measure
-         distance from.
-
-        **RETURNS**
-
-        The distance as a floating point value in pixels.
-
-        **EXAMPLE**
-
-        >>> img = Image("OWS.jpg")
-        >>> blobs = img.find_circle()
-        >>> blobs[-1].distance_from(blobs[-2].coordinates())
-
-        """
-        if point[0] == -1 or point[1] == -1:
-            point = np.array(self.image.size) / 2
-        return spsd.euclidean(point, [self.x, self.y])
-
+    @lazyproperty
     def mean_color(self):
         """
 
@@ -1451,16 +1387,14 @@ class Circle(Feature):
         >>> c[-1].mean_color()
 
         """
-        #generate the mask
-        if self.avg_color is None:
-            mask = self.image.get_empty(1)
-            cv2.circle(mask, center=(self.x, self.y), radius=self.r,
-                       color=(255, 255, 255), thickness=-1)
-            temp = cv2.mean(self.image.ndarray, mask=mask)
-            self.avg_color = (temp[0], temp[1], temp[2])
-        return self.avg_color
+        mask = self.image.get_empty(1)
+        cv2.circle(mask, center=(self.x, self.y), radius=self.r,
+                   color=(255, 255, 255), thickness=-1)
+        temp = cv2.mean(self.image.ndarray, mask=mask)
+        return temp[0], temp[1], temp[2]
 
-    def get_area(self):
+    @property
+    def area(self):
         """
         Area covered by the feature -- for a pixel, 1
 
@@ -1479,11 +1413,11 @@ class Circle(Feature):
         >>> xs = feats.coordinates()
         >>> print xs
 
-
         """
         return self.r * self.r * pi
 
-    def get_perimeter(self):
+    @property
+    def perimeter(self):
         """
         **SUMMARY**
 
@@ -1491,7 +1425,8 @@ class Circle(Feature):
         """
         return 2 * pi * self.r
 
-    def get_width(self):
+    @property
+    def width(self):
         """
         **SUMMARY**
 
@@ -1500,7 +1435,8 @@ class Circle(Feature):
         """
         return self.r * 2
 
-    def get_height(self):
+    @property
+    def height(self):
         """
         **SUMMARY**
 
@@ -1508,6 +1444,7 @@ class Circle(Feature):
         """
         return self.r * 2
 
+    @property
     def radius(self):
         """
         **SUMMARY**
@@ -1517,6 +1454,7 @@ class Circle(Feature):
         """
         return self.r
 
+    @property
     def diameter(self):
         """
         **SUMMARY**
@@ -1544,8 +1482,8 @@ class Circle(Feature):
 
         """
         if no_mask:
-            return self.image.crop(self.x, self.y, self.get_width(),
-                                   self.get_height(), centered=True)
+            return self.image.crop(self.x, self.y, self.width,
+                                   self.height, centered=True)
         else:
             mask = self.image.get_empty()
             result = self.image.get_empty()
@@ -1556,8 +1494,8 @@ class Circle(Feature):
                        color=(255, 255, 255), thickness=-1)
             np.where(mask, self.image.ndarray, result)
             ret_value = Factory.Image(result)
-            ret_value = ret_value.crop(self.x, self.y, self.get_width(),
-                                       self.get_height(), centered=True)
+            ret_value = ret_value.crop(self.x, self.y, self.width,
+                                       self.height, centered=True)
             return ret_value
 
     @classmethod
@@ -1621,15 +1559,7 @@ class KeyPoint(Feature):
     The class is place holder for SURF/SIFT/ORB/STAR keypoints.
 
     """
-    x = 0.00
-    y = 0.00
     r = 0.00
-    image = ""  # parent image
-    points = []
-    angle = 0
-    octave = 0
-    response = 0.00
-    flavor = ""
     descriptor = None
     key_point = None
 
@@ -1638,9 +1568,7 @@ class KeyPoint(Feature):
         x = keypoint.pt[0]
         y = keypoint.pt[1]
         self._r = keypoint.size / 2.0
-        self._avg_color = None
         self.image = i
-        self.angle = keypoint.angle
         self.octave = keypoint.octave
         self.response = keypoint.response
         self.flavor = flavor
@@ -1659,7 +1587,8 @@ class KeyPoint(Feature):
             y = (r * cos(rp)) + self.y
             self.points.append((x, y))
 
-    def get_object(self):
+    @property
+    def object(self):
         """
         **SUMMARY**
 
@@ -1668,15 +1597,7 @@ class KeyPoint(Feature):
         """
         return self.key_point
 
-    def get_descriptor(self):
-        """
-        **SUMMARY**
-
-        Returns the raw keypoint descriptor.
-
-        """
-        return self.descriptor
-
+    @property
     def quality(self):
         """
         **SUMMARY**
@@ -1686,25 +1607,8 @@ class KeyPoint(Feature):
         """
         return self.response
 
-    def get_octave(self):
-        """
-        **SUMMARY**
-
-        Returns the raw keypoint's octave (if it has one).
-
-        """
-        return self.octave
-
-    def get_flavor(self):
-        """
-        **SUMMARY**
-
-        Returns the type of keypoint as a string (e.g. SURF/MSER/ETC)
-
-        """
-        return self.flavor
-
-    def get_angle(self):
+    @property
+    def angle(self):
         """
         **SUMMARY**
 
@@ -1716,7 +1620,7 @@ class KeyPoint(Feature):
         An angle value in degrees.
 
         """
-        return self.angle
+        return self.key_point.angle
 
     def draw(self, color=Color.GREEN, width=1):
         """
@@ -1740,38 +1644,11 @@ class KeyPoint(Feature):
         """
         self.image.dl().circle((self.x, self.y), self._r, color, width)
         pt1 = (int(self.x), int(self.y))
-        pt2 = (int(self.x + (self.radius() * sin(radians(self.get_angle())))),
-               int(self.y + (self.radius() * cos(radians(self.get_angle())))))
+        pt2 = (int(self.x + (self.radius * sin(radians(self.angle)))),
+               int(self.y + (self.radius * cos(radians(self.angle)))))
         self.image.dl().line(pt1, pt2, color, width)
 
-    def show(self, color=Color.GREEN):
-        """
-        **SUMMARY**
-
-        This function will automatically draw the features on the image and
-        show it. It is a basically a shortcut function for development and is
-        the same as:
-
-        >>> img = Image("logo")
-        >>> feat = img.find_blobs()
-        >>> if feat: feat.draw()
-        >>> img.show()
-
-        """
-        self.draw(color)
-        self.image.show()
-
-    def distance_from(self, point=(-1, -1)):
-        """
-        **SUMMARY**
-
-        Given a point (default to center of the image), return the euclidean
-        distance of x,y from this point
-        """
-        if point[0] == -1 or point[1] == -1:
-            point = np.array(self.image.size) / 2
-        return spsd.euclidean(point, [self.x, self.y])
-
+    @lazyproperty
     def mean_color(self):
         """
         **SUMMARY**
@@ -1787,27 +1664,25 @@ class KeyPoint(Feature):
 
         >>> img = Image("lenna")
         >>> kp = img.find_keypoints()
-        >>> c = kp[0].mean_color()
+        >>> c = kp[0].mean_color
 
         """
-        #generate the mask
-        if self._avg_color is None:
-            mask = self.image.get_empty(1)
-            cv2.circle(mask, center=(int(self.x), int(self.y)),
-                       radius=int(self._r), color=(255, 255, 255),
-                       thickness=-1)
-            temp = cv2.mean(self.image.ndarray, mask)
-            self._avg_color = (temp[0], temp[1], temp[2])
-        return self._avg_color
+        mask = self.image.get_empty(1)
+        cv2.circle(mask, center=(int(self.x), int(self.y)),
+                   radius=int(self._r), color=(255, 255, 255),
+                   thickness=-1)
+        temp = cv2.mean(self.image.ndarray, mask)
+        return temp[0], temp[1], temp[2]
 
     def color_distance(self, color=(0, 0, 0)):
         """
         Return the euclidean color distance of the color tuple at x,y from
         a given color (default black)
         """
-        return spsd.euclidean(np.array(color), np.array(self.mean_color()))
+        return spsd.euclidean(np.array(color), np.array(self.mean_color))
 
-    def get_perimeter(self):
+    @property
+    def perimeter(self):
         """
         **SUMMARY**
 
@@ -1815,7 +1690,8 @@ class KeyPoint(Feature):
         """
         return 2 * pi * self._r
 
-    def get_width(self):
+    @property
+    def width(self):
         """
         **SUMMARY**
 
@@ -1824,7 +1700,8 @@ class KeyPoint(Feature):
         """
         return self._r * 2
 
-    def get_height(self):
+    @property
+    def height(self):
         """
         **SUMMARY**
 
@@ -1832,6 +1709,7 @@ class KeyPoint(Feature):
         """
         return self._r * 2
 
+    @property
     def radius(self):
         """
         **SUMMARY**
@@ -1841,6 +1719,7 @@ class KeyPoint(Feature):
         """
         return self._r
 
+    @property
     def diameter(self):
         """
         **SUMMARY**
@@ -1868,8 +1747,8 @@ class KeyPoint(Feature):
 
         """
         if no_mask:
-            return self.image.crop(self.x, self.y, self.get_width(),
-                                   self.get_height(), centered=True)
+            return self.image.crop(self.x, self.y, self.width,
+                                   self.height, centered=True)
         else:
             mask = self.image.get_empty()
             result = self.image.get_empty()
@@ -1881,8 +1760,8 @@ class KeyPoint(Feature):
                        thickness=-1)
             np.where(mask, self.image.ndarray, result)
             ret_value = Factory.Image(source=result)
-            ret_value = ret_value.crop(self.x, self.y, self.get_width(),
-                                       self.get_height(), centered=True)
+            ret_value = ret_value.crop(self.x, self.y, self.width,
+                                       self.height, centered=True)
             return ret_value
 
     @classmethod
@@ -2016,15 +1895,6 @@ class Motion(Feature):
     holds the length and direction of the vector.
 
     """
-    x = 0.0
-    y = 0.0
-    image = ""  # parent image
-    points = []
-    dx = 0.00
-    dy = 0.00
-    norm_dy = 0.00
-    norm_dx = 0.00
-    window = 7
 
     def __init__(self, i, at_x, at_y, dx, dy, wndw):
         """
@@ -2035,6 +1905,8 @@ class Motion(Feature):
         dy   - the y component of the optical flow vector.
         wndw - the size of the sample window (we assume it is square).
         """
+        self.norm_dy = 0.00
+        self.norm_dx = 0.00
         self.dx = dx  # the direction of the vector
         self.dy = dy
         self.window = wndw  # the size of the sample window
@@ -2087,40 +1959,38 @@ class Motion(Feature):
             self.norm_dx = 0
             self.norm_dy = 0
             return None
-        mag = self.magnitude()
+        mag = self.magnitude
         new_mag = mag / max_mag
-        unit = self.unit_vector()
+        unit = self.unit_vector
         self.norm_dx = unit[0] * new_mag
         self.norm_dy = unit[1] * new_mag
 
+    @property
     def magnitude(self):
         """
         Returns the magnitude of the optical flow vector.
         """
         return sqrt((self.dx * self.dx) + (self.dy * self.dy))
 
+    @property
     def unit_vector(self):
         """
         Returns the unit vector direction of the flow vector as an (x,y) tuple.
         """
-        mag = self.magnitude()
+        mag = self.magnitude
         if mag != 0.00:
             return float(self.dx) / mag, float(self.dy) / mag
         else:
             return 0.00, 0.00
 
+    @property
     def vector(self):
         """
         Returns the raw direction vector as an (x,y) tuple.
         """
         return self.dx, self.dy
 
-    def window_sz(self):
-        """
-        Return the window size that we sampled over.
-        """
-        return self.window
-
+    @lazyproperty
     def mean_color(self):
         """
         Return the color tuple from x,y
@@ -2263,14 +2133,6 @@ class KeypointMatch(Feature):
     This class encapsulates a keypoint match between images of an object.
     It is used to record a template of one image as it appears in another image
     """
-    x = 0.00
-    y = 0.00
-    image = ""  # parent image
-    points = []
-    _min_rect = []
-    _avg_color = None
-    _homography = []
-    _template = None
 
     def __init__(self, image, template, min_rect, _homography):
         self._template = template
@@ -2294,12 +2156,7 @@ class KeypointMatch(Feature):
         height = (ymax - ymin)
         at_x = xmin + (width / 2)
         at_y = ymin + (height / 2)
-        #self.x = at_x
-        #self.y = at_y
         points = [(xmin, ymin), (xmin, ymax), (xmax, ymax), (xmax, ymin)]
-        #self._update_extents()
-        #self.image = image
-        #points =
         super(KeypointMatch, self).__init__(image, at_x, at_y, points)
 
     def draw(self, color=Color.GREEN, width=1):
@@ -2353,11 +2210,12 @@ class KeypointMatch(Feature):
         the axes aligned box masked to just include the image data of the
         minimum bounding rectangle.
         """
-        tlc = self.top_left_corner()
-        raw = self.image.crop(tlc[0], tlc[1], self.get_width(),
-                              self.get_height())  # crop the minbouding rect
+        tlc = self.top_left_corner
+        raw = self.image.crop(tlc[0], tlc[1], self.width,
+                              self.height)  # crop the minbouding rect
         return raw
 
+    @lazyproperty
     def mean_color(self):
         """
         return the average color within the circle
@@ -2378,30 +2236,26 @@ class KeypointMatch(Feature):
         >>> c = kp.mean_color()
 
         """
-        if self._avg_color is None:
-            tlc = self.top_left_corner()
-            # crop the minbouding rect
-            raw = self.image.crop(tlc[0], tlc[0],
-                                  self.get_width(), self.get_height())
-            mask = Factory.Image((raw.width, raw.height))
-            mask.dl().polygon(self._min_rect, color=Color.WHITE,
-                              filled=pickle.TRUE)
-            mask = mask.apply_layers()
-            ret_value = cv2.mean(raw.ndarray,
-                                 mask.gray_ndarray)
-            self._avg_color = ret_value
-        else:
-            ret_value = self._avg_color
-        return ret_value
+        tlc = self.top_left_corner
+        # crop the minbouding rect
+        raw = self.image.crop(tlc[0], tlc[0],
+                              self.width, self.height)
+        mask = Factory.Image((raw.width, raw.height))
+        mask.dl().polygon(self._min_rect, color=Color.WHITE,
+                          filled=pickle.TRUE)
+        mask = mask.apply_layers()
+        return cv2.mean(raw.ndarray, mask.gray_ndarray)
 
-    def get_min_rect(self):
+    @property
+    def min_rect(self):
         """
         Returns the minimum bounding rectangle of the feature as a list
         of (x,y) tuples.
         """
         return self._min_rect
 
-    def get_homography(self):
+    @property
+    def homography(self):
         """
         Returns the _homography matrix used to calulate the minimum bounding
         rectangle.
@@ -2550,14 +2404,6 @@ class ShapeContextDescriptor(Feature):
     """
     Create a shape context descriptor.
     """
-    x = 0.00
-    y = 0.00
-    image = ""  # parent image
-    points = []
-    _min_rect = []
-    _avg_color = None
-    _descriptor = None
-    _source_blob = None
 
     def __init__(self, image, point, descriptor, blob):
         self._descriptor = descriptor
@@ -2589,7 +2435,6 @@ class ShapeContextDescriptor(Feature):
 
         Nothing - this is an inplace operation that modifies the source images
         drawing layer.
-
 
         """
         radius = 3
@@ -2728,8 +2573,8 @@ class ROI(Feature):
 
     def overlaps(self, other_roi):
         for pnt in other_roi.points:
-            if self.get_max_x() >= pnt[0] >= self.get_min_x() \
-                    and self.get_max_y() >= pnt[1] >= self.get_min_y():
+            if self.max_x >= pnt[0] >= self.min_x \
+                    and self.max_y >= pnt[1] >= self.min_y:
                 return True
         return False
 
@@ -3337,6 +3182,7 @@ class ROI(Feature):
         self.draw(color, width)
         self.image.show()
 
+    @lazyproperty
     def mean_color(self):
         """
         **SUMMARY**
@@ -3361,21 +3207,13 @@ class ROI(Feature):
 
     def _rebase(self, roi):
         x, y, w, h = roi
-        self._max_x = None
-        self._max_y = None
-        self._min_x = None
-        self._min_y = None
-        self._width = None
-        self._height = None
-        self.extents = None
-        self.bounding_box = None
         self.xtl = x
         self.ytl = y
         self.w = w
         self.h = h
         self.points = [(x, y), (x + w, y), (x, y + h), (x + w, y + h)]
         #WE MAY WANT TO DO A SANITY CHECK HERE
-        self._update_extents()
+        force_update_lazyproperties(self)
 
     def _standardize(self, x, y=None, w=None, h=None):
         if isinstance(x, np.ndarray):
@@ -3400,10 +3238,10 @@ class ROI(Feature):
         elif isinstance(x, FeatureSet) and len(x) > 0:
             #double check that everything in the list is a feature
             features = [feat for feat in x if isinstance(feat, Feature)]
-            xmax = np.max([feat.get_max_x() for feat in features])
-            xmin = np.min([feat.get_min_x() for feat in features])
-            ymax = np.max([feat.get_max_y() for feat in features])
-            ymin = np.min([feat.get_min_y() for feat in features])
+            xmax = np.max([feat.max_x for feat in features])
+            xmin = np.min([feat.min_x for feat in features])
+            ymax = np.max([feat.max_y for feat in features])
+            ymin = np.min([feat.min_y for feat in features])
             x = xmin
             y = ymin
             w = xmax - xmin
@@ -3413,8 +3251,8 @@ class ROI(Feature):
             the_feature = x
             x = the_feature.points[0][0]
             y = the_feature.points[0][1]
-            w = the_feature.get_width()
-            h = the_feature.get_height()
+            w = the_feature.width
+            h = the_feature.height
 
         # [x,y,w,h] (x,y,w,h)
         elif isinstance(x, (tuple, list)) and len(x) == 4 \

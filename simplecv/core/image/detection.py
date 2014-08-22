@@ -800,18 +800,18 @@ def smart_rotate(img, bins=18, point=[-1, -1], auto=True, threshold=80,
     conv = lambda x: int(x + 90) / bins
 
     #Adding lines to bins
-    [binn[conv(line.get_angle())].append(line) for line in lines]
+    [binn[conv(line.angle)].append(line) for line in lines]
 
     #computing histogram, value of each column is total length of all lines
     #in the bin
-    hist = [sum([line.length() for line in lines]) for lines in binn]
+    hist = [sum([line.length for line in lines]) for lines in binn]
 
     #The maximum histogram
     index = np.argmax(np.array(hist))
 
     #Good ol weighted mean, for the selected bin
-    avg = sum([line.get_angle() * line.length() for line in binn[index]]) \
-        / sum([line.length() for line in binn[index]])
+    avg = sum([line.angle * line.length for line in binn[index]]) \
+        / sum([line.length for line in binn[index]])
 
     #Mean of centers of all lines in selected bin
     if auto:

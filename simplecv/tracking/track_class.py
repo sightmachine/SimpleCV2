@@ -43,12 +43,10 @@ class Track(Feature):
         self.sizeRatio = 1
         self.vel = (0, 0)
         self.rt_vel = (0, 0)
-        self.area = self.get_area()
         self.time = time.time()
         self.cv2numpy = self.image.ndarray
         self.predict_pt = (0, 0)
         self.state_pt = (0, 0)
-        return self
 
     def getCenter(self):
         """
@@ -67,7 +65,8 @@ class Track(Feature):
         """
         return self.bb_x + self.w / 2, self.bb_y + self.h / 2
 
-    def get_area(self):
+    @property
+    def area(self):
         """
         **SUMMARY**
 
@@ -523,7 +522,7 @@ class CAMShiftTrack(Track):
 
         >>> track = CAMShiftTrack(image, bb, ellipse)
         """
-        self = Track.__init__(self, img, bb)
+        Track.__init__(self, img, bb)
         self.ellipse = ellipse
 
     def getEllipse(self):
@@ -576,7 +575,7 @@ class LKTrack(Track):
         >>> track = LKTrack(image, bb, pts)
         """
 
-        self = Track.__init__(self, img, bb)
+        Track.__init__(self, img, bb)
         self.pts = pts
 
     def getTrackedPoints(self):
@@ -667,11 +666,11 @@ class SURFTrack(Track):
         """
         if td is None:
             bb = (1, 1, 1, 1)
-            self = Track.__init__(self, img, bb)
+            Track.__init__(self, img, bb)
             return
         if len(new_pts) < 1:
             bb = (1, 1, 1, 1)
-            self = Track.__init__(self, img, bb)
+            Track.__init__(self, img, bb)
             self.pts = None
             self.templateImg = templateImg
             self.skp = skp
@@ -683,7 +682,7 @@ class SURFTrack(Track):
             return
         if sd is None:
             bb = (1, 1, 1, 1)
-            self = Track.__init__(self, img, bb)
+            Track.__init__(self, img, bb)
             self.pts = None
             self.templateImg = templateImg
             self.skp = skp
@@ -707,7 +706,7 @@ class SURFTrack(Track):
 
         bb = (min_x - 5, min_y - 5, max_x - min_x + 5, max_y - min_y + 5)
 
-        self = Track.__init__(self, img, bb)
+        Track.__init__(self, img, bb)
         self.templateImg = templateImg
         self.skp = skp
         self.sd = sd
@@ -923,7 +922,7 @@ class MFTrack(Track):
 
         >>> track = MFTrack(image, bb, shift)
         """
-        self = Track.__init__(self, img, bb)
+        Track.__init__(self, img, bb)
         self.shift = shift
 
     def getShift(self):

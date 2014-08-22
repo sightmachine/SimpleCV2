@@ -608,8 +608,8 @@ def crop(img, x, y=None, w=None, h=None, centered=False, smart=False):
         feature = x
         x = feature.points[0][0]
         y = feature.points[0][1]
-        w = feature.get_width()
-        h = feature.get_height()
+        w = feature.width
+        h = feature.height
 
     elif isinstance(x, (tuple, list)) and len(x) == 4 \
             and isinstance(x[0], (int, long, float)) \

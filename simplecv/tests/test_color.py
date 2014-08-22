@@ -60,7 +60,7 @@ def test_color_ColorMap():
     blobs = img.find(Blob)
     cm = ColorMap(Color.YELLOW, min(blobs.get_area()), max(blobs.get_area()))
     for b in blobs:
-       b.draw(cm[b.get_area()])
+       b.draw(cm[b.area])
 
     result = [img]
     name_stem = "test_color_ColorMap"

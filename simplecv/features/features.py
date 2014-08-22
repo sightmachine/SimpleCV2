@@ -23,7 +23,7 @@ import cv2
 import numpy as np
 import scipy.spatial.distance as spsd
 
-from simplecv.base import logger
+from simplecv.base import logger, lazyproperty
 from simplecv.color import Color
 from simplecv.core.pluginsystem import apply_plugins
 
@@ -254,7 +254,7 @@ class FeatureSet(list):
         >>> print xs
 
         """
-        return np.array([f.get_area() for f in self])
+        return np.array([f.area for f in self])
 
     def sort_area(self):
         """
@@ -275,7 +275,7 @@ class FeatureSet(list):
         >>> print feats[0]  # smallest blob
 
         """
-        return FeatureSet(sorted(self, key=lambda f: f.get_area()))
+        return FeatureSet(sorted(self, key=lambda f: f.area))
 
     def sort_x(self):
         """
@@ -349,7 +349,7 @@ class FeatureSet(list):
 
         """
         if point[0] == -1 or point[1] == -1 and len(self):
-            point = self[0].image.size()
+            point = self[0].image.size
 
         return spsd.cdist(self.coordinates(), [point])[:, 0]
 
@@ -421,7 +421,7 @@ class FeatureSet(list):
 
 
         """
-        return np.array([f.get_angle() for f in self])
+        return np.array([f.angle for f in self])
 
     def sort_angle(self, theta=0):
         """
@@ -441,7 +441,7 @@ class FeatureSet(list):
 
         """
         return FeatureSet(sorted(self,
-                                 key=lambda f: abs(f.get_angle() - theta)))
+                                 key=lambda f: abs(f.angle - theta)))
 
     def length(self):
         """
@@ -462,7 +462,7 @@ class FeatureSet(list):
 
         """
 
-        return np.array([f.length() for f in self])
+        return np.array([f.length for f in self])
 
     def sort_length(self):
         """
@@ -481,7 +481,7 @@ class FeatureSet(list):
         >>> lengt[-1] # length of the 0th element.
 
         """
-        return FeatureSet(sorted(self, key=lambda f: f.length()))
+        return FeatureSet(sorted(self, key=lambda f: f.length))
 
     def mean_color(self):
         """
@@ -503,7 +503,7 @@ class FeatureSet(list):
 
 
         """
-        return np.array([f.mean_color() for f in self])
+        return np.array([f.mean_color for f in self])
 
     def color_distance(self, color=(0, 0, 0)):
         """
@@ -530,7 +530,7 @@ class FeatureSet(list):
         >>> print d
 
         """
-        return spsd.cdist(self.mean_color(), [color])[:, 0]
+        return spsd.cdist(self.mean_color, [color])[:, 0]
 
     def sort_color_distance(self, color=(0, 0, 0)):
         """
@@ -596,7 +596,7 @@ class FeatureSet(list):
         >>> l.get_width()
 
         """
-        return np.array([f.get_width() for f in self])
+        return np.array([f.width for f in self])
 
     def get_height(self):
         """
@@ -615,7 +615,7 @@ class FeatureSet(list):
         >>> l.get_height()
 
         """
-        return np.array([f.get_height() for f in self])
+        return np.array([f.height for f in self])
 
     def crop(self):
         """
@@ -723,7 +723,7 @@ class FeatureSet(list):
         """
         fset = FeatureSet()
         for feat in self:
-            if feat.is_not_contained_within(region):
+            if not feat.is_contained_within(region):
                 fset.append(feat)
         return fset
 
@@ -1023,7 +1023,7 @@ class FeatureSet(list):
         >>> tl = img.top_left_corners()
         >>> print tl[0]
         """
-        return np.array([f.top_left_corner() for f in self])
+        return np.array([f.top_left_corner for f in self])
 
     def bottom_left_corners(self):
         """
@@ -1044,7 +1044,7 @@ class FeatureSet(list):
         >>> print bl[0]
 
         """
-        return np.array([f.bottom_left_corner() for f in self])
+        return np.array([f.bottom_left_corner for f in self])
 
     def top_right_corners(self):
         """
@@ -1065,7 +1065,7 @@ class FeatureSet(list):
         >>> print tr[0]
 
         """
-        return np.array([f.top_right_corner() for f in self])
+        return np.array([f.top_right_corner for f in self])
 
     def bottom_right_corners(self):
         """
@@ -1086,7 +1086,7 @@ class FeatureSet(list):
         >>> print br[0]
 
         """
-        return np.array([f.bottom_right_corner() for f in self])
+        return np.array([f.bottom_right_corner for f in self])
 
     def aspect_ratios(self):
         """
@@ -1106,7 +1106,7 @@ class FeatureSet(list):
         >>> print blobs.aspect_ratios()
 
         """
-        return np.array([f.get_aspect_ratio() for f in self])
+        return np.array([f.aspect_ratio for f in self])
 
     def cluster(self, method="kmeans", properties=None, k=3):
         """
@@ -1167,7 +1167,7 @@ class FeatureSet(list):
             if 'shape' in properties:
                 feature_vector.extend(i.hu)
             if 'position' in properties:
-                feature_vector.extend(i.get_extents())
+                feature_vector.extend(i.extents)
             if not feature_vector:
                 logger.warning(
                     "properties parameter is not specified properly")
@@ -1230,28 +1230,6 @@ class Feature(object):
     * in the Feature class, these functions assume the feature is 1px
 
     """
-    x = 0.00
-    y = 0.00
-    max_x = None
-    max_y = None
-    min_x = None
-    min_y = None
-    width = None
-    height = None
-    src_img_w = None
-    src_img_h = None
-
-    # This is 2.0 refactoring
-    bounding_box = None  # THIS SHALT BE TOP LEFT (X,Y) THEN W H i.e. [X,Y,W,H]
-    extents = None  # THIS SHALT BE [MAXX,MINX,MAXY,MINY]
-
-    # THIS SHALT BE (x,y) tuples
-    # in the ORDER [(TopLeft),(TopRight),(BottomLeft),(BottomRight)]
-    points = None
-
-    image = ""  # parent image
-    #points = []
-    #get_bounding_box = []
 
     def __init__(self, i, at_x, at_y, points):
         # THE COVENANT IS THAT YOU PROVIDE THE POINTS IN THE SPECIFIED
@@ -1260,7 +1238,6 @@ class Feature(object):
         self.y = at_y
         self.image = i
         self.points = points
-        self._update_extents(new_feature=True)
 
     def reassign(self, img):
         """
@@ -1292,10 +1269,11 @@ class Feature(object):
 
         return ret_value
 
+    @property
     def corners(self):
-        self._update_extents()
         return self.points
 
+    @property
     def coordinates(self):
         """
         **SUMMARY**
@@ -1312,10 +1290,10 @@ class Feature(object):
         >>> img = Image("aerospace.png")
         >>> blobs = img.find_blobs()
         >>> for b in blobs:
-        >>>    print b.coordinates()
+        >>>    print b.coordinates
 
         """
-        return np.array([self.x, self.y])
+        return [self.x, self.y]
 
     def draw(self, color=Color.GREEN):
         """
@@ -1362,7 +1340,7 @@ class Feature(object):
         self.draw(color)
         self.image.show()
 
-    def distance_from(self, point=(-1, -1)):
+    def distance_from(self, point=None):
         """
         **SUMMARY**
 
@@ -1386,10 +1364,11 @@ class Feature(object):
 
 
         """
-        if point[0] == -1 or point[1] == -1:
+        if point is None:
             point = np.array(self.image.size) / 2
         return spsd.euclidean(point, [self.x, self.y])
 
+    @property
     def mean_color(self):
         """
         **SUMMARY**
@@ -1411,7 +1390,7 @@ class Feature(object):
         """
         return self.image[self.y, self.x]
 
-    def color_distance(self, color=(0, 0, 0)):
+    def color_distance(self, color=None):
         """
         **SUMMARY**
 
@@ -1435,9 +1414,12 @@ class Feature(object):
         >>>    print b.color_distance(Color.WHITE):
 
         """
-        return spsd.euclidean(np.array(color), np.array(self.mean_color()))
+        if color is None:
+            color = (0, 0, 0)
+        return spsd.euclidean(np.array(color), np.array(self.mean_color))
 
-    def get_angle(self):
+    @property
+    def angle(self):
         """
         **SUMMARY**
 
@@ -1464,9 +1446,9 @@ class Feature(object):
 
         Double check that values are being returned consistently.
         """
-        #FIXME: is it ok?
-        return 0
+        return 0.0
 
+    @lazyproperty
     def length(self):
         """
         **SUMMARY**
@@ -1491,7 +1473,7 @@ class Feature(object):
 
         Should this be sqrt(x*x+y*y)?
         """
-        return float(np.max([self.get_width(), self.get_height()]))
+        return float(np.max([self.width, self.height]))
 
     def distance_to_nearest_edge(self):
         """
@@ -1511,7 +1493,6 @@ class Feature(object):
         >>> b[0].distance_to_nearest_edge()
 
         """
-
         return np.min([self.min_x, self.min_y,
                        self.image.width - self.max_x,
                        self.image.height - self.max_y])
@@ -1544,36 +1525,8 @@ class Feature(object):
         # down to opencv
         return self.distance_to_nearest_edge() <= tolerance
 
-    def not_on_image_edge(self, tolerance=1):
-        """
-        **SUMMARY**
-
-        This method returns True if the feature is greate than `tolerance`
-        pixels away from the nearest edge.
-
-        **PARAMETERS**
-
-        * *tolerance* - the distance in pixels at which a feature qualifies
-          as not being on the image edge.
-
-        **RETURNS**
-
-        True if the feature is not on the edge of the image, False otherwise.
-
-        **EXAMPLE**
-
-        >>> img = Image("../sampleimages/EdgeTest1.png")
-        >>> b = img.find_blobs()
-        >>> if b[0].not_on_image_edge():
-        >>>     print "I am safe and sound."
-
-        """
-
-        # this has to be one to deal with blob library weirdness that
-        # goes deep down to opencv
-        return self.distance_to_nearest_edge() > tolerance
-
-    def get_aspect_ratio(self):
+    @property
+    def aspect_ratio(self):
         """
         **SUMMARY**
 
@@ -1588,13 +1541,19 @@ class Feature(object):
 
         >>> img = Image("OWS.jpg")
         >>> blobs = img.find_blobs(128)
-        >>> b[0].get_aspect_ratio()
+        >>> b[0].aspect_ratio
 
         """
-        self._update_extents()
-        return self.aspect_ratio
+        try:
+            if self.width > self.height:
+                return float(self.width / self.height)
+            else:
+                return float(self.height / self.width)
+        except ZeroDivisionError:
+            return 0.0
 
-    def get_area(self):
+    @property
+    def area(self):
         """
         **SUMMARY**
 
@@ -1613,9 +1572,10 @@ class Feature(object):
         >>>       print b.get_area()
 
         """
-        return self.get_width() * self.get_height()
+        return self.width * self.height
 
-    def get_width(self):
+    @property
+    def width(self):
         """
         **SUMMARY**
 
@@ -1630,16 +1590,16 @@ class Feature(object):
         >>> img = Image("OWS.jpg")
         >>> blobs = img.find_blobs(128)
         >>> for b in blobs:
-        >>>    if b.get_width() > b.get_height():
+        >>>    if b.width > b.height:
         >>>       print "wider than tall"
         >>>       b.draw()
         >>> img.show()
 
         """
-        self._update_extents()
-        return self.width
+        return self.max_x - self.min_x
 
-    def get_height(self):
+    @property
+    def height(self):
         """
         **SUMMARY**
 
@@ -1654,13 +1614,12 @@ class Feature(object):
         >>> img = Image("OWS.jpg")
         >>> blobs = img.find_blobs(128)
         >>> for b in blobs:
-        >>>    if b.get_width() > b.get_height():
+        >>>    if b.width > b.height
         >>>       print "wider than tall"
         >>>       b.draw()
         >>> img.show()
         """
-        self._update_extents()
-        return self.height
+        return self.max_y - self.min_y
 
     def crop(self):
         """
@@ -1682,75 +1641,19 @@ class Feature(object):
 
         """
 
-        return self.image.crop(self.x, self.y,
-                               self.get_width(),
-                               self.get_height(),
+        return self.image.crop(self.x, self.y, self.width, self.height,
                                centered=True)
 
     def __repr__(self):
         return "%s.%s at (%d,%d)" % (
             self.__class__.__module__, self.__class__.__name__, self.x, self.y)
 
-    def _update_extents(self, new_feature=False):
-        #    # THIS SHALT BE TOP LEFT (X,Y) THEN W H i.e. [X,Y,W,H]
-        #    bounding_box = None
-        #    extents = None # THIS SHALT BE [MAXX,MINX,MAXY,MINY]
-        #    # THIS SHALT BE (x,y) tuples in the
-        #    # ORDER [(TopLeft),(TopRight),(BottomLeft),(BottomRight)]
-        #    points = None
-
-        max_x = self.max_x
-        min_x = self.min_x
-        max_y = self.max_y
-        min_y = self.min_y
-        width = self.width
-        height = self.height
-        extents = self.extents
-        bounding_box = self.bounding_box
-
-        #if new_feature or None in [self.max_x, self.min_x, self.max_y,
-        # self.min_y, self.width, self.height, self.extents,
-        # self.bounding_box]:
-
-        if new_feature or None in [max_x, min_x, max_y, min_y, width, height,
-                                   extents, bounding_box]:
-
-            xs = [p[0] for p in self.points]
-            ys = [p[1] for p in self.points]
-            max_x = max(xs)
-            min_x = min(xs)
-            max_y = max(ys)
-            min_y = min(ys)
-
-            width = max_x - min_x
-            height = max_y - min_y
-
-            if width <= 0:
-                width = 1
-
-            if height <= 0:
-                height = 1
-
-            self.bounding_box = [min_x, min_y, width, height]
-            self.extents = [max_x, min_x, max_y, min_y]
-
-            if width > height:
-                self.aspect_ratio = float(width / height)
-            else:
-                self.aspect_ratio = float(height / width)
-
-            self.max_x = max_x
-            self.min_x = min_x
-            self.max_y = max_y
-            self.min_y = min_y
-            self.width = width
-            self.height = height
-
-    def get_bounding_box(self):
+    @property
+    def bounding_box(self):
         """
         **SUMMARY**
 
-        This function returns a rectangle which bounds the blob.
+        This property returns a rectangle which bounds the blob.
 
         **RETURNS**
 
@@ -1761,17 +1664,17 @@ class Feature(object):
 
         >>> img = Image("OWS.jpg")
         >>> blobs = img.find_blobs(128)
-        >>> print blobs[-1].get_bounding_box()
+        >>> print blobs[-1].bounding_box
 
         """
-        self._update_extents()
-        return self.bounding_box
+        return self.min_x, self.min_y, self.width, self.height
 
-    def get_extents(self):
+    @property
+    def extents(self):
         """
         **SUMMARY**
 
-        This function returns the maximum and minimum x and y values for the
+        This property returns the maximum and minimum x and y values for the
         feature and returns them as a tuple.
 
         **RETURNS**
@@ -1786,10 +1689,10 @@ class Feature(object):
         >>> print blobs[-1].get_extents()
 
         """
-        self._update_extents()
-        return self.extents
+        return self.max_x, self.min_x, self.max_y, self.min_y
 
-    def get_min_y(self):
+    @lazyproperty
+    def min_y(self):
         """
         **SUMMARY**
 
@@ -1804,17 +1707,17 @@ class Feature(object):
 
         >>> img = Image("OWS.jpg")
         >>> blobs = img.find_blobs(128)
-        >>> print blobs[-1].get_min_y()
+        >>> print blobs[-1].min_y
 
         """
-        self._update_extents()
-        return self.min_y
+        return min(p[1] for p in self.points)
 
-    def get_max_y(self):
+    @lazyproperty
+    def max_y(self):
         """
         **SUMMARY**
 
-        This method return the maximum y value of the bounding box of the
+        This property return the maximum y value of the bounding box of the
         the feature.
 
         **RETURNS**
@@ -1825,17 +1728,17 @@ class Feature(object):
 
         >>> img = Image("OWS.jpg")
         >>> blobs = img.find_blobs(128)
-        >>> print blobs[-1].get_max_y()
+        >>> print blobs[-1].max_y
 
         """
-        self._update_extents()
-        return self.max_y
+        return max(p[1] for p in self.points)
 
-    def get_min_x(self):
+    @lazyproperty
+    def min_x(self):
         """
         **SUMMARY**
 
-        This method return the minimum x value of the bounding box of the
+        This property return the minimum x value of the bounding box of the
         the feature.
 
         **RETURNS**
@@ -1846,17 +1749,17 @@ class Feature(object):
 
         >>> img = Image("OWS.jpg")
         >>> blobs = img.find_blobs(128)
-        >>> print blobs[-1].get_min_x()
+        >>> print blobs[-1].min_x
 
         """
-        self._update_extents()
-        return self.min_x
+        return min(p[0] for p in self.points)
 
-    def get_max_x(self):
+    @lazyproperty
+    def max_x(self):
         """
         **SUMMARY**
 
-        This method return the minimum x value of the bounding box of the
+        This property return the minimum x value of the bounding box of the
         the feature.
 
         **RETURNS**
@@ -1867,17 +1770,17 @@ class Feature(object):
 
         >>> img = Image("OWS.jpg")
         >>> blobs = img.find_blobs(128)
-        >>> print blobs[-1].get_max_x()
+        >>> print blobs[-1].max_x
 
         """
-        self._update_extents()
-        return self.max_x
+        return max(p[0] for p in self.points)
 
+    @property
     def top_left_corner(self):
         """
         **SUMMARY**
 
-        This method returns the top left corner of the bounding box of
+        This property returns the top left corner of the bounding box of
         the blob as an (x,y) tuple.
 
         **RESULT**
@@ -1888,17 +1791,17 @@ class Feature(object):
 
         >>> img = Image("OWS.jpg")
         >>> blobs = img.find_blobs(128)
-        >>> print blobs[-1].top_left_corner()
+        >>> print blobs[-1].top_left_corner
 
         """
-        self._update_extents()
         return self.min_x, self.min_y
 
+    @property
     def bottom_right_corner(self):
         """
         **SUMMARY**
 
-        This method returns the bottom right corner of the bounding box of
+        This property returns the bottom right corner of the bounding box of
         the blob as an (x,y) tuple.
 
         **RESULT**
@@ -1909,17 +1812,17 @@ class Feature(object):
 
         >>> img = Image("OWS.jpg")
         >>> blobs = img.find_blobs(128)
-        >>> print blobs[-1].bottom_right_corner()
+        >>> print blobs[-1].bottom_right_corner
 
         """
-        self._update_extents()
         return self.max_x, self.max_y
 
+    @property
     def bottom_left_corner(self):
         """
         **SUMMARY**
 
-        This method returns the bottom left corner of the bounding box of
+        This property returns the bottom left corner of the bounding box of
         the blob as an (x,y) tuple.
 
         **RESULT**
@@ -1930,17 +1833,17 @@ class Feature(object):
 
         >>> img = Image("OWS.jpg")
         >>> blobs = img.find_blobs(128)
-        >>> print blobs[-1].bottom_left_corner()
+        >>> print blobs[-1].bottom_left_corner
 
         """
-        self._update_extents()
         return self.min_x, self.max_y
 
+    @property
     def top_right_corner(self):
         """
         **SUMMARY**
 
-        This method returns the top right corner of the bounding box of
+        This property returns the top right corner of the bounding box of
         the blob as an (x,y) tuple.
 
         **RESULT**
@@ -1951,10 +1854,9 @@ class Feature(object):
 
         >>> img = Image("OWS.jpg")
         >>> blobs = img.find_blobs(128)
-        >>> print blobs[-1].top_right_corner()
+        >>> print blobs[-1].top_right_corner
 
         """
-        self._update_extents()
         return self.max_x, self.min_y
 
     def above(self, object):
@@ -1991,11 +1893,11 @@ class Feature(object):
 
         """
         if isinstance(object, Feature):
-            return self.get_max_y() < object.get_min_y()
+            return self.max_y < object.min_y
         elif isinstance(object, tuple) or isinstance(object, np.ndarray):
-            return self.get_max_y() < object[1]
+            return self.max_y < object[1]
         elif isinstance(object, float) or isinstance(object, int):
-            return self.get_max_y() < object
+            return self.max_y < object
         else:
             logger.warning(
                 "SimpleCV did not recognize the input type to feature.above()."
@@ -2037,11 +1939,11 @@ class Feature(object):
 
         """
         if isinstance(object, Feature):
-            return self.get_min_y() > object.get_max_y()
+            return self.min_y > object.max_y
         elif isinstance(object, tuple) or isinstance(object, np.ndarray):
-            return self.get_min_y() > object[1]
+            return self.min_y > object[1]
         elif isinstance(object, float) or isinstance(object, int):
-            return self.get_min_y() > object
+            return self.min_y > object
         else:
             logger.warning(
                 "SimpleCV did not recognize the input type to feature.below()."
@@ -2083,11 +1985,11 @@ class Feature(object):
 
         """
         if isinstance(object, Feature):
-            return self.get_min_x() > object.get_max_x()
+            return self.min_x > object.max_x
         elif isinstance(object, tuple) or isinstance(object, np.ndarray):
-            return self.get_min_x() > object[0]
+            return self.min_x > object[0]
         elif isinstance(object, float) or isinstance(object, int):
-            return self.get_min_x() > object
+            return self.min_x > object
         else:
             logger.warning(
                 "SimpleCV did not recognize the input type to feature.right()."
@@ -2130,11 +2032,11 @@ class Feature(object):
 
         """
         if isinstance(object, Feature):
-            return self.get_max_x() < object.get_min_x()
+            return self.max_x < object.min_x
         elif isinstance(object, tuple) or isinstance(object, np.ndarray):
-            return self.get_max_x() < object[0]
+            return self.max_x < object[0]
         elif isinstance(object, float) or isinstance(object, int):
-            return self.get_max_x() < object
+            return self.max_x < object
         else:
             logger.warning(
                 "SimpleCV did not recognize the input type to feature.left(). "
@@ -2209,10 +2111,10 @@ class Feature(object):
 
         elif isinstance(other, tuple) and len(other) == 4 and (
                 isinstance(other[0], float) or isinstance(other[0], int)):
-            ret_value = (self.get_max_x() <= other[0] + other[2] and
-                         self.get_min_x() >= other[0] and
-                         self.get_max_y() <= other[1] + other[3] and
-                         self.get_min_y() >= other[1])
+            ret_value = (self.max_x <= other[0] + other[2] and
+                         self.min_x >= other[0] and
+                         self.max_y <= other[1] + other[3] and
+                         self.min_y >= other[1])
         elif isinstance(other, list) and len(other) >= 4:
             # an arbitrary polygon
             ret_value = True
@@ -2321,77 +2223,6 @@ class Feature(object):
 
         return ret_value
 
-    def does_not_contain(self, other):
-        """
-        **SUMMARY**
-
-        Return true if the feature does not contain  the other object, where
-        other can be a bounding box, bounding circle, a list of tuples in a
-        closed polygon, or any other featutres.
-
-        **PARAMETERS**
-
-        * *other*
-
-          * A bounding box - of the form (x,y,w,h) where x,y is the upper left
-           corner
-          * A bounding circle of the form (x,y,r)
-          * A list of x,y tuples defining a closed polygon
-           e.g. ((x,y),(x,y),....)
-          * Any two dimensional feature (e.g. blobs, circle ...)
-
-        **RETURNS**
-
-        Returns a Boolean, True if the feature does not contain the object,
-        False otherwise.
-
-        **EXAMPLE**
-
-        >>> img = Image("Lenna")
-        >>> blobs = img.find_blobs()
-        >>> b = blobs[0]
-        >>> if blobs[-1].does_not_contain(b):
-        >>>    print "above the biggest blob"
-
-        Returns true if all of features points are inside this point.
-        """
-        return not self.contains(other)
-
-    def does_not_overlap(self, other):
-        """
-        **SUMMARY**
-
-        Return true if the feature does not overlap the object other, where
-        other can be a bounding box, bounding circle, a list of tuples in a
-        closed polygon, or any other featutres.
-
-        **PARAMETERS**
-
-        * *other*
-
-          * A bounding box - of the form (x,y,w,h) where x,y is the upper left
-           corner
-          * A bounding circle of the form (x,y,r)
-          * A list of x,y tuples defining a closed polygon
-           e.g. ((x,y),(x,y),....)
-          * Any two dimensional feature (e.g. blobs, circle ...)
-
-        **RETURNS**
-
-        Returns a Boolean, True if the feature does not Overlap  the object,
-        False otherwise.
-
-        **EXAMPLE**
-
-        >>> img = Image("Lenna")
-        >>> blobs = img.find_blobs()
-        >>> b = blobs[0]
-        >>> if blobs[-1].does_not_overlap(b):
-        >>>    print "does not over overlap biggest blob"
-
-        """
-        return not self.overlaps(other)
-
     def is_contained_within(self, other):
         """
         **SUMMARY**
@@ -2443,10 +2274,10 @@ class Feature(object):
         elif isinstance(other, tuple) and len(other) == 4 \
                 and (isinstance(other[0], float) or isinstance(other[0], int)):
             # we assume a tuple of four is (x,y,w,h)
-            ret_value = (self.get_max_x() <= other[0] + other[2] and
-                         self.get_min_x() >= other[0] and
-                         self.get_max_y() <= other[1] + other[3] and
-                         self.get_min_y() >= other[1])
+            ret_value = (self.max_x <= other[0] + other[2] and
+                         self.min_x >= other[0] and
+                         self.max_y <= other[1] + other[3] and
+                         self.min_y >= other[1])
 
         # an arbitrary polygon
         elif isinstance(other, list) and len(other) > 2:
@@ -2465,41 +2296,6 @@ class Feature(object):
                 "(x,y) tuple, or a ndarray type.")
             ret_value = False
         return ret_value
-
-    def is_not_contained_within(self, shape):
-        """
-        **SUMMARY**
-
-        Return true if the feature is not contained within the shape, where
-        shape can be a bounding box, bounding circle, a list of tuples in a
-        closed polygon, or any other featutres.
-
-        **PARAMETERS**
-
-        * *shape*
-
-          * A bounding box - of the form (x,y,w,h) where x,y is the upper
-           left corner
-          * A bounding circle of the form (x,y,r)
-          * A list of x,y tuples defining a closed polygon
-           e.g. ((x,y),(x,y),....)
-          * Any two dimensional feature (e.g. blobs, circle ...)
-
-        **RETURNS**
-
-        Returns a Boolean, True if the feature is not contained within the
-        shape, False otherwise.
-
-        **EXAMPLE**
-
-        >>> img = Image("Lenna")
-        >>> blobs = img.find_blobs()
-        >>> b = blobs[0]
-        >>> if blobs[-1].is_not_contained_within(b):
-        >>>    print "Not inside the biggest blob"
-
-        """
-        return not self.is_contained_within(shape)
 
     @staticmethod
     def _point_inside_polygon(point, polygon):
@@ -2545,40 +2341,6 @@ class Feature(object):
             ret_value = False
             return ret_value
         return ret_value
-
-    def bounding_circle(self):
-        """
-        **SUMMARY**
-
-        This function calculates the minimum bounding circle of the blob in the
-        image as an (x,y,r) tuple
-
-        **RETURNS**
-
-        An (x,y,r) tuple where (x,y) is the center of the circle and r is the
-        radius
-
-        **EXAMPLE**
-
-        >>> img = Image("RatMask.png")
-        >>> blobs = img.find_blobs()
-        >>> print blobs[-1].bounding_circle()
-
-        """
-        # get_contour of the blob in image
-        contour = self.contour()
-
-        points = []
-        # list of get_contour points converted to suitable format to pass
-        # into cv2.minEnclosingCircle()
-        for pair in contour:
-            points.append([[pair[0], pair[1]]])
-
-        points = np.array(points)
-
-        (cen, rad) = cv2.minEnclosingCircle(points)
-
-        return cen[0], cen[1], rad
 
     @classmethod
     def find(cls, img, method="szeliski", threshold=1000):

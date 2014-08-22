@@ -144,7 +144,7 @@ def test_color_colordistance():
     img = Image(source=blackimage)
     c1 = Corner(img, 1, 1)
     c2 = Corner(img, 1, 2)
-    assert c1.color_distance(c2.mean_color()) == 0
+    assert c1.color_distance(c2.mean_color) == 0
     assert c1.color_distance((0, 0, 0)) == 0
     assert c1.color_distance((0, 0, 255)) == 255
     assert c1.color_distance((255, 255, 255)) == math.sqrt(255 ** 2 * 3)

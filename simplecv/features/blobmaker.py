@@ -3,6 +3,7 @@ import warnings
 import cv2
 import numpy as np
 
+from simplecv.base import force_update_lazyproperties
 from simplecv.features.features import FeatureSet
 from simplecv.factory import Factory
 
@@ -190,7 +191,7 @@ class BlobMaker(object):
         hh = bbr[3]
         ret_value.points = [(xx, yy), (xx + ww, yy), (xx + ww, yy + hh),
                             (xx, yy + hh)]
-        ret_value._update_extents()
+        force_update_lazyproperties(ret_value)
         chull = cv2.convexHull(contour, returnPoints=1)
         ret_value.convex_hull = chull[:, 0, :].tolist()
         # KAS -- FLAG FOR REPLACE 6/6/2012
@@ -231,8 +232,6 @@ class BlobMaker(object):
         #                                        bbr, mask)
 
         ret_value.hole_contour = hole_contour
-        ret_value.aspect_ratio = ret_value.min_rectangle[1][0] / \
-            ret_value.min_rectangle[1][1]
 
         return ret_value
 
