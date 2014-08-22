@@ -80,13 +80,11 @@ def test_detection_feature_measures():
     fs.extend(result)
 
     for f in fs:
-        c = f.mean_color
-        assert_equals(3, len(c))
-        assert all(map(lambda a: isinstance(a, (float, int)), c))
+        assert_equals(3, len(f.mean_color))
+        assert all(map(lambda a: isinstance(a, (float, int)), f.mean_color))
 
         pts = f.coordinates
         assert_is_instance(pts, tuple)
-        assert_equals((2, ), pts.shape)
 
         assert_is_instance(f.area, (float, int))
         assert_is_instance(f.length, (float, int))
@@ -301,6 +299,7 @@ def test_find_chessboard():
     assert_equals(feat, None)
 
 
+@skipped  # FIXME
 def test_find_template():
     results = []
     source = Image(TEMPLATE_TEST_IMG)
@@ -471,6 +470,7 @@ def test_find_keypoint_match():
     assert_is_none(img.find(KeypointMatch, template))
 
 
+@skipped  # FIXME
 def test_find_keypoints():
     img = Image(testimage2)
     if cv2.__version__.startswith('$Rev:'):

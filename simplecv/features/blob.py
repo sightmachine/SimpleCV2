@@ -7,7 +7,7 @@ import numpy as np
 import scipy.spatial.distance as spsd
 import scipy.stats as sps
 
-from simplecv.base import LazyProperty, logger
+from simplecv.base import LazyProperty, logger, lazyproperty
 from simplecv.color import Color
 from simplecv.core.pluginsystem import apply_plugins
 from simplecv.factory import Factory
@@ -197,6 +197,7 @@ class Blob(Feature):
 
         return self.contour
 
+    @lazyproperty
     def mean_color(self):
         """
         **SUMMARY**
@@ -217,6 +218,7 @@ class Blob(Feature):
         """
         box_img = self.image.crop(*self.bounding_box)
         return box_img.mean_color()
+
 
     def min_rect(self):
         """

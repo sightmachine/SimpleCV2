@@ -99,6 +99,7 @@ def test_screenshot():
         assert crop_img
 
 
+@skipped  # FIXME: runs too long
 def test_tv_denoising():
     try:
         from skimage.filter import denoise_tv_chambolle

@@ -1293,7 +1293,7 @@ class Feature(object):
         >>>    print b.coordinates
 
         """
-        return [self.x, self.y]
+        return self.x, self.y
 
     def draw(self, color=Color.GREEN):
         """
