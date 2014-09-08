@@ -801,10 +801,10 @@ def test_feature_angles_rotate():
     for b in blobs:
         temp = b.crop()
         assert_is_instance(temp, Image)
-        derp = temp.rotate(b.get_angle(), fixed=False)
-        derp.draw_text(str(b.get_angle()), 10, 10, color=Color.RED)
+        derp = temp.rotate(b.angle, fixed=False)
+        derp.draw_text(str(b.angle), 10, 10, color=Color.RED)
         b.rectify_major_axis()
-        assert_is_instance(b.blob_image(), Image)
+        assert_is_instance(b.image, Image)
 
 
 def test_minrect_blobs():
@@ -981,10 +981,10 @@ def test_builtin_rotations():
 def test_blob_full_masks():
     img = Image('lenna')
     b = img.find(Blob)
-    m1 = b[-1].get_full_masked_image()
-    m2 = b[-1].get_full_hull_masked_image()
-    m3 = b[-1].get_full_mask()
-    m4 = b[-1].get_full_hull_mask()
+    m1 = b[-1].full_masked_image
+    m2 = b[-1].full_hull_masked_image
+    m3 = b[-1].full_mask
+    m4 = b[-1].full_hull_mask
     assert_equals(m1.width, img.width)
     assert_equals(m2.width, img.width)
     assert_equals(m3.width, img.width)
@@ -998,16 +998,16 @@ def test_blob_full_masks():
 def test_blob_edge_images():
     img = Image('lenna')
     b = img.find(Blob)
-    m1 = b[-1].get_edge_image()
+    m1 = b[-1].edge_image
     assert_is_instance(m1, Image)
     assert_equals(m1.size, img.size)
-    m2 = b[-1].get_hull_edge_image()
+    m2 = b[-1].hull_edge_image
     assert_is_instance(m2, Image)
     assert_equals(m1.size, img.size)
-    m3 = b[-1].get_full_edge_image()
+    m3 = b[-1].full_edge_image
     assert_is_instance(m3, Image)
     assert_equals(m3.size, img.size)
-    m4 = b[-1].get_full_hull_edge_image()
+    m4 = b[-1].full_hull_edge_image
     assert_is_instance(m4, Image)
     assert_equals(m4.size, img.size)
 

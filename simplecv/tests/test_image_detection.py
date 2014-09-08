@@ -268,7 +268,7 @@ def test_find_skintone_blobs():
     blobs = Blob.find_from_skintone(img)
     for b in blobs:
         assert_greater(b.area, 0)
-        assert_greater(b.get_perimeter(), 0)
+        assert_greater(b.perimeter, 0)
         assert_greater(b.avg_color[0], 0)
         assert_greater(b.avg_color[1], 0)
         assert_greater(b.avg_color[2], 0)

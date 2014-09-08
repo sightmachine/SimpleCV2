@@ -55,7 +55,7 @@ def test_blobmaker_blob_data():
     assert_equals(7, len(blobs))
     for b in blobs:
         assert b.area > 0
-        assert b.get_perimeter() > 0
+        assert b.perimeter > 0
         assert sum(b.avg_color) > 0
         assert sum(b.bounding_box) > 0
         assert b.m00 != 0
@@ -82,10 +82,10 @@ def test_blobmaker_blob_methods():
         assert_is_instance(b.min_x, int)
         assert_is_instance(b.max_y, int)
         assert_is_instance(b.min_y, int)
-        assert_is_instance(b.min_rect_width(), float)
-        assert_is_instance(b.min_rect_height(), float)
-        assert_is_instance(b.min_rect_x(), float)
-        assert_is_instance(b.min_rect_y(), float)
+        assert_is_instance(b.min_rect_width, float)
+        assert_is_instance(b.min_rect_height, float)
+        assert_is_instance(b.min_rect_x, float)
+        assert_is_instance(b.min_rect_y, float)
         assert_is_instance(b.contour, list)
         assert_is_instance(b.aspect_ratio, float)
         assert_is_instance(b.angle, float)
@@ -96,12 +96,12 @@ def test_blobmaker_blob_methods():
         assert_is_instance(b.contains(first), bool)
         assert_is_instance(b.overlaps(first), bool)
 
-        assert_is_instance(b.blob_image(), Image)
-        assert_is_instance(b.blob_mask(), Image)
-        assert_is_instance(b.get_hull_img(), Image)
-        assert_is_instance(b.get_hull_mask(), Image)
+        assert_is_instance(b.image, Image)
+        assert_is_instance(b.mask, Image)
+        assert_is_instance(b.hull_img, Image)
+        assert_is_instance(b.hull_mask, Image)
         b.rectify_major_axis()
-        assert_is_instance(b.blob_image(), Image)
-        assert_is_instance(b.blob_mask(), Image)
-        assert_is_instance(b.get_hull_img(), Image)
-        assert_is_instance(b.get_hull_mask(), Image)
+        assert_is_instance(b.image, Image)
+        assert_is_instance(b.mask, Image)
+        assert_is_instance(b.hull_img, Image)
+        assert_is_instance(b.hull_mask, Image)

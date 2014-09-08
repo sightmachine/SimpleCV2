@@ -329,7 +329,7 @@ def test_shape_context_descriptor():
     blobs = img.find(Blob)
     blob = blobs[-1]
 
-    shape_context_descriptors = blob.get_shape_context()
+    shape_context_descriptors = blob.shape_context
     shape_context_descriptor = shape_context_descriptors[0]
     shape_context_descriptor.draw(width=4)
 

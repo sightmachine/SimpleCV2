@@ -7,7 +7,7 @@ import numpy as np
 import scipy.spatial.distance as spsd
 import scipy.stats as sps
 
-from simplecv.base import LazyProperty, logger, lazyproperty
+from simplecv.base import logger, lazyproperty, force_update_lazyproperties
 from simplecv.color import Color
 from simplecv.core.pluginsystem import apply_plugins
 from simplecv.factory import Factory
@@ -68,14 +68,7 @@ class Blob(Feature):
     label = ""  # A user label
     label_color = []  # what color to draw the label
     avg_color = []  # The average color of the blob's area.
-    #img =  '' #Image()# the segmented image of the blob
-    #hull_img = '' # Image() the image from the hull.
-    #mask = '' #Image()# A mask of the blob area
-    # A mask of the hull area ... we may want to use this for the image mask.
-    #xmHullMask = '' #Image()
     hole_contour = []  # list of hole contours
-    #mVertEdgeHist = [] #vertical edge histogram
-    #mHortEdgeHist = [] #horizontal edge histgram
     pickle_skip_properties = {'img', 'hull_img', 'mask', 'hull_mask'}
 
     def __init__(self):
@@ -137,66 +130,6 @@ class Blob(Feature):
         """
         return self.min_rectangle[1][0] / self.min_rectangle[1][1]
 
-    def get_perimeter(self):
-        """
-        **SUMMARY**
-
-        This function returns the get_perimeter as an integer number of pixel
-        lengths.
-
-        **RETURNS**
-
-        Integer
-
-        **EXAMPLE**
-
-        >>> img = Image("lenna")
-        >>> blobs = img.find_blobs()
-        >>> print blobs[-1].get_get_perimeter()
-
-        """
-
-        return self.perimeter
-
-    def hull(self):
-        """
-        **SUMMARY**
-
-        This function returns the convex hull points as a list of x,y tuples.
-
-        **RETURNS**
-
-        A list of x,y tuples.
-
-        **EXAMPLE**
-
-        >>> img = Image("lenna")
-        >>> blobs = img.find_blobs()
-        >>> print blobs[-1].hull()
-
-        """
-        return self.convex_hull
-
-    def get_contour(self):
-        """
-        **SUMMARY**
-
-        This function returns the get_contour points as a list of x,y tuples.
-
-        **RETURNS**
-
-        A list of x,y tuples.
-
-        **EXAMPLE**
-
-        >>> img = Image("lenna")
-        >>> blobs = img.find_blobs()
-        >>> print blobs[-1].get_get_contour()
-
-        """
-
-        return self.contour
-
     @lazyproperty
     def mean_color(self):
         """
@@ -219,7 +152,7 @@ class Blob(Feature):
         box_img = self.image.crop(*self.bounding_box)
         return box_img.mean_color()
 
-
+    @lazyproperty
     def min_rect(self):
         """
         Returns the corners for the smallest rotated rectangle to enclose the
@@ -230,10 +163,10 @@ class Blob(Feature):
         #else:
         #    ang =  90 + self.min_rectangle[2]
         ang = 2 * pi * (float(ang) / 360.00)
-        tx = self.min_rect_x()
-        ty = self.min_rect_y()
-        w = self.min_rect_width() / 2.0
-        h = self.min_rect_height() / 2.0
+        tx = self.min_rect_x
+        ty = self.min_rect_y
+        w = self.min_rect_width / 2.0
+        h = self.min_rect_height / 2.0
         derp = np.matrix(
             [[cos(ang), -1 * sin(ang), tx], [sin(ang), cos(ang), ty],
              [0, 0, 1]])
@@ -328,13 +261,14 @@ class Blob(Feature):
         """
         if layer is None:
             layer = self.image.dl()
-        (tl, tr, bl, br) = self.min_rect()
+        (tl, tr, bl, br) = self.min_rect
         layer.line(tl, tr, color, width=width, alpha=alpha, antialias=False)
         layer.line(bl, br, color, width=width, alpha=alpha, antialias=False)
         layer.line(tl, bl, color, width=width, alpha=alpha, antialias=False)
         layer.line(tr, br, color, width=width, alpha=alpha, antialias=False)
 
-    def get_angle(self):
+    @lazyproperty
+    def angle(self):
         """
         **SUMMARY**
 
@@ -366,6 +300,7 @@ class Blob(Feature):
             ret_val -= 180.00
         return ret_val
 
+    @property
     def min_rect_x(self):
         """
         **SUMMARY**
@@ -387,6 +322,7 @@ class Blob(Feature):
         """
         return self.min_rectangle[0][0]
 
+    @property
     def min_rect_y(self):
         """
         **SUMMARY**
@@ -408,6 +344,7 @@ class Blob(Feature):
         """
         return self.min_rectangle[0][1]
 
+    @property
     def min_rect_width(self):
         """
         **SUMMARY**
@@ -428,6 +365,7 @@ class Blob(Feature):
         """
         return self.min_rectangle[1][0]
 
+    @property
     def min_rect_height(self):
         """
         **SUMMARY**
@@ -477,14 +415,15 @@ class Blob(Feature):
         >>> blobs[-2].img.show()
 
         """
-        final_rotation = self.get_angle()
-        if self.min_rect_width() > self.min_rect_height():
+        final_rotation = self.angle
+        if self.min_rect_width > self.min_rect_height:
             final_rotation = final_rotation
 
         if axis > 0:
             final_rotation -= 90
 
         self.rotate(final_rotation)
+        force_update_lazyproperties(self)
 
     def rotate(self, angle):
         """
@@ -521,9 +460,6 @@ class Blob(Feature):
         mode = ""
         point = (self.x, self.y)
         self.image = self.image.rotate(angle, mode, point)
-        self.hull_img = self.hull_img.rotate(angle, mode, point)
-        self.mask = self.mask.rotate(angle, mode, point)
-        self.hull_mask = self.hull_mask.rotate(angle, mode, point)
 
         self.contour = map(lambda x:
                            (x[0] * np.cos(theta) - x[1] * np.sin(theta),
@@ -540,6 +476,8 @@ class Blob(Feature):
                         (x[0] * np.cos(theta) - x[1] * np.sin(theta),
                          x[0] * np.sin(theta) + x[1] * np.cos(theta)),
                         h)
+
+        force_update_lazyproperties(self)
 
     def draw_appx(self, color=Color.HOTPINK, width=-1, alpha=-1, layer=None):
         if self.contour_appx is None or len(self.contour_appx) == 0:
@@ -838,10 +776,11 @@ class Blob(Feature):
         >>>     print "it is hip to be square."
 
         """
-        if self.rectangle_distance() < tolerance:
+        if self.rectangle_distance < tolerance:
             return True
         return False
 
+    @lazyproperty
     def rectangle_distance(self):
         """
         **SUMMARY**
@@ -857,7 +796,7 @@ class Blob(Feature):
         """
         _, whitecount = self.hull_mask.histogram(2)
         return abs(1.0 - float(whitecount) / (
-            self.min_rect_width() * self.min_rect_height()))
+            self.min_rect_width * self.min_rect_height))
 
     def is_circle(self, tolerance=0.05):
         """
@@ -907,6 +846,7 @@ class Blob(Feature):
         _, numwhite = netdiff.histogram(2)
         return float(numwhite) / (radius * radius * np.pi)
 
+    @property
     def centroid(self):
         """
         **SUMMARY**
@@ -922,12 +862,13 @@ class Blob(Feature):
         >>> img = Image("lenna")
         >>> blobs = img.find_blobs()
         >>> img.draw_circle((blobs[-1].x, blobs[-1].y), 10, color=Color.RED)
-        >>> img.draw_circle((blobs[-1].centroid()), 10, color=Color.BLUE)
+        >>> img.draw_circle((blobs[-1].centroid), 10, color=Color.BLUE)
         >>> img.show()
 
         """
         return self.m10 / self.m00, self.m01 / self.m00
 
+    @lazyproperty
     def radius(self):
         """
         **SUMMARY**
@@ -935,17 +876,18 @@ class Blob(Feature):
         Return the radius, the avg distance of each get_contour point from the
         centroid
         """
-        return float(np.mean(spsd.cdist(self.contour, [self.centroid()])))
+        return float(np.mean(spsd.cdist(self.contour, [self.centroid])))
 
+    @lazyproperty
     def hull_radius(self):
         """
         **SUMMARY**
 
         Return the radius of the convex hull get_contour from the centroid
         """
-        return float(np.mean(spsd.cdist(self.convex_hull, [self.centroid()])))
+        return float(np.mean(spsd.cdist(self.convex_hull, [self.centroid])))
 
-    @LazyProperty
+    @lazyproperty
     def img(self):
         #  NOTE THAT THIS IS NOT PERFECT - ISLAND WITH A LAKE WITH AN ISLAND
         #  WITH A LAKE STUFF
@@ -957,7 +899,7 @@ class Blob(Feature):
         array[mask] = roi_img.ndarray[mask]
         return Factory.Image(array)
 
-    @LazyProperty
+    @lazyproperty
     def mask(self):
         # TODO: FIX THIS SO THAT THE INTERIOR CONTOURS GET SHIFTED AND DRAWN
 
@@ -980,7 +922,7 @@ class Blob(Feature):
                 cv2.fillPoly(ret_value, pts=holes, color=(0, 0, 0), lineType=8)
         return Factory.Image(ret_value)
 
-    @LazyProperty
+    @lazyproperty
     def hull_img(self):
         tlc = self.top_left_corner
         roi = (tlc[0], tlc[1], self.width, self.height)
@@ -990,7 +932,7 @@ class Blob(Feature):
         array[mask] = roi_img[mask]
         return Factory.Image(array)
 
-    @LazyProperty
+    @lazyproperty
     def hull_mask(self):
         ret_value = np.zeros((self.height, self.width, 3),
                              dtype=np.uint8)
@@ -1000,94 +942,6 @@ class Blob(Feature):
                          dtype=np.int32)
         cv2.fillPoly(ret_value, pts=array, color=(255, 255, 255), lineType=8)
         return Factory.Image(ret_value)
-
-    def get_hull_img(self):
-        """
-        **SUMMARY**
-
-        The convex hull of a blob is the shape that would result if you snapped
-        a rubber band around the blob. So if you had the letter "C" as your
-        blob the convex hull would be the letter "O."
-        This method returns an image where the source image around the convex
-        hull of the blob is copied on top a black background.
-
-        **RETURNS**
-        Returns a SimpleCV Image of the convex hull, cropped to fit.
-
-        >>> img = Image("lenna")
-        >>> blobs = img.find_blobs()
-        >>> blobs[-1].get_hull_img().show()
-
-        """
-        return self.hull_img
-
-    def get_hull_mask(self):
-        """
-        **SUMMARY**
-
-        The convex hull of a blob is the shape that would result if you snapped
-        a rubber band around the blob. So if you had the letter "C" as your
-        blob the convex hull would be the letter "O."
-        This method returns an image where the area of the convex hull is white
-        and the rest of the image is black. This image is cropped to the size
-        of the blob.
-
-        **RETURNS**
-
-        Returns a binary SimpleCV image of the convex hull mask, cropped to
-        fit the blob.
-
-        **EXAMPLE**
-
-        >>> img = Image("lenna")
-        >>> blobs = img.find_blobs()
-        >>> blobs[-1].get_hull_mask().show()
-
-        """
-        return self.hull_mask
-
-    def blob_image(self):
-        """
-        **SUMMARY**
-
-        This method automatically copies all of the image data around the blob
-        and puts it in a new image. The resulting image has the size of the
-        blob, with the blob data copied in place. Where the blob is not present
-        the background is black.
-
-        **RETURNS**
-
-        Returns just the image of the blob (cropped to fit).
-
-        **EXAMPLE**
-
-        >>> img = Image("lenna")
-        >>> blobs = img.find_blobs()
-        >>> blobs[-1].blob_image().show()
-
-        """
-        return self.image
-
-    def blob_mask(self):
-        """
-        **SUMMARY**
-
-        This method returns an image of the blob's mask. Areas where the blob
-        are present are white while all other areas are black. The image is
-        cropped to match the blob area.
-
-        **RETURNS**
-
-        Returns a SimplecV image of the blob's mask, cropped to fit.
-
-        **EXAMPLE**
-
-        >>> img = Image("lenna")
-        >>> blobs = img.find_blobs()
-        >>> blobs[-1].blob_mask().show()
-
-        """
-        return self.mask
 
     def match(self, otherblob):
         """
@@ -1133,7 +987,8 @@ class Blob(Feature):
 
         return np.sum(abs((1 / my_m - 1 / other_m)))
 
-    def get_full_masked_image(self):
+    @lazyproperty
+    def full_masked_image(self):
         """
         Get the full size image with the masked to the blob
         """
@@ -1147,7 +1002,8 @@ class Blob(Feature):
         ret_value_roi[mask] = img_roi[mask]
         return Factory.Image(ret_value)
 
-    def get_full_hull_masked_image(self):
+    @lazyproperty
+    def full_hull_masked_image(self):
         """
         Get the full size image with the masked to the blob
         """
@@ -1161,7 +1017,8 @@ class Blob(Feature):
         ret_value_roi[mask] = img_roi[mask]
         return Factory.Image(ret_value)
 
-    def get_full_mask(self):
+    @lazyproperty
+    def full_mask(self):
         """
         Get the full sized image mask
         """
@@ -1173,7 +1030,8 @@ class Blob(Feature):
         ret_value[Factory.Image.roi_to_slice(roi)] = mask
         return Factory.Image(ret_value)
 
-    def get_full_hull_mask(self):
+    @lazyproperty
+    def full_hull_mask(self):
         """
         Get the full sized image hull mask
         """
@@ -1185,7 +1043,8 @@ class Blob(Feature):
         ret_value[Factory.Image.roi_to_slice(roi)] = mask
         return Factory.Image(ret_value)
 
-    def get_hull_edge_image(self):
+    @lazyproperty
+    def hull_edge_image(self):
         ret_value = np.zeros((self.image.height, self.image.width, 3),
                              dtype=np.uint8)
         tlc = self.top_left_corner
@@ -1196,14 +1055,16 @@ class Blob(Feature):
                       color=(255, 255, 255))
         return Factory.Image(ret_value)
 
-    def get_full_hull_edge_image(self):
+    @lazyproperty
+    def full_hull_edge_image(self):
         ret_value = np.zeros((self.image.height, self.image.width, 3),
                              dtype=np.uint8)
         cv2.polylines(ret_value, pts=[np.int32(self.convex_hull)], isClosed=1,
                       color=(255, 255, 255))
         return Factory.Image(ret_value)
 
-    def get_edge_image(self):
+    @lazyproperty
+    def edge_image(self):
         """
         Get the edge image for the outer get_contour (no inner holes)
         """
@@ -1214,7 +1075,8 @@ class Blob(Feature):
         cv2.polylines(ret_value, [np.int32(translate)], 1, (255, 255, 255))
         return Factory.Image(ret_value)
 
-    def get_full_edge_image(self):
+    @lazyproperty
+    def full_edge_image(self):
         """
         Get the edge image within the full size image.
         """
@@ -1328,7 +1190,8 @@ class Blob(Feature):
         self._scdescriptors = descriptors
         return descriptors
 
-    def get_shape_context(self):
+    @lazyproperty
+    def shape_context(self):
         """
         Return the shape context descriptors as a featureset. Corrently
         this is not used for recognition but we will perhaps use it soon.
@@ -1474,6 +1337,7 @@ class Blob(Feature):
             features = FeatureSet([lines, farpoints])
             return features
 
+    @lazyproperty
     def bounding_circle(self):
         """
         **SUMMARY**

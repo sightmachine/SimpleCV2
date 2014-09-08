@@ -22,7 +22,7 @@ def test_hull():
     img = Image(source="lenna")
     blobs = img.find(Blob)
     blob = blobs[-1]
-    chull = blob.hull()
+    chull = blob.convex_hull
 
 
 def test_blob_draw_rect():
@@ -51,7 +51,7 @@ def test_blob_rectify_major_axis():
 
     blobs1 = img.find(Blob)
     blobs1_1 = blobs1[-1]
-    blobs1_1.rotate(blobs1_1.get_angle())
+    blobs1_1.rotate(blobs1_1.angle)
     blobs1_2 = blobs[-2]
     blobs1_2.rectify_major_axis(1)
 
@@ -155,7 +155,7 @@ def test_blob_centroid():
     blobs = img.find(Blob)
     blob = blobs[0]
 
-    assert_equals(blob.centroid(), (199.5, 199.5))
+    assert_equals(blob.centroid, (199.5, 199.5))
 
 
 def test_blob_radius():
@@ -166,7 +166,7 @@ def test_blob_radius():
     blobs = img.find(Blob)
     blob = blobs[0]
 
-    assert_equals(int(blob.radius()), 140)
+    assert_equals(int(blob.radius), 140)
 
 
 def test_blob_hull_radius():
@@ -177,7 +177,7 @@ def test_blob_hull_radius():
     blobs = img.find(Blob)
     blob = blobs[0]
 
-    assert_equals(int(blob.hull_radius()), 140)
+    assert_equals(int(blob.hull_radius), 140)
 
 
 def test_blob_match():
@@ -261,4 +261,4 @@ def test_get_shape_context():
 
     blobs = img.find(Blob)
     blob0 = blobs[0]
-    blob0.get_shape_context()
+    blob0.shape_context
