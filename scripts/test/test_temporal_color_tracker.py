@@ -34,5 +34,5 @@ while disp.isNotDone():
     roi.draw(width=3)
     img.draw_text(str(result),20,20,color=Color.RED,fontsize=32)
     img = img.apply_layers()
-    img = img.blit(plotImg.resize(w=img.width,h=img.height),pos=(0,0),alpha=0.5)
+    img = img.blit(plotImg.resize(width=img.width, height=img.height),pos=(0,0),alpha=0.5)
     img.save(disp)

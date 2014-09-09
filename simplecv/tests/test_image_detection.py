@@ -405,7 +405,7 @@ def test_find_template_once():
 
 def test_find_circles():
     img = Image(circles)
-    circs = img.find(Circle, thresh=85)
+    circs = img.find(Circle, threshold=85)
     assert_greater(len(circs), 0)
     circs.draw()
     assert circs[0] >= 1

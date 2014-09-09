@@ -42,14 +42,14 @@ class BlobMaker(object):
         ret_value = sorted(blobs, key=lambda x: x.area, reverse=True)
         return FeatureSet(ret_value)
 
-    def extract(self, img, threshval=127, minsize=10, maxsize=0,
+    def extract(self, img, threshold=127, minsize=10, maxsize=0,
                 threshblocksize=3, threshconstant=5):
         """
         This method performs a threshold operation on the input image and then
         extracts and returns the blobs.
         img       - The input image (color or b&w)
-        threshval - The threshold value for the binarize operation.
-         If threshval = -1 adaptive thresholding is used
+        threshold - The threshold value for the binarize operation.
+         If threshold = -1 adaptive thresholding is used
         minsize   - The minimum blob size in pixels.
         maxsize   - The maximum blob size in pixels. 0=uses the default value.
         threshblocksize - The adaptive threhold block size.
@@ -61,7 +61,7 @@ class BlobMaker(object):
         #create a single channel image, thresholded to parameters
 
         blobs = self.extract_from_binary(
-            img.binarize(thresh=threshval, maxv=255, blocksize=threshblocksize,
+            img.binarize(threshold=threshold, maxv=255, blocksize=threshblocksize,
                          p=threshconstant, inverted=True).invert(), color_img=img,
             minsize=minsize, maxsize=maxsize)
         ret_value = sorted(blobs, key=lambda x: x.area, reverse=True)

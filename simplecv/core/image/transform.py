@@ -45,17 +45,17 @@ def scale(img, ratio, interpolation=cv2.INTER_LINEAR):
 
 
 @image_method
-def resize(img, w=None, h=None, interpolation=cv2.INTER_LINEAR):
+def resize(img, width=None, height=None, interpolation=cv2.INTER_LINEAR):
     """
     This method resizes an image based on a width, a height, or both.
     If either width or height is not provided the value is inferred by
     keeping the aspect ratio.
     If both values are provided then the image is resized accordingly.
 
-    :param w: The width of the output image in pixels.
-    :type w: int
-    :param h: The height of the output image in pixels.
-    :type h: int
+    :param width: The width of the output image in pixels.
+    :type width: int
+    :param height: The height of the output image in pixels.
+    :type height: int
 
     :returns: instance of :class:simplecv.core.image.Image or if the size
     is invalid a warning is issued and None is returned.
@@ -63,28 +63,28 @@ def resize(img, w=None, h=None, interpolation=cv2.INTER_LINEAR):
     **EXAMPLE**
 
     >>> img = Image("lenna")
-    >>> img2 = img.resize(w=1024)  # h is guessed from w
-    >>> img3 = img.resize(h=1024)  # w is guessed from h
-    >>> img4 = img.resize(w=200, h=100)
+    >>> img2 = img.resize(width=1024)  # h is guessed from w
+    >>> img3 = img.resize(height=1024)  # w is guessed from h
+    >>> img4 = img.resize(width=200, height=100)
 
     :py:meth:`scale`
     """
-    if w is None and h is None:
+    if width is None and height is None:
         logger.warning("Image.resize has no parameters. "
                        "No operation is performed")
         return None
-    elif w is not None and h is None:
-        sfactor = float(w) / float(img.width)
-        h = int(sfactor * float(img.height))
-    elif w is None and h is not None:
-        sfactor = float(h) / float(img.height)
-        w = int(sfactor * float(img.width))
-    if max(w, h) > MAX_DIMENSION:
+    elif width is not None and height is None:
+        sfactor = float(width) / float(img.width)
+        height = int(sfactor * float(img.height))
+    elif width is None and height is not None:
+        sfactor = float(height) / float(img.height)
+        width = int(sfactor * float(img.width))
+    if max(width, height) > MAX_DIMENSION:
         logger.warning("Image.resize Holy Heck! You tried to make an "
                        "image really big or impossibly small. "
                        "I can't scale that")
         return None
-    saceld_array = cv2.resize(img.ndarray, dsize=(w, h),
+    saceld_array = cv2.resize(img.ndarray, dsize=(width, height),
                               interpolation=interpolation)
     return Factory.Image(saceld_array, color_space=img.color_space)
 
@@ -513,7 +513,8 @@ def split(img, cols, rows):
 
 
 @image_method
-def crop(img, x, y=None, w=None, h=None, centered=False, smart=False):
+def crop(img, x, y=None, width=None, height=None,
+         centered=False, smart=False):
     """
     **SUMMARY**
 
@@ -522,10 +523,10 @@ def crop(img, x, y=None, w=None, h=None, centered=False, smart=False):
         (x,y)
         +--------------+
         |              |
-        |              |h
+        |              |height
         |              |
         +--------------+
-              w      (x1,y1)
+              width  (x1,y1)
 
 
     Crop attempts to use the x and y position variables and the w and h
@@ -552,8 +553,8 @@ def crop(img, x, y=None, w=None, h=None, centered=False, smart=False):
     * *y* - The y coordinate of the center, or top left corner  of the
             crop region.
           - Otherwise in two point form. i,e (x1,y1)
-    * *w* - Int - the width of the cropped region in pixels.
-    * *h* - Int - the height of the cropped region in pixels.
+    * *width* - Int - the width of the cropped region in pixels.
+    * *height* - Int - the height of the cropped region in pixels.
     * *centered*  - Boolean - if True we treat the crop region as being
       the center coordinate and a width and height. If false we treat it as
       the top left corner of the crop region.
@@ -593,10 +594,10 @@ def crop(img, x, y=None, w=None, h=None, centered=False, smart=False):
             y = img.height
         elif y < 0:
             y = 0
-        elif (x + w) > img.width:
-            w = img.width - x
-        elif (y + h) > img.height:
-            h = img.height - y
+        elif (x + width) > img.width:
+            width = img.width - x
+        elif (y + height) > img.height:
+            height = img.height - y
 
     if isinstance(x, np.ndarray):
         x = x.tolist()
@@ -608,13 +609,13 @@ def crop(img, x, y=None, w=None, h=None, centered=False, smart=False):
         feature = x
         x = feature.points[0][0]
         y = feature.points[0][1]
-        w = feature.width
-        h = feature.height
+        width = feature.width
+        height = feature.height
 
     elif isinstance(x, (tuple, list)) and len(x) == 4 \
             and isinstance(x[0], (int, long, float)) \
-            and y is None and w is None and h is None:
-        x, y, w, h = x
+            and y is None and width is None and height is None:
+        x, y, width, height = x
     # x of the form [(x,y),(x1,y1),(x2,y2),(x3,y3)]
     # x of the form [[x,y],[x1,y1],[x2,y2],[x3,y3]]
     # x of the form ([x,y],[x1,y1],[x2,y2],[x3,y3])
@@ -623,7 +624,7 @@ def crop(img, x, y=None, w=None, h=None, centered=False, smart=False):
     elif isinstance(x, (list, tuple)) \
             and isinstance(x[0], (list, tuple)) \
             and (len(x) == 4 and len(x[0]) == 2) \
-            and y is None and w is None and h is None:
+            and y is None and width is None and height is None:
         if len(x[0]) == 2 and len(x[1]) == 2 \
                 and len(x[2]) == 2 and len(x[3]) == 2:
             xmax = np.max([x[0][0], x[1][0], x[2][0], x[3][0]])
@@ -632,8 +633,8 @@ def crop(img, x, y=None, w=None, h=None, centered=False, smart=False):
             ymin = np.min([x[0][1], x[1][1], x[2][1], x[3][1]])
             x = xmin
             y = ymin
-            w = xmax - xmin
-            h = ymax - ymin
+            width = xmax - xmin
+            height = ymax - ymin
         else:
             logger.warning("x should be in the form  "
                            "((x,y),(x1,y1),(x2,y2),(x3,y3))")
@@ -651,8 +652,8 @@ def crop(img, x, y=None, w=None, h=None, centered=False, smart=False):
             ymin = np.min(y)
             x = xmin
             y = ymin
-            w = xmax - xmin
-            h = ymax - ymin
+            width = xmax - xmin
+            height = ymax - ymin
         else:
             logger.warning("x should be in the form "
                            "x = [1, 2, 3, 4, 5] y = [0, 2, 4, 6, 8]")
@@ -660,7 +661,7 @@ def crop(img, x, y=None, w=None, h=None, centered=False, smart=False):
 
     # x of the form [(x,y),(x,y),(x,y),(x,y),(x,y),(x,y)]
     elif isinstance(x, (list, tuple)) and len(x) > 4 \
-            and len(x[0]) == 2 and y is None and w is None and h is None:
+            and len(x[0]) == 2 and y is None and width is None and height is None:
         if isinstance(x[0][0], (int, long, float)):
             xs = [pt[0] for pt in x]
             ys = [pt[1] for pt in x]
@@ -670,8 +671,8 @@ def crop(img, x, y=None, w=None, h=None, centered=False, smart=False):
             ymin = np.min(ys)
             x = xmin
             y = ymin
-            w = xmax - xmin
-            h = ymax - ymin
+            width = xmax - xmin
+            height = ymax - ymin
         else:
             logger.warning("x should be in the form "
                            "[(x,y),(x,y),(x,y),(x,y),(x,y),(x,y)]")
@@ -681,12 +682,12 @@ def crop(img, x, y=None, w=None, h=None, centered=False, smart=False):
     elif isinstance(x, (list, tuple)) and len(x) == 2 \
             and isinstance(x[0], (list, tuple)) \
             and isinstance(x[1], (list, tuple)) \
-            and y is None and w is None and h is None:
+            and y is None and width is None and height is None:
         if len(x[0]) == 2 and len(x[1]) == 2:
             xt = np.min([x[0][0], x[1][0]])
             yt = np.min([x[0][1], x[1][1]])
-            w = np.abs(x[0][0] - x[1][0])
-            h = np.abs(x[0][1] - x[1][1])
+            width = np.abs(x[0][0] - x[1][0])
+            height = np.abs(x[0][1] - x[1][1])
             x = xt
             y = yt
         else:
@@ -695,12 +696,12 @@ def crop(img, x, y=None, w=None, h=None, centered=False, smart=False):
 
     # x and y of the form (x,y),(x1,y2)
     elif isinstance(x, (tuple, list)) and isinstance(y, (tuple, list)) \
-            and w is None and h is None:
+            and width is None and height is None:
         if len(x) == 2 and len(y) == 2:
             xt = np.min([x[0], y[0]])
             yt = np.min([x[1], y[1]])
-            w = np.abs(y[0] - x[0])
-            h = np.abs(y[1] - x[1])
+            width = np.abs(y[0] - x[0])
+            height = np.abs(y[1] - x[1])
             x = xt
             y = yt
 
@@ -709,10 +710,10 @@ def crop(img, x, y=None, w=None, h=None, centered=False, smart=False):
                            "(x1,y1) and (x2,y2)")
             return None
 
-    if y is None or w is None or h is None:
+    if y is None or width is None or height is None:
         print "Please provide an x, y, width, height to function"
 
-    if w <= 0 or h <= 0:
+    if width <= 0 or height <= 0:
         logger.warning("Can't do a negative crop!")
         return None
 
@@ -722,9 +723,9 @@ def crop(img, x, y=None, w=None, h=None, centered=False, smart=False):
                        "may not be what you want them to be.")
 
     if centered:
-        rectangle = (int(x - (w / 2)), int(y - (h / 2)), int(w), int(h))
+        rectangle = (int(x - (width / 2)), int(y - (height / 2)), int(width), int(height))
     else:
-        rectangle = (int(x), int(y), int(w), int(h))
+        rectangle = (int(x), int(y), int(width), int(height))
 
     (top_roi, bottom_roi) = img.rect_overlap_rois(
         (rectangle[2], rectangle[3]), (img.width, img.height),
@@ -843,7 +844,7 @@ def adaptive_scale(img, resolution, fit=True):
         ret_val = img
         return ret_val
     elif img_ar == wndw_ar and fit:
-        ret_val = img.resize(w=resolution[0], h=resolution[1])
+        ret_val = img.resize(width=resolution[0], height=resolution[1])
         return ret_val
     elif fit:
         #scale factors
@@ -883,7 +884,7 @@ def adaptive_scale(img, resolution, fit=True):
             else:
                 targetx = 0
                 targety = (resolution[1] - targeth) / 2
-            img = img.resize(w=targetw, h=targeth)
+            img = img.resize(width=targetw, height=targeth)
         else:  # the height has more distortion
             sfactor = float(resolution[1]) / float(img.height)
             targetw = int(float(img.width) * sfactor)
@@ -898,7 +899,7 @@ def adaptive_scale(img, resolution, fit=True):
             else:
                 targetx = (resolution[0] - targetw) / 2
                 targety = 0
-            img = img.resize(w=targetw, h=targeth)
+            img = img.resize(width=targetw, height=targeth)
 
     else:  # we're going to crop instead
         # center a too small image
@@ -1119,13 +1120,13 @@ def side_by_side(image1, image2, side="right", scale=True):
     elif side == "bottom":
         if image1.width > image2.width:
             # scale the other image width to fit
-            resized = image2.resize(w=image1.width) \
+            resized = image2.resize(width=image1.width) \
                 if scale else image2
             topimage = image1
             w = image1.width
         else:  # our width is smaller than the other image
             # scale the other image width to fit
-            topimage = image1.resize(w=image2.width) \
+            topimage = image1.resize(width=image2.width) \
                 if scale else image1
             resized = image2
             w = image2.width
@@ -1148,13 +1149,13 @@ def side_by_side(image1, image2, side="right", scale=True):
     else:  # default to left
         if image1.height > image2.height:
             # scale the other image height to fit
-            resized = image2.resize(h=image1.height) \
+            resized = image2.resize(height=image1.height) \
                 if scale else image2
             rightimage = image1
             h = rightimage.height
         else:  # our height is smaller than the other image
             #scale our height to fit
-            rightimage = image1.resize(h=image2.height) \
+            rightimage = image1.resize(height=image2.height) \
                 if scale else image1
             h = image2.height
             resized = image2

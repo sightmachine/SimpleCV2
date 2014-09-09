@@ -655,15 +655,15 @@ class DrawingLayer(object):
         self.surface = pg.Surface((int(self.width), int(self.height)),
                                   flags=pg.SRCALPHA)
 
-    def render_to_surface(self, surf):
+    def render_to_surface(self, surface):
         """
         Blit this layer to another surface.
 
         Parameters:
             surf - Pygame Surface
         """
-        surf.blit(self.surface, (0, 0))
-        return surf
+        surface.blit(self.surface, (0, 0))
+        return surface
 
     def render_to_other_layer(self, other_layer):
         """

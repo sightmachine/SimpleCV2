@@ -462,7 +462,7 @@ def test_image_slice():
 def test_blob_spatial_relationships():
     img = Image("../data/sampleimages/spatial_relationships.png")
     # please see the image
-    blobs = img.find(Blob, threshval=1)
+    blobs = img.find(Blob, threshold=1)
     blobs = blobs.sort_area()
 
     center = blobs[-1]
@@ -511,7 +511,7 @@ def test_get_aspectratio():
     img2 = Image("../data/sampleimages/EdgeTest2.png")
     b = img.find(Blob)
     l = img2.find(Line)
-    c = img2.find(Circle, thresh=200)
+    c = img2.find(Circle, threshold=200)
     c2 = img2.find(Corner)
     kp = img2.find(KeyPoint)
     assert_greater(len(b.aspect_ratios()), 0)
@@ -814,7 +814,7 @@ def test_minrect_blobs():
     for i in range(-10, 10):
         ang = float(i * 18.00)
         t = img.rotate(ang)
-        b = t.find(Blob, threshval=128)
+        b = t.find(Blob, threshold=128)
         b[-1].draw_min_rect(color=Color.RED, width=5)
         results.append(t)
 

@@ -45,13 +45,13 @@ for test in testset:
     print "Best Result: " + best
     words = string.split(best,'/')
     words2 = string.split(test.filename,'/')
-    test = test.resize(h=400)
-    true_match = iset[i].resize(h=400)
+    test = test.resize(height=400)
+    true_match = iset[i].resize(height=400)
     # test image, actual match, truth match
-    test2 = scc.imgMap[best].resize(h=400)
+    test2 = scc.imgMap[best].resize(height=400)
     matchImg = test.sideBySide(test2)
     matchImg = matchImg.side_by_side(true_match)
-    matchImg = matchImg.resize(w=1200)
+    matchImg = matchImg.resize(width=1200)
     label = "Matched " + words2[-1] + " with " +  words[-1]
     matchImg.draw_text(label,10,10,color=Color.RED,fontsize=30)
     label = "MatchVal: " + str(np.around(value,4))

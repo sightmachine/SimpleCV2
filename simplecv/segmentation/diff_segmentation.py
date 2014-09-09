@@ -114,9 +114,11 @@ class DiffSegmentation(SegmentationBase):
         and black the background.
         """
         if white_fg:
-            ret_val = self.diff_img.binarize(thresh=self.threshold, inverted=True)
+            ret_val = self.diff_img.binarize(threshold=self.threshold,
+                                             inverted=True)
         else:
-            ret_val = self.diff_img.binarize(thresh=self.threshold, inverted=True).invert()
+            ret_val = self.diff_img.binarize(threshold=self.threshold,
+                                             inverted=True).invert()
         return ret_val
 
     def get_segmented_blobs(self):
@@ -126,7 +128,8 @@ class DiffSegmentation(SegmentationBase):
         ret_val = []
         if self.color_img is not None and self.diff_img is not None:
             ret_val = self.blobmaker.extract_from_binary(
-                self.diff_img.binarize(thresh=self.threshold, inverted=True), self.color_img)
+                self.diff_img.binarize(threshold=self.threshold, inverted=True),
+                self.color_img)
         return ret_val
 
     def __getstate__(self):

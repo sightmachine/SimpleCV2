@@ -6,7 +6,7 @@ from simplecv.core.image import image_method
 
 
 @image_method
-def upload(img, dest, api_key=None, api_secret=None, verbose=True):
+def upload(img, dst, api_key=None, api_secret=None, verbose=True):
     """
     **SUMMARY**
 
@@ -71,7 +71,7 @@ def upload(img, dest, api_key=None, api_secret=None, verbose=True):
       - https://www.dropbox.com/developers/start/setup#python
 
     """
-    if dest == 'imgur':
+    if dst == 'imgur':
         try:
             import pycurl
         except ImportError:
@@ -103,7 +103,7 @@ def upload(img, dest, api_key=None, api_secret=None, verbose=True):
                 print "The API Key given is not valid"
             return None
 
-    elif dest == 'flickr':
+    elif dst == 'flickr':
         global temp_token
         flickr = None
         try:
@@ -143,7 +143,7 @@ def upload(img, dest, api_key=None, api_secret=None, verbose=True):
             img.flickr.upload(tf, "Image")
         return True
 
-    elif dest == 'dropbox':
+    elif dst == 'dropbox':
         global dropbox_token
         access_type = 'dropbox'
         try:

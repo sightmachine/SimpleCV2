@@ -299,11 +299,11 @@ def test_resize():
     assert_equals(w * 2, img2.width)
     assert_equals(h * 2, img2.height)
 
-    img3 = img.resize(h=h * 2)
+    img3 = img.resize(height=h * 2)
     assert_equals(w * 2, img3.width)
     assert_equals(h * 2, img3.height)
 
-    img4 = img.resize(h=h * 2, w=w * 2)
+    img4 = img.resize(height=h * 2, width=w * 2)
     assert_equals(w * 2, img4.width)
     assert_equals(h * 2, img4.height)
 
@@ -311,7 +311,7 @@ def test_resize():
     name_stem = "test_image_resize"
     perform_diff(results, name_stem)
 
-    img5 = img.resize(h=MAX_DIMENSION + 1)
+    img5 = img.resize(height=MAX_DIMENSION + 1)
     assert img5 is None
 
     # w/h None
@@ -331,7 +331,7 @@ def test_image_scale():
 
 def test_image_transpose():
     img = Image("lenna")
-    new_img = img.resize(w=256, h=512)
+    new_img = img.resize(width=256, height=512)
     t_img = new_img.transpose()
     assert_equals(t_img.size, (512, 256))
 

@@ -574,7 +574,7 @@ def integral_image(img, tilted=False):
 
 
 @image_method
-def _get_raw_keypoints(img, thresh=500.00, flavor="SURF", highquality=1,
+def _get_raw_keypoints(img, threshold=500.00, flavor="SURF", highquality=1,
                        force_reset=False):
     """
     .. _get_raw_keypoints:
@@ -698,7 +698,7 @@ def _get_raw_keypoints(img, thresh=500.00, flavor="SURF", highquality=1,
         if flavor == "SURF":
             # cv2.SURF(hessianThreshold, nOctaves,
             #          nOctaveLayers, extended, upright)
-            detector = cv2.SURF(thresh, 4, 2, highquality, 1)
+            detector = cv2.SURF(threshold, 4, 2, highquality, 1)
             img._key_points, img._kp_descriptors = \
                 detector.detectAndCompute(img.gray_ndarray, None, False)
             if len(img._key_points) == 0:
@@ -726,7 +726,7 @@ def _get_raw_keypoints(img, thresh=500.00, flavor="SURF", highquality=1,
         if not hasattr(cv2, "FastFeatureDetector"):
             logger.warn("You need OpenCV >= 2.4.0 to support FAST")
             return None, None
-        detector = cv2.FastFeatureDetector(int(thresh), True)
+        detector = cv2.FastFeatureDetector(int(threshold), True)
         img._key_points = detector.detect(img.gray_ndarray, None)
     elif hasattr(cv2, "FeatureDetector_create"):
         if flavor in _descriptors:

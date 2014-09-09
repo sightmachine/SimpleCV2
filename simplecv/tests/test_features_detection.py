@@ -395,16 +395,16 @@ def test_roi():
     test = new_roi.crop()
     yroi, xroi = np.where(test.gray_ndarray > 128)
     roi_pts = zip(xroi, yroi)
-    real_pts = new_roi.coord_transform_pts(roi_pts)
-    unit_roi = new_roi.coord_transform_pts(roi_pts, output="ROI_UNIT")
-    unit_src = new_roi.coord_transform_pts(roi_pts, output="SRC_UNIT")
-    src1 = new_roi.coord_transform_pts(roi_pts, intype="SRC_UNIT",
+    real_pts = new_roi.coord_transform_points(roi_pts)
+    unit_roi = new_roi.coord_transform_points(roi_pts, output="ROI_UNIT")
+    unit_src = new_roi.coord_transform_points(roi_pts, output="SRC_UNIT")
+    src1 = new_roi.coord_transform_points(roi_pts, input="SRC_UNIT",
                                        output='SRC')
-    src2 = new_roi.coord_transform_pts(roi_pts, intype="ROI_UNIT",
+    src2 = new_roi.coord_transform_points(roi_pts, input="ROI_UNIT",
                                        output='SRC')
-    src3 = new_roi.coord_transform_pts(roi_pts, intype="SRC_UNIT",
+    src3 = new_roi.coord_transform_points(roi_pts, input="SRC_UNIT",
                                        output='ROI')
-    src4 = new_roi.coord_transform_pts(roi_pts, intype="ROI_UNIT",
+    src4 = new_roi.coord_transform_points(roi_pts, input="ROI_UNIT",
                                        output='ROI')
     fs = new_roi.split_x(10)
     fs = new_roi.split_x(.5, unit_vals=True)
@@ -425,8 +425,8 @@ def test_roi():
         test_roi.merge(b)
 
     roi = ROI(100, y=img)
-    roi = ROI(10, 20, 30, h=img)
-    roi = ROI(10, 20, w=img)
+    roi = ROI(10, 20, 30, height=img)
+    roi = ROI(10, 20, width=img)
 
     roi = ROI(10, 20, 50, 50, img)
     roi.resize(2)
@@ -459,8 +459,8 @@ def test_roi():
     assert_equals(roi3.coord_transform_y(50), None)
     assert_equals(roi2.coord_transform_y(20, output="ROI"), [20])
 
-    assert_equals(roi3.coord_transform_pts((20, 40)), None)
-    assert_equals(roi2.coord_transform_pts((20, 40), output="ROI"), [(20, 40)])
+    assert_equals(roi3.coord_transform_points((20, 40)), None)
+    assert_equals(roi2.coord_transform_points((20, 40), output="ROI"), [(20, 40)])
 
     assert_equals(roi2.split_x(0.5, True, True), None)
     assert_equals(roi2.split_x(300, True, False), None)

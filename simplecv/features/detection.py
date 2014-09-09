@@ -1043,7 +1043,7 @@ class TemplateMatch(Feature):
         self.points = [(minx, miny), (minx, maxy), (maxx, maxy), (maxx, miny)]
         force_update_lazyproperties(self)
 
-    def rescale(self, w, h):
+    def rescale(self, width, height):
         """
         This method keeps the feature's center the same but sets a new width
         and height
@@ -1051,14 +1051,14 @@ class TemplateMatch(Feature):
         (maxx, minx, maxy, miny) = self.extents
         xc = minx + ((maxx - minx) / 2)
         yc = miny + ((maxy - miny) / 2)
-        x = xc - (w / 2)
-        y = yc - (h / 2)
+        x = xc - (width / 2)
+        y = yc - (height / 2)
         self.x = x
         self.y = y
         self.points = [(x, y),
-                       (x + w, y),
-                       (x + w, y + h),
-                       (x, y + h)]
+                       (x + width, y),
+                       (x + width, y + height),
+                       (x, y + height)]
         force_update_lazyproperties(self)
 
     def crop(self):
@@ -1499,7 +1499,7 @@ class Circle(Feature):
             return ret_value
 
     @classmethod
-    def find(cls, img, canny=100, thresh=350, distance=-1):
+    def find(cls, img, canny=100, threshold=350, distance=-1):
         """
         **SUMMARY**
 
@@ -1509,7 +1509,7 @@ class Circle(Feature):
 
         **PARAMETERS**
 
-        * *thresh* - the threshold at which to count a circle. Small parts of
+        * *threshold* - the threshold at which to count a circle. Small parts of
           a circle get added to the accumulator array used internally to the
           array. This value is the minimum threshold. Lower thresholds give
           more circles, higher thresholds give fewer circles.
@@ -1540,7 +1540,7 @@ class Circle(Feature):
         circs = cv2.HoughCircles(img.gray_ndarray,
                                  method=cv2.cv.CV_HOUGH_GRADIENT,
                                  dp=2, minDist=distance,
-                                 param1=canny, param2=thresh)
+                                 param1=canny, param2=threshold)
         if circs is None:
             return None
         circle_fs = FeatureSet()
@@ -1865,7 +1865,7 @@ class KeyPoint(Feature):
         """
 
         fs = FeatureSet()
-        kp, d = img._get_raw_keypoints(thresh=min_quality,
+        kp, d = img._get_raw_keypoints(threshold=min_quality,
                                        force_reset=True,
                                        flavor=flavor,
                                        highquality=int(highquality))
@@ -1896,7 +1896,7 @@ class Motion(Feature):
 
     """
 
-    def __init__(self, i, at_x, at_y, dx, dy, wndw):
+    def __init__(self, i, at_x, at_y, dx, dy, window):
         """
         i    - the source image.
         at_x - the sample x pixel position on the image.
@@ -1909,8 +1909,8 @@ class Motion(Feature):
         self.norm_dx = 0.00
         self.dx = dx  # the direction of the vector
         self.dy = dy
-        self.window = wndw  # the size of the sample window
-        sz = wndw / 2
+        self.window = window  # the size of the sample window
+        sz = window / 2
         # so we center at the flow vector
         points = [(at_x + sz, at_y + sz), (at_x - sz, at_y + sz),
                   (at_x + sz, at_y + sz), (at_x + sz, at_y - sz)]
@@ -1948,19 +1948,19 @@ class Motion(Feature):
 
         self.image.dl().line((self.x, self.y), (new_x, new_y), color, width)
 
-    def normalize_to(self, max_mag):
+    def normalize_to(self, max_magnitude):
         """
         **SUMMARY**
 
         This helper method normalizes the vector give an input magnitude.
         This is helpful for keeping the flow vector inside the sample window.
         """
-        if max_mag == 0:
+        if max_magnitude == 0:
             self.norm_dx = 0
             self.norm_dy = 0
             return None
         mag = self.magnitude
-        new_mag = mag / max_mag
+        new_mag = mag / max_magnitude
         unit = self.unit_vector
         self.norm_dx = unit[0] * new_mag
         self.norm_dy = unit[1] * new_mag
@@ -2463,7 +2463,7 @@ class ROI(Feature):
     sub_features = []
     _mean_color = None
 
-    def __init__(self, x, y=None, w=None, h=None, image=None):
+    def __init__(self, x, y=None, width=None, height=None, image=None):
         """
         **SUMMARY**
 
@@ -2478,8 +2478,8 @@ class ROI(Feature):
         * *x* - this can be just about anything, a list or tuple of x points,
         a corner of the image, a list of (x,y) points, a Feature, a FeatureSet
         * *y* - this is usually a second point or set of y values.
-        * *w* - a width
-        * *h* - a height.
+        * *width* - a width
+        * *height* - a height.
 
         **RETURNS**
 
@@ -2498,12 +2498,12 @@ class ROI(Feature):
         if isinstance(y, Factory.Image):
             self.image = y
             y = None
-        elif isinstance(w, Factory.Image):
-            self.image = w
-            w = None
-        elif isinstance(h, Factory.Image):
-            self.image = h
-            h = None
+        elif isinstance(width, Factory.Image):
+            self.image = width
+            width = None
+        elif isinstance(height, Factory.Image):
+            self.image = height
+            height = None
         else:
             self.image = image
 
@@ -2519,13 +2519,13 @@ class ROI(Feature):
                 and isinstance(x, Feature):
             self.sub_features = FeatureSet(x)
 
-        result = self._standardize(x, y, w, h)
+        result = self._standardize(x, y, width, height)
         if result is None:
             logger.warning("Could not create an ROI from your data.")
             return
         self._rebase(result)
 
-    def resize(self, w, h=None, percentage=True):
+    def resize(self, width, height=None, percentage=True):
         """
         **SUMMARY**
 
@@ -2535,9 +2535,9 @@ class ROI(Feature):
 
         **PARAMETERS**
 
-        * *w* - the percent to grow shrink the region is the only parameter,
+        * *width* - the percent to grow shrink the region is the only parameter,
          otherwise it is the new ROI width
-        * *h* - The new roi height in terms of pixels or a percentage.
+        * *height* - The new roi height in terms of pixels or a percentage.
         * *percentage* - If true use percentages (e.g. 2 doubles the size),
          otherwise use pixel values.
         * *h* - a height.
@@ -2553,20 +2553,20 @@ class ROI(Feature):
         >>> roi.show()
 
         """
-        if h is None and isinstance(w, (tuple, list)):
-            h = w[1]
-            w = w[0]
+        if height is None and isinstance(width, (tuple, list)):
+            height = width[1]
+            width = width[0]
         if percentage:
-            if h is None:
-                h = w
-            nw = self.w * w
-            nh = self.h * h
+            if height is None:
+                height = width
+            nw = self.w * width
+            nh = self.h * height
             nx = self.xtl + ((self.w - nw) / 2.0)
             ny = self.ytl + ((self.h - nh) / 2.0)
             self._rebase([nx, ny, nw, nh])
         else:
-            nw = self.w + w
-            nh = self.h + h
+            nw = self.w + width
+            nh = self.h + height
             nx = self.xtl + ((self.w - nw) / 2.0)
             ny = self.ytl + ((self.h - nh) / 2.0)
             self._rebase([nx, ny, nw, nh])
@@ -2867,7 +2867,7 @@ class ROI(Feature):
         return self._transform(y, self.image.height, self.h, self.ytl, intype,
                                output)
 
-    def coord_transform_pts(self, pts, intype="ROI", output="SRC"):
+    def coord_transform_points(self, points, input="ROI", output="SRC"):
         """
         **SUMMARY**
 
@@ -2882,7 +2882,7 @@ class ROI(Feature):
 
         **PARAMETERS**
 
-        * *pts* - A list of (x,y) values or a single (x,y) value.
+        * *points* - A list of (x,y) values or a single (x,y) value.
         * *intype* - A string indicating the input format of the data.
         * *output* - A string indicating the output format of the data.
 
@@ -2897,50 +2897,50 @@ class ROI(Feature):
         >>> blobs = img.find_blobs()
         >>> roi = ROI(blobs[0])
         >>> pts = roi.crop()..... /find some x, y values in the crop region
-        >>> pts = roi.coord_transform_pts(pts)
+        >>> pts = roi.coord_transform_points(pts)
         >>> #yt are no in the space of the original image.
         """
         if self.image is None:
             logger.warning("No image to perform that calculation")
             return None
-        if isinstance(pts, tuple) and len(pts) == 2:
-            pts = [pts]
-        intype = intype.upper()
+        if isinstance(points, tuple) and len(points) == 2:
+            points = [points]
+        input = input.upper()
         output = output.upper()
-        x = [pt[0] for pt in pts]
-        y = [pt[1] for pt in pts]
+        x = [pt[0] for pt in points]
+        y = [pt[1] for pt in points]
 
-        if intype == output:
-            return pts
+        if input == output:
+            return points
 
-        x = self._transform(x, self.image.width, self.w, self.xtl, intype,
+        x = self._transform(x, self.image.width, self.w, self.xtl, input,
                             output)
-        y = self._transform(y, self.image.height, self.h, self.ytl, intype,
+        y = self._transform(y, self.image.height, self.h, self.ytl, input,
                             output)
         return zip(x, y)
 
     @staticmethod
-    def _transform(x, imgsz, roisz, offset, intype, output):
+    def _transform(x, image_size, roi_size, offset, input, output):
         # we are going to go to src unit coordinates
         # and then we'll go back.
-        if intype == "SRC":
-            xtemp = [xt / float(imgsz) for xt in x]
-        elif intype == "ROI":
-            xtemp = [(xt + offset) / float(imgsz) for xt in x]
-        elif intype == "ROI_UNIT":
-            xtemp = [((xt * roisz) + offset) / float(imgsz) for xt in x]
-        elif intype == "SRC_UNIT":
+        if input == "SRC":
+            xtemp = [xt / float(image_size) for xt in x]
+        elif input == "ROI":
+            xtemp = [(xt + offset) / float(image_size) for xt in x]
+        elif input == "ROI_UNIT":
+            xtemp = [((xt * roi_size) + offset) / float(image_size) for xt in x]
+        elif input == "SRC_UNIT":
             xtemp = x
         else:
             logger.warning("Bad Parameter to coord_transform_x")
             return None
 
         if output == "SRC":
-            ret_value = [int(xt * imgsz) for xt in xtemp]
+            ret_value = [int(xt * image_size) for xt in xtemp]
         elif output == "ROI":
-            ret_value = [int((xt * imgsz) - offset) for xt in xtemp]
+            ret_value = [int((xt * image_size) - offset) for xt in xtemp]
         elif output == "ROI_UNIT":
-            ret_value = [int(((xt * imgsz) - offset) / float(roisz)) for xt in
+            ret_value = [int(((xt * image_size) - offset) / float(roi_size)) for xt in
                          xtemp]
         elif output == "SRC_UNIT":
             ret_value = xtemp
@@ -3005,7 +3005,7 @@ class ROI(Feature):
             xstart = x[i]
             xstop = x[i + 1]
             w = xstop - xstart
-            ret_value.append(ROI(x=xstart, y=self.ytl, w=w, h=self.h,
+            ret_value.append(ROI(x=xstart, y=self.ytl, width=w, height=self.h,
                                  image=self.image))
         return ret_value
 
@@ -3063,7 +3063,7 @@ class ROI(Feature):
             ystart = y[i]
             ystop = y[i + 1]
             h = ystop - ystart
-            ret_value.append(ROI(x=self.xtl, y=ystart, w=self.w, h=h,
+            ret_value.append(ROI(x=self.xtl, y=ystart, width=self.w, height=h,
                                  image=self.image))
         return ret_value
 
@@ -3119,7 +3119,7 @@ class ROI(Feature):
                     for reg in regions:
                         self.sub_features.append(reg)
 
-    def rebase(self, x, y=None, w=None, h=None):
+    def rebase(self, x, y=None, width=None, height=None):
         """
 
         Completely alter roi using whatever source coordinates you wish.
@@ -3130,7 +3130,7 @@ class ROI(Feature):
         elif isinstance(x, (list, tuple)) and len[x] > 0 \
                 and isinstance(x, Feature):
             self.sub_features += list(x)
-        result = self._standardize(x, y, w, h)
+        result = self._standardize(x, y, width, height)
         if result is None:
             logger.warning("Could not create an ROI from your data.")
             return
@@ -3215,7 +3215,7 @@ class ROI(Feature):
         #WE MAY WANT TO DO A SANITY CHECK HERE
         force_update_lazyproperties(self)
 
-    def _standardize(self, x, y=None, w=None, h=None):
+    def _standardize(self, x, y=None, width=None, height=None):
         if isinstance(x, np.ndarray):
             x = x.tolist()
         if isinstance(y, np.ndarray):
@@ -3223,17 +3223,17 @@ class ROI(Feature):
 
         # make the common case fast
         if isinstance(x, (int, float)) and isinstance(y, (int, float)) \
-                and isinstance(w, (int, float)) \
-                and isinstance(h, (int, float)):
+                and isinstance(width, (int, float)) \
+                and isinstance(height, (int, float)):
             if self.image is not None:
                 x = np.clip(x, 0, self.image.width)
                 y = np.clip(y, 0, self.image.height)
-                w = np.clip(w, 0, self.image.width - x)
-                h = np.clip(h, 0, self.image.height - y)
+                width = np.clip(width, 0, self.image.width - x)
+                height = np.clip(height, 0, self.image.height - y)
 
-                return [x, y, w, h]
+                return [x, y, width, height]
         elif isinstance(x, ROI):
-            x, y, w, h = x.to_xywh()
+            x, y, width, height = x.to_xywh()
         #If it's a feature extract what we need
         elif isinstance(x, FeatureSet) and len(x) > 0:
             #double check that everything in the list is a feature
@@ -3244,21 +3244,21 @@ class ROI(Feature):
             ymin = np.min([feat.min_y for feat in features])
             x = xmin
             y = ymin
-            w = xmax - xmin
-            h = ymax - ymin
+            width = xmax - xmin
+            height = ymax - ymin
 
         elif isinstance(x, Feature):
             the_feature = x
             x = the_feature.points[0][0]
             y = the_feature.points[0][1]
-            w = the_feature.width
-            h = the_feature.height
+            width = the_feature.width
+            height = the_feature.height
 
         # [x,y,w,h] (x,y,w,h)
         elif isinstance(x, (tuple, list)) and len(x) == 4 \
                 and isinstance(x[0], (int, long, float)) \
-                and y is None and w is None and h is None:
-            x, y, w, h = x
+                and y is None and width is None and height is None:
+            x, y, width, height = x
         # x of the form [(x,y),(x1,y1),(x2,y2),(x3,y3)]
         # x of the form [[x,y],[x1,y1],[x2,y2],[x3,y3]]
         # x of the form ([x,y],[x1,y1],[x2,y2],[x3,y3])
@@ -3266,7 +3266,7 @@ class ROI(Feature):
         elif isinstance(x, (list, tuple)) \
                 and isinstance(x[0], (list, tuple)) \
                 and (len(x) == 4 and len(x[0]) == 2) \
-                and y is None and w is None and h is None:
+                and y is None and width is None and height is None:
             if len(x[0]) == 2 and len(x[1]) == 2 \
                     and len(x[2]) == 2 and len(x[3]) == 2:
                 xmax = np.max([x[0][0], x[1][0], x[2][0], x[3][0]])
@@ -3275,8 +3275,8 @@ class ROI(Feature):
                 ymin = np.min([x[0][1], x[1][1], x[2][1], x[3][1]])
                 x = xmin
                 y = ymin
-                w = xmax - xmin
-                h = ymax - ymin
+                width = xmax - xmin
+                height = ymax - ymin
             else:
                 logger.warning(
                     "x should be in the form  ((x,y),(x1,y1),(x2,y2),(x3,y3))")
@@ -3294,8 +3294,8 @@ class ROI(Feature):
                 ymin = np.min(y)
                 x = xmin
                 y = ymin
-                w = xmax - xmin
-                h = ymax - ymin
+                width = xmax - xmin
+                height = ymax - ymin
             else:
                 logger.warning(
                     "x should be in the form x = [1,2,3,4,5] y =[0,2,4,6,8]")
@@ -3303,7 +3303,7 @@ class ROI(Feature):
 
         # x of the form [(x,y),(x,y),(x,y),(x,y),(x,y),(x,y)]
         elif isinstance(x, (list, tuple)) and len(x) > 4 \
-                and len(x[0]) == 2 and y is None and w is None and h is None:
+                and len(x[0]) == 2 and y is None and width is None and height is None:
             if isinstance(x[0][0], (int, long, float)):
                 xs = [pt[0] for pt in x]
                 ys = [pt[1] for pt in x]
@@ -3313,8 +3313,8 @@ class ROI(Feature):
                 ymin = np.min(ys)
                 x = xmin
                 y = ymin
-                w = xmax - xmin
-                h = ymax - ymin
+                width = xmax - xmin
+                height = ymax - ymin
             else:
                 logger.warning(
                     "x should be in the form "
@@ -3325,12 +3325,12 @@ class ROI(Feature):
         elif isinstance(x, (list, tuple)) and len(x) == 2 \
                 and isinstance(x[0], (list, tuple)) \
                 and isinstance(x[1], (list, tuple)) \
-                and y is None and w is None and h is None:
+                and y is None and width is None and height is None:
             if len(x[0]) == 2 and len(x[1]) == 2:
                 xt = np.min([x[0][0], x[1][0]])
                 yt = np.min([x[0][1], x[1][1]])
-                w = np.abs(x[0][0] - x[1][0])
-                h = np.abs(x[0][1] - x[1][1])
+                width = np.abs(x[0][0] - x[1][0])
+                height = np.abs(x[0][1] - x[1][1])
                 x = xt
                 y = yt
             else:
@@ -3340,12 +3340,12 @@ class ROI(Feature):
         # x and y of the form (x,y),(x1,y2)
         elif isinstance(x, (tuple, list)) \
                 and isinstance(y, (tuple, list)) \
-                and w is None and h is None:
+                and width is None and height is None:
             if len(x) == 2 and len(y) == 2:
                 xt = np.min([x[0], y[0]])
                 yt = np.min([x[1], y[1]])
-                w = np.abs(y[0] - x[0])
-                h = np.abs(y[1] - x[1])
+                width = np.abs(y[0] - x[0])
+                height = np.abs(y[1] - x[1])
                 x = xt
                 y = yt
 
@@ -3355,20 +3355,20 @@ class ROI(Feature):
                     "(x1,y1) and (x2,y2)")
                 return None
 
-        if y is None or w is None or h is None:
+        if y is None or width is None or height is None:
             logger.warning('Not a valid roi')
             return None
-        elif w <= 0 or h <= 0:
+        elif width <= 0 or height <= 0:
             logger.warning("ROI can't have a negative dimension")
             return None
 
         if self.image is not None:
             x = np.clip(x, 0, self.image.width)
             y = np.clip(y, 0, self.image.height)
-            w = np.clip(w, 0, self.image.width - x)
-            h = np.clip(h, 0, self.image.height - y)
+            width = np.clip(width, 0, self.image.width - x)
+            height = np.clip(height, 0, self.image.height - y)
 
-        return [x, y, w, h]
+        return [x, y, width, height]
 
     def crop(self):
         ret_value = None

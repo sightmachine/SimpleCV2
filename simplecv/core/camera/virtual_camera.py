@@ -29,7 +29,7 @@ class VirtualCamera(FrameSource):
 
     """
 
-    def __init__(self, s, st, start=1):
+    def __init__(self, source, sourcetype, start=1):
         """
         **SUMMARY**
 
@@ -56,8 +56,8 @@ class VirtualCamera(FrameSource):
 
         """
         super(VirtualCamera, self).__init__()
-        self.source = s
-        self.sourcetype = st
+        self.source = source
+        self.sourcetype = sourcetype
         self.lastmtime = 0
         self.counter = 0
         if start == 0:
@@ -81,14 +81,14 @@ class VirtualCamera(FrameSource):
                 return
 
         if self.sourcetype == "imageset":
-            if isinstance(s, ImageSet):
-                self.source = s
-            elif isinstance(s, (list, str)):
+            if isinstance(source, ImageSet):
+                self.source = source
+            elif isinstance(source, (list, str)):
                 self.source = ImageSet()
-                if isinstance(s, list):
-                    self.source.load(*s)
+                if isinstance(source, list):
+                    self.source.load(*source)
                 else:
-                    self.source.load(s)
+                    self.source.load(source)
             else:
                 logger.warn('Virtual Camera is unable to figure out \
                     the contents of your ImageSet, it must be a directory, \

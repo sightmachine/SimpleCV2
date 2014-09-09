@@ -53,7 +53,7 @@ class StereoImage(object):
             self.size = self.image_left.size
         self.image_3d = None
 
-    def find_fundamental_mat(self, thresh=500.00, min_dist=0.15):
+    def find_fundamental_mat(self, threshold=500.00, min_dist=0.15):
         """
         **SUMMARY**
 
@@ -62,9 +62,9 @@ class StereoImage(object):
 
         **PARAMETERS**
 
-        * *thresh* - The feature quality metric. This can be any value between
-                     about 300 and 500. Higher values should return fewer,
-                     but higher quality features.
+        * *threshold* - The feature quality metric. This can be any value
+                     between about 300 and 500. Higher values should return
+                     fewer, but higher quality features.
         * *min_dist* - The value below which the feature correspondence is
                        considered a match. This is the distance between two
                        feature vectors. Good values are between 0.05 and 0.3
@@ -86,8 +86,8 @@ class StereoImage(object):
         (P_2).T F P_1 = 0 where P_2 and P_1 consist of (y, x, 1)
         """
 
-        (kpts1, desc1) = self.image_left._get_raw_keypoints(thresh)
-        (kpts2, desc2) = self.image_right._get_raw_keypoints(thresh)
+        (kpts1, desc1) = self.image_left._get_raw_keypoints(threshold)
+        (kpts2, desc2) = self.image_right._get_raw_keypoints(threshold)
 
         if desc1 is None or desc2 is None:
             logger.warning("We didn't get any descriptors. Image might "
@@ -120,7 +120,7 @@ class StereoImage(object):
         matched_pts2 = matched_pts2[:, ::-1.00]
         return fnd_mat, matched_pts1, matched_pts2
 
-    def find_homography(self, thresh=500.00, min_dist=0.15):
+    def find_homography(self, threshold=500.00, min_dist=0.15):
         """
         **SUMMARY**
 
@@ -128,9 +128,9 @@ class StereoImage(object):
 
         **PARAMETERS**
 
-        * *thresh* - The feature quality metric. This can be any value between
-                     about 300 and 500. Higher values should return fewer,
-                     but higher quality features.
+        * *threshold* - The feature quality metric. This can be any value
+                     between about 300 and 500. Higher values should return
+                     fewer, but higher quality features.
         * *min_dist* - The value below which the feature correspondence is
                        considered a match. This is the distance between two
                        feature vectors. Good values are between 0.05 and 0.3
@@ -153,8 +153,8 @@ class StereoImage(object):
         where P2 and P1 consist of (y, x, 1)
         """
 
-        (kpts1, desc1) = self.image_left._get_raw_keypoints(thresh)
-        (kpts2, desc2) = self.image_right._get_raw_keypoints(thresh)
+        (kpts1, desc1) = self.image_left._get_raw_keypoints(threshold)
+        (kpts2, desc2) = self.image_right._get_raw_keypoints(threshold)
 
         if desc1 is None or desc2 is None:
             logger.warning("We didn't get any descriptors. Image might be "
@@ -660,7 +660,7 @@ class StereoCamera(object):
                 cv2.destroyAllWindows()
                 break
 
-    def save_calibration(self, calibration=None, fname="Stereo", cdir="."):
+    def save_calibration(self, calibration=None, fname="Stereo", directory="."):
         """
 
         **SUMMARY**
@@ -704,19 +704,19 @@ class StereoCamera(object):
         >>> StereoCam.save_calibration(calibration, fname="Stereo1")
         """
         (cm1, cm2, d1, d2, r, t, e, f) = calibration
-        np.save("{0}/{1}CM1".format(cdir, fname), cm1)
-        np.save("{0}/{1}CM2".format(cdir, fname), cm2)
-        np.save("{0}/{1}D1".format(cdir, fname), d1)
-        np.save("{0}/{1}D2".format(cdir, fname), d2)
-        np.save("{0}/{1}R".format(cdir, fname), r)
-        np.save("{0}/{1}T".format(cdir, fname), t)
-        np.save("{0}/{1}E".format(cdir, fname), e)
-        np.save("{0}/{1}F".format(cdir, fname), f)
+        np.save("{0}/{1}CM1".format(directory, fname), cm1)
+        np.save("{0}/{1}CM2".format(directory, fname), cm2)
+        np.save("{0}/{1}D1".format(directory, fname), d1)
+        np.save("{0}/{1}D2".format(directory, fname), d2)
+        np.save("{0}/{1}R".format(directory, fname), r)
+        np.save("{0}/{1}T".format(directory, fname), t)
+        np.save("{0}/{1}E".format(directory, fname), e)
+        np.save("{0}/{1}F".format(directory, fname), f)
         logger.debug("Calibration parameters written to directory"
-                     " '{0}'.".format(cdir))
+                     " '{0}'.".format(directory))
         return True
 
-    def load_calibration(self, fname="Stereo", dir="."):
+    def load_calibration(self, fname="Stereo", directory="."):
         """
 
         **SUMMARY**
@@ -752,15 +752,15 @@ class StereoCamera(object):
         >>> loadedCalibration = StereoCam.load_calibration(fname="Stereo1")
 
         """
-        cm1 = np.load("{0}/{1}CM1.npy".format(dir, fname))
-        cm2 = np.load("{0}/{1}CM2.npy".format(dir, fname))
-        d1 = np.load("{0}/{1}D1.npy".format(dir, fname))
-        d2 = np.load("{0}/{1}D2.npy".format(dir, fname))
-        r = np.load("{0}/{1}R.npy".format(dir, fname))
-        t = np.load("{0}/{1}T.npy".format(dir, fname))
-        e = np.load("{0}/{1}E.npy".format(dir, fname))
-        f = np.load("{0}/{1}F.npy".format(dir, fname))
-        logger.debug("Calibration files loaded from dir '{0}'.".format(dir))
+        cm1 = np.load("{0}/{1}CM1.npy".format(directory, fname))
+        cm2 = np.load("{0}/{1}CM2.npy".format(directory, fname))
+        d1 = np.load("{0}/{1}D1.npy".format(directory, fname))
+        d2 = np.load("{0}/{1}D2.npy".format(directory, fname))
+        r = np.load("{0}/{1}R.npy".format(directory, fname))
+        t = np.load("{0}/{1}T.npy".format(directory, fname))
+        e = np.load("{0}/{1}E.npy".format(directory, fname))
+        f = np.load("{0}/{1}F.npy".format(directory, fname))
+        logger.debug("Calibration files loaded from dir '{0}'.".format(directory))
         return cm1, cm2, d1, d2, r, t, e, f
 
     def stereo_rectify(self, calibration=None, win_size=(352, 288)):

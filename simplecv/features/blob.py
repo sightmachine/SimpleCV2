@@ -1144,10 +1144,10 @@ class Blob(Feature):
             self._complete_contour = complete_contour
         return self._scdescriptors, self._complete_contour
 
-    def _generate_sc(self, complete_contour, dsz=6, r_bound=[0.1, 2.1]):
+    def _generate_sc(self, complete_contour, dsize=6, r_bound=[0.1, 2.1]):
         """
         Create the shape context objects.
-        dsz - The size of descriptor as a dszxdsz histogram
+        dsize - The size of descriptor as a dsize x dsize histogram
         complete_contour - All of the edge points as a long list
         r_bound - Bounds on the log part of the shape context descriptor
         """
@@ -1156,7 +1156,7 @@ class Blob(Feature):
         complete_contour = [p0] + complete_contour[:]
 
         data = []
-        for pnt in complete_contour:  #
+        for pnt in complete_contour:
             temp = []
             # take each other point in the contour, center it on pnt, and
             # covert it to log polar
@@ -1181,10 +1181,10 @@ class Blob(Feature):
         for point in data:
             test = np.array(point)
             # generate a 2D histrogram, and flatten it out.
-            hist, _, _ = np.histogram2d(test[:, 0], test[:, 1], dsz,
+            hist, _, _ = np.histogram2d(test[:, 0], test[:, 1], dsize,
                                         [r_bound, [np.pi * -1 / 2, np.pi / 2]],
                                         normed=True)
-            hist = hist.reshape(1, dsz ** 2)
+            hist = hist.reshape(1, dsize ** 2)
             if np.all(np.isfinite(hist[0])):
                 descriptors.append(hist[0])
         self._scdescriptors = descriptors
@@ -1370,7 +1370,7 @@ class Blob(Feature):
         return cen[0], cen[1], rad
 
     @classmethod
-    def find(cls, img, threshval=None, minsize=10, maxsize=0,
+    def find(cls, img, threshold=None, minsize=10, maxsize=0,
              threshblocksize=0, threshconstant=5, appx_level=3):
         """
 
@@ -1387,7 +1387,7 @@ class Blob(Feature):
 
         **PARAMETERS**
 
-        * *threshval* - the threshold as an integer or an (r,g,b) tuple , where
+        * *threshold* - the threshold as an integer or an (r,g,b) tuple , where
           pixels below (darker) than thresh are set to to max value,
           and all values above this value are set to black. If this parameter
           is -1 we use Otsu's method.
@@ -1448,7 +1448,7 @@ class Blob(Feature):
 
         blobmaker = BlobMaker()
         blobs = blobmaker.extract_from_binary(
-            img.binarize(thresh=threshval, maxv=255, blocksize=threshblocksize,
+            img.binarize(threshold=threshold, maxv=255, blocksize=threshblocksize,
                          p=threshconstant, inverted=True).invert(),
             img, minsize=minsize, maxsize=maxsize, appx_level=appx_level)
 

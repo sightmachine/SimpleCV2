@@ -367,7 +367,7 @@ def invert(img):
 
 
 @image_method
-def stretch(img, thresh_low=0, thresh_high=255):
+def stretch(img, threshold_low=0, threshold_high=255):
     """
     **SUMMARY**
 
@@ -407,10 +407,11 @@ def stretch(img, thresh_low=0, thresh_high=255):
     :py:meth:`equalize`
 
     """
-    threshold, array = cv2.threshold(img.gray_ndarray, thresh=thresh_low,
+    threshold, array = cv2.threshold(img.gray_ndarray,
+                                     thresh=threshold_low,
                                      maxval=255, type=cv2.THRESH_TOZERO)
     array = cv2.bitwise_not(array)
-    threshold, array = cv2.threshold(array, thresh=255 - thresh_high,
+    threshold, array = cv2.threshold(array, thresh=255 - threshold_high,
                                      maxval=255, type=cv2.THRESH_TOZERO)
     array = cv2.bitwise_not(array)
     return Factory.Image(array)
@@ -450,7 +451,7 @@ def gamma_correct(img, gamma=1):
 
 
 @image_method
-def binarize(img, thresh=None, maxv=255, blocksize=0, p=5, inverted=False):
+def binarize(img, threshold=None, maxv=255, blocksize=0, p=5, inverted=False):
     """
     **SUMMARY**
 
@@ -515,21 +516,21 @@ def binarize(img, thresh=None, maxv=255, blocksize=0, p=5, inverted=False):
     """
     thresh_type = cv2.THRESH_BINARY_INV if inverted else cv2.THRESH_BINARY
 
-    if is_tuple(thresh):
+    if is_tuple(threshold):
         b = img.ndarray[:, :, 0].copy()
         g = img.ndarray[:, :, 1].copy()
         r = img.ndarray[:, :, 2].copy()
 
-        r = cv2.threshold(r, thresh=thresh[0], maxval=maxv,
+        r = cv2.threshold(r, thresh=threshold[0], maxval=maxv,
                           type=thresh_type)[1]
-        g = cv2.threshold(g, thresh=thresh[1], maxval=maxv,
+        g = cv2.threshold(g, thresh=threshold[1], maxval=maxv,
                           type=thresh_type)[1]
-        b = cv2.threshold(b, thresh=thresh[2], maxval=maxv,
+        b = cv2.threshold(b, thresh=threshold[2], maxval=maxv,
                           type=thresh_type)[1]
         array = cv2.add(cv2.add(r, g), b)
         return Factory.Image(array)
 
-    elif thresh is None:
+    elif threshold is None:
         if blocksize:
             array = cv2.adaptiveThreshold(
                 img.gray_ndarray, maxValue=maxv,
@@ -543,7 +544,7 @@ def binarize(img, thresh=None, maxv=255, blocksize=0, p=5, inverted=False):
         return Factory.Image(array)
     else:
         # desaturate the image, and apply the new threshold
-        array = cv2.threshold(img.gray_ndarray, thresh=thresh,
+        array = cv2.threshold(img.gray_ndarray, thresh=threshold,
                               maxval=maxv, type=thresh_type)[1]
         return Factory.Image(array)
 
@@ -596,7 +597,7 @@ def get_skintone_mask(img, dilate_iter=0):
     array = np.dstack((y_array, cr_array, cb_array))
 
     mask = Factory.Image(array, color_space=Factory.Image.YCR_CB)
-    mask = mask.binarize(thresh=(128, 128, 128), inverted=True)
+    mask = mask.binarize(threshold=(128, 128, 128), inverted=True)
     mask = mask.to_rgb().binarize(inverted=True)
     return mask.dilate(iterations=dilate_iter)
 
@@ -2255,7 +2256,7 @@ def flood_fill_to_mask(img, points, tolerance=None, color=Color.WHITE,
                       newVal=color, loDiff=lower, upDiff=upper, flags=flags)
 
     ret_val = Factory.Image(local_mask)
-    ret_val = ret_val.crop(x=1, y=1, w=img.width, h=img.height)
+    ret_val = ret_val.crop(x=1, y=1, width=img.width, height=img.height)
     return ret_val
 
 
