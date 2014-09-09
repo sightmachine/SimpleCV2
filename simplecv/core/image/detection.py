@@ -6,7 +6,7 @@ import numpy as np
 import scipy.cluster.vq as scv
 import scipy.linalg as nla  # for linear algebra / least squares
 
-from simplecv.base import logger
+from simplecv.base import logger, ScvException
 from simplecv.color import Color
 from simplecv.core.image import image_method
 from simplecv.factory import Factory
@@ -297,9 +297,8 @@ def fit_line_points(img, guesses, window=(11, 11), samples=20,
         dy = float(g[1][1] - g[0][1])
         l = np.sqrt((dx * dx) + (dy * dy))
         if l <= 0:
-            logger.warning("Can't Do snakeFitPoints without "
-                           "OpenCV >= 2.3.0")
-            return
+            raise ScvException("Can't Do snakeFitPoints without "
+                               "OpenCV >= 2.3.0")
 
         dx = dx / l
         dy = dy / l
@@ -340,21 +339,20 @@ def find_grid_lines(img):
     """
     print img._grid_layer
     if img._grid_layer[0] is None:
-        print "Cannot find grid on the image, Try adding a grid first"
-        return None
+        raise ScvException("Cannot find grid on the image, Try adding a grid first")
 
     grid_index = img.get_drawing_layer(img._grid_layer[0])
 
-    line_fs = FeatureSet()
     try:
         step_row = img.size[1] / img._grid_layer[1][0]
         step_col = img.size[0] / img._grid_layer[1][1]
     except ZeroDivisionError:
-        return None
+        return FeatureSet()
 
     i = 1
     j = 1
 
+    line_fs = FeatureSet()
     while i < img._grid_layer[1][0]:
         line_fs.append(Factory.Line(img, ((0, step_row * i),
                                           (img.size[0], step_row * i))))
@@ -410,10 +408,11 @@ def match_sift_key_points(img, template, quality=200):
 
     """
     if not hasattr(cv2, "FeatureDetector_create"):
-        logger.warn("OpenCV >= 2.4.3 required")
-        return None
+        raise ScvException("OpenCV >= 2.4.3 required")
+
     if template is None:
-        return None
+        raise ScvException('template should not be None')
+
     detector = cv2.FeatureDetector_create("SIFT")
     descriptor = cv2.DescriptorExtractor_create("SIFT")
     img_array = img.ndarray
@@ -495,7 +494,7 @@ def find_keypoint_clusters(img, num_of_clusters=5, order='dsc',
         keypoints = img.find(KeyPoint,
                              flavor=flavor.upper())  # find the keypoints
     if keypoints is None or keypoints <= 0:
-        return None
+        return FeatureSet()
 
     xypoints = np.array([(f.x, f.y) for f in keypoints])
     # find the clusters of keypoints
@@ -557,18 +556,16 @@ def get_freak_descriptor(img, flavor="SURF"):
 
     """
     if cv2.__version__.startswith('$Rev:'):
-        logger.warn("OpenCV version >= 2.4.2 requierd")
-        return None
+        raise ScvException("OpenCV version >= 2.4.2 requierd")
 
     if int(cv2.__version__.replace('.', '0')) < 20402:
-        logger.warn("OpenCV version >= 2.4.2 requierd")
-        return None
+        raise ScvException("OpenCV version >= 2.4.2 requierd")
 
     flavors = ["SIFT", "SURF", "BRISK", "ORB", "STAR", "MSER", "FAST",
                "Dense"]
     if flavor not in flavors:
-        logger.warn("Unkown Keypoints detector. Returning None.")
-        return None
+        raise ScvException("Unkown Keypoints detector. Returning None.")
+
     detector = cv2.FeatureDetector_create(flavor)
     extractor = cv2.DescriptorExtractor_create("FREAK")
     img._key_points = detector.detect(img.gray_ndarray)
@@ -621,16 +618,16 @@ def edge_snap(img, point_list, step=1):
         raise ValueError("Image must be binary")
 
     if len(point_list) < 2:
-        return None
+        return FeatureSet()
 
     final_list = [point_list[0]]
-    feature_set = FeatureSet()
     last = point_list[0]
     for point in point_list[1:None]:
         final_list += img._edge_snap2(last, point, step)
         last = point
 
     last = final_list[0]
+    feature_set = FeatureSet()
     for point in final_list:
         feature_set.append(Factory.Line(img, (last, point)))
         last = point

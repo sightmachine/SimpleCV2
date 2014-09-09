@@ -317,6 +317,10 @@ def system():
     return
 
 
+class ScvException(Exception):
+    pass
+
+
 class LazyProperty(object):
     def __init__(self, func):
         self._func = func

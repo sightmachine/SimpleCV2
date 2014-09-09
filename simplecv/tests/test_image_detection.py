@@ -5,6 +5,7 @@ import numpy as np
 import math
 from nose.tools import assert_equals, assert_is_instance, assert_greater,\
     assert_less, assert_is_none, assert_is_not_none, assert_raises
+from simplecv.base import ScvException
 
 from simplecv.image import Image
 from simplecv.tests.utils import perform_diff, skipped
@@ -187,7 +188,8 @@ def test_detection_blobs_smallimages():
     # Check if segfault occurs or not
     img = Image("../data/sampleimages/blobsegfaultimage.png")
     blobs = img.find(Blob)
-    assert blobs is None
+    assert_is_instance(blobs, FeatureSet)
+    assert_equals(len(blobs), 0)
     # if no segfault, pass
 
 
@@ -278,7 +280,8 @@ def test_find_skintone_blobs():
 
     img = Image((100, 100))
     blobs = Blob.find_from_skintone(img)
-    assert_equals(blobs, None)
+    assert_is_instance(blobs, FeatureSet)
+    assert_equals(len(blobs), 0)
 
 
 def test_find_chessboard():
@@ -291,12 +294,14 @@ def test_find_chessboard():
 
     img = Image(CHESSBOARD_IMAGE)
     feat = img.find(Chessboard)
-    assert_equals(feat, None)
+    assert_is_instance(feat, FeatureSet)
+    assert_equals(len(feat), 0)
 
     # Empty Image
     img = Image((100, 100))
     feat = img.find(Chessboard)
-    assert_equals(feat, None)
+    assert_is_instance(feat, FeatureSet)
+    assert_equals(len(feat), 0)
 
 
 @skipped  # FIXME
@@ -388,19 +393,21 @@ def test_find_template_once():
     assert_is_not_none(fs)
 
     # method = "UNKOWN"
-    fs = TemplateMatch.find_once(source, template, threshold=3, method="UNKOWN")
-    assert_is_none(fs)
+    with assert_raises(ScvException):
+        TemplateMatch.find_once(source, template, threshold=3, method="UNKOWN")
 
     # None template
-    template = None
-    assert_is_none(TemplateMatch.find_once(source, template))
+    with assert_raises(ScvException):
+        TemplateMatch.find_once(source, template_image=None)
 
     # Template bigger than image
     template = source.resize(source.width+10, source.height)
-    assert_is_none(TemplateMatch.find_once(source, template))
+    with assert_raises(ScvException):
+        TemplateMatch.find_once(source, template)
 
     template = source.resize(source.width, source.height + 10)
-    assert_is_none(TemplateMatch.find_once(source, template))
+    with assert_raises(ScvException):
+        TemplateMatch.find_once(source, template)
 
 
 def test_find_circles():
@@ -429,7 +436,9 @@ def test_find_circles():
 
     # find no circle
     img = Image((100, 100))  # Black Image
-    assert_is_none(img.find(Circle))
+    fs = img.find(Circle)
+    assert_is_instance(fs, FeatureSet)
+    assert_equals(len(fs), 0)
 
 
 def test_find_keypoint_match():
@@ -460,14 +469,18 @@ def test_find_keypoint_match():
     match3 = Image("../data/sampleimages/aerospace.jpg")
     fs3 = match3.find(KeypointMatch, template, quality=500.00, min_dist=0.2,
                       min_match=0.1)
-    assert fs3 is None
+    assert_is_instance(fs3, FeatureSet)
+    assert_equals(len(fs3), 0)
 
     # None template
-    assert_is_none(match0.find(KeypointMatch, None))
+    with assert_raises(ScvException):
+        match0.find(KeypointMatch, None)
 
     # No keypoints found
     img = Image((100, 100))  # Black image
-    assert_is_none(img.find(KeypointMatch, template))
+    fs = img.find(KeypointMatch, template)
+    assert_is_instance(fs, FeatureSet)
+    assert_equals(len(fs), 0)
 
 
 @skipped  # FIXME
@@ -556,7 +569,8 @@ def test_find_motion():
 
     # different frame sizes
     current4 = current3.resize(current3.width/2, current3.height/2)
-    assert_is_none(current4.find(Motion, prev))
+    with assert_raises(ScvException):
+        current4.find(Motion, prev)
 
 
 def test_find_blobs_from_palette():
@@ -616,12 +630,14 @@ def test_find_blobs_from_mask():
 
     # different mask size
     mask = mask.resize(mask.width/2, mask.height/2)
-    assert_is_none(Blob.find_from_mask(img, mask))
+    with assert_raises(ScvException):
+        Blob.find_from_mask(img, mask)
 
     # no blobs
     mask = Image(img.size)  # Black mask
     blobs = Blob.find_from_mask(img, mask)
-    assert_is_none(Blob.find_from_mask(img, mask))
+    assert_is_instance(blobs, FeatureSet)
+    assert_equals(len(blobs), 0)
 
 
 def test_find_flood_fill_blobs():
@@ -646,7 +662,8 @@ def test_find_grid_lines():
 
     # no grid
     img = Image((100, 100))
-    assert_is_none(img.find_grid_lines())
+    with assert_raises(ScvException):
+        img.find_grid_lines()
 
 
 def test_match_sift_key_points():
@@ -678,10 +695,11 @@ def test_find_keypoint_clusters():
     kpc1 = img.find_keypoint_clusters(flavor="corner")
     assert_greater(len(kpc1), 0)
 
-    # no keypoints
-    img1 = Image((100, 100))
-    kpc2 = img1.find_keypoint_clusters(flavor="sift")
-    assert_is_none(kpc2)
+    with assert_raises(ScvException):
+        # no keypoints
+        img1 = Image((100, 100))
+        kpc2 = img1.find_keypoint_clusters(flavor="sift")
+        assert_is_none(kpc2)
 
 
 def test_get_freak_descriptor():

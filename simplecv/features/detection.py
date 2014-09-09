@@ -17,7 +17,7 @@ import pickle
 import scipy.spatial.distance as spsd
 import math
 
-from simplecv.base import logger, lazyproperty, force_update_lazyproperties
+from simplecv.base import logger, lazyproperty, force_update_lazyproperties, ScvException
 from simplecv.color import Color
 from simplecv.core.pluginsystem import apply_plugins
 from simplecv.factory import Factory
@@ -120,11 +120,11 @@ class Corner(Feature):
                                                      maxCorners=maxnum,
                                                      qualityLevel=minquality,
                                                      minDistance=mindistance)
-        corner_features = []
+        corner_features = FeatureSet()
         for x, y in corner_coordinates[:, 0, :]:
             corner_features.append(Factory.Corner(img, x, y))
 
-        return FeatureSet(corner_features)
+        return corner_features
 
 
 ######################################################################
@@ -731,7 +731,7 @@ class Line(Feature):
                 lines = lines[0]
             else:
                 logger.warn("no lines found.")
-                return []
+                return FeatureSet()
 
             if nlines == -1:
                 nlines = lines.shape[0]
@@ -827,7 +827,7 @@ class Line(Feature):
                 lines = lines[0]
             else:
                 logger.warn("no lines found.")
-                return []
+                return FeatureSet()
 
             if nlines == -1:
                 nlines = lines.shape[0]
@@ -965,7 +965,7 @@ class Chessboard(Feature):
             flags=cv2.CALIB_CB_ADAPTIVE_THRESH + cv2.CALIB_CB_NORMALIZE_IMAGE)
 
         if not found:
-            return None
+            return FeatureSet()
 
         if corners is not None and len(corners) == dimensions[0] * dimensions[1]:
             if subpixel:
@@ -975,13 +975,13 @@ class Chessboard(Feature):
                     criteria=(cv2.TERM_CRITERIA_MAX_ITER | cv2.TERM_CRITERIA_EPS,
                               10, 0.01))
                 if sp_corners is None:
-                    logger.warning("subpixel corners not found. Returning None.")
-                    return None
+                    logger.warning("subpixel corners not found.")
+                    return FeatureSet()
             else:
                 sp_corners = corners
             return FeatureSet([Factory.Chessboard(img, dimensions, sp_corners)])
         else:
-            return None
+            return FeatureSet()
 
 
 ######################################################################
@@ -1145,14 +1145,11 @@ class TemplateMatch(Feature):
 
         """
         if template_image is None:
-            logger.info("Need image for matching")
-            return
+            raise ScvException("Need image for matching")
         if template_image.width > img.width:
-            logger.info("Image too wide")
-            return
+            raise ScvException("Image too wide")
         if template_image.height > img.height:
-            logger.info("Image too tall")
-            return
+            raise ScvException("Image too tall")
 
         check = 0  # if check = 0 we want maximal value, otherwise minimal
         # minimal
@@ -1171,9 +1168,8 @@ class TemplateMatch(Feature):
         elif method == "CCORR_NORM":  # maximal
             method = cv2.TM_CCORR_NORMED
         else:
-            logger.warning("ooops.. I don't know what template matching "
-                           "method you are looking for.")
-            return None
+            raise ScvException("ooops.. I don't know what template matching "
+                               "method you are looking for.")
 
         #choose template matching method to be used
         if grayscale:
@@ -1266,14 +1262,11 @@ class TemplateMatch(Feature):
 
         """
         if template_image is None:
-            logger.info("Need image for template matching.")
-            return
+            raise ScvException("Need image for template matching.")
         if template_image.width > img.width:
-            logger.info("Template image is too wide for the given image.")
-            return
+            raise ScvException("Template image is too wide for the given image.")
         if template_image.height > img.height:
-            logger.info("Template image too tall for the given image.")
-            return
+            raise ScvException("Template image too tall for the given image.")
 
         check = 0  # if check = 0 we want maximal value, otherwise minimal
         # minimal
@@ -1292,9 +1285,9 @@ class TemplateMatch(Feature):
         elif method == "CCORR_NORM":  # maximal
             method = cv2.TM_CCORR_NORMED
         else:
-            logger.warning("ooops.. I don't know what template matching "
-                           "method you are looking for.")
-            return None
+            raise ScvException("ooops.. I don't know what template matching "
+                               "method you are looking for.")
+
         #choose template matching method to be used
         if grayscale:
             img_array = img.gray_ndarray
@@ -1308,12 +1301,12 @@ class TemplateMatch(Feature):
             if np.min(matches) <= threshold:
                 compute = np.where(matches == np.min(matches))
             else:
-                return []
+                return FeatureSet()
         else:
             if np.max(matches) >= threshold:
                 compute = np.where(matches == np.max(matches))
             else:
-                return []
+                return FeatureSet()
         mapped = map(tuple, np.column_stack(compute))
         fs = FeatureSet()
         for location in mapped:
@@ -1542,7 +1535,7 @@ class Circle(Feature):
                                  dp=2, minDist=distance,
                                  param1=canny, param2=threshold)
         if circs is None:
-            return None
+            return FeatureSet()
         circle_fs = FeatureSet()
         for circ in circs[0]:
             circle_fs.append(Circle(img, int(circ[0]), int(circ[1]),
@@ -1878,10 +1871,8 @@ class KeyPoint(Feature):
             for i in range(0, len(kp)):
                 fs.append(KeyPoint(img, kp[i], None, flavor))
         else:
-            logger.warning("ImageClass.Keypoints: I don't know the method "
-                           "you want to use")
-            return None
-
+            raise ScvException("ImageClass.Keypoints: I don't know the method "
+                               "you want to use")
         return fs
 
 
@@ -2082,9 +2073,8 @@ class Motion(Feature):
 
         """
         if img.size != previous_frame.size:
-            logger.warning("Image.find_motion: To find motion the current "
-                           "and previous frames must match")
-            return None
+            raise ScvException("Motion.find: To find motion the current "
+                               "and previous frames must match")
 
         flow = cv2.calcOpticalFlowFarneback(prev=previous_frame.gray_ndarray,
                                             next=img.gray_ndarray,
@@ -2334,14 +2324,14 @@ class KeypointMatch(Feature):
 
         """
         if template is None:
-            return None
+            raise ScvException('KeypointMatch.find: template should not be None')
 
         skp, sd = img._get_raw_keypoints(quality)
         tkp, td = template._get_raw_keypoints(quality)
         if skp is None or tkp is None:
             logger.warn("I didn't get any keypoints. Image might be too "
                         "uniform or blurry.")
-            return None
+            return FeatureSet()
 
         template_points = float(td.shape[0])
         sample_points = float(sd.shape[0])
@@ -2367,7 +2357,7 @@ class KeypointMatch(Feature):
             rhs_pt = np.array(rhs)
             lhs_pt = np.array(lhs)
             if len(rhs_pt) < 16 or len(lhs_pt) < 16:
-                return None
+                return FeatureSet()
             (homography, mask) = cv2.findHomography(srcPoints=lhs_pt,
                                                     dstPoints=rhs_pt,
                                                     method=cv2.RANSAC,
@@ -2395,7 +2385,7 @@ class KeypointMatch(Feature):
             # added in KeyPointMatch class.
             return fs
         else:
-            return None
+            return FeatureSet()
 
 
 ######################################################################

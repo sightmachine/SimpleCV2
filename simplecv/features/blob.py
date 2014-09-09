@@ -7,7 +7,7 @@ import numpy as np
 import scipy.spatial.distance as spsd
 import scipy.stats as sps
 
-from simplecv.base import logger, lazyproperty, force_update_lazyproperties
+from simplecv.base import logger, lazyproperty, force_update_lazyproperties, ScvException
 from simplecv.color import Color
 from simplecv.core.pluginsystem import apply_plugins
 from simplecv.factory import Factory
@@ -1452,10 +1452,7 @@ class Blob(Feature):
                          p=threshconstant, inverted=True).invert(),
             img, minsize=minsize, maxsize=maxsize, appx_level=appx_level)
 
-        if not len(blobs):
-            return None
-
-        return FeatureSet(blobs).sort_area()
+        return blobs.sort_area()
 
     @classmethod
     def find_from_skintone(cls, img, minsize=10, maxsize=0, dilate_iter=1):
@@ -1512,9 +1509,7 @@ class Blob(Feature):
         blobmaker = BlobMaker()
         blobs = blobmaker.extract_from_binary(mask, img, minsize=minsize,
                                               maxsize=maxsize)
-        if not len(blobs):
-            return None
-        return FeatureSet(blobs).sort_area()
+        return blobs.sort_area()
 
     @classmethod
     def find_from_palette(cld, img, palette_selection, dilate=0, minsize=5,
@@ -1576,13 +1571,10 @@ class Blob(Feature):
         #create a single channel image, thresholded to parameters
 
         blobmaker = BlobMaker()
-        blobs = blobmaker.extract_from_binary(bwimg,
-                                              img, minsize=minsize,
-                                              maxsize=maxsize,
-                                              appx_level=appx_level)
-        if not len(blobs):
-            return None
-        return blobs
+        return blobmaker.extract_from_binary(bwimg,
+                                             img, minsize=minsize,
+                                             maxsize=maxsize,
+                                             appx_level=appx_level)
 
     @classmethod
     def smart_find(cls, img, mask=None, rect=None, thresh_level=2,
@@ -1652,8 +1644,7 @@ class Blob(Feature):
 
         """
         result = img.smart_threshold(mask, rect)
-        binary = None
-        ret_val = None
+        ret_val = FeatureSet()
 
         if result:
             if thresh_level == 1:
@@ -1716,9 +1707,8 @@ class Blob(Feature):
             maxsize = img.width * img.height
         #create a single channel image, thresholded to parameters
         if mask.size != img.size:
-            logger.warning("Image.find_blobs_from_mask - your mask does "
-                           "not match the size of your image")
-            return None
+            raise ScvException("Blob.find_from_mask - your mask does "
+                               "not match the size of your image")
 
         blobmaker = BlobMaker()
         gray = mask.gray_ndarray
@@ -1727,9 +1717,7 @@ class Blob(Feature):
         blobs = blobmaker.extract_from_binary(
             Factory.Image(result), img,
             minsize=minsize, maxsize=maxsize, appx_level=appx_level)
-        if not len(blobs):
-            return None
-        return FeatureSet(blobs).sort_area()
+        return blobs.sort_area()
 
     @classmethod
     def find_from_flood_fill(cls, img, points, tolerance=None, lower=None,
