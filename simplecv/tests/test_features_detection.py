@@ -22,10 +22,10 @@ def test_line_draw():
     line.draw(color=(255, 255, 255), width=1)
 
     img1 = Image((100, 100))
-    np_array = img1.ndarray
+    np_array = img1
     np_array[20:80, 20:20] = (255, 255, 255)
 
-    assert_equals(img.ndarray.data, img1.ndarray.data)
+    assert_equals(img.data, img1.data)
 
 def test_line_length():
     line = Line(None, ((20, 20), (20, 80)))
@@ -43,7 +43,7 @@ def test_line_crop():
 
 def test_line_mean_color():
     img = Image((100, 100))
-    np_array = img.ndarray
+    np_array = img
     np_array[:100, :30] = (255, 0, 0)
     np_array[:100, 30:60] = (0, 255, 0)
     np_array[:100, 60:90] = (0, 0, 255)
@@ -208,7 +208,7 @@ def test_line_get_y_intercept():
 def test_chessboard():
     img = Image(CHESSBOARD_IMAGE)
     chessboard_patent = (8, 5)
-    res, cor = cv2.findChessboardCorners(img.ndarray, chessboard_patent)
+    res, cor = cv2.findChessboardCorners(img, chessboard_patent)
 
     chessboard = Chessboard(img, chessboard_patent, cor)
     chessboard.area
@@ -231,7 +231,7 @@ def test_circle_distance_from():
 
 def test_circle_mean_color():
     image = Image((201, 201))
-    np_array = image.ndarray
+    np_array = image
     np_array[:, :100] = (255, 0, 0)
     np_array[:, 101:] = (0, 0, 255)
 
@@ -280,8 +280,8 @@ def test_keypoint():
     assert_equals(keypoint.diameter, keypoint_object.size)
 
     assert_equals(keypoint.distance_from(keypoint_object.pt), 0.0)
-    dist = ((keypoint_object.pt[0]-img.size[0]/2)**2 +
-            (keypoint_object.pt[1]-img.size[1]/2)**2)**0.5
+    dist = ((keypoint_object.pt[0]-img.size_tuple[0]/2)**2 +
+            (keypoint_object.pt[1]-img.size_tuple[1]/2)**2)**0.5
     assert_equals(keypoint.distance_from(), dist)
 
     m_color = keypoint.mean_color
@@ -293,7 +293,7 @@ def test_keypoint():
 
 def test_motion():
     img = Image((100,100))
-    np_array = img.ndarray
+    np_array = img
     np_array[50:60, 30:40] = (255, 0, 0)
     np_array[40:50, 20:30] = (0, 0, 255)
 
@@ -311,9 +311,9 @@ def test_motion():
     #assert_equals(motion.normalize_to())
 
     crop_image = motion.crop()
-    crop_image.ndarray.shape
+    crop_image.shape
     crop_array = np_array[45:55, 25:35].copy()
-    assert_equals(crop_image.ndarray.data, crop_array.data)
+    assert_equals(crop_image.data, crop_array.data)
 
     motion.draw(normalize=False)
     motion.draw()
@@ -323,7 +323,7 @@ def test_motion():
 
 def test_shape_context_descriptor():
     img = Image((200, 200))
-    np_array = img.ndarray
+    np_array = img
     np_array[50:150, 30:80] = (255, 255, 255)
 
     blobs = img.find(Blob)
@@ -339,7 +339,7 @@ def test_roi():
     img = Image(testimageclr)
     mask = img.threshold(248).dilate(5)
     blobs = Blob.find_from_mask(img, mask, minsize=1)
-    y, x = np.where(mask.gray_ndarray > 0)
+    y, x = np.where(np.array(mask.to_gray()) > 0)
     xmin = np.min(x)
     xmax = np.max(x)
     ymin = np.min(y)
@@ -393,7 +393,7 @@ def test_roi():
     roi_list[0].crop()
     new_roi = ROI(zip(x, y), image=mask)
     test = new_roi.crop()
-    yroi, xroi = np.where(test.gray_ndarray > 128)
+    yroi, xroi = np.where(test.to_gray() > 128)
     roi_pts = zip(xroi, yroi)
     real_pts = new_roi.coord_transform_points(roi_pts)
     unit_roi = new_roi.coord_transform_points(roi_pts, output="ROI_UNIT")

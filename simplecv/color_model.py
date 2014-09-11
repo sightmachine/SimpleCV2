@@ -44,7 +44,7 @@ class ColorModel(object):
 
         #first cast everything to a numpy array
         if isinstance(data, Image):
-            ret = data.ndarray.reshape(-1, 3)
+            ret = data.reshape(-1, 3)
         elif isinstance(data, list):
             temp = []
             for dtl in data:  # do the bgr conversion
@@ -170,7 +170,7 @@ class ColorModel(object):
             a, b = b, a
 
         # bitshift down and reshape to Nx3
-        rshft = np.right_shift(img.ndarray, self.bits).reshape(-1, 3)
+        rshft = np.right_shift(img, self.bits).reshape(-1, 3)
         # map to True/False based on the model
         mapped = np.array(map(self.data.has_key,
                               map(np.ndarray.tostring, rshft)))

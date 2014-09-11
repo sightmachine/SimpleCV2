@@ -46,11 +46,11 @@ class StereoImage(object):
         super(StereoImage, self).__init__()
         self.image_left = img_left
         self.image_right = img_right
-        if self.image_left.size != self.image_right.size:
+        if self.image_left.size_tuple != self.image_right.size_tuple:
             logger.warning('Left and Right images should have the same size.')
             return
         else:
-            self.size = self.image_left.size
+            self.size = self.image_left.size_tuple
         self.image_3d = None
 
     def find_fundamental_mat(self, threshold=500.00, min_dist=0.15):
@@ -215,8 +215,8 @@ class StereoImage(object):
         >>> stereoImg = StereoImage(img1,img2)
         >>> disp = stereoImg.find_disparity_map(method="BM")
         """
-        gray_left = self.image_left.gray_ndarray
-        gray_right = self.image_right.gray_ndarray
+        gray_left = self.image_left.to_gray()
+        gray_right = self.image_right.to_gray()
         (rows, colums) = self.size
         #scale = int(self.image_left.depth)
         if n_disparity % 16 != 0:
@@ -409,8 +409,8 @@ class StereoImage(object):
         >>> stereo.get_3d_image(rpj_mat, "BM", state).show()
         >>> stereo.get_3d_image(rpj_mat, "SGBM", state).show()
         """
-        gray_left = self.image_left.gray_ndarray
-        gray_right = self.image_right.gray_ndarray
+        gray_left = self.image_left.to_gray()
+        gray_right = self.image_right.to_gray()
 
         if method == "BM":
             sbm = cv2.StereoBM()

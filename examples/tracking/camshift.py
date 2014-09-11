@@ -6,7 +6,7 @@ def foo(image):
 def camshift():
     cam = Camera()
     img = cam.getImage()
-    d = Display(img.size())
+    d = Display(img.size_tuple())
     bb1 = getBBFromUser(cam,d)
     fs1=[]
     while True:

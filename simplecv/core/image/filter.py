@@ -29,7 +29,7 @@ def equalize(img):
     >>> img = equalize(img)
 
     """
-    equalized_array = cv2.equalizeHist(img.gray_ndarray)
+    equalized_array = cv2.equalizeHist(img.to_gray())
     return Factory.Image(equalized_array)
 
 
@@ -158,10 +158,10 @@ def median_filter(img, window=None, grayscale=False):
         win_x = 3  # set the default aperture window size (3x3)
 
     if grayscale:
-        img_medianblur = cv2.medianBlur(img.gray_ndarray, ksize=win_x)
+        img_medianblur = cv2.medianBlur(img.to_gray(), ksize=win_x)
         return Factory.Image(img_medianblur)
     else:
-        img_medianblur = cv2.medianBlur(img.ndarray, ksize=win_x)
+        img_medianblur = cv2.medianBlur(img, ksize=win_x)
         return Factory.Image(img_medianblur, color_space=img.color_space)
 
 
@@ -233,12 +233,12 @@ def bilateral_filter(img, diameter=5, sigma_color=10, sigma_space=10,
         diameter = win_x
 
     if grayscale:
-        img_bilateral = cv2.bilateralFilter(img.gray_ndarray,
+        img_bilateral = cv2.bilateralFilter(img.to_gray(),
                                             d=diameter, sigmaColor=sigma_color,
                                             sigmaSpace=sigma_space)
         return Factory.Image(img_bilateral)
     else:
-        img_bilateral = cv2.bilateralFilter(img.ndarray, d=diameter,
+        img_bilateral = cv2.bilateralFilter(img, d=diameter,
                                             sigmaColor=sigma_color,
                                             sigmaSpace=sigma_space)
         return Factory.Image(img_bilateral, color_space=img.color_space)
@@ -278,10 +278,10 @@ def blur(img, window=None, grayscale=False):
         window = (3, 3)
 
     if grayscale:
-        img_blur = cv2.blur(img.gray_ndarray, ksize=window)
+        img_blur = cv2.blur(img.to_gray(), ksize=window)
         return Factory.Image(img_blur)
     else:
-        img_blur = cv2.blur(img.ndarray, ksize=window)
+        img_blur = cv2.blur(img, ksize=window)
         return Factory.Image(img_blur, color_space=img.color_space)
 
 
@@ -331,11 +331,11 @@ def gaussian_blur(img, window=None, sigma_x=0, sigma_y=0,
     else:
         window = (3, 3)  # set the default aperture window size (3x3)
     if grayscale:
-        image_gauss = cv2.GaussianBlur(img.gray_ndarray, window,
+        image_gauss = cv2.GaussianBlur(img.to_gray(), window,
                                        sigma_x, None, sigma_y)
         return Factory.Image(image_gauss)
     else:
-        image_gauss = cv2.GaussianBlur(img.ndarray, window, sigma_x,
+        image_gauss = cv2.GaussianBlur(img, window, sigma_x,
                                        None, sigma_y)
         return Factory.Image(image_gauss, color_space=img.color_space)
 
@@ -363,7 +363,7 @@ def invert(img):
     :py:meth:`binarize`
 
     """
-    return -img
+    return ~img
 
 
 @image_method
@@ -407,7 +407,7 @@ def stretch(img, threshold_low=0, threshold_high=255):
     :py:meth:`equalize`
 
     """
-    threshold, array = cv2.threshold(img.gray_ndarray,
+    threshold, array = cv2.threshold(img.to_gray(),
                                      thresh=threshold_low,
                                      maxval=255, type=cv2.THRESH_TOZERO)
     array = cv2.bitwise_not(array)
@@ -446,7 +446,7 @@ def gamma_correct(img, gamma=1):
         logger.warning("Gamma should be a non-negative real number")
         return None
     scale = 255.0
-    dst = (((1.0 / scale) * img.ndarray) ** gamma) * scale
+    dst = (((1.0 / scale) * img) ** gamma) * scale
     return Factory.Image(dst.astype(img.dtype), color_space=img.color_space)
 
 
@@ -517,9 +517,9 @@ def binarize(img, threshold=None, maxv=255, blocksize=0, p=5, inverted=False):
     thresh_type = cv2.THRESH_BINARY_INV if inverted else cv2.THRESH_BINARY
 
     if is_tuple(threshold):
-        b = img.ndarray[:, :, 0].copy()
-        g = img.ndarray[:, :, 1].copy()
-        r = img.ndarray[:, :, 2].copy()
+        b = img[:, :, 0].copy()
+        g = img[:, :, 1].copy()
+        r = img[:, :, 2].copy()
 
         r = cv2.threshold(r, thresh=threshold[0], maxval=maxv,
                           type=thresh_type)[1]
@@ -533,18 +533,18 @@ def binarize(img, threshold=None, maxv=255, blocksize=0, p=5, inverted=False):
     elif threshold is None:
         if blocksize:
             array = cv2.adaptiveThreshold(
-                img.gray_ndarray, maxValue=maxv,
+                img.to_gray(), maxValue=maxv,
                 adaptiveMethod=cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
                 thresholdType=thresh_type,
                 blockSize=blocksize, C=p)
         else:
             array = cv2.threshold(
-                img.gray_ndarray, -1, float(maxv),
+                img.to_gray(), -1, float(maxv),
                 thresh_type + cv2.THRESH_OTSU)[1]
         return Factory.Image(array)
     else:
         # desaturate the image, and apply the new threshold
-        array = cv2.threshold(img.gray_ndarray, thresh=threshold,
+        array = cv2.threshold(img.to_gray(), thresh=threshold,
                               maxval=maxv, type=thresh_type)[1]
         return Factory.Image(array)
 
@@ -575,9 +575,9 @@ def get_skintone_mask(img, dilate_iter=0):
 
     """
     if img.is_ycrcb():
-        ycrcb = img.ndarray
+        ycrcb = img
     else:
-        ycrcb = img.to_ycrcb().ndarray
+        ycrcb = img.to_ycrcb()
 
     y = np.zeros((256, 1), dtype=np.uint8)
     y[5:] = 255
@@ -639,7 +639,7 @@ def apply_hls_curve(img, hcurve, lcurve, scurve):
     #TODO CHECK CURVE SIZE
 
     # Move to HLS space
-    array = img.to_hls().ndarray
+    array = img.to_hls()
 
     # now apply the color curve correction
     array[:, :, 0] = np.take(hcurve.curve, array[:, :, 0])
@@ -694,7 +694,7 @@ def apply_rgb_curve(img, rcurve, gcurve, bcurve):
     if isinstance(rcurve, list):
         rcurve = ColorCurve(rcurve)
 
-    array = img.ndarray.copy()
+    array = img.copy()
     array[:, :, 0] = np.take(bcurve.curve, array[:, :, 0])
     array[:, :, 1] = np.take(gcurve.curve, array[:, :, 1])
     array[:, :, 2] = np.take(rcurve.curve, array[:, :, 2])
@@ -767,7 +767,7 @@ def color_distance(img, color=Color.BLACK):
         :py:meth:`find_blobs_from_mask`
         """
         # reshape our matrix to 1xN
-        pixels = img._ndarray.copy().reshape(-1, 3)
+        pixels = img.copy().reshape(-1, 3)
         # calculate the distance each pixel is
         distances = spsd.cdist(pixels, [color])
         distances *= (255.0 / distances.max())  # normalize to 0 - 255
@@ -824,7 +824,7 @@ def hue_distance(img, color=Color.BLACK, minsaturation=20, minvalue=20,
     else:
         color_hue = Color.hsv(color)[0]
 
-    hsv_matrix = img.to_hsv().ndarray.reshape(-1, 3)
+    hsv_matrix = img.to_hsv().reshape(-1, 3)
     hue_channel = np.cast['int'](hsv_matrix[:, 0])
 
     if color_hue < 90:
@@ -899,7 +899,7 @@ def erode(img, iterations=1, kernelsize=3):
     kern = cv2.getStructuringElement(shape=cv2.MORPH_RECT,
                                      ksize=(kernelsize, kernelsize),
                                      anchor=(1, 1))
-    array = cv2.erode(img.ndarray, kernel=kern, iterations=iterations)
+    array = cv2.erode(img, kernel=kern, iterations=iterations)
     return Factory.Image(array, color_space=img.color_space)
 
 
@@ -949,7 +949,7 @@ def dilate(img, iterations=1):
     """
     kern = cv2.getStructuringElement(shape=cv2.MORPH_RECT, ksize=(3, 3),
                                      anchor=(1, 1))
-    array = cv2.dilate(img.ndarray, kernel=kern, iterations=iterations)
+    array = cv2.dilate(img, kernel=kern, iterations=iterations)
     return Factory.Image(array, color_space=img.color_space)
 
 
@@ -996,7 +996,7 @@ def morph_open(img):
     """
     kern = cv2.getStructuringElement(shape=cv2.MORPH_RECT, ksize=(3, 3),
                                      anchor=(1, 1))
-    array = cv2.morphologyEx(src=img.ndarray, op=cv2.MORPH_OPEN,
+    array = cv2.morphologyEx(src=img, op=cv2.MORPH_OPEN,
                              kernel=kern, anchor=(1, 1), iterations=1)
     return Factory.Image(array, color_space=img.color_space)
 
@@ -1044,7 +1044,7 @@ def morph_close(img):
     """
     kern = cv2.getStructuringElement(shape=cv2.MORPH_RECT, ksize=(3, 3),
                                      anchor=(1, 1))
-    array = cv2.morphologyEx(src=img.ndarray, op=cv2.MORPH_CLOSE,
+    array = cv2.morphologyEx(src=img, op=cv2.MORPH_CLOSE,
                              kernel=kern, anchor=(1, 1), iterations=1)
     return Factory.Image(array, color_space=img.color_space)
 
@@ -1093,7 +1093,7 @@ def morph_gradient(img):
     """
     kern = cv2.getStructuringElement(shape=cv2.MORPH_RECT, ksize=(3, 3),
                                      anchor=(1, 1))
-    array = cv2.morphologyEx(img.ndarray, op=cv2.MORPH_GRADIENT,
+    array = cv2.morphologyEx(img, op=cv2.MORPH_GRADIENT,
                              kernel=kern)
     return Factory.Image(array, color_space=img.color_space)
 
@@ -1116,14 +1116,14 @@ def maximum(img, other):
 
     """
     if isinstance(other, Factory.Image):
-        if img.size != other.size:
+        if img.size_tuple != other.size_tuple:
             logger.warn("Both images should have same dimensions. "
                         "Returning None.")
             return None
-        array = cv2.max(img.ndarray, other.ndarray)
+        array = cv2.max(img, other)
         return Factory.Image(array, color_space=img.color_space)
     else:
-        array = np.maximum(img.ndarray, other)
+        array = np.maximum(img, other)
         return Factory.Image(array, color_space=img.color_space)
 
 
@@ -1145,14 +1145,14 @@ def minimum(img, other):
     """
 
     if isinstance(other, Factory.Image):
-        if img.size != other.size:
+        if img.size_tuple != other.size_tuple:
             logger.warn("Both images should have same dimensions. "
                         "Returning None.")
             return None
-        array = cv2.min(img.ndarray, other.ndarray)
+        array = cv2.min(img, other)
         return Factory.Image(array, color_space=img.color_space)
     else:
-        array = np.minimum(img.ndarray, other)
+        array = np.minimum(img, other)
         return Factory.Image(array, color_space=img.color_space)
 
 
@@ -1259,7 +1259,7 @@ def create_binary_mask(img, color1=(0, 0, 0), color2=(255, 255, 255)):
 
     results = []
     for index, color in enumerate(zip(color1, color2)):
-        chanel = cv2.inRange(img.ndarray[:, :, index],
+        chanel = cv2.inRange(img[:, :, index],
                              lowerb=np.array(min(color)),
                              upperb=np.array(max(color)))
         results.append(chanel)
@@ -1304,7 +1304,7 @@ def apply_binary_mask(img, mask, bg_color=Color.BLACK):
     :py:meth:`threshold`
 
     """
-    if img.size != mask.size:
+    if img.size_tuple != mask.size_tuple:
         logger.warning("Image.apply_binary_mask: your mask and image "
                        "don't match sizes, if the mask doesn't fit, you "
                        "can't apply it! Try using the scale function. ")
@@ -1316,9 +1316,9 @@ def apply_binary_mask(img, mask, bg_color=Color.BLACK):
 
     #array = cv2.add(array, c_arr, dtype=-1)
     array = array + c_arr
-    binary_mask = mask.gray_ndarray != 0
+    binary_mask = mask.to_gray() != 0
 
-    array[binary_mask] = img.ndarray[binary_mask]
+    array[binary_mask] = img[binary_mask]
     return Factory.Image(array, color_space=img.color_space)
 
 
@@ -1373,8 +1373,8 @@ def create_alpha_mask(img, hue=60, hue_lb=None, hue_ub=None):
         hsv = img.to_hsv()
     else:
         hsv = img.copy()
-    h = hsv.ndarray[:, :, 0]
-    v = hsv.ndarray[:, :, 2]
+    h = hsv[:, :, 0]
+    v = hsv[:, :, 2]
     hlut = np.zeros(256, dtype=np.uint8)
     if hue_lb is not None and hue_ub is not None:
         hlut[hue_lb:hue_ub] = 255
@@ -1421,7 +1421,7 @@ def apply_pixel_function(img, func):
     # but I can get vectorize to work with the three channels together...
     # have to split them
     #TODO: benchmark this against vectorize
-    pixels = np.array(img.ndarray).reshape(-1, 3).tolist()
+    pixels = np.array(img).reshape(-1, 3).tolist()
     result = np.array(map(func, pixels), dtype=np.uint8).reshape(
         (img.width, img.height, 3))
     return Factory.Image(result)
@@ -1466,7 +1466,7 @@ def convolve(img, kernel=None, center=None):
         logger.warning("Image.convolve: kernel should be numpy array.")
         return None
     kernel = kernel.astype(np.float32)
-    array = cv2.filter2D(img.ndarray, ddepth=-1,
+    array = cv2.filter2D(img, ddepth=-1,
                          kernel=kernel, anchor=center)
     return Factory.Image(array, color_space=img.color_space)
 
@@ -1527,7 +1527,7 @@ def white_balance(img, method="Simple"):
         return None
 
     if method == "GrayWorld":
-        avg = cv2.mean(img.ndarray)
+        avg = cv2.mean(img)
         bf = float(avg[0])
         gf = float(avg[1])
         rf = float(avg[2])
@@ -1547,9 +1547,9 @@ def white_balance(img, method="Simple"):
         else:
             r_factor = af / rf
 
-        b = img.ndarray[:, :, 0]
-        g = img.ndarray[:, :, 1]
-        r = img.ndarray[:, :, 2]
+        b = img[:, :, 0]
+        g = img[:, :, 1]
+        r = img[:, :, 2]
 
         bfloat = cv2.convertScaleAbs(b.astype(np.float32), alpha=b_factor)
         gfloat = cv2.convertScaleAbs(g.astype(np.float32), alpha=g_factor)
@@ -1572,7 +1572,7 @@ def white_balance(img, method="Simple"):
     elif method == "Simple":
         thresh = 0.003
         sz = img.width * img.height
-        bcf = sss.cumfreq(img.ndarray[:, :, 0], numbins=256)
+        bcf = sss.cumfreq(img[:, :, 0], numbins=256)
         # get our cumulative histogram of values for this color
         bcf = bcf[0]
 
@@ -1588,7 +1588,7 @@ def white_balance(img, method="Simple"):
             bub = bub - 1
             upper_thresh = (sz - bcf[bub]) / sz
 
-        gcf = sss.cumfreq(img._ndarray[:, :, 1], numbins=256)
+        gcf = sss.cumfreq(img[:, :, 1], numbins=256)
         gcf = gcf[0]
         glb = -1  # our upper bound
         gub = 256  # our lower bound
@@ -1602,7 +1602,7 @@ def white_balance(img, method="Simple"):
             gub = gub - 1
             upper_thresh = (sz - gcf[gub]) / sz
 
-        rcf = sss.cumfreq(img.ndarray[:, :, 2], numbins=256)
+        rcf = sss.cumfreq(img[:, :, 2], numbins=256)
         rcf = rcf[0]
         rlb = -1  # our upper bound
         rub = 256  # our lower bound
@@ -1694,9 +1694,9 @@ def apply_lut(img, r_lut=None, g_lut=None, b_lut=None):
     if not img.is_bgr():
         logger.warning("Image.apply_lut: works only with BGR image")
         return None
-    b = img.ndarray[:, :, 0]
-    g = img.ndarray[:, :, 1]
-    r = img.ndarray[:, :, 2]
+    b = img[:, :, 0]
+    g = img[:, :, 1]
+    r = img[:, :, 2]
     if r_lut is not None:
         r = cv2.LUT(r, lut=r_lut)
     if g_lut is not None:
@@ -1815,7 +1815,7 @@ def binarize_from_palette(img, palette_selection):
     palettized_img = img.palettize(bins=img._palette_bins,
                                    hue=img._do_hue_palette)
     if not img._do_hue_palette:
-        npimg = palettized_img.ndarray
+        npimg = palettized_img
         white = np.array([255, 255, 255], dtype=np.uint8)
         black = np.array([0, 0, 0], dtype=np.uint8)
 
@@ -1825,7 +1825,7 @@ def binarize_from_palette(img, palette_selection):
         npimg = np.where(npimg != white, black, white)
         ret_val = Factory.Image(npimg)
     else:
-        npimg = palettized_img.ndarray
+        npimg = palettized_img
         white = np.array([255], dtype=np.uint8)
         black = np.array([0], dtype=np.uint8)
 
@@ -1877,7 +1877,7 @@ def skeletonize(img, radius=5):
     http://alexbw.posterous.com/
 
     """
-    img_array = img.gray_ndarray
+    img_array = img.to_gray()
     distance_img = ndimage.distance_transform_edt(img_array)
     morph_laplace_img = ndimage.morphological_laplace(distance_img,
                                                       size=(radius, radius))
@@ -1950,7 +1950,7 @@ def smart_threshold(img, mask=None, rect=None):
     """
     ret_val = None
     if mask is not None:
-        gray_array = mask.gray_ndarray
+        gray_array = mask.to_gray()
         # translate the human readable images to something
         # opencv wants using a lut
         lut = np.zeros((256, 1), dtype=np.uint8)
@@ -1960,7 +1960,7 @@ def smart_threshold(img, mask=None, rect=None):
         gray_array = cv2.LUT(gray_array, lut)
         mask_in = gray_array.copy()
         # get our image in a flavor grab cut likes
-        npimg = img.ndarray
+        npimg = img
         # require by opencv
         tmp1 = np.zeros((1, 13 * 5))
         tmp2 = np.zeros((1, 13 * 5))
@@ -1976,7 +1976,7 @@ def smart_threshold(img, mask=None, rect=None):
         ret_val = Factory.Image(output)
 
     elif rect is not None:
-        npimg = img.ndarray
+        npimg = img
         tmp1 = np.zeros((1, 13 * 5))
         tmp2 = np.zeros((1, 13 * 5))
         mask = np.zeros((img.height, img.width), dtype=np.uint8)
@@ -2031,7 +2031,7 @@ def threshold(img, value):
     :py:meth:`binarize`
 
     """
-    gray = img.gray_ndarray
+    gray = img.to_gray()
     _, array = cv2.threshold(gray, thresh=value, maxval=255,
                              type=cv2.THRESH_BINARY)
     return Factory.Image(array)
@@ -2124,7 +2124,7 @@ def flood_fill(img, points, tolerance=None, color=Color.WHITE, lower=None,
         flags |= cv2.FLOODFILL_FIXED_RANGE
 
     mask = np.zeros((img.height + 2, img.width + 2), dtype=np.uint8)
-    array = img.ndarray.copy()
+    array = img.copy()
 
     if len(points.shape) != 1:
         for p in points:
@@ -2243,9 +2243,9 @@ def flood_fill_to_mask(img, points, tolerance=None, color=Color.WHITE,
                               dtype=np.uint8)
     else:
         local_mask = mask.embiggen(size=(img.width + 2, img.height + 2))
-        local_mask = local_mask.gray_ndarray
+        local_mask = local_mask.to_gray()
 
-    temp = img.ndarray.copy()
+    temp = img.copy()
     if len(points.shape) != 1:
         for p in points:
             cv2.floodFill(temp, mask=local_mask, seedPoint=tuple(p),
@@ -2289,7 +2289,7 @@ def get_lightness(img):
     if not img.is_bgr():
         logger.warning('Input a BGR image')
         return None
-    img_mat = np.array(img.ndarray, dtype=np.int)
+    img_mat = np.array(img, dtype=np.int)
     ret_val = np.array((np.max(img_mat, 2) + np.min(img_mat, 2)) / 2,
                        dtype=np.uint8)
     return Factory.Image(ret_val)
@@ -2324,7 +2324,7 @@ def get_luminosity(img):
     if not img.is_bgr():
         logger.warning('Input a BGR image')
         return None
-    img_mat = np.array(img.ndarray, dtype=np.int)
+    img_mat = np.array(img, dtype=np.int)
     ret_val = np.array(np.average(img_mat, 2, (0.07, 0.71, 0.21)),
                        dtype=np.uint8)
     return Factory.Image(ret_val)
@@ -2359,7 +2359,7 @@ def get_average(img):
     if not img.is_bgr():
         logger.warning('Input a BGR image')
         return None
-    img_mat = np.array(img.ndarray, dtype=np.int)
+    img_mat = np.array(img, dtype=np.int)
     ret_val = np.array(img_mat.mean(2), dtype=np.uint8)
     return Factory.Image(ret_val)
 
@@ -2412,7 +2412,7 @@ def pixelize(img, block_size=10, region=None, levels=None, do_hue=False):
         ys = region[1]
         w = region[2]
         h = region[3]
-        ret_val = img.ndarray.copy()
+        ret_val = img.copy()
         ret_val[ys:ys + w, xs:xs + h] = 0
     else:
         xs = 0
@@ -2557,7 +2557,7 @@ def normalize(img, new_min=0, new_max=255, min_cut=2, max_cut=98):
         closest_match = lambda a, l: min(l, key=lambda x: abs(x - a))
         maxval = closest_match(maxfreq, val)
         minval = closest_match(minfreq, val)
-        array = img.gray_ndarray
+        array = img.to_gray()
         array = cv2.subtract(array,
                              minval * np.ones(array.shape, np.uint8))
         n = ((new_max - new_min) / float(maxval - minval)) \
@@ -2569,7 +2569,7 @@ def normalize(img, new_min=0, new_max=255, min_cut=2, max_cut=98):
     except ZeroDivisionError:
         maxval = img.max_value()
         minval = img.min_value()
-        array = img.gray_ndarray
+        array = img.to_gray()
         array = cv2.subtract(array,
                              minval * np.ones(array.shape, np.uint8))
         n = ((new_max - new_min) / float(maxval - minval)) \
@@ -2609,7 +2609,7 @@ def sobel(img, xorder=1, yorder=1, do_gray=True, aperture=5):
         return None
 
     if do_gray:
-        dst = cv2.Sobel(img.gray_ndarray, cv2.CV_32F, xorder,
+        dst = cv2.Sobel(img.to_gray(), cv2.CV_32F, xorder,
                         yorder, ksize=aperture)
         minv = np.min(dst)
         maxv = np.max(dst)
@@ -2621,7 +2621,7 @@ def sobel(img, xorder=1, yorder=1, do_gray=True, aperture=5):
 
     else:
         #layers = img.split_channels()
-        layers = np.dsplit(img.ndarray, 3)
+        layers = np.dsplit(img, 3)
         sobel_layers = []
         for layer in layers:
             dst = cv2.Sobel(layer, cv2.CV_32F, xorder,
@@ -2697,8 +2697,8 @@ def watershed(img, mask=None, erode=2, dilate=2, use_my_mask=False):
         newmask = newmask + mask.erode(iterations=erode).to_bgr()
     else:
         newmask = mask
-    m = np.int32(newmask.gray_ndarray)
-    cv2.watershed(img.ndarray, m)
+    m = np.int32(newmask.to_gray())
+    cv2.watershed(img, m)
     m = cv2.convertScaleAbs(m)
     ret, thresh = cv2.threshold(m, 0, 255, cv2.THRESH_OTSU)
     return Factory.Image(thresh)
@@ -2929,7 +2929,7 @@ def prewitt(img):
     gy = [[-1, 0, 1], [-1, 0, 1], [-1, 0, 1]]
     grayx = grayimg.convolve(gx)
     grayy = grayimg.convolve(gy)
-    grayxnp = np.uint64(grayx.gray_ndarray)
-    grayynp = np.uint64(grayy.gray_ndarray)
+    grayxnp = np.uint64(grayx.to_gray())
+    grayynp = np.uint64(grayy.to_gray())
     ret_val = Factory.Image(np.sqrt(grayxnp ** 2 + grayynp ** 2))
     return ret_val

@@ -106,7 +106,7 @@ def lkTracker(img, bb, ts, oldimg, **kwargs):
 
     bb = (int(bb[0]), int(bb[1]), int(bb[2]), int(bb[3]))
     img1 = img.crop(bb[0], bb[1], bb[2], bb[3])
-    g = img1.gray_ndarray
+    g = img1.to_gray()
     pt = cv2.goodFeaturesToTrack(g, maxCorners=maxCorners,
                                  qualityLevel=qualityLevel,
                                  minDistance=minDistance, blockSize=blockSize)
@@ -120,8 +120,8 @@ def lkTracker(img, bb, ts, oldimg, **kwargs):
         pt[i][0][1] = pt[i][0][1] + bb[1]
 
     p0 = np.float32(pt).reshape(-1, 1, 2)
-    oldg = oldimg.gray_ndarray
-    newg = img.gray_ndarray
+    oldg = oldimg.to_gray()
+    newg = img.to_gray()
     p1, st, err = cv2.calcOpticalFlowPyrLK(
         oldg, newg, p0, None,
         winSize=winSize,

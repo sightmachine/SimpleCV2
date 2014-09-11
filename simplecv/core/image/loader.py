@@ -113,8 +113,9 @@ class SampleImageLoader(ImageLoaderBase):
     def can_load(**kwargs):
         source = kwargs.get('source')
         sample = kwargs.get('sample')
-        if sample is True \
-                or source in SampleImageLoader.SUPPORTED_SAMPLE_IMAGES:
+        if sample is True or \
+                isinstance(source, basestring) and \
+                source in SampleImageLoader.SUPPORTED_SAMPLE_IMAGES:
             return True
         else:
             return False

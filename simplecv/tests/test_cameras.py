@@ -51,7 +51,7 @@ def test_camera_undistort():
     fake_camera.load_calibration("../data/test/StereoVision/Default")
     img = Image("../data/sampleimages/CalibImage0.png")
     img2 = fake_camera.undistort(img)
-    assert img2
+    assert img2 is not None
 
     results = [img2]
     name_stem = "test_camera_undistort"

@@ -215,7 +215,7 @@ def test_imageset_download():
 def test_hsv_conversion():
     px = Image((1, 1))
     px[0, 0] = Color.GREEN
-    assert_list_equal(Color.hsv(Color.GREEN), px.to_hsv()[0, 0])
+    assert_list_equal(Color.hsv(Color.GREEN), px.to_hsv()[0, 0].tolist())
 
 
 @skipped  # FIXME
@@ -1000,16 +1000,16 @@ def test_blob_edge_images():
     b = img.find(Blob)
     m1 = b[-1].edge_image
     assert_is_instance(m1, Image)
-    assert_equals(m1.size, img.size)
+    assert_equals(m1.size_tuple, img.size_tuple)
     m2 = b[-1].hull_edge_image
     assert_is_instance(m2, Image)
-    assert_equals(m1.size, img.size)
+    assert_equals(m1.size_tuple, img.size_tuple)
     m3 = b[-1].full_edge_image
     assert_is_instance(m3, Image)
-    assert_equals(m3.size, img.size)
+    assert_equals(m3.size_tuple, img.size_tuple)
     m4 = b[-1].full_hull_edge_image
     assert_is_instance(m4, Image)
-    assert_equals(m4.size, img.size)
+    assert_equals(m4.size_tuple, img.size_tuple)
 
 
 def test_uncrop():
@@ -1128,13 +1128,6 @@ def test_prewitt():
     assert i != p
 
 
-def test_grayscalmatrix():
-    img = Image("lenna")
-    graymat = img.gray_ndarray
-    newimg = Image(graymat, color_space=Image.GRAY)
-    assert np.array_equal(img.gray_ndarray, newimg.gray_ndarray)
-
-
 def test_get_normalized_hue_histogram():
     img = Image('lenna')
     a = img.get_normalized_hue_histogram((0, 0, 100, 100))
@@ -1183,8 +1176,8 @@ def test_draw():
     for line in lines:
         img1.draw(line, width=3)
 
-    assert_equals(img.apply_layers().ndarray.data,
-                  img1.apply_layers().ndarray.data)
+    assert_equals(img.apply_layers().data,
+                  img1.apply_layers().data)
 
     # incorrect params
     assert_is_none(img.draw(simg))
@@ -1199,7 +1192,6 @@ def test_draw_points():
     pts = [(80, 20)]
     img.draw_points(pts, Color.BLUE)
     img1 = img.apply_layers()
-    np_arr = img1.ndarray
     assert_equals(img1[10, 10], [255, 0, 0])
     assert_equals(img1[60, 30], [255, 0, 0])
     assert_equals(img1[20, 80], [0, 0, 255])

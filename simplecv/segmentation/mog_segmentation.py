@@ -49,8 +49,7 @@ class MOGSegmentation(SegmentationBase):
             return
 
         self.color_img = img
-        self.diff_img = Factory.Image(self.bs_mog.apply(img.ndarray,
-                                                        None,
+        self.diff_img = Factory.Image(self.bs_mog.apply(img, None,
                                                         self.learning_rate))
         self.ready = True
 

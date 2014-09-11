@@ -34,12 +34,12 @@ def scale(img, ratio, interpolation=cv2.INTER_LINEAR):
 
     :py:meth:`resize`
     """
-    size = tuple(map(lambda a: int(ratio * a), img.size))
+    size = tuple(map(lambda a: int(ratio * a), img.size_tuple))
     if max(size) > MAX_DIMENSION or min(size) < 1:
             logger.warning("Holy Heck! You tried to make an image really "
                            "big or impossibly small. I can't scale that")
             return img
-    scaled_array = cv2.resize(img.ndarray, dsize=size,
+    scaled_array = cv2.resize(img, dsize=size,
                               interpolation=interpolation)
     return Factory.Image(scaled_array, color_space=img.color_space)
 
@@ -84,7 +84,7 @@ def resize(img, width=None, height=None, interpolation=cv2.INTER_LINEAR):
                        "image really big or impossibly small. "
                        "I can't scale that")
         return None
-    saceld_array = cv2.resize(img.ndarray, dsize=(width, height),
+    saceld_array = cv2.resize(img, dsize=(width, height),
                               interpolation=interpolation)
     return Factory.Image(saceld_array, color_space=img.color_space)
 
@@ -112,7 +112,7 @@ def flip_horizontal(img):
     :py:meth:`flip_vertical`
     :py:meth:`rotate`
     """
-    flip_array = cv2.flip(img.ndarray, flipCode=1)
+    flip_array = cv2.flip(img, flipCode=1)
     return Factory.Image(flip_array, color_space=img.color_space)
 
 
@@ -139,7 +139,7 @@ def flip_vertical(img):
     :py:meth:`rotate`
     :py:meth:`flip_horizontal`
     """
-    flip_array = cv2.flip(img.ndarray, flipCode=0)
+    flip_array = cv2.flip(img, flipCode=0)
     return Factory.Image(flip_array, color_space=img.color_space)
 
 
@@ -200,7 +200,7 @@ def rotate(img, angle, fixed=True, point=None, scale=1.0):
                                       angle=float(angle),
                                       scale=float(scale))
     if fixed:
-        array = cv2.warpAffine(img.ndarray, M=rot_mat, dsize=img.size)
+        array = cv2.warpAffine(img, M=rot_mat, dsize=img.size_tuple)
         return Factory.Image(array, color_space=img.color_space)
 
     # otherwise, we're expanding the matrix to
@@ -251,7 +251,7 @@ def rotate(img, angle, fixed=True, point=None, scale=1.0):
     rot_mat = cv2.getAffineTransform(
         src=np.array(src).astype(np.float32),
         dst=np.array(dst).astype(np.float32))
-    array = cv2.warpAffine(img.ndarray, M=rot_mat,
+    array = cv2.warpAffine(img, M=rot_mat,
                            dsize=(int(new_width), int(new_height)))
     return Factory.Image(array, color_space=img.color_space)
 
@@ -283,7 +283,7 @@ def transpose(img):
 
     :py:meth:`rotate`
     """
-    array = cv2.transpose(img.ndarray)
+    array = cv2.transpose(img)
     return Factory.Image(array, color_space=img.color_space)
 
 
@@ -366,7 +366,7 @@ def transform_affine(img, rot_matrix):
     http://en.wikipedia.org/wiki/Transformation_matrix
 
     """
-    array = cv2.warpAffine(img.ndarray, M=rot_matrix, dsize=img.size)
+    array = cv2.warpAffine(img, M=rot_matrix, dsize=img.size_tuple)
     return Factory.Image(array, color_space=img.color_space)
 
 
@@ -461,7 +461,7 @@ def transform_perspective(img, rot_matrix):
 
     http://en.wikipedia.org/wiki/Transformation_matrix
     """
-    array = cv2.warpPerspective(src=img.ndarray, dsize=img.size,
+    array = cv2.warpPerspective(src=img, dsize=img.size_tuple,
                                 M=rot_matrix, flags=cv2.INTER_CUBIC)
     return Factory.Image(array, color_space=img.color_space)
 
@@ -736,7 +736,7 @@ def crop(img, x, y=None, width=None, height=None,
                        "image. I have no choice but to return None.")
         return None
 
-    array = img.ndarray[img.roi_to_slice(bottom_roi)].copy()
+    array = img[img.roi_to_slice(bottom_roi)].copy()
 
     result_img = Factory.Image(array, color_space=img.color_space)
 
@@ -840,7 +840,7 @@ def adaptive_scale(img, resolution, fit=True):
     targety = 0
     targetw = resolution[0]
     targeth = resolution[1]
-    if img.size == resolution:  # we have to resize
+    if img.size_tuple == resolution:  # we have to resize
         ret_val = img
         return ret_val
     elif img_ar == wndw_ar and fit:
@@ -948,7 +948,7 @@ def adaptive_scale(img, resolution, fit=True):
             img = img.crop(x, y, targetw, targeth)
 
     ret_val[targety:targety + targeth,
-            targetx:targetx + targetw] = img.ndarray
+            targetx:targetx + targetw] = img
     ret_val = Factory.Image(array=ret_val, color_space=img.color_space)
     return ret_val
 
@@ -1006,8 +1006,8 @@ def blit(img, top_img, pos=None, alpha=None, mask=None,
     if pos is None:
         pos = (0, 0)
 
-    (top_roi, bottom_roi) = img.rect_overlap_rois(top_img.size,
-                                                  img.size, pos)
+    (top_roi, bottom_roi) = img.rect_overlap_rois(top_img.size_tuple,
+                                                  img.size_tuple, pos)
 
     if alpha:
         top_img = top_img.copy().crop(*top_roi)
@@ -1015,14 +1015,14 @@ def blit(img, top_img, pos=None, alpha=None, mask=None,
         alpha = float(alpha)
         beta = float(1.00 - alpha)
         gamma = float(0.00)
-        blit_array = cv2.addWeighted(top_img.ndarray, alpha,
-                                     bottom_img.ndarray, beta, gamma)
-        array = img._ndarray.copy()
+        blit_array = cv2.addWeighted(top_img, alpha,
+                                     bottom_img, beta, gamma)
+        array = img.copy()
         array[bottom_roi[1]:bottom_roi[1] + bottom_roi[3],
               bottom_roi[0]:bottom_roi[0] + bottom_roi[2]] = blit_array
         return Factory.Image(array, color_space=img.color_space)
-    elif alpha_mask:
-        if alpha_mask.size != top_img.size:
+    elif alpha_mask is not None:
+        if alpha_mask.size_tuple != top_img.size_tuple:
             logger.warning("Image.blit: your mask and image don't match "
                            "sizes, if the mask doesn't fit, you can not "
                            "blit! Try using the scale function.")
@@ -1031,15 +1031,15 @@ def blit(img, top_img, pos=None, alpha=None, mask=None,
         bottom_img = img.copy().crop(*bottom_roi)
         mask_img = alpha_mask.crop(*top_roi)
         # Apply mask to img
-        top_array = top_img.ndarray.astype(np.float32)
-        gray_mask_array = mask_img.gray_ndarray
+        top_array = top_img.astype(np.float32)
+        gray_mask_array = mask_img.to_gray()
         gray_mask_array = gray_mask_array.astype(np.float32) / 255.0
         gray_mask_array = np.dstack((gray_mask_array, gray_mask_array,
                                      gray_mask_array))
         masked_top_array = cv2.multiply(top_array, gray_mask_array)
         # Apply inverted mask to img
-        bottom_array = bottom_img.ndarray.astype(np.float32)
-        inv_graymask_array = mask_img.invert().gray_ndarray
+        bottom_array = bottom_img.astype(np.float32)
+        inv_graymask_array = mask_img.invert().to_gray()
         inv_graymask_array = inv_graymask_array.astype(np.float32) / 255.0
         inv_graymask_array = np.dstack((inv_graymask_array,
                                         inv_graymask_array,
@@ -1050,13 +1050,13 @@ def blit(img, top_img, pos=None, alpha=None, mask=None,
         blit_array = cv2.add(masked_top_array, masked_bottom_array)
         blit_array = blit_array.astype(img.dtype)
 
-        array = img._ndarray.copy()
+        array = img.copy()
         array[bottom_roi[1]:bottom_roi[1] + bottom_roi[3],
               bottom_roi[0]:bottom_roi[0] + bottom_roi[2]] = blit_array
         return Factory.Image(array, color_space=img.color_space)
 
-    elif mask:
-        if mask.size != top_img.size:
+    elif mask is not None:
+        if mask.size_tuple != top_img.size_tuple:
             logger.warning("Image.blit: your mask and image don't match "
                            "sizes, if the mask doesn't fit, you can not "
                            "blit! Try using the scale function. ")
@@ -1064,20 +1064,20 @@ def blit(img, top_img, pos=None, alpha=None, mask=None,
         top_img = top_img.copy().crop(*top_roi)
         mask_img = mask.crop(*top_roi)
         # Apply mask to img
-        top_array = top_img.ndarray
-        gray_mask_array = mask_img.gray_ndarray
+        top_array = top_img
+        gray_mask_array = mask_img.to_gray()
         binary_mask = gray_mask_array != 0
-        array = img._ndarray.copy()
+        array = img.copy()
         array[img.roi_to_slice(bottom_roi)][binary_mask] = \
             top_array[binary_mask]
         return Factory.Image(array, color_space=img.color_space)
 
     else:  # vanilla blit
         top_img = top_img.copy().crop(*top_roi)
-        array = img._ndarray.copy()
+        array = img.copy()
         array[bottom_roi[1]:bottom_roi[1] + bottom_roi[3],
               bottom_roi[0]:bottom_roi[0] + bottom_roi[2]] = \
-            top_img.ndarray
+            top_img
         return Factory.Image(array, color_space=img.color_space)
 
 
@@ -1134,15 +1134,12 @@ def side_by_side(image1, image2, side="right", scale=True):
         xc = (topimage.width - resized.width) / 2
         array = np.zeros((h, w, 3), dtype=image1.dtype)
         if xc > 0:
-            array[:topimage.height, :topimage.width] = \
-                topimage.ndarray
-            array[h - resized.height:, xc:xc + resized.width] = \
-                resized.ndarray
+            array[:topimage.height, :topimage.width] = topimage
+            array[h - resized.height:, xc:xc + resized.width] = resized
         else:
             array[:topimage.height, abs(xc):abs(xc) + topimage.width] = \
-                topimage.ndarray
-            array[h - resized.height:, :resized.width] = \
-                resized.ndarray
+                topimage
+            array[h - resized.height:, :resized.width] = resized
         return Factory.Image(array, color_space=image1.color_space)
     elif side == "right":
         return image2.side_by_side(image1, "left", scale)
@@ -1163,14 +1160,12 @@ def side_by_side(image1, image2, side="right", scale=True):
         yc = (rightimage.height - resized.height) / 2
         array = np.zeros((h, w, 3), dtype=image1.dtype)
         if yc > 0:
-            array[:rightimage.height, w - rightimage.width:] = \
-                rightimage.ndarray
-            array[yc:yc + resized.height, :resized.width] = \
-                resized.ndarray
+            array[:rightimage.height, w - rightimage.width:] = rightimage
+            array[yc:yc + resized.height, :resized.width] = resized
         else:
             array[abs(yc):abs(yc) + rightimage.height,
-                  w - rightimage.width:] = rightimage.ndarray
-            array[:resized.height, :resized.width] = resized.ndarray
+                  w - rightimage.width:] = rightimage
+            array[:resized.height, :resized.width] = resized
         return Factory.Image(array, color_space=image1.color_space)
 
 
@@ -1225,12 +1220,12 @@ def embiggen(img, size=None, color=Color.BLACK, pos=None):
         array[:, :, :] = color[::-1]  # RBG to BGR
     if pos is None:
         pos = (((size[0] - img.width) / 2), ((size[1] - img.height) / 2))
-    (top_roi, bottom_roi) = img.rect_overlap_rois(img.size, size, pos)
+    (top_roi, bottom_roi) = img.rect_overlap_rois(img.size_tuple, size, pos)
     if top_roi is None or bottom_roi is None:
         logger.warning("Image.embiggen: the position of the old image "
                        "doesn't make sense, there is no overlap")
         return None
-    blit_array = img._ndarray[img.roi_to_slice(top_roi)]
+    blit_array = img[img.roi_to_slice(top_roi)]
     array[img.roi_to_slice(bottom_roi)] = blit_array
     return Factory.Image(array, color_space=img.color_space)
 
@@ -1253,7 +1248,7 @@ def rotate270(img):
     >>>> img.rotate270().show()
 
     """
-    array = cv2.flip(img.ndarray, flipCode=0)  # vertical
+    array = cv2.flip(img, flipCode=0)  # vertical
     array = cv2.transpose(array)
     return Factory.Image(array, color_space=img.color_space)
 
@@ -1276,7 +1271,7 @@ def rotate90(img):
     >>>> img.rotate90().show()
 
     """
-    array = cv2.transpose(img.ndarray)
+    array = cv2.transpose(img)
     array = cv2.flip(array, flipCode=0)  # vertical
     return Factory.Image(array, color_space=img.color_space)
 
@@ -1340,6 +1335,6 @@ def rotate180(img):
     >>>> img = Image('lenna')
     >>>> img.rotate180().show()
     """
-    array = cv2.flip(img.ndarray, flipCode=0)  # vertical
+    array = cv2.flip(img, flipCode=0)  # vertical
     array = cv2.flip(array, flipCode=1)  # horizontal
     return Factory.Image(array, color_space=img.color_space)

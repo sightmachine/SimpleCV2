@@ -21,8 +21,8 @@ def test_camera_VirtualCamera_video():
     vc.skip_frames(100)
     img2 = vc.get_frame(10)
 
-    assert_equals(img.ndarray.data, img1.ndarray.data)
-    assert_equals(img.ndarray.data, img2.ndarray.data)
+    assert_equals(img.data, img1.data)
+    assert_equals(img.data, img2.data)
 
 def test_camera_VirtualCamera_image():
     vc = VirtualCamera("../data/sampleimages/simplecv.png", "image")
@@ -32,5 +32,5 @@ def test_camera_VirtualCamera_image():
     vc.rewind()
     img2 = vc.get_image()
 
-    assert_equals(img.ndarray.data, img1.ndarray.data)
-    assert_equals(img.ndarray.data, img2.ndarray.data)
+    assert_equals(img.data, img1.data)
+    assert_equals(img.data, img2.data)

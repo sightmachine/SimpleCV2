@@ -118,7 +118,7 @@ def test_dft_create_lowpass_filter():
     filter7 = DFT.create_lowpass_filter(x_cutoff=[75, 125, 80], y_cutoff=[25, 25, 25],
                                          size=(280, 320))
 
-    assert_equals(filter7._image.size, (280, 320))
+    assert_equals(filter7._image.size_tuple, (280, 320))
 
     assert_equals(filter1._numpy.data, filter2._numpy.data)
     assert_equals(filter1._numpy.data, filter3._numpy[:, :, 0].copy().data)
@@ -144,7 +144,7 @@ def test_dft_create_highpass_filter():
     filter7 = DFT.create_highpass_filter(x_cutoff=[75, 125, 80], y_cutoff=[25, 25, 25],
                                          size=(280, 320))
 
-    assert_equals(filter7._image.size, (280, 320))
+    assert_equals(filter7._image.size_tuple, (280, 320))
 
     assert_equals(filter1._numpy.data, filter2._numpy.data)
     assert_equals(filter1._numpy.data, filter3._numpy[:, :, 0].copy().data)
@@ -200,8 +200,8 @@ def test_dft_get_image():
     img = Image("simplecv")
 
     assert_is_none(flt1.get_image())
-    assert_equals(flt2.get_image().size, (80, 100))
-    assert_equals(flt3.get_image().ndarray.data, img.ndarray.data)
+    assert_equals(flt2.get_image().size_tuple, (80, 100))
+    assert_equals(flt3.get_image().data, img.data)
 
 def test_dft_get_numpy():
     flt1 = DFT()
@@ -212,7 +212,7 @@ def test_dft_get_numpy():
 
     assert_is_none(flt1.get_numpy())
     assert_equals(flt2.get_numpy().shape, (100, 80))
-    assert_equals(flt3.get_numpy().data, img.ndarray.data)
+    assert_equals(flt3.get_numpy().data, img.data)
 
 def test_dft_stack_filters():
     filter1 = DFT.create_highpass_filter(x_cutoff=75, size=(320, 280))
@@ -223,7 +223,7 @@ def test_dft_stack_filters():
 
     np_res = np.dstack((filter1._numpy, filter2._numpy, filter3._numpy))
 
-    assert_equals(flt._image.ndarray.data, np_res.data)
+    assert_equals(flt._image.data, np_res.data)
 
     # multiple channele
     filter4 = DFT.create_notch_filter([100, 80, 75], [100], (20, 20),
@@ -245,4 +245,3 @@ def test_dft_apply_filter():
     dft = DFT()
     img = Image("simplecv")
     retval = dft.apply_filter(img)
-    assert_equals(retval, img)

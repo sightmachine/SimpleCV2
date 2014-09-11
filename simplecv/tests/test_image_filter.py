@@ -8,7 +8,7 @@ from simplecv.dft import DFT
 from simplecv.features.blob import Blob
 from simplecv.features.detection import Corner
 from simplecv.image import Image
-from simplecv.tests.utils import perform_diff, skipped
+from simplecv.tests.utils import perform_diff, skipped, create_test_image
 
 barcode = "../data/sampleimages/barcode.png"
 greyscaleimage = "../data/sampleimages/greyscale.jpg"
@@ -30,7 +30,7 @@ def test_image_max_int():
     array = np.ones((2, 2, 3), dtype=np.uint8) * 20
 
     img = img1.maximum(20)
-    assert_equals(array.data, img.ndarray.data)
+    assert_equals(array.data, img.data)
 
 
 def test_image_max_image():
@@ -41,7 +41,7 @@ def test_image_max_image():
     array = np.ones((2, 2, 3), dtype=np.uint8) * 3
 
     img = img1.maximum(img2)
-    assert_equals(array.data, img.ndarray.data)
+    assert_equals(array.data, img.data)
 
     # different image sizes
     img2 = img2.resize(5, 5)
@@ -54,7 +54,7 @@ def test_image_min_int():
     array = np.ones((2, 2, 3), dtype=np.uint8) * 5
 
     img = img1.minimum(20)
-    assert_equals(array.data, img.ndarray.data)
+    assert_equals(array.data, img.data)
 
 def test_image_min_image():
     array1 = np.ones((2, 2, 3), dtype=np.uint8) * 2
@@ -64,7 +64,7 @@ def test_image_min_image():
     array = np.ones((2, 2, 3), dtype=np.uint8) * 2
 
     img = img1.minimum(img2)
-    assert_equals(array.data, img.ndarray.data)
+    assert_equals(array.data, img.data)
 
     # different image sizes
     img2 = img2.resize(5, 5)
@@ -179,7 +179,7 @@ def test_color_curve_rgb():
     y = [[0, 0], [64, 128], [192, 128], [255, 255]]
     img4 = img.apply_rgb_curve(y, y, y)
 
-    assert_equals(img2.ndarray.data, img4.ndarray.data)
+    assert_equals(img2.data, img4.data)
 
 
 def test_color_curve_gray():
@@ -262,7 +262,7 @@ def test_image_convolve():
     img3 = img.convolve()
     kernel = np.array(((1, 0, 0), (0, 1, 0), (0, 0, 1)))
     img4 = img.convolve(kernel)
-    assert_equals(img3.ndarray.data, img4.ndarray.data)
+    assert_equals(img3.data, img4.data)
 
     # pass invalid kernel
     assert_is_none(img.convolve(3))
@@ -348,12 +348,9 @@ def test_normalize():
 
 
 def test_get_lightness():
-    img = Image('lenna')
-    i = img.get_lightness()
-    if int(i[27, 42]) == int((max(img[27, 42]) + min(img[27, 42])) / 2):
-        pass
-    else:
-        assert False
+    img = create_test_image()
+    lightnes = img.get_lightness()
+    assert_equals(lightnes.tolist(), [[127, 127], [127, 255]])
 
     # non bgr image
     assert_is_none(img.to_rgb().get_lightness())
@@ -368,14 +365,9 @@ def test_get_luminosity():
 
 
 def test_get_average():
-    img = Image('lenna')
-    i = img.get_average()
-    if int(i[0, 0]) == int((img[0, 0][0]
-                            + img[0, 0][1]
-                            + img[0, 0][2]) / 3):
-        pass
-    else:
-        assert False
+    img = create_test_image()
+    avg = img.get_average()
+    assert_equals(avg.tolist(), [[85, 85], [85, 255]])
 
     # non bgr image
     assert_is_none(img.to_hsv().get_average())
@@ -722,7 +714,7 @@ def test_get_skintone_mask():
 
 def test_color_distance():
     img = Image(array=np.array([[(255, 128, 255), (0, 128, 0)]]))
-    np_array = img.color_distance().ndarray.astype(np.uint8)
+    np_array = img.color_distance().astype(np.uint8)
     array_dis = np.array([[254],[85]], dtype=np.uint8)
     assert_equals(np_array.data, array_dis.data)
 
@@ -736,8 +728,8 @@ def test_hue_distance():
 
     color1 = (255, 0, 0)
     color2 = 120
-    dist1 = img.hue_distance(color1).ndarray.astype(np.uint8)
-    dist2 = img.hue_distance(color2).ndarray.astype(np.uint8)
+    dist1 = img.hue_distance(color1).astype(np.uint8)
+    dist2 = img.hue_distance(color2).astype(np.uint8)
 
     array_dis1 = np.array([[212, 147, 212]], dtype=np.uint8)
     array_dis2 = np.array([[126, 22, 126]],dtype=np.uint8)
@@ -756,21 +748,21 @@ def test_white_balance():
 
     # pass blue image
     img = Image((100, 100))
-    np_array = img.ndarray
+    np_array = img
     np_array[:, :, 0] = 255
     output = img.white_balance(method="GrayWorld")
     assert_equals(output.mean_color(), (85.0, 0.0, 0.0))
 
     # pass green image
     img = Image((100, 100))
-    np_array = img.ndarray
+    np_array = img
     np_array[:, :, 1] = 255
     output = img.white_balance(method="GrayWorld")
     assert_equals(output.mean_color(), (0.0, 85.0, 0.0))
 
     # pass red image
     img = Image((100, 100))
-    np_array = img.ndarray
+    np_array = img
     np_array[:, :, 2] = 255
     output = img.white_balance(method="GrayWorld")
     assert_equals(output.mean_color(), (0.0, 0.0, 85.0))
@@ -842,7 +834,7 @@ def test_flood_fill_to_mask():
     omask5 = img.flood_fill_to_mask(b.coordinates(), tolerance=3,
                                     lower=3, upper=3, mask=imask)
 
-    assert_equals(omask5.ndarray.data, omask2.ndarray.data)
+    assert_equals(omask5.data, omask2.data)
 
 
 def test_apply_lut():
@@ -878,9 +870,9 @@ def test_channel_mixer():
     r = i.channel_mixer()
     g = i.channel_mixer(channel='g', weight=(100, 20, 30))
     b = i.channel_mixer(channel='b', weight=(30, 200, 10))
-    assert i != r
-    assert i != g
-    assert i != b
+    assert i.data != r.data
+    assert i.data != g.data
+    assert i.data != b.data
 
     # incorrect values of weight
     assert_is_none(i.channel_mixer(weight=(300, 0, 200)))

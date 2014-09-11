@@ -62,8 +62,8 @@ class DiffSegmentation(SegmentationBase):
                 self.color_img = img
                 self.curr_img = img
 
-            diff = cv2.absdiff(self.curr_img.ndarray,
-                               self.last_img.ndarray)
+            diff = cv2.absdiff(self.curr_img,
+                               self.last_img)
 
             if self.curr_img is not None:
                 self.last_img = self.curr_img

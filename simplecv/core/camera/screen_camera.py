@@ -55,7 +55,7 @@ class ScreenCamera(object):
         if not PYSCREENSHOT_ENABLED:
             logger.warn("pyscreenshot not found.")
             return None
-        return Factory.Image(pyscreenshot.grab()).size
+        return Factory.Image(pyscreenshot.grab()).size_tuple
 
     def set_roi(self, roi):
         """

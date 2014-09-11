@@ -230,7 +230,7 @@ class VideoStream(object):
         this allows for more finer control
         """
         if not self.writer:
-            self.initialize_writer(img.size)
+            self.initialize_writer(img.size_tuple)
             self.lastframe = img
 
         frametime = 1.0 / float(self.fps)
@@ -252,19 +252,19 @@ class VideoStream(object):
                 lastframes = framesbehind / 2
                 for i in range(0, lastframes):
                     self.framecount += 1
-                    self.writer.write(self.lastframe.ndarray)
+                    self.writer.write(self.lastframe)
 
                 theseframes = framesbehind - lastframes
                 for i in range(0, theseframes):
                     self.framecount += 1
-                    self.writer.write(img.ndarray)
+                    self.writer.write(img)
                     # split missing frames evenly between
                     # the prior and current frame
             else:  # we are on track
                 self.framecount += 1
-                self.writer.write(img.ndarray)
+                self.writer.write(img)
         else:
-            self.writer.write(img.ndarray)
+            self.writer.write(img)
             self.framecount += 1
 
         self.lastframe = img

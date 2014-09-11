@@ -51,7 +51,7 @@ def stega_encode(img, message):
         logger.warning("stepic library required")
         return None
     warnings.simplefilter("ignore")
-    pil_img = PilImage.frombuffer("RGB", img.size, img.to_rgb().to_string())
+    pil_img = PilImage.frombuffer("RGB", img.size_tuple, img.to_rgb().to_string())
     stepic.encode_inplace(pil_img, message)
     ret_val = Factory.Image(pil_img)
     return ret_val.flip_vertical()
@@ -96,6 +96,6 @@ def stega_decode(img):
         logger.warning("stepic library required")
         return None
     warnings.simplefilter("ignore")
-    pil_img = PilImage.frombuffer("RGB", img.size, img.to_rgb().to_string())
+    pil_img = PilImage.frombuffer("RGB", img.size_tuple, img.to_rgb().to_string())
     result = stepic.decode(pil_img)
     return result

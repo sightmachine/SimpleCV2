@@ -25,7 +25,7 @@ def test_image_flip_vertical():
     img = img.flip_vertical()
     flip_array = np.array([[[255, 0, 0], [255, 255, 255]],
                            [[0, 0, 255], [0, 255, 0]]], dtype=np.uint8)
-    assert_equals(flip_array.data, img.ndarray.data)
+    assert_equals(flip_array.data, img.data)
 
 
 def test_image_flip_horizontal():
@@ -33,7 +33,7 @@ def test_image_flip_horizontal():
     img = img.flip_horizontal()
     flip_array = np.array([[[0, 255, 0], [0, 0, 255]],
                            [[255, 255, 255], [255, 0, 0]]], dtype=np.uint8)
-    assert_equals(flip_array.data, img.ndarray.data)
+    assert_equals(flip_array.data, img.data)
 
 
 def test_image_resize():
@@ -74,7 +74,7 @@ def test_image_shear_warp():
            (img.width / 2, img.height - 1))
     s = img.shear(dst)
 
-    color = s[0, 0]
+    color = s[0, 0].tolist()
     assert color == [0, 0, 0]
 
     dst = ((img.width * 0.05, img.height * 0.03),
@@ -187,21 +187,21 @@ def test_image_crop():
     # smart crop
     img = Image("simplecv")
     crop_img = img.crop(50, 100, 500, 500, smart=True)
-    np_arr = img.ndarray[100:, 50:].copy()
-    assert_equals(np_arr.data, crop_img.ndarray.data)
+    np_arr = img[100:, 50:].copy()
+    assert_equals(np_arr.data, crop_img.data)
 
     # feature crop
     lines = img.find(Line)
     crop_img = img.crop(lines[0])
 
     # tuple and list
-    np_arr = img.ndarray[10:60, :50].copy()
+    np_arr = img[10:60, :50].copy()
     crop_img = img.crop(((0, 10), (20, 10), (50, 50), (0, 60)))
-    assert_equals(np_arr.data, crop_img.ndarray.data)
+    assert_equals(np_arr.data, crop_img.data)
     crop_img = img.crop([(0, 10), (20, 10), (50, 50), (0, 60)])
-    assert_equals(np_arr.data, crop_img.ndarray.data)
+    assert_equals(np_arr.data, crop_img.data)
     crop_img = img.crop((0, 10, 50, 50))
-    assert_equals(np_arr.data, crop_img.ndarray.data)
+    assert_equals(np_arr.data, crop_img.data)
 
     # invalid tuple/list
     assert_is_none(img.crop(((0, 10), (20, 10, 20),
@@ -322,18 +322,18 @@ def test_image_scale():
     img1 = img.scale(0.5)
     img2 = img.scale(5.0)
 
-    assert_equals(img1.size, (img.width/2, img.height/2))
-    assert_equals(img2.size, (img.width*5, img.height*5))
+    assert_equals(img1.size_tuple, (img.width/2, img.height/2))
+    assert_equals(img2.size_tuple, (img.width*5, img.height*5))
 
     # large/small scale ratio
-    assert_equals(img, img.scale(1000))
-    assert_equals(img, img.scale(0.0001))
+    assert_equals((250, 250), img.scale(100).size_tuple)
+    assert_equals((250, 250), img.scale(0.0001).size_tuple)
 
 def test_image_transpose():
     img = Image("lenna")
     new_img = img.resize(width=256, height=512)
     t_img = new_img.transpose()
-    assert_equals(t_img.size, (512, 256))
+    assert_equals(t_img.size_tuple, (512, 256))
 
 def test_image_split():
     img = Image("lenna")
@@ -341,50 +341,49 @@ def test_image_split():
     assert_equals(len(splits), 4)
     assert_equals(len(splits[0]), 8)
 
-    np_array = img.ndarray
+    np_array = img
 
     row = 0
     col = 0
     for split in splits:
         col = 0
         for split_img in split:
-            assert_equals(split_img.size, (64, 128))
+            assert_equals(split_img.size_tuple, (64, 128))
             np_arr = np_array[row:row+128, col:col+64].copy()
-            assert_equals(split_img.ndarray.data, np_arr.data)
+            assert_equals(split_img.data, np_arr.data)
             col += 64
         row += 128
 
 def test_image_adaptive_scale():
     img = Image("simplecv")
-    w, h = img.size
+    w, h = img.size_tuple
 
-    new_img = img.adaptive_scale(img.size) # no resize
-    assert_equals(new_img, img)
+    new_img = img.adaptive_scale(img.size_tuple) # no resize
     new_img = img.adaptive_scale((img.width/2, img.height/2))
 
     new_img = img.adaptive_scale((img.width/3, img.height/4))
-    assert_equals(new_img.size, (img.width/3, img.height/4))
+    assert_equals(new_img.size_tuple, (img.width/3, img.height/4))
 
     new_img = img.adaptive_scale((img.width*1.1, img.height*1.2))
-    assert_equals(new_img.size, (img.width*1.1, img.height*1.2))
+    assert_equals(new_img.size_tuple, (img.width*1.1, img.height*1.2))
 
     new_img = img.adaptive_scale((img.width*1.1, img.height*0.3))
-    assert_equals(new_img.size, (img.width*1.1, img.height*0.3))
+    assert_equals(new_img.size_tuple, (img.width*1.1, img.height*0.3))
 
     new_img = img.adaptive_scale((img.width*0.5, img.height*1.2))
-    assert_equals(new_img.size, (img.width*0.5, img.height*1.2))
+    assert_equals(new_img.size_tuple, (img.width*0.5, img.height*1.2))
 
     new_img = img.adaptive_scale((img.width/3, img.height/4), fit=False)
-    assert_equals(new_img.size, (img.width/3, img.height/4))
+    assert_equals(new_img.size_tuple, (img.width/3, img.height/4))
 
     new_img = img.adaptive_scale((img.width*1.1, img.height*1.2), fit=False)
-    assert_equals(new_img.size, (img.width*1.1, img.height*1.2))
+    assert_equals(new_img.size_tuple, (img.width*1.1, img.height*1.2))
 
     new_img = img.adaptive_scale((img.width*1.1, img.height*0.3), fit=False)
-    assert_equals(new_img.size, (img.width*1.1, img.height*0.3))
+    assert_equals(new_img.size_tuple, (img.width*1.1, img.height*0.3))
 
     new_img = img.adaptive_scale((img.width*0.5, img.height*1.2), fit=False)
-    assert_equals(new_img.size, (img.width*0.5, img.height*1.2))
+    assert_equals(new_img.size_tuple, (img.width*0.5, img.height*1.2))
 
 def test_blit_regular():
     top = Image(topImg)

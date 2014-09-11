@@ -103,7 +103,7 @@ class BlobMaker(object):
         # Also I am submitting a bug report to Willow Garage - please bare with
         # us.
 
-        contours, hierarchy = cv2.findContours(binary_img.gray_ndarray,
+        contours, hierarchy = cv2.findContours(binary_img.to_gray(),
                                                mode=cv2.RETR_TREE,
                                                method=cv2.CHAIN_APPROX_SIMPLE)
         if not list(contours):
@@ -224,11 +224,10 @@ class BlobMaker(object):
         #ret_value.mask = Image(mask)
 
         mask = self._get_mask(contour)
-        ret_value.avg_color = self._get_avg(color_img.ndarray,
-                                            bbr, mask)[0:3]
+        ret_value.avg_color = self._get_avg(color_img, bbr, mask)[0:3]
 
         # KAS -- FLAG FOR REPLACE 6/6/2012
-        #ret_value.img = self._get_blob_as_image(color_img.ndarray,
+        #ret_value.img = self._get_blob_as_image(color_img,
         #                                        bbr, mask)
 
         ret_value.hole_contour = hole_contour

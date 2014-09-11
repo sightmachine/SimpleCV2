@@ -43,8 +43,8 @@ def intToBin(i):
 def getheaderAnim(im):
     """ Animation header. To replace the getheader()[0] """
     bb = "GIF89a"
-    bb += intToBin(im.size[0])
-    bb += intToBin(im.size[1])
+    bb += intToBin(im.size_tuple[0])
+    bb += intToBin(im.size_tuple[1])
     bb += "\x87\x00\x00"
     return bb
 

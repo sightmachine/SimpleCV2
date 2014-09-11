@@ -425,7 +425,7 @@ class Display(object):
         # this is getting a little long. Probably needs to be refactored.
         wndw_ar = float(self.resolution[0])/float(self.resolution[1])
         img_ar = float(img.width)/float(img.height)
-        self.sourceresolution = img.size
+        self.sourceresolution = img.size_tuple
         self.sourceoffset = (0, 0)
         self.imgw = img.width
         self.imgh = img.height
@@ -433,7 +433,7 @@ class Display(object):
         self.yscale = 1.0
         self.xoffset = 0
         self.yoffset = 0
-        if img.size == self.resolution:  # we have to resize
+        if img.size_tuple == self.resolution:  # we have to resize
             pgsurf = img.get_pg_surface()
             self.screen.blit(pgsurf, pgsurf.get_rect())
             pg.display.flip()

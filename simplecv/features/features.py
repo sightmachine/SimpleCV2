@@ -349,7 +349,7 @@ class FeatureSet(list):
 
         """
         if point[0] == -1 or point[1] == -1 and len(self):
-            point = self[0].image.size
+            point = self[0].image.size_tuple
 
         return spsd.cdist(self.coordinates(), [point])[:, 0]
 
@@ -1365,7 +1365,7 @@ class Feature(object):
 
         """
         if point is None:
-            point = np.array(self.image.size) / 2
+            point = np.array(self.image.size_tuple) / 2
         return spsd.euclidean(point, [self.x, self.y])
 
     @property
@@ -1388,7 +1388,7 @@ class Feature(object):
         >>>       print "Found a white thing"
 
         """
-        return self.image[self.y, self.x]
+        return self.image[self.y, self.x].tolist()
 
     def color_distance(self, color=None):
         """
@@ -2383,7 +2383,7 @@ class Feature(object):
         if method not in ["harris", "szeliski"]:
             raise ValueError("Invalid method: {}.".format(method))
 
-        img_array = img.gray_ndarray
+        img_array = img.to_gray()
         blur = cv2.GaussianBlur(img_array, ksize=(3, 3), sigmaX=0)
 
         ix = cv2.Sobel(blur, ddepth=cv2.CV_32F, dx=1, dy=0)

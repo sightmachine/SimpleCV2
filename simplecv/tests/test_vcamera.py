@@ -51,7 +51,7 @@ def test_camera_video():
     img.save(testoutput)
 
     assert_is_instance(img, Image)
-    assert_tuple_equal((320, 240), img.size)
+    assert_tuple_equal((320, 240), img.size_tuple)
     do_full_vcam_coverage_test(mycam)
 
 

@@ -51,19 +51,22 @@ def test_color_get_lightness():
     retval = Color.get_lightness((255, 255, 0))
     assert_equals(retval, 127)
 
+
 def test_color_get_luminosity():
     retval = Color.get_luminosity((255, 255, 0))
     assert_equals(retval, 234)
 
-def test_color_ColorMap():
+
+def test_color_color_map():
+    import cv2
     img = Image("lenna")
     blobs = img.find(Blob)
     cm = ColorMap(Color.YELLOW, min(blobs.get_area()), max(blobs.get_area()))
     for b in blobs:
        b.draw(cm[b.area])
-
     result = [img]
     name_stem = "test_color_ColorMap"
+
     perform_diff(result, name_stem, 0.0)
 
     retval1 = cm.__getitem__(150000)

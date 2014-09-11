@@ -273,7 +273,7 @@ def tutorial_manipulation():
 
     while True:
         command_loop(cmd, desired_tuple)
-        if thumb.size() == (90, 90):
+        if thumb.size_tuple() == (90, 90):
             break
 
         print "Your thumbnail's size isn't 90x90! Try again!"

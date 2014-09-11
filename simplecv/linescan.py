@@ -744,7 +744,7 @@ class LineScan(list):
         # for the love of god keep this small
         # for some reason isInstance is being persnickety
         if idxs.__class__.__name__ == 'Image':
-            npg = idxs.gray_ndarray
+            npg = idxs.to_gray()
             npg = npg.reshape([npg.shape[0] * npg.shape[1]])
             idxs = npg.tolist()
         value = np.clip(value, 0, 255)

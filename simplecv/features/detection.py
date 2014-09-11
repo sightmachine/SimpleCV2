@@ -116,7 +116,7 @@ class Corner(Feature):
         :py:meth:`find_keypoints`
 
         """
-        corner_coordinates = cv2.goodFeaturesToTrack(img.gray_ndarray,
+        corner_coordinates = cv2.goodFeaturesToTrack(img.to_gray(),
                                                      maxCorners=maxnum,
                                                      qualityLevel=minquality,
                                                      minDistance=mindistance)
@@ -465,7 +465,7 @@ class Line(Feature):
         pixels = list(set(pixels))
         matched_pixels = []
         for pixel in pixels:
-            if img[pixel[1], pixel[0]] == [255.0, 255.0, 255.0]:
+            if img[pixel[1], pixel[0]].tolist() == [255.0, 255.0, 255.0]:
                 matched_pixels.append(pixel)
         matched_pixels.sort()
 
@@ -882,7 +882,7 @@ class Chessboard(Feature):
         drawing layer.
 
         """
-        cv2.drawChessboardCorners(self.image.ndarray,
+        cv2.drawChessboardCorners(self.image,
                                   patternSize=self.dimensions,
                                   corners=self.sp_corners, patternWasFound=1)
 
@@ -958,7 +958,7 @@ class Chessboard(Feature):
         :py:class:`Chessboard`
 
         """
-        gray_array = img.gray_ndarray
+        gray_array = img.to_gray()
         equalized_grayscale_array = cv2.equalizeHist(gray_array)
         found, corners = cv2.findChessboardCorners(
             equalized_grayscale_array, patternSize=dimensions,
@@ -1173,11 +1173,11 @@ class TemplateMatch(Feature):
 
         #choose template matching method to be used
         if grayscale:
-            img_array = img.gray_ndarray
-            template_array = template_image.gray_ndarray
+            img_array = img.to_gray()
+            template_array = template_image.to_gray()
         else:
-            img_array = img.ndarray
-            template_array = template_image.ndarray
+            img_array = img
+            template_array = template_image
 
         matches = cv2.matchTemplate(img_array, templ=template_array, method=method)
         mean = np.mean(matches)
@@ -1290,11 +1290,11 @@ class TemplateMatch(Feature):
 
         #choose template matching method to be used
         if grayscale:
-            img_array = img.gray_ndarray
-            template_array = template_image.gray_ndarray
+            img_array = img.to_gray()
+            template_array = template_image.to_gray()
         else:
-            img_array = img.ndarray
-            template_array = template_image.ndarray
+            img_array = img
+            template_array = template_image
 
         matches = cv2.matchTemplate(img_array, templ=template_array, method=method)
         if check > 0:
@@ -1383,7 +1383,7 @@ class Circle(Feature):
         mask = self.image.get_empty(1)
         cv2.circle(mask, center=(self.x, self.y), radius=self.r,
                    color=(255, 255, 255), thickness=-1)
-        temp = cv2.mean(self.image.ndarray, mask=mask)
+        temp = cv2.mean(self.image, mask=mask)
         return temp[0], temp[1], temp[2]
 
     @property
@@ -1485,7 +1485,7 @@ class Circle(Feature):
             # the crop before the blit
             cv2.circle(mask, center=(self.x, self.y), radius=self.r,
                        color=(255, 255, 255), thickness=-1)
-            np.where(mask, self.image.ndarray, result)
+            np.where(mask, self.image, result)
             ret_value = Factory.Image(result)
             ret_value = ret_value.crop(self.x, self.y, self.width,
                                        self.height, centered=True)
@@ -1530,7 +1530,7 @@ class Circle(Feature):
         if distance < 0:
             distance = 1 + max(img.width, img.height) / 50
 
-        circs = cv2.HoughCircles(img.gray_ndarray,
+        circs = cv2.HoughCircles(img.to_gray(),
                                  method=cv2.cv.CV_HOUGH_GRADIENT,
                                  dp=2, minDist=distance,
                                  param1=canny, param2=threshold)
@@ -1664,7 +1664,7 @@ class KeyPoint(Feature):
         cv2.circle(mask, center=(int(self.x), int(self.y)),
                    radius=int(self._r), color=(255, 255, 255),
                    thickness=-1)
-        temp = cv2.mean(self.image.ndarray, mask)
+        temp = cv2.mean(self.image, mask)
         return temp[0], temp[1], temp[2]
 
     def color_distance(self, color=(0, 0, 0)):
@@ -1751,7 +1751,7 @@ class KeyPoint(Feature):
             cv2.circle(mask, center=(int(self.x), int(self.y)),
                        radius=int(self._r), color=(255, 255, 255),
                        thickness=-1)
-            np.where(mask, self.image.ndarray, result)
+            np.where(mask, self.image, result)
             ret_value = Factory.Image(source=result)
             ret_value = ret_value.crop(self.x, self.y, self.width,
                                        self.height, centered=True)
@@ -2072,12 +2072,12 @@ class Motion(Feature):
         :py:class:`FeatureSet`
 
         """
-        if img.size != previous_frame.size:
+        if img.size_tuple != previous_frame.size_tuple:
             raise ScvException("Motion.find: To find motion the current "
                                "and previous frames must match")
 
-        flow = cv2.calcOpticalFlowFarneback(prev=previous_frame.gray_ndarray,
-                                            next=img.gray_ndarray,
+        flow = cv2.calcOpticalFlowFarneback(prev=previous_frame.to_gray(),
+                                            next=img.to_gray(),
                                             pyr_scale=0.5, levels=1,
                                             winsize=window, iterations=1,
                                             poly_n=7, poly_sigma=1.5, flags=0,
@@ -2234,7 +2234,7 @@ class KeypointMatch(Feature):
         mask.dl().polygon(self._min_rect, color=Color.WHITE,
                           filled=pickle.TRUE)
         mask = mask.apply_layers()
-        return cv2.mean(raw.ndarray, mask.gray_ndarray)
+        return cv2.mean(raw, mask.to_gray())
 
     @property
     def min_rect(self):
@@ -2362,7 +2362,7 @@ class KeypointMatch(Feature):
                                                     dstPoints=rhs_pt,
                                                     method=cv2.RANSAC,
                                                     ransacReprojThreshold=1.0)
-            w, h = template.size
+            w, h = template.size_tuple
 
             pts = np.array([[0, 0], [0, h], [w, h], [w, 0]], dtype=np.float32)
 

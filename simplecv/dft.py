@@ -80,7 +80,7 @@ class DFT(object):
         flt_numpy = self._numpy + flt._numpy
         flt_image = Factory.Image(array=flt_numpy)
         ret_value = DFT(numpyarray=flt_numpy, image=flt_image,
-                        size=flt_image.size)
+                        size=flt_image.size_tuple)
         return ret_value
 
     def __invert__(self):
@@ -624,11 +624,11 @@ class DFT(object):
         if self.width == 0 or self.height == 0:
             logger.warn("Empty Filter. Returning the image.")
             return image
-        image_size = image.size
+        image_size = image.size_tuple
         if grayscale:
             image = image.to_gray()
         flt_img = self._image
-        if flt_img.size != image.size:
+        if flt_img.size_tuple != image.size_tuple:
             flt_img = flt_img.resize(*image_size)
         filtered_image = image.apply_dft_filter(flt_img)
         return filtered_image
@@ -676,7 +676,7 @@ class DFT(object):
             if self._image is None:
                 logger.warn("Filter doesn't contain any image")
                 return None
-            self._numpy = self._image.ndarray
+            self._numpy = self._image
         return self._numpy
 
     def get_order(self):
@@ -709,7 +709,7 @@ class DFT(object):
         **EXAMPLE**
 
         >>> flt = DFT.create_gaussian_filter(size=(380, 240))
-        >>> print flt.size()
+        >>> print flt.size_tuple()
         """
         return self.width, self.height
 

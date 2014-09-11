@@ -1,10 +1,9 @@
 import functools
-import types
 
 import cv2
 import numpy as np
 
-from simplecv.base import logger
+from simplecv.base import logger, ScvException
 from simplecv.core.pluginsystem import plugin_method
 
 
@@ -37,15 +36,7 @@ def cached_method(func):
     return wrapper
 
 
-class Image(object):
-    """
-    Core Image class
-
-    Responsible to:
-    * Store image data as numpy.ndarray (cv2 format)
-    * Store color space information
-    * Conversion between color spaces
-    """
+class ColorSpace(int):
 
     # Available color spaces
     BGR = 1
@@ -66,30 +57,60 @@ class Image(object):
         YCR_CB: 'YCR_CB'
     }
 
-    def __repr__(self):
-        return "<simplecv.Image Object size:(%d, %d), dtype: %s, " \
-               "color space: %s, at memory location: (%s)>" \
-               % (self.width, self.height, self.dtype,
-                  Image.color_space_to_string[self._color_space],
-                  hex(id(self)))
+    color_spaces = color_space_to_string.keys()
 
-    def __init__(self, **kwargs):
-        super(Image, self).__init__()
-        ndarray = kwargs['array']
-        if isinstance(ndarray, np.ndarray):
-            self._ndarray = ndarray
-        else:
+    def __str__(self):
+        return self.to_string()
+
+    def __repr__(self):
+        return 'ColorSpace({0})'.format(self.to_string())
+
+    def to_string(self):
+        return self.color_space_to_string.get(self, 'UNKNOWN')
+
+
+class Image(np.ndarray):
+    """
+    Core Image class
+
+    Responsible to:
+    * Store image data as numpy.ndarray (cv2 format)
+    * Store color space information
+    * Conversion between color spaces
+    """
+
+    BGR = ColorSpace(ColorSpace.BGR)
+    GRAY = ColorSpace(ColorSpace.GRAY)
+    RGB = ColorSpace(ColorSpace.RGB)
+    HLS = ColorSpace(ColorSpace.HLS)
+    HSV = ColorSpace(ColorSpace.HSV)
+    XYZ = ColorSpace(ColorSpace.XYZ)
+    YCR_CB = ColorSpace(ColorSpace.YCR_CB)
+
+    def __new__(cls, array, color_space=None):
+        if not isinstance(array, np.ndarray):
             raise ValueError('array is not a numpy.ndarray')
-        if len(self._ndarray.shape) == 2:
+        self = np.asarray(array).view(cls)
+
+        if len(self.shape) == 2:
             self._color_space = Image.GRAY
         else:
-            color_space = kwargs.get('color_space')
             if color_space is None:
                 self._color_space = Image.BGR
-            elif color_space not in Image.color_space_to_string:
+            elif color_space not in ColorSpace.color_spaces:
                 raise ValueError('Unknown color space')
             else:
-                self._color_space = color_space
+                self._color_space = ColorSpace(color_space)
+        return self
+
+    def __array_finalize__(self, obj):
+        if len(self.shape) == 2:
+            self._color_space = Image.GRAY
+
+        if obj is not None:
+            self._color_space = getattr(obj, 'color_space', Image.BGR)
+        else:
+            self._color_space = Image.BGR
         self._cache = {}
 
     @property
@@ -98,167 +119,82 @@ class Image(object):
 
     @property
     def height(self):
-        return self._ndarray.shape[0]
+        return self.shape[0]
 
     @property
     def width(self):
-        return self._ndarray.shape[1]
+        return self.shape[1]
 
     @property
-    def dtype(self):
-        return self._ndarray.dtype
-
-    @property
-    def size(self):
+    def size_tuple(self):
         return self.width, self.height
-
-    def __getitem__(self, coord):
-        if not (isinstance(coord, (list, tuple)) and len(coord) == 2):
-            raise Exception('Not implemented for {}'.format(coord))
-        if isinstance(coord[0], types.SliceType) \
-                or isinstance(coord[1], types.SliceType):
-            return self.__class__(array=self._ndarray[coord].copy(),
-                                  color_space=self._color_space)
-        else:
-            return self._ndarray[coord].tolist()
-
-    def __setitem__(self, coord, value):
-        if not (isinstance(coord, (list, tuple)) and len(coord) == 2):
-            raise Exception('Not implemented for {}'.format(coord))
-        self._ndarray[coord] = value
 
     def __sub__(self, other):
         if isinstance(other, Image):
-            if self.size != other.size:
-                logger.warn("Both images should have same dimensions. "
-                            "Returning None.")
-                return None
-            array = cv2.subtract(self._ndarray, other.ndarray)
+            if self.shape != other.shape:
+                raise ScvException("Both images should have same dimensions.")
+            array = cv2.subtract(self, other)
             return self.__class__(array=array, color_space=self._color_space)
         else:
-            array = (self._ndarray - other).astype(self.dtype)
+            array = super(Image, self).__sub__(other).astype(self.dtype)
             return self.__class__(array=array, color_space=self._color_space)
 
     def __add__(self, other):
         if isinstance(other, Image):
-            if self.size != other.size:
-                logger.warn("Both images should have same dimensions. "
-                            "Returning None.")
-                return None
-            array = cv2.add(self._ndarray, other.ndarray)
+            if self.shape != other.shape:
+                raise ScvException("Both images should have same dimensions.")
+            array = cv2.add(self, other)
             return self.__class__(array=array, color_space=self._color_space)
         else:
-            array = self._ndarray + other
-            return self.__class__(array=array, color_space=self._color_space)
-
-    def __and__(self, other):
-        if isinstance(other, Image):
-            if self.size != other.size:
-                logger.warn("Both images should have same dimensions. "
-                            "Returning None.")
-                return None
-            array = self._ndarray & other.ndarray
-            return self.__class__(array=array, color_space=self._color_space)
-        else:
-            array = self._ndarray & other
-            return self.__class__(array=array, color_space=self._color_space)
-
-    def __or__(self, other):
-        if isinstance(other, Image):
-            if self.size != other.size:
-                logger.warn("Both images should have same dimensions. "
-                            "Returning None.")
-                return None
-            array = self._ndarray | other.ndarray
-            return self.__class__(array=array, color_space=self._color_space)
-        else:
-            array = self._ndarray | other
+            array = super(Image, self).__add__(other)
             return self.__class__(array=array, color_space=self._color_space)
 
     def __div__(self, other):
         if isinstance(other, Image):
-            if self.size != other.size:
-                logger.warn("Both images should have same dimensions. "
-                            "Returning None.")
-                return None
-            array = cv2.divide(self._ndarray, other.ndarray)
+            if self.shape != other.shape:
+                raise ScvException("Both images should have same dimensions.")
+            array = cv2.divide(self, other)
             return self.__class__(array=array, color_space=self._color_space)
         else:
-            array = (self._ndarray / other).astype(self.dtype)
+            array = super(Image, self).__div__(other).astype(self.dtype)
             return self.__class__(array=array, color_space=self._color_space)
 
     def __mul__(self, other):
         if isinstance(other, Image):
-            if self.size != other.size:
-                logger.warn("Both images should have same dimensions. "
-                            "Returning None.")
-                return None
-            array = cv2.multiply(self._ndarray, other.ndarray)
+            if self.shape != other.shape:
+                raise ScvException("Both images should have same dimensions.")
+            array = cv2.multiply(self, other)
             return self.__class__(array=array, color_space=self._color_space)
         else:
-            array = (self._ndarray * other).astype(self.dtype)
+            array = super(Image, self).__mul__(other).astype(self.dtype)
             return self.__class__(array=array, color_space=self._color_space)
 
     def __pow__(self, power):
         if isinstance(power, int):
-            array = cv2.pow(self._ndarray, power)
+            array = cv2.pow(self, power)
             return self.__class__(array=array, color_space=self._color_space)
         else:
-            logger.warn("Can't make exponentiation with this type.")
-            return None
-
-    def __neg__(self):
-        array = ~self._ndarray
-        return self.__class__(array=array, color_space=self._color_space)
+            array = super(Image, self).__pow__(power).astype(self.dtype)
+            return self.__class__(array=array, color_space=self._color_space)
 
     def __invert__(self):
-        return self.__neg__()
-
-    @property
-    def ndarray(self):
-        """
-        Get a Numpy array of the image in width x height x channels dimensions
-        compatible with OpenCV >= 2.3
-
-        :returns: instance of numpy.ndarray.
-        """
-        return self._ndarray
-
-    @property
-    def gray_ndarray(self):
-        """
-        Returns the image, converted first to grayscale and then converted to
-        a 2D numpy array.
-
-        :returns: instance of numpy.ndarray.
-        """
-        return Image.convert(self._ndarray, self._color_space, Image.GRAY)
-
-    @property
-    def fp_ndarray(self):
-        """
-        Converts the standard numpy uint8 array to float32 array.
-        This is handy for some OpenCV functions.
-
-        :returns: instance of numpy.ndarray.
-        """
-        return self._ndarray.astype(np.float32)
+        return 255 - self
 
     def get_empty(self, channels=3):
         """
-        Create a new, empty OpenCV image with the specified number of channels
+        Create a new, empty SimpleCV Image with the specified number of channels
         (default 3). This method basically Images an empty copy of the image.
-        This is handy for interfacing with OpenCV functions directly.
 
         :param channels: The number of channels in the returned OpenCV image.
         :type channels: int
 
-        :returns: instance of numpy.ndarray.
+        :returns: instance of Image.
         """
         shape = [self.height, self.width]
         if channels > 1:
             shape.append(channels)
-        return np.zeros(shape, dtype=self.dtype)
+        return self.__class__(array=np.zeros(shape, dtype=self.dtype),
+                              color_space=self._color_space)
 
     @staticmethod
     def convert(ndarray, from_color_space, to_color_space):
@@ -276,21 +212,18 @@ class Image(object):
         if from_color_space == to_color_space:
             return ndarray.copy()
 
-        if from_color_space not in Image.color_space_to_string \
-                or to_color_space not in Image.color_space_to_string:
+        if from_color_space not in ColorSpace.color_spaces \
+                or to_color_space not in ColorSpace.color_spaces:
             raise AttributeError('Unknown color space')
 
-        converter_str = 'COLOR_{}2{}'.format(
-            Image.color_space_to_string[from_color_space],
-            Image.color_space_to_string[to_color_space])
+        converter_str = 'COLOR_{}2{}'.format(from_color_space,
+                                             to_color_space)
         try:
             converter = getattr(cv2, converter_str)
         except AttributeError:
             # convert to BGR first
-            converter_bgr_str = 'COLOR_{}2BGR'.format(
-                Image.color_space_to_string[from_color_space])
-            converter_str = 'COLOR_BGR2{}'.format(
-                Image.color_space_to_string[to_color_space])
+            converter_bgr_str = 'COLOR_{}2BGR'.format(from_color_space)
+            converter_str = 'COLOR_BGR2{}'.format(to_color_space)
 
             converter_bgr = getattr(cv2, converter_bgr_str)
             converter = getattr(cv2, converter_str)
@@ -313,7 +246,7 @@ class Image(object):
         Image.XYZ
         Image.YCR_CB
         """
-        array = Image.convert(self._ndarray, self._color_space, color_space)
+        array = Image.convert(self, self._color_space, color_space)
         return self.__class__(array=array, color_space=color_space)
 
     def to_bgr(self):
@@ -372,16 +305,7 @@ class Image(object):
 
         :returns: string
         """
-        return self._ndarray.tostring()
-
-    def copy(self):
-        """
-        Returns a full copy of the Image's array.
-
-        :returns: instance of :class:simplecv.core.image.Images.
-        """
-        return self.__class__(array=self._ndarray.copy(),
-                              color_space=self._color_space)
+        return self.tostring()
 
     def clear(self):
         """
@@ -393,11 +317,7 @@ class Image(object):
           Do not use this method unless you have a particularly compelling
           reason.
         """
-        if self.is_gray():
-            self._ndarray = np.zeros(self.size, dtype=self.dtype)
-        else:
-            self._ndarray = np.zeros((self.height, self.width, 3),
-                                     dtype=self.dtype)
+        self.fill(0)
         self.clear_cache()
 
     def clear_cache(self):
@@ -413,7 +333,7 @@ class Image(object):
         :returns: True if the image's size is (0, 0),
                   False for any other size.
         """
-        return self.size == (0, 0)
+        return self.size_tuple == (0, 0)
 
     def get_area(self):
         '''
@@ -443,9 +363,9 @@ class Image(object):
 
         :py:meth:`merge_channels`
         """
-        chanel_0 = self._ndarray[:, :, 0].copy()
-        chanel_1 = self._ndarray[:, :, 1].copy()
-        chanel_2 = self._ndarray[:, :, 2].copy()
+        chanel_0 = self[:, :, 0].copy()
+        chanel_1 = self[:, :, 1].copy()
+        chanel_2 = self[:, :, 2].copy()
 
         return (self.__class__(array=chanel_0, color_space=Image.GRAY),
                 self.__class__(array=chanel_1, color_space=Image.GRAY),
@@ -487,25 +407,20 @@ class Image(object):
 
         """
         if color_space is None:
-            color_space = Image.RGB
+            color_space = ColorSpace.RGB
         if c1 is None and c2 is None and c3 is None:
             logger.warning("Image.merge_channels - we need at least "
                            "one valid channel")
             return None
 
         if c1 is None:
-            c1 = self.__class__(array=self.get_empty(1),
-                                color_space=Image.GRAY)
+            c1 = self.get_empty(1)
         if c2 is None:
-            c2 = self.__class__(array=self.get_empty(1),
-                                color_space=Image.GRAY)
+            c2 = self.get_empty(1)
         if c3 is None:
-            c3 = self.__class__(array=self.get_empty(1),
-                                color_space=Image.GRAY)
+            c3 = self.get_empty(1)
 
-        array = np.dstack((c1.ndarray,
-                           c2.ndarray,
-                           c3.ndarray))
+        array = np.dstack((c1, c2, c3))
         return self.__class__(array=array, color_space=color_space)
 
     @staticmethod

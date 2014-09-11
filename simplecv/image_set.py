@@ -763,7 +763,7 @@ class ImageSet(list):
         alpha = float(1.0 / len(resized))
         beta = float((len(resized) - 1.0) / len(resized))
         for i in resized:
-            accumulator = cv2.addWeighted(src1=i.ndarray,
+            accumulator = cv2.addWeighted(src1=i,
                                           alpha=alpha,
                                           src2=accumulator,
                                           beta=beta, gamma=0)

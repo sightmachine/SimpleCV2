@@ -529,7 +529,7 @@ class Blob(Feature):
         if width == -1:
             # copy the mask into 3 channels and
             # multiply by the appropriate color
-            gs_bitmap = self.mask.gray_ndarray
+            gs_bitmap = self.mask.to_gray()
             maskred = cv2.convertScaleAbs(gs_bitmap, alpha=color[0] / 255.0)
             maskgrn = cv2.convertScaleAbs(gs_bitmap, alpha=color[1] / 255.0)
             maskblu = cv2.convertScaleAbs(gs_bitmap, alpha=color[2] / 255.0)
@@ -894,9 +894,9 @@ class Blob(Feature):
         tlc = self.top_left_corner
         roi = (tlc[0], tlc[1], self.width, self.height)
         roi_img = self.image.crop(*roi)
-        mask = self.mask.gray_ndarray != 0  # binary mask
+        mask = self.mask.to_gray() != 0  # binary mask
         array = np.zeros((self.height, self.width, 3), dtype=np.uint8)
-        array[mask] = roi_img.ndarray[mask]
+        array[mask] = roi_img[mask]
         return Factory.Image(array)
 
     @lazyproperty
@@ -926,8 +926,8 @@ class Blob(Feature):
     def hull_img(self):
         tlc = self.top_left_corner
         roi = (tlc[0], tlc[1], self.width, self.height)
-        roi_img = self.image.crop(*roi).ndarray
-        mask = self.hull_mask.gray_ndarray != 0  # binary mask
+        roi_img = self.image.crop(*roi)
+        mask = self.hull_mask.to_gray() != 0  # binary mask
         array = np.zeros((self.height, self.width, 3), np.uint8)
         array[mask] = roi_img[mask]
         return Factory.Image(array)
@@ -996,8 +996,8 @@ class Blob(Feature):
                              dtype=np.uint8)
         tlc = self.top_left_corner
         roi = (tlc[0], tlc[1], self.width, self.height)
-        img_roi = self.image.crop(*roi).ndarray
-        mask = self.mask.gray_ndarray != 0  # binary mask
+        img_roi = self.image.crop(*roi)
+        mask = self.mask.to_gray() != 0  # binary mask
         ret_value_roi = ret_value[Factory.Image.roi_to_slice(roi)]
         ret_value_roi[mask] = img_roi[mask]
         return Factory.Image(ret_value)
@@ -1011,8 +1011,8 @@ class Blob(Feature):
                              dtype=np.uint8)
         tlc = self.top_left_corner
         roi = (tlc[0], tlc[1], self.width, self.height)
-        img_roi = self.image.crop(*roi).ndarray
-        mask = self.hull_mask.gray_ndarray != 0  # binary mask
+        img_roi = self.image.crop(*roi)
+        mask = self.hull_mask.to_gray() != 0  # binary mask
         ret_value_roi = ret_value[Factory.Image.roi_to_slice(roi)]
         ret_value_roi[mask] = img_roi[mask]
         return Factory.Image(ret_value)
@@ -1026,7 +1026,7 @@ class Blob(Feature):
                              dtype=np.uint8)
         tlc = self.top_left_corner
         roi = (tlc[0], tlc[1], self.width, self.height)
-        mask = self.mask.gray_ndarray
+        mask = self.mask.to_gray()
         ret_value[Factory.Image.roi_to_slice(roi)] = mask
         return Factory.Image(ret_value)
 
@@ -1039,7 +1039,7 @@ class Blob(Feature):
                              dtype=np.uint8)
         tlc = self.top_left_corner
         roi = (tlc[0], tlc[1], self.width, self.height)
-        mask = self.hull_mask.gray_ndarray
+        mask = self.hull_mask.to_gray()
         ret_value[Factory.Image.roi_to_slice(roi)] = mask
         return Factory.Image(ret_value)
 
@@ -1646,7 +1646,7 @@ class Blob(Feature):
         result = img.smart_threshold(mask, rect)
         ret_val = FeatureSet()
 
-        if result:
+        if result is not None:
             if thresh_level == 1:
                 result = result.threshold(192)
             elif thresh_level == 2:
@@ -1706,12 +1706,12 @@ class Blob(Feature):
         if maxsize == 0:
             maxsize = img.width * img.height
         #create a single channel image, thresholded to parameters
-        if mask.size != img.size:
+        if mask.size_tuple != img.size_tuple:
             raise ScvException("Blob.find_from_mask - your mask does "
                                "not match the size of your image")
 
         blobmaker = BlobMaker()
-        gray = mask.gray_ndarray
+        gray = mask.to_gray()
         val, result = cv2.threshold(gray, thresh=threshold, maxval=255,
                                     type=cv2.THRESH_BINARY)
         blobs = blobmaker.extract_from_binary(

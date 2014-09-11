@@ -180,7 +180,7 @@ def fit_lines(img, guesses, window=10, threshold=128):
         ymin_w = np.clip(ymin - window, 0, img.height)
         ymax_w = np.clip(ymax + window, 0, img.height)
         temp = img.crop(xmin_w, ymin_w, xmax_w - xmin_w, ymax_w - ymin_w)
-        temp = temp.gray_ndarray
+        temp = temp.to_gray()
 
         # pick the lines above our threshold
         x, y = np.where(temp > threshold)
@@ -344,8 +344,8 @@ def find_grid_lines(img):
     grid_index = img.get_drawing_layer(img._grid_layer[0])
 
     try:
-        step_row = img.size[1] / img._grid_layer[1][0]
-        step_col = img.size[0] / img._grid_layer[1][1]
+        step_row = img.size_tuple[1] / img._grid_layer[1][0]
+        step_col = img.size_tuple[0] / img._grid_layer[1][1]
     except ZeroDivisionError:
         return FeatureSet()
 
@@ -355,11 +355,11 @@ def find_grid_lines(img):
     line_fs = FeatureSet()
     while i < img._grid_layer[1][0]:
         line_fs.append(Factory.Line(img, ((0, step_row * i),
-                                          (img.size[0], step_row * i))))
+                                          (img.size_tuple[0], step_row * i))))
         i = i + 1
     while j < img._grid_layer[1][1]:
         line_fs.append(Factory.Line(img, ((step_col * j, 0),
-                                          (step_col * j, img.size[1]))))
+                                          (step_col * j, img.size_tuple[1]))))
         j = j + 1
 
     return line_fs
@@ -415,8 +415,8 @@ def match_sift_key_points(img, template, quality=200):
 
     detector = cv2.FeatureDetector_create("SIFT")
     descriptor = cv2.DescriptorExtractor_create("SIFT")
-    img_array = img.ndarray
-    template_img = template.ndarray
+    img_array = img
+    template_img = template
 
     skp = detector.detect(img_array)
     skp, sd = descriptor.compute(img_array, skp)
@@ -568,9 +568,9 @@ def get_freak_descriptor(img, flavor="SURF"):
 
     detector = cv2.FeatureDetector_create(flavor)
     extractor = cv2.DescriptorExtractor_create("FREAK")
-    img._key_points = detector.detect(img.gray_ndarray)
+    img._key_points = detector.detect(img.to_gray())
     img._key_points, img._kp_descriptors = extractor.compute(
-        img.gray_ndarray,
+        img.to_gray(),
         img._key_points)
     fs = FeatureSet()
     for i in range(len(img._key_points)):
@@ -609,7 +609,7 @@ def edge_snap(img, point_list, step=1):
     >>> edgeLines = image.edge_snap([(50, 50), (230, 200)])
     >>> edgeLines.draw(color=Color.YELLOW, width=3)
     """
-    img_array = img.gray_ndarray.transpose()
+    img_array = img.to_gray().transpose()
     c1 = np.count_nonzero(img_array)
     c2 = np.count_nonzero(img_array - 255)
 
@@ -659,7 +659,7 @@ def _edge_snap2(img, start, end, step):
 
     """
 
-    edge_map = np.copy(img.gray_ndarray.transpose())
+    edge_map = np.copy(img.to_gray().transpose())
 
     #Size of the box around a point which is checked for edges.
     box = step * 4

@@ -44,7 +44,7 @@ class Track(Feature):
         self.vel = (0, 0)
         self.rt_vel = (0, 0)
         self.time = time.time()
-        self.cv2numpy = self.image.ndarray
+        self.cv2numpy = self.image
         self.predict_pt = (0, 0)
         self.state_pt = (0, 0)
 
@@ -194,7 +194,7 @@ class Track(Feature):
         f = self
         img = f.image
         if not pos:
-            imgsize = img.size
+            imgsize = img.size_tuple
             pos = (imgsize[0] - 120, 10)
         if not size:
             size = 16
@@ -228,7 +228,7 @@ class Track(Feature):
         f = self
         img = f.image
         if not pos:
-            imgsize = img.size
+            imgsize = img.size_tuple
             pos = (imgsize[0] - 120, 30)
         if not size:
             size = 16
@@ -264,7 +264,7 @@ class Track(Feature):
         img = f.image
         vel = f.vel
         if not pos:
-            imgsize = img.size
+            imgsize = img.size_tuple
             pos = (imgsize[0] - 120, 90)
         if not size:
             size = 16
@@ -301,7 +301,7 @@ class Track(Feature):
         img = f.image
         vel_rt = f.rt_vel
         if not pos:
-            imgsize = img.size
+            imgsize = img.size_tuple
             pos = (imgsize[0] - 120, 50)
         if not size:
             size = 16
@@ -403,7 +403,7 @@ class Track(Feature):
         f = self
         img = f.image
         if not pos:
-            imgsize = img.size
+            imgsize = img.size_tuple
             pos = (5, 10)
         if not size:
             size = 16
@@ -455,7 +455,7 @@ class Track(Feature):
         f = self
         img = f.image
         if not pos:
-            imgsize = img.size
+            imgsize = img.size_tuple
             pos = (5, 40)
         if not size:
             size = 16
@@ -971,7 +971,7 @@ class MFTrack(Track):
         img = f.image
         shift = f.shift
         if not pos:
-            imgsize = img.size
+            imgsize = img.size_tuple
             pos = (imgsize[0] - 120, 50)
         if not size:
             size = 16

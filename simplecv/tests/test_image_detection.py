@@ -210,14 +210,14 @@ def test_detection_x():
     img = Image(testimage)
     tmp_x = img.find(Line).x()[0]
     assert tmp_x > 0
-    assert img.size[0]
+    assert img.size_tuple[0]
 
 
 def test_detection_y():
     img = Image(testimage)
     tmp_y = img.find(Line).y()[0]
     assert_greater(tmp_y, 0)
-    assert img.size[0]
+    assert img.size_tuple[0]
 
 
 def test_detection_area():
@@ -427,8 +427,8 @@ def test_find_circles():
     circs[0].mean_color
     circs[0].distance_from(point=(0, 0))
     circs[0].draw()
-    assert circs[0].crop()
-    assert circs[0].crop(no_mask=True)
+    assert circs[0].crop() is not None
+    assert circs[0].crop(no_mask=True) is not None
 
     results = [img]
     name_stem = "test_find_circle"
@@ -634,7 +634,7 @@ def test_find_blobs_from_mask():
         Blob.find_from_mask(img, mask)
 
     # no blobs
-    mask = Image(img.size)  # Black mask
+    mask = Image(img.size_tuple)  # Black mask
     blobs = Blob.find_from_mask(img, mask)
     assert_is_instance(blobs, FeatureSet)
     assert_equals(len(blobs), 0)
@@ -728,10 +728,9 @@ def test_image_fit_edge():
     linescan = linescan + list1
 
     new_img = img.replace_line_scan(linescan)
-    print new_img.ndarray
     new_img.show()
     guess = [(5, 6), (28, 25)]
-    print new_img.fit_edge(guess, window=2)
+    new_img.fit_edge(guess, window=2)
 
 
 def test_image_fit_lines():
@@ -795,7 +794,7 @@ def test_smart_rotate():
 
     st1 = img.smart_rotate(auto=False, fixed=False).resize(500, 500)
     st2 = img.rotate(27, fixed=False).resize(500, 500)
-    diff = np.average((st1 - st2).ndarray)
+    diff = np.average((st1 - st2))
     assert diff <= 1.7
     if diff > 1.7:
         print diff
@@ -805,4 +804,4 @@ def test_smart_rotate():
 
     # give empty image
     img = Image((100, 100))
-    assert_equals(img.smart_rotate().ndarray.data, img.ndarray.data)
+    assert_equals(img.smart_rotate().data, img.data)

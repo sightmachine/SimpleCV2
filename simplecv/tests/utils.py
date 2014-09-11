@@ -20,7 +20,7 @@ def img_diffs(test_imgs, name_stem, tolerance, path):
     ret_val = []
     for idx in range(0, count):
         lhs = test_imgs[idx].apply_layers()  # this catches drawing methods
-        lhs = lhs.to_bgr().ndarray
+        lhs = lhs.to_bgr()
         fname = os.path.join(standard_path, name_stem + str(idx))
         fname_png = fname + ".png"
         if os.path.exists(fname_png):
@@ -30,6 +30,12 @@ def img_diffs(test_imgs, name_stem, tolerance, path):
             # cv2.imwrite(fname_png, lhs)
             # continue
             raise Exception('Cannot load standard image')
+
+        # cv2.imshow('1', lhs)
+        # cv2.waitKey()
+        # cv2.imshow('1', rhs)
+        # cv2.waitKey()
+
         if lhs.shape == rhs.shape:
             diff = cv2.absdiff(lhs, rhs)
             diff_pixels = (diff > 0).astype(np.uint8)
@@ -107,8 +113,8 @@ def perform_diff_blobs(blob1, blob2):
     assert_equals(blob1.contour, blob2.contour)
     assert_equals(blob1.convex_hull, blob2.convex_hull)
     assert_equals(blob1.contour_appx, blob2.contour_appx)
-    assert_equals(blob1.image.ndarray.data,
-                  blob2.image.ndarray.data)
+    assert_equals(blob1.image.data,
+                  blob2.image.data)
     assert_equals(blob1.points, blob2.points)
     assert_equals(blob1.hole_contour, blob2.hole_contour)
 

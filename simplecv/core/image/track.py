@@ -303,11 +303,11 @@ def track(self, method="CAMShift", ts=None, img=None, bb=None, **kwargs):
     using back track error, removes false positives. As the name suggests,
     it takes the median of the flow, and eliminates points.
     """
-    if not ts and not img:
+    if ts is None and img is None:
         print "Invalid Input. Must provide FeatureSet or Image"
         return None
 
-    if not ts and not bb:
+    if ts is None and bb is None:
         print "Invalid Input. Must provide Bounding Box with Image"
         return None
 

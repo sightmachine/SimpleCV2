@@ -6,7 +6,7 @@ def foo(image):
 def mftest():
     cam = Camera()
     img = cam.getImage()
-    d = Display(img.size())
+    d = Display(img.size_tuple())
     bb1 = getBBFromUser(cam,d)
     fs1=[]
     img = cam.getImage()

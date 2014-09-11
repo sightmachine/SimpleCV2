@@ -7,7 +7,7 @@ from simplecv import *
 def lktest():
     cam = Camera()
     img = cam.getImage()
-    d = Display(img.size())
+    d = Display(img.size_tuple())
     img, bb1 = getBBFromUser(cam,d)
     fs1=[]
     while True:

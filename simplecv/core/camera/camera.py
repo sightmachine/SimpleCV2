@@ -326,7 +326,7 @@ def live(img):
     from simplecv.display import Display
 
     i = img
-    d = Display(i.size)
+    d = Display(i.size_tuple)
     i.save(d)
     col = Color.RED
 

@@ -35,7 +35,7 @@ def test_tracking_mf_tracker():
         ts.showShift()
         assert_is_not_none(ts)
         assert_is_not_none(ts.getShift())
-        assert_equals(ts.getImage(), img)
+        assert_equals(ts.getImage().data, img.data)
         assert_is_not_none(ts.getBB())
 
 
@@ -101,7 +101,7 @@ def test_tracking_Track_test():
 
     assert_equals(tr.getCenter(), (50, 65))
     assert_equals(tr.area, 3000)
-    assert_equals(tr.getImage(), img)
+    assert_equals(tr.getImage().data, img.data)
     assert_equals(tr.getBB(), bb)
     assert_equals(tr.processTrack(meanc), img.mean_color())
     tr.draw()

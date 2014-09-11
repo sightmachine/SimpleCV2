@@ -50,17 +50,17 @@ def do_dft(img, grayscale=False):
     operations_on_arrays.html#getoptimaldftsize
 
     """
-    width, height = img.size
+    width, height = img.size_tuple
     dft = []
     if grayscale:
-        img_array = img.gray_ndarray
+        img_array = img.to_gray()
         data = img_array.astype(np.float64)
         blank = np.zeros((height, width))
         src = np.dstack((data, blank))
         dst = cv2.dft(src)
         dft.append(dst)
     else:
-        img_array = img.ndarray.copy()
+        img_array = img.copy()
         if len(img_array.shape) == 3:
             b = img_array[:, :, 0]
             g = img_array[:, :, 1]
@@ -308,18 +308,17 @@ def apply_dft_filter(img, flt, grayscale=False):
         filteredimage = flt.apply_filter(img, grayscale)
         return filteredimage
 
-    if flt.size != img.size:
+    if flt.size_tuple != img.size_tuple:
         logger.warning("Image.apply_dft_filter - Your filter must match "
                        "the size of the image")
         return None
     dft = img._get_dft_clone(grayscale)
     if grayscale:
-        flt64f = flt.gray_ndarray.astype(np.float64)
+        flt64f = flt.to_gray().astype(np.float64)
         final_filt = np.dstack((flt64f, flt64f))
         for i in range(len(dft)):
             dft[i] = cv2.mulSpectrums(dft[i], final_filt, flags=0)
     else:  # break down the filter and then do each channel
-        flt = flt.ndarray
         if len(flt.shape) == 3:
             b = flt[:, :, 0]
             g = flt[:, :, 1]
@@ -905,7 +904,7 @@ def apply_butterworth_filter(img, dia=400, order=2, highpass=False,
 
     """
     #reimplemented with faster, vectorized filter kernel creation
-    w, h = img.size
+    w, h = img.size_tuple
     intensity_scale = 2 ** 8 - 1  # for now 8-bit
     sz_x = 64  # for now constant, symmetric
     sz_y = 64  # for now constant, symmetric
@@ -981,7 +980,7 @@ def apply_gaussian_filter(img, dia=400, highpass=False, grayscale=False):
 
     """
     #reimplemented with faster, vectorized filter kernel creation
-    w, h = img.size
+    w, h = img.size_tuple
     intensity_scale = 2 ** 8 - 1  # for now 8-bit
     sz_x = 64  # for now constant, symmetric
     sz_y = 64  # for now constant, symmetric

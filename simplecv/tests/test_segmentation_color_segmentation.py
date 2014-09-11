@@ -11,7 +11,7 @@ def test_color_segmentation_add_image():
 
     c.add_image(filename)
 
-    assert_equals(c.truth_img.ndarray.data, img.ndarray.data)
+    assert_equals(c.truth_img.data, img.data)
 
 def test_color_segmentation_is_ready():
     c = ColorSegmentation()
@@ -33,14 +33,14 @@ def test_color_segmentation_get_raw_image():
 
     c.cur_img = Image("../data/sampleimages/04000.jpg")
     img1 = c.get_raw_image()
-    assert_equals(c.cur_img.ndarray.data, img1.ndarray.data)
+    assert_equals(c.cur_img.data, img1.data)
 
 def test_color_segmentation_get_segmented_image():
     c = ColorSegmentation()
     c.cur_img = Image("../data/sampleimages/RatMask.png")
 
     img = c.get_segmented_image()
-    assert_equals(c.cur_img.ndarray.data, img.ndarray.data)
+    assert_equals(c.cur_img.data, img.data)
 
 def test_color_segmentation_reset():
     c = ColorSegmentation()
@@ -74,7 +74,7 @@ def test_color_segmentation_state():
     mydict = c.__getstate__()
     assert_equals(mydict['error'], False)
     assert_equals(mydict['color_model'], c.color_model)
-    assert_equals(mydict['cur_img'], c.cur_img)
+    assert_equals(mydict['cur_img'].data, c.cur_img.data)
 
     img = Image("../data/sampleimages/RatMask.png")
     cm = ColorModel()
@@ -85,6 +85,6 @@ def test_color_segmentation_state():
     mydict['error'] = True
 
     c.__setstate__(mydict)
-    assert_equals(c.cur_img.ndarray.data, img.ndarray.data)
+    assert_equals(c.cur_img.data, img.data)
     assert_equals(c.color_model, cm)
     assert_equals(c.error, True)

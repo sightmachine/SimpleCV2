@@ -60,18 +60,29 @@ class Image(CoreImage):
 
     """
 
-    def __repr__(self):
-        if self.filename is None:
-            fn = "None"
+    def __new__(cls, source=None, **kwargs):
+        filename = None
+        if isinstance(source, np.ndarray):
+            ndarray = source
+            color_space = kwargs.get('color_space')
+        elif 'array' in kwargs:
+            ndarray = kwargs['array']
+            color_space = kwargs.get('color_space')
         else:
-            fn = os.path.abspath(self.filename)
-        c = self._ndarray.shape[2] if len(self._ndarray.shape) > 2 else 1
-        return "<simplecv.Image Object size:(%d, %d), dtype: %s, " \
-               "channels: %d, filename: (%s), " \
-               "at memory location: (%s)>" \
-               % (self.width, self.height, self.dtype, c, fn, hex(id(self)))
+            if 'source' not in kwargs:
+                kwargs['source'] = source
+            ndarray, color_space, filename = ImageLoader.load(**kwargs)
+        obj = CoreImage.__new__(cls, ndarray, color_space)
+        obj.filename = filename
+        return obj
 
     def __init__(self, source=None, **kwargs):
+        super(Image, self).__init__(array=source, color_space=kwargs.get('color_space'))
+        self.camera = kwargs.get('camera')
+
+    def __array_finalize__(self, obj):
+        super(Image, self).__array_finalize__(obj)
+
         ### DEFAULT VALUES ###
         # Keypoint Descriptors
         self._key_points = []
@@ -90,7 +101,7 @@ class Image(CoreImage):
         # to store grid details | Format -> [gridIndex, gridDimensions]
         self._grid_layer = [None, [0, 0]]
         # Other
-        self.camera = kwargs.get('camera')  # self.camera is unused so far
+        self.camera = getattr(obj, 'camera', None)  # self.camera is unused so far
         self.filename = None
         self.filehandle = None
         # The variables uncropped_x and uncropped_y are used to buffer the
@@ -98,24 +109,12 @@ class Image(CoreImage):
         self.uncropped_x = 0
         self.uncropped_y = 0
 
-        if isinstance(source, np.ndarray):
-            ndarray = source
-            color_space = kwargs.get('color_space')
-        elif 'array' in kwargs:
-            ndarray = kwargs['array']
-            color_space = kwargs.get('color_space')
-        else:
-            if 'source' not in kwargs:
-                kwargs['source'] = source
-            ndarray, color_space, self.filename = ImageLoader.load(**kwargs)
-        super(Image, self).__init__(array=ndarray, color_space=color_space)
-
-    def __getstate__(self):
-        return dict(color_space=self._color_space,
-                    array=self.apply_layers().ndarray)
-
-    def __setstate__(self, d):
-        self.__init__(**d)
+    # def __getstate__(self):
+    #     return dict(color_space=self._color_space,
+    #                 array=self.apply_layers())
+    #
+    # def __setstate__(self, d):
+    #     self.__init__(**d)
 
     def save(self, filehandle_or_filename="", mode="", verbose=False,
              temp=False, path=None, filename=None, clean_temp=False, **params):
@@ -345,18 +344,18 @@ class Image(CoreImage):
 
         if filename:
             if self.is_gray():
-                cv2.imwrite(filename, saveimg.ndarray)
+                cv2.imwrite(filename, saveimg)
             else:
-                cv2.imwrite(filename, saveimg.to_bgr().ndarray)
+                cv2.imwrite(filename, saveimg.to_bgr())
 
             # set the filename for future save operations
             self.filename = filename
             self.filehandle = ""
         elif self.filename:
             if self.is_gray():
-                cv2.imwrite(filename, saveimg.ndarray)
+                cv2.imwrite(filename, saveimg)
             else:
-                cv2.imwrite(filename, saveimg.to_bgr().ndarray)
+                cv2.imwrite(filename, saveimg.to_bgr())
         else:
             return 0
 
@@ -461,7 +460,7 @@ class Image(CoreImage):
             return None
 
         if not layer:
-            layer = DrawingLayer(self.size)
+            layer = DrawingLayer(self.size_tuple)
         self._layers.append(layer)
         return len(self._layers) - 1
 
@@ -610,7 +609,7 @@ class Image(CoreImage):
 
         """
         if not len(self._layers):
-            layer = DrawingLayer(self.size)
+            layer = DrawingLayer(self.size_tuple)
             self.add_drawing_layer(layer)
         try:
             return self._layers[index]
@@ -729,7 +728,7 @@ class Image(CoreImage):
         :py:meth:`blit`
 
         """
-        final = DrawingLayer(self.size)
+        final = DrawingLayer(self.size_tuple)
         for layers in self._layers:  # compose all the layers
             layers.render_to_other_layer(final)
         return final
@@ -1062,7 +1061,7 @@ class Image(CoreImage):
 
         **KAT FIX THIS**
         """
-        cv2.ellipse(self._ndarray, box=boundingbox, color=color,
+        cv2.ellipse(self, box=boundingbox, color=color,
                     thicness=width)
 
     def show(self, type='window'):
@@ -1109,7 +1108,7 @@ class Image(CoreImage):
             if init_options_handler.on_notebook:
                 d = Display(displaytype='notebook')
             else:
-                d = Display(self.size)
+                d = Display(self.size_tuple)
             self.save(d)
             return d
         else:
@@ -1398,22 +1397,22 @@ class Image(CoreImage):
         """
         ret_val = img.copy()
         try:
-            step_row = img.size[1] / dimensions[0]
-            step_col = img.size[0] / dimensions[1]
+            step_row = img.size_tuple[1] / dimensions[0]
+            step_col = img.size_tuple[0] / dimensions[1]
         except ZeroDivisionError:
             return None
 
         i = 1
         j = 1
 
-        grid = DrawingLayer(img.size)  # add a new layer for grid
+        grid = DrawingLayer(img.size_tuple)  # add a new layer for grid
         while (i < dimensions[0]) and (j < dimensions[1]):
             if i < dimensions[0]:
-                grid.line((0, step_row * i), (img.size[0], step_row * i),
+                grid.line((0, step_row * i), (img.size_tuple[0], step_row * i),
                           color, width, antialias, alpha)
                 i = i + 1
             if j < dimensions[1]:
-                grid.line((step_col * j, 0), (step_col * j, img.size[1]),
+                grid.line((step_col * j, 0), (step_col * j, img.size_tuple[1]),
                           color, width, antialias, alpha)
                 j = j + 1
         # store grid layer index

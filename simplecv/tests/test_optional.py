@@ -95,8 +95,8 @@ def test_screenshot():
         crop = (res[0]/4, res[1]/4, res[0]/2, res[1]/2)
         sc.set_roi(crop)
         crop_img = sc.get_image()
-        assert img
-        assert crop_img
+        assert img is not None
+        assert crop_img is not None
 
 
 @skipped  # FIXME: runs too long
@@ -129,7 +129,7 @@ def test_steganograpy():
     img = Image(logo)
     msg = 'How do I SimpleCV?'
     img = img.stega_encode(msg)
-    assert img
+    assert img is not None
     img.save(tmp_file)
     img2 = Image(tmp_file)
     msg2 = img2.stega_decode()
