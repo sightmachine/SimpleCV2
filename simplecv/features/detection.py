@@ -117,7 +117,7 @@ class Corner(Feature):
 
         """
         corner_coordinates = cv2.goodFeaturesToTrack(img.to_gray(),
-                                                     maxCorners=maxnum,
+                                                     maxCorners=int(maxnum),
                                                      qualityLevel=minquality,
                                                      minDistance=mindistance)
         corner_features = FeatureSet()
@@ -725,7 +725,8 @@ class Line(Feature):
         lines_fs = FeatureSet()
         if use_standard:
             lines = cv2.HoughLines(em, rho=1.0, theta=pi/180.0,
-                                   threshold=threshold, srn=minlinelength,
+                                   threshold=int(threshold),
+                                   srn=minlinelength,
                                    stn=maxlinegap)
             if lines is not None:
                 lines = lines[0]
@@ -820,7 +821,7 @@ class Line(Feature):
             lines_fs = lines_fs[:nlines]
         else:
             lines = cv2.HoughLinesP(em, rho=1.0, theta=math.pi/180.0,
-                                    threshold=threshold,
+                                    threshold=int(threshold),
                                     minLineLength=minlinelength,
                                     maxLineGap=maxlinegap)
             if lines is not None:
@@ -961,7 +962,7 @@ class Chessboard(Feature):
         gray_array = img.to_gray()
         equalized_grayscale_array = cv2.equalizeHist(gray_array)
         found, corners = cv2.findChessboardCorners(
-            equalized_grayscale_array, patternSize=dimensions,
+            equalized_grayscale_array, patternSize=tuple(dimensions),
             flags=cv2.CALIB_CB_ADAPTIVE_THRESH + cv2.CALIB_CB_NORMALIZE_IMAGE)
 
         if not found:
@@ -2079,7 +2080,7 @@ class Motion(Feature):
         flow = cv2.calcOpticalFlowFarneback(prev=previous_frame.to_gray(),
                                             next=img.to_gray(),
                                             pyr_scale=0.5, levels=1,
-                                            winsize=window, iterations=1,
+                                            winsize=int(window), iterations=1,
                                             poly_n=7, poly_sigma=1.5, flags=0,
                                             flow=None)
         fs = FeatureSet()

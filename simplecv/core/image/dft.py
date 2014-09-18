@@ -421,14 +421,18 @@ def high_pass_filter(img, x_cutoff, y_cutoff=None, grayscale=False):
         filter += 255  # make everything white
 
         # now make all of the corners black
-        cv2.rectangle(filter, pt1=(0, 0), pt2=(x_cutoff[0], y_cutoff[0]),
+        cv2.rectangle(filter, pt1=(0, 0), pt2=(int(x_cutoff[0]),
+                                               int(y_cutoff[0])),
                       color=0, thickness=-1)  # TL
-        cv2.rectangle(filter, pt1=(0, h - y_cutoff[0]), pt2=(x_cutoff[0], h),
+        cv2.rectangle(filter, pt1=(0, int(h - y_cutoff[0])),
+                      pt2=(int(x_cutoff[0]), int(h)),
                       color=0, thickness=-1)  # BL
-        cv2.rectangle(filter, pt1=(w - x_cutoff[0], 0), pt2=(w, y_cutoff[0]),
+        cv2.rectangle(filter, pt1=(int(w - x_cutoff[0]), 0),
+                      pt2=(int(w), int(y_cutoff[0])),
                       color=0, thickness=-1)  # TR
-        cv2.rectangle(filter, pt1=(w - x_cutoff[0], h - y_cutoff[0]),
-                      pt2=(w, h), color=0, thickness=-1)  # BR
+        cv2.rectangle(filter, pt1=(int(w - x_cutoff[0]),
+                                   int(h - y_cutoff[0])),
+                      pt2=(int(w), int(h)), color=0, thickness=-1)  # BR
 
         scv_filt = Factory.Image(filter)
     else:
@@ -442,14 +446,18 @@ def high_pass_filter(img, x_cutoff, y_cutoff=None, grayscale=False):
         temp = [filter_b, filter_g, filter_r]
         i = 0
         for f in temp:
-            cv2.rectangle(f, pt1=(0, 0), pt2=(x_cutoff[i], y_cutoff[i]),
+            cv2.rectangle(f, pt1=(0, 0), pt2=(int(x_cutoff[i]),
+                                              int(y_cutoff[i])),
                           color=0, thickness=-1)
-            cv2.rectangle(f, pt1=(0, h - y_cutoff[i]), pt2=(x_cutoff[i], h),
+            cv2.rectangle(f, pt1=(0, int(h - y_cutoff[i])),
+                          pt2=(int(x_cutoff[i]), int(h)),
                           color=0, thickness=-1)
-            cv2.rectangle(f, pt1=(w - x_cutoff[i], 0), pt2=(w, y_cutoff[i]),
+            cv2.rectangle(f, pt1=(int(w - x_cutoff[i]), 0),
+                          pt2=(int(w), int(y_cutoff[i])),
                           color=0, thickness=-1)
-            cv2.rectangle(f, pt1=(w - x_cutoff[i], h - y_cutoff[i]),
-                          pt2=(w, h), color=0, thickness=-1)
+            cv2.rectangle(f, pt1=(int(w - x_cutoff[i]),
+                                  int(h - y_cutoff[i])),
+                          pt2=(int(w), int(h)), color=0, thickness=-1)
             i = i + 1
 
         filter = np.dstack(tuple(temp))
@@ -691,27 +699,29 @@ def band_pass_filter(img, x_cutoff_low, x_cutoff_high, y_cutoff_low=None,
 
         # now make all of the corners white
         cv2.rectangle(filter, pt1=(0, 0),
-                      pt2=(x_cutoff_high[0], y_cutoff_high[0]),
+                      pt2=(int(x_cutoff_high[0]), int(y_cutoff_high[0])),
                       color=255, thickness=-1)  # TL
-        cv2.rectangle(filter, pt1=(0, h - y_cutoff_high[0]),
-                      pt2=(x_cutoff_high[0], h),
+        cv2.rectangle(filter, pt1=(0, int(h - y_cutoff_high[0])),
+                      pt2=(int(x_cutoff_high[0]), int(h)),
                       color=255, thickness=-1)  # BL
-        cv2.rectangle(filter, pt1=(w - x_cutoff_high[0], 0),
-                      pt2=(w, y_cutoff_high[0]),
+        cv2.rectangle(filter, pt1=(int(w - x_cutoff_high[0]), 0),
+                      pt2=(int(w), int(y_cutoff_high[0])),
                       color=255, thickness=-1)  # TR
-        cv2.rectangle(filter, pt1=(w - x_cutoff_high[0], h - y_cutoff_high[0]),
-                      pt2=(w, h), color=255, thickness=-1)  # BR
+        cv2.rectangle(filter, pt1=(int(w - x_cutoff_high[0]),
+                                   int(h - y_cutoff_high[0])),
+                      pt2=(int(w), int(h)), color=255, thickness=-1)  # BR
         cv2.rectangle(filter, pt1=(0, 0),
-                      pt2=(x_cutoff_low[0], y_cutoff_low[0]),
+                      pt2=(int(x_cutoff_low[0]), int(y_cutoff_low[0])),
                       color=0, thickness=-1)  # TL
-        cv2.rectangle(filter, pt1=(0, h - y_cutoff_low[0]),
-                      pt2=(x_cutoff_low[0], h),
+        cv2.rectangle(filter, pt1=(0, int(h - y_cutoff_low[0])),
+                      pt2=(int(x_cutoff_low[0]), int(h)),
                       color=0, thickness=-1)  # BL
-        cv2.rectangle(filter, pt1=(w - x_cutoff_low[0], 0),
-                      pt2=(w, y_cutoff_low[0]),
+        cv2.rectangle(filter, pt1=(int(w - x_cutoff_low[0]), 0),
+                      pt2=(int(w), int(y_cutoff_low[0])),
                       color=0, thickness=-1)  # TR
-        cv2.rectangle(filter, pt1=(w - x_cutoff_low[0], h - y_cutoff_low[0]),
-                      pt2=(w, h),
+        cv2.rectangle(filter, pt1=(int(w - x_cutoff_low[0]),
+                                   int(h - y_cutoff_low[0])),
+                      pt2=(int(w), int(h)),
                       color=0, thickness=-1)  # BR
         scv_filt = Factory.Image(filter)
 
@@ -727,27 +737,28 @@ def band_pass_filter(img, x_cutoff_low, x_cutoff_high, y_cutoff_low=None,
         i = 0
         for f in temp:
             cv2.rectangle(f, pt1=(0, 0),
-                          pt2=(x_cutoff_high[i], y_cutoff_high[i]),
+                          pt2=(int(x_cutoff_high[i]), int(y_cutoff_high[i])),
                           color=255, thickness=-1)  # TL
-            cv2.rectangle(f, pt1=(0, h - y_cutoff_high[i]),
-                          pt2=(x_cutoff_high[i], h),
+            cv2.rectangle(f, pt1=(0, int(h - y_cutoff_high[i])),
+                          pt2=(int(x_cutoff_high[i]), int(h)),
                           color=255, thickness=-1)  # BL
-            cv2.rectangle(f, pt1=(w - x_cutoff_high[i], 0),
-                          pt2=(w, y_cutoff_high[i]),
+            cv2.rectangle(f, pt1=(int(w - x_cutoff_high[i]), 0),
+                          pt2=(int(w), int(y_cutoff_high[i])),
                           color=255, thickness=-1)  # TR
-            cv2.rectangle(f, pt1=(w - x_cutoff_high[i], h - y_cutoff_high[i]),
-                          pt2=(w, h), color=255, thickness=-1)  # BR
+            cv2.rectangle(f, pt1=(int(w - x_cutoff_high[i]),
+                                  int(h - y_cutoff_high[i])),
+                          pt2=(int(w), int(h)), color=255, thickness=-1)  # BR
             cv2.rectangle(f, pt1=(0, 0),
-                          pt2=(x_cutoff_low[i], y_cutoff_low[i]),
+                          pt2=(int(x_cutoff_low[i]), int(y_cutoff_low[i])),
                           color=0, thickness=-1)  # TL
-            cv2.rectangle(f, pt1=(0, h - y_cutoff_low[i]),
-                          pt2=(x_cutoff_low[i], h),
+            cv2.rectangle(f, pt1=(0, int(h - y_cutoff_low[i])),
+                          pt2=(int(x_cutoff_low[i]), int(h)),
                           color=0, thickness=-1)  # BL
-            cv2.rectangle(f, pt1=(w - x_cutoff_low[i], 0),
-                          pt2=(w, y_cutoff_low[i]),
+            cv2.rectangle(f, pt1=(int(w - x_cutoff_low[i]), 0),
+                          pt2=(int(w), int(y_cutoff_low[i])),
                           color=0, thickness=-1)  # TR
-            cv2.rectangle(f, pt1=(w - x_cutoff_low[i], h - y_cutoff_low[i]),
-                          pt2=(w, h), color=0, thickness=-1)  # BR
+            cv2.rectangle(f, pt1=(int(w - x_cutoff_low[i]), int(h - y_cutoff_low[i])),
+                          pt2=(int(w), int(h)), color=0, thickness=-1)  # BR
             i = i + 1
 
         filter = np.dstack(tuple(temp))

@@ -1062,7 +1062,7 @@ class Image(CoreImage):
         **KAT FIX THIS**
         """
         cv2.ellipse(self, box=boundingbox, color=color,
-                    thicness=width)
+                    thickness=int(width))
 
     def show(self, type='window'):
         """

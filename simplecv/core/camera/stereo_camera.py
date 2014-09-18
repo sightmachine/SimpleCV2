@@ -226,13 +226,13 @@ class StereoImage(object):
         try:
             if method == 'BM':
                 sbm = cv2.StereoBM(cv2.cv.CV_STEREO_BM_BASIC,
-                                   ndisparities=n_disparity,
+                                   ndisparities=int(n_disparity),
                                    SADWindowSize=41)
 
                 dsp = sbm.compute(gray_left, gray_right)
             elif method == 'SGBM':
                 ssgbm = cv2.StereoSGBM(minDisparity=0,
-                                       numDisparities=n_disparity,
+                                       numDisparities=int(n_disparity),
                                        SADWindowSize=41,
                                        preFilterCap=31,
                                        disp12MaxDiff=1,
@@ -851,9 +851,11 @@ class StereoCamera(object):
         (cm1, cm2, d1, d2, r, t, e, f) = calibration
         (r1, r2, p1, p2, q, roi) = rectification
 
-        map1x, map1y = cv2.initUndistortRectifyMap(cm1, d1, r1, p1, win_size,
+        map1x, map1y = cv2.initUndistortRectifyMap(cm1, d1, r1, p1,
+                                                   tuple(win_size),
                                                    cv2.CV_32FC1)
-        map2x, map2y = cv2.initUndistortRectifyMap(cm2, d2, r2, p2, win_size,
+        map2x, map2y = cv2.initUndistortRectifyMap(cm2, d2, r2, p2,
+                                                   tuple(win_size),
                                                    cv2.CV_32FC1)
 
         dst1 = cv2.remap(img_left, map1x, map1y, cv2.INTER_LINEAR)

@@ -698,7 +698,7 @@ def _get_raw_keypoints(img, threshold=500.00, flavor="SURF", highquality=1,
         if flavor == "SURF":
             # cv2.SURF(hessianThreshold, nOctaves,
             #          nOctaveLayers, extended, upright)
-            detector = cv2.SURF(threshold, 4, 2, highquality, 1)
+            detector = cv2.SURF(threshold, 4, 2, int(highquality), 1)
             img._key_points, img._kp_descriptors = \
                 detector.detectAndCompute(img.to_gray(), None, False)
             if len(img._key_points) == 0:
@@ -1194,7 +1194,7 @@ def edge_intersections(img, pt0, pt1, width=1, canny1=0, canny2=100):
     line = np.zeros((h, w), np.uint8)
     cv2.line(line, pt1=((pt0[0] - x), (pt0[1] - y)),
              pt2=((pt1[0] - x), (pt1[1] - y)), color=255.00,
-             thickness=width, lineType=8)
+             thickness=int(width), lineType=8)
     line = cv2.multiply(line, edges)
     intersections = line.transpose()
     (xs, ys) = np.where(intersections == 255)

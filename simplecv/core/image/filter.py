@@ -158,10 +158,10 @@ def median_filter(img, window=None, grayscale=False):
         win_x = 3  # set the default aperture window size (3x3)
 
     if grayscale:
-        img_medianblur = cv2.medianBlur(img.to_gray(), ksize=win_x)
+        img_medianblur = cv2.medianBlur(img.to_gray(), ksize=int(win_x))
         return Factory.Image(img_medianblur)
     else:
-        img_medianblur = cv2.medianBlur(img, ksize=win_x)
+        img_medianblur = cv2.medianBlur(img, ksize=int(win_x))
         return Factory.Image(img_medianblur, color_space=img.color_space)
 
 
@@ -234,13 +234,15 @@ def bilateral_filter(img, diameter=5, sigma_color=10, sigma_space=10,
 
     if grayscale:
         img_bilateral = cv2.bilateralFilter(img.to_gray(),
-                                            d=diameter, sigmaColor=sigma_color,
-                                            sigmaSpace=sigma_space)
+                                            d=int(diameter),
+                                            sigmaColor=int(sigma_color),
+                                            sigmaSpace=int(sigma_space))
         return Factory.Image(img_bilateral)
     else:
-        img_bilateral = cv2.bilateralFilter(img, d=diameter,
-                                            sigmaColor=sigma_color,
-                                            sigmaSpace=sigma_space)
+        img_bilateral = cv2.bilateralFilter(img,
+                                            d=int(diameter),
+                                            sigmaColor=int(sigma_color),
+                                            sigmaSpace=int(sigma_space))
         return Factory.Image(img_bilateral, color_space=img.color_space)
 
 
@@ -332,11 +334,11 @@ def gaussian_blur(img, window=None, sigma_x=0, sigma_y=0,
         window = (3, 3)  # set the default aperture window size (3x3)
     if grayscale:
         image_gauss = cv2.GaussianBlur(img.to_gray(), window,
-                                       sigma_x, None, sigma_y)
+                                       int(sigma_x), None, int(sigma_y))
         return Factory.Image(image_gauss)
     else:
-        image_gauss = cv2.GaussianBlur(img, window, sigma_x,
-                                       None, sigma_y)
+        image_gauss = cv2.GaussianBlur(img, window, int(sigma_x),
+                                       None, int(sigma_y))
         return Factory.Image(image_gauss, color_space=img.color_space)
 
 
@@ -536,7 +538,7 @@ def binarize(img, threshold=None, maxv=255, blocksize=0, p=5, inverted=False):
                 img.to_gray(), maxValue=maxv,
                 adaptiveMethod=cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
                 thresholdType=thresh_type,
-                blockSize=blocksize, C=p)
+                blockSize=int(blocksize), C=p)
         else:
             array = cv2.threshold(
                 img.to_gray(), -1, float(maxv),
@@ -897,9 +899,10 @@ def erode(img, iterations=1, kernelsize=3):
 
     """
     kern = cv2.getStructuringElement(shape=cv2.MORPH_RECT,
-                                     ksize=(kernelsize, kernelsize),
+                                     ksize=(int(kernelsize),
+                                            int(kernelsize)),
                                      anchor=(1, 1))
-    array = cv2.erode(img, kernel=kern, iterations=iterations)
+    array = cv2.erode(img, kernel=kern, iterations=int(iterations))
     return Factory.Image(array, color_space=img.color_space)
 
 
@@ -949,7 +952,7 @@ def dilate(img, iterations=1):
     """
     kern = cv2.getStructuringElement(shape=cv2.MORPH_RECT, ksize=(3, 3),
                                      anchor=(1, 1))
-    array = cv2.dilate(img, kernel=kern, iterations=iterations)
+    array = cv2.dilate(img, kernel=kern, iterations=int(iterations))
     return Factory.Image(array, color_space=img.color_space)
 
 
@@ -1465,6 +1468,8 @@ def convolve(img, kernel=None, center=None):
     else:
         logger.warning("Image.convolve: kernel should be numpy array.")
         return None
+    if center is not None:
+        center = tuple(center)
     kernel = kernel.astype(np.float32)
     array = cv2.filter2D(img, ddepth=-1,
                          kernel=kernel, anchor=center)
@@ -1980,7 +1985,7 @@ def smart_threshold(img, mask=None, rect=None):
         tmp1 = np.zeros((1, 13 * 5))
         tmp2 = np.zeros((1, 13 * 5))
         mask = np.zeros((img.height, img.width), dtype=np.uint8)
-        cv2.grabCut(npimg, mask=mask, rect=rect, bgdModel=tmp1,
+        cv2.grabCut(npimg, mask=mask, rect=tuple(rect), bgdModel=tmp1,
                     fgdModel=tmp2, iterCount=10, mode=cv2.GC_INIT_WITH_RECT)
         lut = np.zeros((256, 1), dtype=np.uint8)
         lut[1] = 255
@@ -2609,8 +2614,8 @@ def sobel(img, xorder=1, yorder=1, do_gray=True, aperture=5):
         return None
 
     if do_gray:
-        dst = cv2.Sobel(img.to_gray(), cv2.CV_32F, xorder,
-                        yorder, ksize=aperture)
+        dst = cv2.Sobel(img.to_gray(), cv2.CV_32F, int(xorder),
+                        int(yorder), ksize=int(aperture))
         minv = np.min(dst)
         maxv = np.max(dst)
         cscale = 255 / (maxv - minv)
@@ -2624,8 +2629,8 @@ def sobel(img, xorder=1, yorder=1, do_gray=True, aperture=5):
         layers = np.dsplit(img, 3)
         sobel_layers = []
         for layer in layers:
-            dst = cv2.Sobel(layer, cv2.CV_32F, xorder,
-                            yorder, ksize=aperture)
+            dst = cv2.Sobel(layer, cv2.CV_32F, int(xorder),
+                            int(yorder), ksize=int(aperture))
 
             minv = np.min(dst)
             maxv = np.max(dst)
