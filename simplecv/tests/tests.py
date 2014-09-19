@@ -22,7 +22,6 @@ from simplecv.base import logger
 from simplecv.color import Color, ColorMap
 from simplecv.drawing_layer import DrawingLayer
 from simplecv.features.blob import Blob
-from simplecv.features.blobmaker import BlobMaker
 from simplecv.features.detection import Line, Corner, Motion, KeyPoint, Circle, TemplateMatch
 from simplecv.features.features import FeatureSet
 from simplecv.image import Image
@@ -106,8 +105,7 @@ def test_feature_crop():
 @skipped  # FIXME
 def test_blob_holes():
     img = Image("../data/sampleimages/blockhead.png")
-    blobber = BlobMaker()
-    blobs = blobber.extract(img)
+    blobs = Blob.extract(img)
     count = 0
     blobs.draw()
     results = [img]
@@ -128,8 +126,7 @@ def test_blob_holes():
 @skipped  # FIXME
 def test_blob_render():
     img = Image("../data/sampleimages/blockhead.png")
-    blobber = BlobMaker()
-    blobs = blobber.extract(img)
+    blobs = Blob.extract(img)
     dl = DrawingLayer((img.width, img.height))
     reimg = DrawingLayer((img.width, img.height))
     for b in blobs:

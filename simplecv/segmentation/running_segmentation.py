@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 from simplecv.factory import Factory
-from simplecv.features.blobmaker import BlobMaker
+from simplecv.features.blob import Blob
 from simplecv.segmentation.segmentation_base import SegmentationBase
 
 
@@ -29,7 +29,6 @@ class RunningSegmentation(SegmentationBase):
         self.model_img = None
         self.diff_img = None
         self.color_img = None
-        self.blobmaker = BlobMaker()
 
     def add_image(self, img):
         """
@@ -108,7 +107,7 @@ class RunningSegmentation(SegmentationBase):
         ret_val = []
         if self.color_img is not None and self.diff_img is not None:
             eight_bit = self._float_to_int(self.diff_img)
-            ret_val = self.blobmaker.extract_from_binary(
+            ret_val = Blob.extract_from_binary(
                 eight_bit.binarize(threshold=self.thresh, inverted=True),
                 self.color_img)
         return ret_val
@@ -122,14 +121,8 @@ class RunningSegmentation(SegmentationBase):
 
     def __getstate__(self):
         mydict = self.__dict__.copy()
-        self.blobmaker = None
         self.model_img = None
         self.diff_img = None
-        del mydict['blobmaker']
         del mydict['model_img']
         del mydict['diff_img']
         return mydict
-
-    def __setstate__(self, mydict):
-        self.__dict__ = mydict
-        self.blobmaker = BlobMaker()

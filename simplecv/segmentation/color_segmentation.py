@@ -1,6 +1,6 @@
 from simplecv.color_model import ColorModel
 from simplecv.factory import Factory
-from simplecv.features.blobmaker import BlobMaker
+from simplecv.features.blob import Blob
 from simplecv.segmentation.segmentation_base import SegmentationBase
 
 
@@ -15,7 +15,6 @@ class ColorSegmentation(SegmentationBase):
         self.error = False
         self.cur_img = None
         self.truth_img = None
-        self.blobmaker = BlobMaker()
 
     def add_image(self, img):
         """
@@ -72,7 +71,7 @@ class ColorSegmentation(SegmentationBase):
         """
         return the segmented blobs from the fg/bg image
         """
-        return self.blobmaker.extract_from_binary(self.cur_img, self.truth_img)
+        return Blob.extract_from_binary(self.cur_img, self.truth_img)
 
     # The following are class specific methods
 
@@ -81,13 +80,3 @@ class ColorSegmentation(SegmentationBase):
 
     def subtract_model(self, data):
         self.color_model.remove(data)
-
-    def __getstate__(self):
-        mydict = self.__dict__.copy()
-        self.blobmaker = None
-        del mydict['blobmaker']
-        return mydict
-
-    def __setstate__(self, mydict):
-        self.__dict__ = mydict
-        self.blobmaker = BlobMaker()

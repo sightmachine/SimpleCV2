@@ -1,15 +1,17 @@
-from nose.tools import assert_equals, assert_almost_equals
+from nose.tools import assert_equals
 import numpy as np
 
 from simplecv.image import Image
 from simplecv.segmentation.running_segmentation import RunningSegmentation
-from simplecv.tests.utils import perform_diff, perform_diff_blobs
+from simplecv.tests.utils import perform_diff
+
 
 def test_running_segmentation_add_image(): # add this case to existing test
     r = RunningSegmentation()
     img = r.add_image(None)
 
     assert_equals(img, None)
+
 
 def test_running_segmentation_is_ready():
     r = RunningSegmentation()
@@ -22,14 +24,17 @@ def test_running_segmentation_is_ready():
 
     assert r.is_ready()
 
+
 def test_running_segmentation_is_error():
     r = RunningSegmentation()
     assert not r.is_error()
+
 
 def test_running_segmentation_reset_error():
     r = RunningSegmentation()
     r.reset_error()
     assert not r.error
+
 
 def test_running_segmentation_reset():
     r = RunningSegmentation()
@@ -40,6 +45,7 @@ def test_running_segmentation_reset():
 
     assert_equals(r.model_img, None)
     assert_equals(r.diff_img, None)
+
 
 def test_running_segmentation_get_raw_image():
     r = RunningSegmentation()
@@ -54,6 +60,7 @@ def test_running_segmentation_get_raw_image():
     result = r.get_raw_image()
 
     assert_equals(result.data, img.data)
+
 
 def test_running_segmentation_get_segmented_image():
     r = RunningSegmentation()
@@ -72,6 +79,8 @@ def test_running_segmentation_get_segmented_image():
 
     perform_diff(result, name_stem, 0.0)
 
+
+# FIXME: add test for pickle
 def test_running_segmentation_state():
     r = RunningSegmentation(alpha=0.5, thresh=(40, 20, 30))
     img_ref = Image((512, 512))
@@ -82,21 +91,3 @@ def test_running_segmentation_state():
     r.add_image(img)
 
     final = r.get_segmented_image()
-
-    mydict = r.__getstate__()
-    assert_equals(mydict['color_img'].data,
-                  img.data)
-    assert_equals(mydict['alpha'], 0.5)
-    assert_equals(mydict['thresh'], (40, 20, 30))
-
-    mydict['alpha'] = 0.3
-    mydict['thresh'] = (30, 20, 50)
-
-    newimg = Image(source="lenna")
-    mydict['color_img'] = newimg
-
-    r.__setstate__(mydict)
-
-    assert_equals(r.alpha, 0.3)
-    assert_equals(r.thresh, (30, 20, 50))
-    assert_equals(r.color_img.data, newimg.data)

@@ -9,7 +9,6 @@ from simplecv.base import ScvException
 
 from simplecv.image import Image
 from simplecv.tests.utils import perform_diff, skipped
-from simplecv.features.blobmaker import BlobMaker
 from simplecv.features.blob import Blob
 from simplecv.features.features import FeatureSet, Feature
 from simplecv.features.detection import Corner, Line, Chessboard, Circle,\
@@ -74,8 +73,7 @@ def test_detection_feature_measures():
     fs = FeatureSet()
     fs.append(Corner(img, 5, 5))
     fs.append(Line(img, ((2, 2), (3, 3))))
-    bm = BlobMaker()
-    result = bm.extract(img)
+    result = Blob.extract(img)
     assert result
     assert_equals(5, len(result))
     fs.extend(result)
@@ -222,8 +220,7 @@ def test_detection_y():
 
 def test_detection_area():
     img = Image(testimage2)
-    bm = BlobMaker()
-    result = bm.extract(img)
+    result = Blob.extract(img)
     for b in result:
         assert_greater(b.area, 0)
 
@@ -249,8 +246,7 @@ def test_detection_sortangle():
 
 def test_detection_sortarea():
     img = Image(testimage)
-    bm = BlobMaker()
-    result = bm.extract(img)
+    result = Blob.extract(img)
     val = result.sort_area()
     assert val
     assert_equals(3, len(val))

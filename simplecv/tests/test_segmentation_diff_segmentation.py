@@ -1,10 +1,10 @@
-from nose.tools import assert_equals, assert_almost_equals
-import numpy as np
+from nose.tools import assert_equals
 
 from simplecv.image import Image
 from simplecv.segmentation.diff_segmentation import DiffSegmentation
-from simplecv.tests.utils import perform_diff, perform_diff_blobs
+from simplecv.tests.utils import perform_diff
 from simplecv.factory import Factory
+
 
 def test_diff_segmentation_add_image():
     d = DiffSegmentation()
@@ -53,6 +53,7 @@ def test_diff_segmentation_add_image():
     assert_equals(d3.color_img.data, img3.data)
     assert_equals(d3.curr_img.data, img3.data)
 
+
 def test_diff_segmentation_is_ready():
     d = DiffSegmentation()
     assert not d.is_ready()
@@ -61,14 +62,17 @@ def test_diff_segmentation_is_ready():
     d.add_image(img)
     assert d.is_ready()
 
+
 def test_diff_segmentation_is_error():
     d = DiffSegmentation()
     assert not d.is_error()
+
 
 def test_diff_segmentation_reset_error():
     d = DiffSegmentation()
     d.error = True
     assert not d.reset_error()
+
 
 def test_diff_segmentation_reset():
     d = DiffSegmentation()
@@ -80,6 +84,7 @@ def test_diff_segmentation_reset():
     assert_equals(d.diff_img, None)
     assert_equals(d.curr_img, None)
 
+
 def test_diff_segmentation_get_raw_image():
     d = DiffSegmentation()
     img = Image(source="lenna")
@@ -89,6 +94,7 @@ def test_diff_segmentation_get_raw_image():
 
     diff_img = Image(img.get_empty(3))
     assert_equals(result.data, diff_img.data)
+
 
 def test_diff_segmentation_get_segmented_image():
     d = DiffSegmentation(threshold=(50, 80, 100))
@@ -100,29 +106,9 @@ def test_diff_segmentation_get_segmented_image():
 
     perform_diff(result, name_stem, 0.0)
 
+
+# FIXME: add test for pickle
 def test_diff_segmentation_state():
     d = DiffSegmentation(threshold=(30, 50, 20))
     img = Image(source="lenna")
     d.add_image(img)
-
-    mydict = d.__getstate__()
-
-    assert_equals(mydict['threshold'], (30, 50, 20))
-    assert_equals(mydict['grayonly_mode'], False)
-    assert_equals(mydict['last_img'].data,
-                  img.data)
-
-    last_img = img.to_bgr()
-    diff_img = img.to_hsv()
-
-    mydict['diff_img'] = diff_img
-    mydict['last_img'] = last_img
-    mydict['threshold'] = (20, 50, 60)
-    mydict['grayonly_mode'] = True
-
-    d.__setstate__(mydict)
-
-    assert_equals(d.threshold, (20, 50, 60))
-    assert_equals(d.grayonly_mode, True)
-    assert_equals(d.last_img.data, last_img.data)
-    assert_equals(d.diff_img.data, diff_img.data)
