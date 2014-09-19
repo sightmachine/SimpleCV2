@@ -313,14 +313,14 @@ def test_blob_extract_blob_data():
         assert b.perimeter > 0
         assert sum(b.avg_color) > 0
         assert sum(b.bounding_box) > 0
-        assert b.m00 != 0
-        assert b.m01 != 0
-        assert b.m10 != 0
-        assert b.m11 != 0
-        assert b.m20 != 0
-        assert b.m02 != 0
-        assert b.m21 != 0
-        assert b.m12 != 0
+        assert b.moments['m00'] != 0
+        assert b.moments['m01'] != 0
+        assert b.moments['m10'] != 0
+        assert b.moments['m11'] != 0
+        assert b.moments['m20'] != 0
+        assert b.moments['m02'] != 0
+        assert b.moments['m21'] != 0
+        assert b.moments['m12'] != 0
         assert sum(b.hu) > 0
 
 

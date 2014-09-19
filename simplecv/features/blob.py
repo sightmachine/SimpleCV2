@@ -43,56 +43,29 @@ class Blob(Feature):
     :py:meth:`find_blobs_from_mask`
 
     """
-    seq = ''  # the cvseq object that defines this blob
-    contour = []  # the blob's outer get_perimeter as a set of (x,y) tuples
-    convex_hull = []  # the convex hull get_contour as a set of (x,y) tuples
-    min_rectangle = []  # the smallest box rotated to fit the blob
-    # min_rectangle[0] = centroid (x,y)
-    # min_rectangle[1] = (w,h)
-    # min_rectangle[2] = angle
-
-    #bounding_box = [] #get W/H and X/Y from this
-    hu = []  # The seven Hu Moments
-    perimeter = 0  # the length of the get_perimeter in pixels
+    # Override Feature's property area
     area = 0  # the area in pixels
-    m00 = 0
-    m01 = 0
-    m10 = 0
-    m11 = 0
-    m20 = 0
-    m02 = 0
-    m21 = 0
-    m12 = 0
-    contour_appx = None
-    label = ""  # A user label
-    label_color = []  # what color to draw the label
-    avg_color = []  # The average color of the blob's area.
-    hole_contour = []  # list of hole contours
+
     pickle_skip_properties = {'img', 'hull_img', 'mask', 'hull_mask'}
 
     def __init__(self):
         self._scdescriptors = None
         self._complete_contour = None
-        self.contour = []
-        self.convex_hull = []
-        self.min_rectangle = [-1, -1, -1, -1, -1]  # angle from this
+        self.contour = []  # the blob's outer get_perimeter as a set of (x,y) tuples
+        self.convex_hull = []  # the convex hull get_contour as a set of (x,y) tuples
+        self.min_rectangle = [-1, -1, -1, -1, -1]  # the smallest box rotated to fit the blob
+        # min_rectangle[0] = centroid (x,y)
+        # min_rectangle[1] = (w,h)
+        # min_rectangle[2] = angle
         self.contour_appx = []
         self.hu = [-1, -1, -1, -1, -1, -1, -1]
-        self.perimeter = 0
-        self.area = 0
-        self.m00 = 0
-        self.m01 = 0
-        self.m10 = 0
-        self.m11 = 0
-        self.m20 = 0
-        self.m02 = 0
-        self.m21 = 0
-        self.m12 = 0
-        self.label = "UNASSIGNED"
-        self.label_color = []
-        self.avg_color = [-1, -1, -1]
+        self.perimeter = 0  # the length of the get_perimeter in pixels
+        self.moments = {}
+        self.label = "UNASSIGNED"  # A user label
+        self.label_color = []  # what color to draw the label
+        self.avg_color = [-1, -1, -1]  # The average color of the blob's area.
         self.image = None
-        self.hole_contour = []
+        self.hole_contour = []  # list of hole contours
         self.points = []
 
     def __getstate__(self):
@@ -865,7 +838,8 @@ class Blob(Feature):
         >>> img.show()
 
         """
-        return self.m10 / self.m00, self.m01 / self.m00
+        return (self.moments['m10'] / self.moments['m00'],
+                self.moments['m01'] / self.moments['m00'])
 
     @lazyproperty
     def radius(self):
@@ -1113,7 +1087,6 @@ class Blob(Feature):
                 # push the new point onto the return value
                 ret_value.append((new_pnt[0], new_pnt[1]))
                 # push the new point onto the contour too
-                # FIXME: "push the new point" -> ...append(pt) ?
                 contour.append(pnt)
                 p0 = new_pnt
             elif dist > min_d:
@@ -2080,20 +2053,8 @@ class Blob(Feature):
         # KAS -- FLAG FOR REPLACE 6/6/2012
         #ret_value.hull_mask = Image(get_hull_mask)
 
-        moments = cv2.moments(contour)
-
-        #This is a hack for a python wrapper bug that was missing
-        #the constants required from the ctype
-        ret_value.m00 = area
-        ret_value.m10 = moments.get('m10')
-        ret_value.m01 = moments.get('m01')
-        ret_value.m11 = moments.get('m11')
-        ret_value.m20 = moments.get('m20')
-        ret_value.m02 = moments.get('m02')
-        ret_value.m21 = moments.get('m21')
-        ret_value.m12 = moments.get('m12')
-
-        ret_value.hu = cv2.HuMoments(moments)
+        ret_value.moments = cv2.moments(contour)
+        ret_value.hu = cv2.HuMoments(ret_value.moments)
 
         # KAS -- FLAG FOR REPLACE 6/6/2012
         #ret_value.mask = Image(mask)

@@ -95,13 +95,13 @@ def create_test_image():
 
 
 def perform_diff_blobs(blob1, blob2):
-    assert_equals(blob1.m00, blob2.m00)
-    assert_equals(blob1.m01, blob2.m01)
-    assert_equals(blob1.m10, blob2.m10)
-    assert_equals(blob1.m20, blob2.m20)
-    assert_equals(blob1.m02, blob2.m02)
-    assert_equals(blob1.m21, blob2.m21)
-    assert_equals(blob1.m12, blob2.m12)
+    assert_equals(blob1.moments['m00'], blob2.moments['m00'])
+    assert_equals(blob1.moments['m01'], blob2.moments['m01'])
+    assert_equals(blob1.moments['m10'], blob2.moments['m10'])
+    assert_equals(blob1.moments['m20'], blob2.moments['m20'])
+    assert_equals(blob1.moments['m02'], blob2.moments['m02'])
+    assert_equals(blob1.moments['m21'], blob2.moments['m21'])
+    assert_equals(blob1.moments['m12'], blob2.moments['m12'])
     assert_equals(blob1.label, blob2.label)
     assert_equals(blob1.label_color, blob2.label_color)
     assert_equals(blob1.avg_color, blob2.avg_color)
