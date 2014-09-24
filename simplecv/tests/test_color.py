@@ -58,7 +58,6 @@ def test_color_get_luminosity():
 
 
 def test_color_color_map():
-    import cv2
     img = Image("lenna")
     blobs = img.find(Blob)
     cm = ColorMap(Color.YELLOW, min(blobs.get_area()), max(blobs.get_area()))

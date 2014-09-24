@@ -3,20 +3,9 @@ from nose.tools import assert_equals, assert_almost_equals, assert_is_instance
 from simplecv.color import Color
 from simplecv.color_model import ColorModel
 from simplecv.features.blob import Blob
+from simplecv.features.contour import Contour
 from simplecv.image import Image
 from simplecv.tests.utils import perform_diff, perform_diff_blobs, skipped
-
-
-def test_setstate():
-    b = Blob()
-    #b_string = pickle.dumps(b)
-    #b_new = pickle.loads(b_string)
-    b.__setstate__(
-        {'m00': 50, 'm01': 100, 'm02__string': 200, 'label__string': 'empty'})
-    assert_equals(b.m00, 50)
-    assert_equals(b.m01, 100)
-    assert_equals(b.m02, 200)
-    assert_equals(b.label, 'empty')
 
 
 def test_hull():
@@ -62,71 +51,19 @@ def test_blob_rectify_major_axis():
 
 def test_blob_draw_appx():
     nblob = Blob()
-    nblob.draw_appx()
 
     img = Image(source="simplecv")
     blobs = img.find(Blob)
     blob = blobs[-1]
-    blob.draw_appx(color=Color.GREEN, width=-1, alpha=128)
+    blob.contour_appx.draw(color=Color.GREEN, width=-1, alpha=128)
 
     img1 = Image(source="lenna")
     blobs1 = img1.find(Blob)
     blob1 = blobs1[-2]
-    blob1.draw_appx(color=Color.RED, width=3, alpha=255)
+    blob1.contour_appx.draw(color=Color.RED, width=3, alpha=255)
 
     result = [img, img1]
     name_stem = "test_blob_draw_appx"
-
-    perform_diff(result, name_stem, 0.0)
-
-
-def test_blob_draw_outline():
-    img = Image(source="simplecv")
-    blobs = img.find(Blob)
-    blob = blobs[-2]
-    blob.draw_outline(color=Color.GREEN, width=3, alpha=128)
-
-    img1 = Image(source="lenna")
-    blobs1 = img1.find(Blob)
-    blob1 = blobs1[-2]
-    blob1.draw_outline(color=Color.RED, width=-1, alpha=255)
-
-    result = [img, img1]
-    name_stem = "test_blob_draw_outline"
-
-    perform_diff(result, name_stem, 0.0)
-
-
-def test_blob_draw_holes():
-    img = Image(source="simplecv")
-    blobs = img.find(Blob)
-    blob = blobs[-1]
-    blob.draw_holes(color=Color.YELLOW, width=-1, alpha=200)
-
-    img1 = Image(source="lenna")
-    blobs1 = img1.find(Blob)
-    blob1 = blobs1[-1]
-    blob1.draw_holes(color=Color.BLUE, width=5, alpha=255)
-
-    result = [img, img1]
-    name_stem = "test_blob_draw_holes"
-
-    perform_diff(result, name_stem, 0.0)
-
-
-def test_blob_draw_hull():
-    img = Image(source="simplecv")
-    blobs = img.find(Blob)
-    blob = blobs[-1]
-    blob.draw_hull(color=Color.AZURE, width=3, alpha=255)
-
-    img1 = Image(source="lenna")
-    blobs1 = img1.find(Blob)
-    blob1 = blobs1[-1]
-    blob1.draw_hull(color=Color.PLUM, width=-1, alpha=100)
-
-    result = [img, img1]
-    name_stem = "test_blob_draw_hull"
 
     perform_diff(result, name_stem, 0.0)
 
@@ -340,7 +277,7 @@ def test_blob_extract_blob_methods():
         assert_is_instance(b.min_rect_height, float)
         assert_is_instance(b.min_rect_x, float)
         assert_is_instance(b.min_rect_y, float)
-        assert_is_instance(b.contour, list)
+        assert_is_instance(b.contour, Contour)
         assert_is_instance(b.aspect_ratio, float)
         assert_is_instance(b.angle, float)
         assert_is_instance(b.above(first), bool)
@@ -350,12 +287,12 @@ def test_blob_extract_blob_methods():
         assert_is_instance(b.contains(first), bool)
         assert_is_instance(b.overlaps(first), bool)
 
-        assert_is_instance(b.image, Image)
-        assert_is_instance(b.mask, Image)
-        assert_is_instance(b.hull_img, Image)
-        assert_is_instance(b.hull_mask, Image)
+        assert_is_instance(b.contour.to_image(), Image)
+        assert_is_instance(b.contour.to_mask(), Image)
+        assert_is_instance(b.convex_hull.to_image(), Image)
+        assert_is_instance(b.convex_hull.to_mask(), Image)
         b.rectify_major_axis()
-        assert_is_instance(b.image, Image)
-        assert_is_instance(b.mask, Image)
-        assert_is_instance(b.hull_img, Image)
-        assert_is_instance(b.hull_mask, Image)
+        assert_is_instance(b.contour.to_image(), Image)
+        assert_is_instance(b.contour.to_mask(), Image)
+        assert_is_instance(b.convex_hull.to_image(), Image)
+        assert_is_instance(b.convex_hull.to_mask(), Image)

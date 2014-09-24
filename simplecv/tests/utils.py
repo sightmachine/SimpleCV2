@@ -31,10 +31,12 @@ def img_diffs(test_imgs, name_stem, tolerance, path):
             # continue
             raise Exception('Cannot load standard image')
 
-        # cv2.imshow('1', lhs)
+        # cv2.imshow(name_stem + str(idx) + '_result', lhs)
         # cv2.waitKey()
-        # cv2.imshow('1', rhs)
+        # cv2.imshow(name_stem + str(idx) + '_orig', rhs)
         # cv2.waitKey()
+        # cv2.destroyAllWindows()
+
 
         if lhs.shape == rhs.shape:
             diff = cv2.absdiff(lhs, rhs)
@@ -110,13 +112,15 @@ def perform_diff_blobs(blob1, blob2):
     assert_equals(blob1.min_rectangle, blob2.min_rectangle)
     assert_equals(blob1._scdescriptors, blob2._scdescriptors)
     assert_equals(blob1._complete_contour, blob2._complete_contour)
-    assert_equals(blob1.contour, blob2.contour)
-    assert_equals(blob1.convex_hull, blob2.convex_hull)
-    assert_equals(blob1.contour_appx, blob2.contour_appx)
+    assert_equals(blob1.contour.data, blob2.contour.data)
+    assert_equals(blob1.convex_hull.data, blob2.convex_hull.data)
+    assert_equals(blob1.contour_appx.data, blob2.contour_appx.data)
     assert_equals(blob1.image.data,
                   blob2.image.data)
     assert_equals(blob1.points, blob2.points)
-    assert_equals(blob1.hole_contour, blob2.hole_contour)
+    assert_equals(len(blob1.contour.holes), len(blob2.contour.holes))
+    for h1, h2 in zip(blob1.contour.holes, blob2.contour.holes):
+        assert_equals(h1.data, h2.data)
 
 
 def skipped(func):

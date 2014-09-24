@@ -114,14 +114,14 @@ def test_detection_blobs_appx():
     blobs = img.find(Blob)
     assert_equals(29, len(blobs))
     blobs[-1].draw(color=Color.RED)
-    blobs[-1].draw_appx(color=Color.BLUE)
+    blobs[-1].contour_appx.draw(color=Color.BLUE)
     result = [img]
 
     img2 = Image("lenna")
     blobs = img2.find(Blob, appx_level=11)
     assert_equals(29, len(blobs))
     blobs[-1].draw(color=Color.RED)
-    blobs[-1].draw_appx(color=Color.BLUE)
+    blobs[-1].contour_appx.draw(color=Color.BLUE)
     result.append(img2)
 
     name_stem = "test_detection_blobs_appx"
@@ -157,15 +157,15 @@ def test_detection_blobs_lazy():
     s = pickle.dumps(b[-1])  # use two otherwise it w
     b2 = pickle.loads(s)
 
-    result.append(b[-1].img)
-    result.append(b[-1].mask)
-    result.append(b[-1].hull_img)
-    result.append(b[-1].hull_mask)
+    result.append(b[-1].contour.to_image(filled=True, masked=True))
+    result.append(b[-1].contour.to_mask(filled=True))
+    result.append(b[-1].convex_hull.to_image(filled=True, masked=True))
+    result.append(b[-1].convex_hull.to_mask(filled=True))
 
-    result.append(b2.img)
-    result.append(b2.mask)
-    result.append(b2.hull_img)
-    result.append(b2.hull_mask)
+    result.append(b2.contour.to_image(filled=True, masked=True))
+    result.append(b2.contour.to_mask(filled=True))
+    result.append(b2.convex_hull.to_image(filled=True, masked=True))
+    result.append(b2.convex_hull.to_mask(filled=True))
 
     #TODO - WE NEED BETTER COVERAGE HERE
     name_stem = "test_detection_blobs_lazy"
