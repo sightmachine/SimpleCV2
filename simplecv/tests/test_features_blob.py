@@ -159,8 +159,8 @@ def test_blob_get_sc_descriptors():
     blob0 = blobs[0]
     blob1 = blobs[1]
 
-    scd0, cc0 = blob0.get_sc_descriptors()
-    scd1, cc1 = blob1.get_sc_descriptors()
+    scd0, cc0 = blob0.sc_descriptors
+    scd1, cc1 = blob1.sc_descriptors
 
     assert_equals(len(scd0), len(scd1))
     assert_equals(len(cc0), len(cc1))

@@ -1,7 +1,7 @@
 import os
 import functools
 
-from nose.tools import assert_equals
+from nose.tools import assert_equals, assert_list_equal
 import cv2
 import numpy as np
 
@@ -110,8 +110,6 @@ def perform_diff_blobs(blob1, blob2):
     assert_equals(blob1.hu.data, blob2.hu.data)
     assert_equals(blob1.perimeter, blob2.perimeter)
     assert_equals(blob1.min_rectangle, blob2.min_rectangle)
-    assert_equals(blob1._scdescriptors, blob2._scdescriptors)
-    assert_equals(blob1._complete_contour, blob2._complete_contour)
     assert_equals(blob1.contour.data, blob2.contour.data)
     assert_equals(blob1.convex_hull.data, blob2.convex_hull.data)
     assert_equals(blob1.contour_appx.data, blob2.contour_appx.data)

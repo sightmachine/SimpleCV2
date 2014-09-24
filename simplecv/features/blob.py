@@ -47,8 +47,6 @@ class Blob(Feature):
     area = 0  # the area in pixels
 
     def __init__(self):
-        self._scdescriptors = None
-        self._complete_contour = None
         self.contour = None  # the blob's outer perimeter as a set of (x,y) tuples
         self.convex_hull = None  # the convex hull get_contour as a set of (x,y) tuples
         self.contour_appx = None
@@ -741,13 +739,11 @@ class Blob(Feature):
                                                          max_distance)
         return complete_contour
 
-    def get_sc_descriptors(self):
-        if self._scdescriptors is None:
-            complete_contour = self._filter_sc_points()
-            descriptors = self._generate_sc(complete_contour)
-            self._scdescriptors = descriptors
-            self._complete_contour = complete_contour
-        return self._scdescriptors, self._complete_contour
+    @lazyproperty
+    def sc_descriptors(self):
+        complete_contour = self._filter_sc_points()
+        descriptors = self._generate_sc(complete_contour)
+        return descriptors, complete_contour
 
     def _generate_sc(self, complete_contour, dsize=6, r_bound=(0.1, 2.1)):
         """
@@ -792,7 +788,6 @@ class Blob(Feature):
             hist = hist.reshape(1, dsize ** 2)
             if np.all(np.isfinite(hist[0])):
                 descriptors.append(hist[0])
-        self._scdescriptors = descriptors
         return descriptors
 
     @lazyproperty
@@ -802,62 +797,12 @@ class Blob(Feature):
         this is not used for recognition but we will perhaps use it soon.
         """
         # still need to subsample big contours
-        derp = self.get_sc_descriptors()
-        descriptors, complete_contour = self.get_sc_descriptors()
+        descriptors, complete_contour = self.sc_descriptors
         fset = FeatureSet()
         for i in range(0, len(complete_contour)):
             fset.append(ShapeContextDescriptor(self.image, complete_contour[i],
                                                descriptors[i], self))
-
         return fset
-
-    def show_correspondence(self, other_blob, side="left"):
-        """
-        This is total beta - use at your own risk.
-        """
-        # We're lazy right now, assume the blob images are the same size
-        side = side.lower()
-        my_pts = self.get_shape_context()
-        your_pts = other_blob.get_shape_context()
-
-        my_img = self.image.copy()
-        your_img = other_blob.image.copy()
-
-        my_pts = my_pts.reassign_image(my_img)
-        your_pts = your_pts.reassign_image(your_img)
-
-        my_pts.draw()
-        my_img = my_img.apply_layers()
-        your_pts.draw()
-        your_img = your_img.apply_layers()
-
-        result = my_img.side_by_side(your_img, side=side)
-        # FIXME: unknown method, may be match method should be used?
-        data = self.shape_context_match(other_blob)
-        mapvals = data[0]
-        color = Color()
-        for i in range(0, len(self._complete_contour)):
-            lhs = self._complete_contour[i]
-            idx = mapvals[i]
-            rhs = other_blob._complete_contour[idx]
-            if side == "left":
-                shift = (rhs[0] + your_img.width, rhs[1])
-                result.draw_line(lhs, shift, color=color.get_random(),
-                                 thickness=1)
-            elif side == "bottom":
-                shift = (rhs[0], rhs[1] + my_img.height)
-                result.draw_line(lhs, shift, color=color.get_random(),
-                                 thickness=1)
-            elif side == "right":
-                shift = (rhs[0] + my_img.width, rhs[1])
-                result.draw_line(lhs, shift, color=color.get_random(),
-                                 thickness=1)
-            elif side == "top":
-                shift = (lhs[0], lhs[1] + my_img.height)
-                result.draw_line(lhs, shift, color=color.get_random(),
-                                 thickness=1)
-
-        return result
 
     def get_convexity_defects(self, return_points=False):
         """
