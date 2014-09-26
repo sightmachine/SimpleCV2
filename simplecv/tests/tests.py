@@ -16,11 +16,11 @@ import cv2
 import numpy as np
 from nose.tools import assert_equals, assert_list_equal, assert_tuple_equal, \
     assert_true, assert_false, assert_greater, assert_less, \
-    assert_is_instance, nottest, assert_is_none
+    assert_is_instance, nottest, assert_is_none, assert_raises
 
-from simplecv.base import logger
+from simplecv.base import logger, ScvException
 from simplecv.color import Color, ColorMap
-from simplecv.drawing_layer import DrawingLayer
+from simplecv.core.drawing.layer import DrawingLayer
 from simplecv.features.blob import Blob
 from simplecv.features.detection import Line, Corner, Motion, KeyPoint, Circle, TemplateMatch
 from simplecv.features.features import FeatureSet
@@ -218,13 +218,13 @@ def test_hsv_conversion():
 @skipped  # FIXME
 def test_draw_rectangle():
     img = Image(testimage2)
-    img.draw_rectangle(0, 0, 100, 100, color=Color.BLUE, width=0, alpha=0)
-    img.draw_rectangle(1, 1, 100, 100, color=Color.BLUE, width=2, alpha=128)
-    img.draw_rectangle(1, 1, 100, 100, color=Color.BLUE, width=1, alpha=128)
-    img.draw_rectangle(2, 2, 100, 100, color=Color.BLUE, width=1, alpha=255)
-    img.draw_rectangle(3, 3, 100, 100, color=Color.BLUE)
-    img.draw_rectangle(4, 4, 100, 100, color=Color.BLUE, width=12)
-    img.draw_rectangle(5, 5, 100, 100, color=Color.BLUE, width=-1)
+    img.dl().rectangle((0, 0), (100, 100), color=Color.BLUE, width=0, alpha=0)
+    img.dl().rectangle((1, 1), (100, 100), color=Color.BLUE, width=2, alpha=128)
+    img.dl().rectangle((1, 1), (100, 100), color=Color.BLUE, width=1, alpha=128)
+    img.dl().rectangle((2, 2), (100, 100), color=Color.BLUE, width=1, alpha=255)
+    img.dl().rectangle((3, 3), (100, 100), color=Color.BLUE)
+    img.dl().rectangle((4, 4), (100, 100), color=Color.BLUE, width=12)
+    img.dl().rectangle((5, 5), (100, 100), color=Color.BLUE, filled=True)
 
     results = [img]
     name_stem = "test_draw_rectangle"
@@ -615,36 +615,34 @@ def test_delete_temp_files():
 
 def test_insert_drawing_layer():
     img = Image("simplecv")
-    dl1 = DrawingLayer((img.width, img.height))
-    dl2 = DrawingLayer((img.width, img.height))
-    img.insert_drawing_layer(dl2, 1)
-    img.insert_drawing_layer(dl1, 2)
-    assert_equals(len(img._layers), 2)
-    assert_equals(img._layers[1], dl1)
-    assert_equals(img._layers[0], dl2)
+    dl1 = DrawingLayer()
+    dl2 = DrawingLayer()
+    img.layers.insert(1, dl2)
+    img.layers.insert(2, dl1)
+    assert_equals(len(img.layers), 2)
+    assert_equals(img.layers[1], dl1)
+    assert_equals(img.layers[0], dl2)
 
 def test_add_drawing_layer():
     img = Image("simplecv")
-    dl1 = DrawingLayer((img.width, img.height))
-    dl2 = DrawingLayer((img.width, img.height))
+    dl1 = DrawingLayer()
+    dl2 = DrawingLayer()
     img.add_drawing_layer(dl1)
     img.add_drawing_layer(dl2)
-    assert_is_none(img.add_drawing_layer())
-    assert_is_none(img.add_drawing_layer(1))
-    assert_equals(len(img._layers), 2)
-    assert_equals(img._layers[0], dl1)
-    assert_equals(img._layers[1], dl2)
+    assert_raises(ScvException, img.add_drawing_layer, 'Not a drawing layer')
+    assert_equals(len(img.layers), 2)
+    assert_equals(img.layers[0], dl1)
+    assert_equals(img.layers[1], dl2)
 
 def test_remove_drawing_layer():
     img = Image("simplecv")
-    dl1 = DrawingLayer((img.width, img.height))
-    dl2 = DrawingLayer((img.width, img.height))
+    dl1 = DrawingLayer()
+    dl2 = DrawingLayer()
     img.add_drawing_layer(dl1)
     img.add_drawing_layer(dl2)
-    assert_is_none(img.remove_drawing_layer(3))
-    assert_equals(img.remove_drawing_layer(), dl2)
-    assert_equals(img.remove_drawing_layer(), dl1)
-    assert_is_none(img.remove_drawing_layer())
+    del img.layers[1]
+    assert_equals(img.layers.pop(), dl1)
+    assert_equals(len(img.layers), 0)
 
 
 @skipped  # FIXME
@@ -678,9 +676,9 @@ def test_apply_layers():
 
 def test_get_drawing_layer():
     img = Image((100, 100))
-    assert_equals(len(img._layers), 0)
+    assert_equals(len(img.layers), 0)
     img.get_drawing_layer()
-    assert_equals(len(img._layers), 1)
+    assert_equals(len(img.layers), 1)
     dl1 = DrawingLayer((img.width, img.height))
     dl2 = DrawingLayer((img.width, img.height))
     dl3 = DrawingLayer((img.width, img.height))
@@ -693,29 +691,29 @@ def test_get_drawing_layer():
 
 def test_clear_layers():
     img = Image((100, 100))
-    dl1 = DrawingLayer((img.width, img.height))
-    dl2 = DrawingLayer((img.width*2, img.height))
-    dl3 = DrawingLayer((img.width, img.height*2))
+    dl1 = DrawingLayer()
+    dl2 = DrawingLayer()
+    dl3 = DrawingLayer()
     img.add_drawing_layer(dl1)
     img.add_drawing_layer(dl2)
     img.add_drawing_layer(dl3)
 
-    assert_equals(len(img._layers), 3)
+    assert_equals(len(img.layers), 3)
 
     img.clear_layers()
-    assert_equals(len(img._layers), 0)
+    assert_equals(len(img.layers), 0)
 
 def test_layers():
     img = Image((100, 100))
-    dl1 = DrawingLayer((img.width, img.height))
-    dl2 = DrawingLayer((img.width*2, img.height))
-    dl3 = DrawingLayer((img.width, img.height*2))
+    dl1 = DrawingLayer()
+    dl2 = DrawingLayer()
+    dl3 = DrawingLayer()
     img.add_drawing_layer(dl1)
     img.add_drawing_layer(dl2)
     img.add_drawing_layer(dl3)
 
-    assert_equals(len(img._layers), 3)
-    assert_equals(img.layers(), [dl1, dl2, dl3])
+    assert_equals(len(img.layers), 3)
+    assert_equals(img.layers, [dl1, dl2, dl3])
 
 
 @skipped  # FIXME
@@ -774,15 +772,15 @@ def test_feature_angles():
 
     for bs in b:
         tl = bs.top_left_corner
-        img.draw_text(str(bs.angle), tl[0], tl[1], color=Color.RED)
+        img.dl().text(str(bs.angle), tl[0], tl[1], color=Color.RED)
 
     for ls in l:
         tl = ls.top_left_corner
-        img2.draw_text(str(ls.angle), tl[0], tl[1], color=Color.GREEN)
+        img2.dl().text(str(ls.angle), tl[0], tl[1], color=Color.GREEN)
 
     for ks in k:
         tl = ks.top_left_corner
-        img3.draw_text(str(ks.angle), tl[0], tl[1], color=Color.BLUE)
+        img3.dl().text(str(ks.angle), tl[0], tl[1], color=Color.BLUE)
 
     results = [img, img2, img3]
     name_stem = "test_feature_angles"
@@ -798,7 +796,7 @@ def test_feature_angles_rotate():
         temp = b.crop()
         assert_is_instance(temp, Image)
         derp = temp.rotate(b.angle, fixed=False)
-        derp.draw_text(str(b.angle), 10, 10, color=Color.RED)
+        derp.dl().text(str(b.angle), (10, 10), color=Color.RED)
         b.rectify_major_axis()
         assert_is_instance(b.image, Image)
 
@@ -826,29 +824,29 @@ def test_point_intersection():
         a = (x, 25)
         b = (125, 125)
         pts = img.edge_intersections(a, b, width=1)
-        e.draw_line(a, b, color=Color.RED)
-        e.draw_circle(pts[0], 10, color=Color.GREEN)
+        e.dl().line(a, b, color=Color.RED)
+        e.dl().circle(pts[0], 10, color=Color.GREEN)
 
     for x in range(25, 225, 25):
         a = (25, x)
         b = (125, 125)
         pts = img.edge_intersections(a, b, width=1)
-        e.draw_line(a, b, color=Color.RED)
-        e.draw_circle(pts[0], 10, color=Color.GREEN)
+        e.dl().line(a, b, color=Color.RED)
+        e.dl().circle(pts[0], 10, color=Color.GREEN)
 
     for x in range(25, 225, 25):
         a = (x, 225)
         b = (125, 125)
         pts = img.edge_intersections(a, b, width=1)
-        e.draw_line(a, b, color=Color.RED)
-        e.draw_circle(pts[0], 10, color=Color.GREEN)
+        e.dl().line(a, b, color=Color.RED)
+        e.dl().circle(pts[0], 10, color=Color.GREEN)
 
     for x in range(25, 225, 25):
         a = (225, x)
         b = (125, 125)
         pts = img.edge_intersections(a, b, width=1)
-        e.draw_line(a, b, color=Color.RED)
-        e.draw_circle(pts[0], 10, color=Color.GREEN)
+        e.dl().line(a, b, color=Color.RED)
+        e.dl().circle(pts[0], 10, color=Color.GREEN)
 
     results = [e]
     name_stem = "test_point_intersection"
@@ -1133,17 +1131,17 @@ def test_draw():
     img1 = Image((250, 250))
 
     lines = simg.find(Line)
-    img.draw(lines, width=3)
+    img.draw_features(lines, width=3)
 
     for line in lines:
-        img1.draw(line, width=3)
+        img1.draw_features(line, width=3)
 
     assert_equals(img.apply_layers().data,
                   img1.apply_layers().data)
 
     # incorrect params
-    assert_is_none(img.draw(simg))
-    assert_is_none(img.draw((100, 100)))
+    assert_is_none(img.draw_features(simg))
+    assert_is_none(img.draw_features((100, 100)))
 
 
 @skipped  # FIXME

@@ -147,8 +147,8 @@ class TrackSet(FeatureSet):
         ts = self
         img = self[-1].image
         for i in range(len(ts) - 1):
-            img.draw_line(ts[i].center, ts[i + 1].center, color=color,
-                          thickness=thickness)
+            img.dl().line(ts[i].center, ts[i + 1].center, color=color,
+                          width=thickness)
 
     def draw(self, color=Color.GREEN, rad=1, thickness=1):
         """
@@ -177,7 +177,7 @@ class TrackSet(FeatureSet):
             ... img = img1
         """
         f = self[-1]
-        f.image.draw_circle(f.center, rad, color, thickness)
+        f.image.dl().circle(f.center, rad, color, thickness)
 
     def drawBB(self, color=Color.GREEN, thickness=3):
         """
@@ -204,7 +204,7 @@ class TrackSet(FeatureSet):
             ... img = img1
         """
         f = self[-1]
-        f.image.draw_rectangle(f.bb_x, f.bb_y, f.w, f.h, color, thickness)
+        f.image.dl().rectangle((f.bb_x, f.bb_y), (f.w, f.h), color, thickness)
 
     def trackLength(self):
         """
@@ -401,7 +401,8 @@ class TrackSet(FeatureSet):
         if not size:
             size = 16
         text = "x = %d  y = %d" % (f.x, f.y)
-        img.draw_text(text, pos[0], pos[1], color, size)
+        img.dl().set_font_size(size)
+        img.dl().text(text, pos, color)
 
     def showSizeRatio(self, pos=None, color=Color.GREEN, size=None):
         """
@@ -436,7 +437,8 @@ class TrackSet(FeatureSet):
         if not size:
             size = 16
         text = "size = %f" % f.sizeRatio
-        img.draw_text(text, pos[0], pos[1], color, size)
+        img.dl().set_font_size(size)
+        img.dl().text(text, pos, color)
 
     def showPixelVelocity(self, pos=None, color=Color.GREEN, size=None):
         """
@@ -473,8 +475,9 @@ class TrackSet(FeatureSet):
         if not size:
             size = 16
         text = "Vx = %.2f Vy = %.2f" % (vel[0], vel[1])
-        img.draw_text(text, pos[0], pos[1], color, size)
-        img.draw_text("in pixels/frame", pos[0], pos[1] + size, color, size)
+        img.dl().set_font_size(size)
+        img.dl().text(text, pos, color)
+        img.dl().text("in pixels/frame", (pos[0], pos[1] + size), color)
 
     def showPixelVelocityRT(self, pos=None, color=Color.GREEN, size=None):
         """
@@ -511,8 +514,9 @@ class TrackSet(FeatureSet):
         if not size:
             size = 16
         text = "Vx = %.2f Vy = %.2f" % (vel_rt[0], vel_rt[1])
-        img.draw_text(text, pos[0], pos[1], color, size)
-        img.draw_text("in pixels/second", pos[0], pos[1] + size, color, size)
+        img.dl().set_font_size(size)
+        img.dl().text(text, pos, color)
+        img.dl().text("in pixels/second", (pos[0], pos[1] + size), color)
 
     def processTrack(self, func):
         """
@@ -720,7 +724,7 @@ class TrackSet(FeatureSet):
             ... img = img1
         """
         f = self[-1]
-        f.image.draw_circle(f.predict_pt, rad, color, thickness)
+        f.image.dl().circle(f.predict_pt, rad, color, thickness)
 
     def drawCorrected(self, color=Color.GREEN, rad=1, thickness=1):
         """
@@ -749,7 +753,7 @@ class TrackSet(FeatureSet):
             ... img = img1
         """
         f = self[-1]
-        f.image.draw_circle(f.state_pt, rad, color, thickness)
+        f.image.dl().circle(f.state_pt, rad, color, thickness)
 
     def drawPredictedPath(self, color=Color.GREEN, thickness=2):
         """
@@ -781,8 +785,8 @@ class TrackSet(FeatureSet):
         ts = self
         img = self[-1].image
         for i in range(1, len(ts) - 1):
-            img.draw_line(ts[i].predict_pt, ts[i + 1].predict_pt,
-                          color=color, thickness=thickness)
+            img.dl().line(ts[i].predict_pt, ts[i + 1].predict_pt,
+                          color=color, width=thickness)
 
     def showPredictedCoordinates(self, pos=None, color=Color.GREEN, size=None):
         """
@@ -817,7 +821,8 @@ class TrackSet(FeatureSet):
         if not size:
             size = 16
         text = "Predicted: x = %d  y = %d" % (f.predict_pt[0], f.predict_pt[1])
-        img.draw_text(text, pos[0], pos[1], color, size)
+        img.dl().set_font_size(size)
+        img.dl().text(text, pos, color)
 
     def showCorrectedCoordinates(self, pos=None, color=Color.GREEN, size=None):
         """
@@ -852,7 +857,8 @@ class TrackSet(FeatureSet):
         if not size:
             size = 16
         text = "Corrected: x = %d  y = %d" % (f.state_pt[0], f.state_pt[1])
-        img.draw_text(text, pos[0], pos[1], color, size)
+        img.dl().set_font_size(size)
+        img.dl().text(text, pos, color)
 
     def correctX(self):
         """
@@ -947,5 +953,5 @@ class TrackSet(FeatureSet):
         ts = self
         img = self[-1].image
         for i in range(len(ts) - 1):
-            img.draw_line(ts[i].state_pt, ts[i + 1].state_pt, color=color,
-                          thickness=thickness)
+            img.dl().line(ts[i].state_pt, ts[i + 1].state_pt, color=color,
+                          width=thickness)

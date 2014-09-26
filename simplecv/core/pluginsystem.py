@@ -23,6 +23,58 @@ def plugin_method(for_class, static=False, func=None):
     return func
 
 
+def plugin_list(list_name, cls=None):
+    if not isinstance(list_name, str):
+        raise TypeError('First argument must be a list name.')
+
+    if cls is None:
+        return functools.partial(plugin_list, list_name)
+
+    list_inst = getattr(cls, list_name)
+    if not isinstance(list_inst, list):
+        raise TypeError('list_name should be a list instance within the class.')
+
+    enty_point_group = 'simplecv.' + convert_camel_case_to_underscore(cls.__name__) + '.' + list_name
+    for plugin in pkg_resources.iter_entry_points(enty_point_group):
+        logger.info('Loading plugin "{}" for {}'.format(plugin.name, cls.__name__))
+
+        try:
+            mod = plugin.load()
+        except Exception:
+            logger.exception('Unable to load plugin "{}"'.format(plugin.name))
+            continue
+
+        list_inst.append(mod)
+
+    return cls
+
+
+def plugin_dict(dict_name, cls=None):
+    if not isinstance(dict_name, str):
+        raise TypeError('First argument must be a list name.')
+
+    if cls is None:
+        return functools.partial(plugin_dict, dict_name)
+
+    dict_inst = getattr(cls, dict_name)
+    if not isinstance(dict_inst, dict):
+        raise TypeError('list_name should be a dict instance within the class.')
+
+    enty_point_group = 'simplecv.' + convert_camel_case_to_underscore(cls.__name__) + '.' + dict_name
+    for plugin in pkg_resources.iter_entry_points(enty_point_group):
+        logger.info('Loading plugin "{}" for {}'.format(plugin.name, cls.__name__))
+
+        try:
+            mod = plugin.load()
+        except Exception:
+            logger.exception('Unable to load plugin "{}"'.format(plugin.name))
+            continue
+
+        dict_inst[plugin.name] = mod
+
+    return cls
+
+
 def apply_plugins(cls):
     """ Decorator for the class that can have methods declared outside of the class
     """

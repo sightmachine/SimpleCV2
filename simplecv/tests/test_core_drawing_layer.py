@@ -1,0 +1,47 @@
+from nose.tools import assert_list_equal
+from simplecv.color import Color
+
+from simplecv.core.drawing.layer import DrawingLayer
+
+
+def test_init():
+    dl = DrawingLayer()
+    assert_list_equal(
+        dl,
+        [('set_default_alpha', (255,), {}),
+         ('set_default_color', (Color.BLACK,), {})]
+    )
+
+    dl.line((10, 10), (20, 20), color=Color.BLUE)
+
+    assert_list_equal(
+        dl,
+        [('set_default_alpha', (255,), {}),
+         ('set_default_color', (Color.BLACK,), {}),
+         ('line', ((10, 10), (20, 20)), {'color': Color.BLUE})]
+    )
+
+
+def test_add():
+    dl1 = DrawingLayer()
+    dl2 = DrawingLayer()
+    assert_list_equal(
+        dl1 + dl2,
+        [('set_default_alpha', (255,), {}),
+         ('set_default_color', (Color.BLACK,), {}),
+         ('set_default_alpha', (255,), {}),
+         ('set_default_color', (Color.BLACK,), {})]
+    )
+
+    dl1.line((10, 10), (20, 20), color=Color.BLUE)
+    dl2.circle((10, 10), 15)
+
+    assert_list_equal(
+        dl1 + dl2,
+        [('set_default_alpha', (255,), {}),
+         ('set_default_color', (Color.BLACK,), {}),
+         ('line', ((10, 10), (20, 20)), {'color': Color.BLUE}),
+         ('set_default_alpha', (255,), {}),
+         ('set_default_color', (Color.BLACK,), {}),
+         ('circle', ((10, 10), 15), {})]
+    )

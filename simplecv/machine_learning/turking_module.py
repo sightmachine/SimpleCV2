@@ -162,13 +162,14 @@ class TurkingModule(object):
         return self.class_map.get(class_name)
 
     def _draw_controls(self, img, font_size, color, spacing):
-        img.draw_text("space - skip", 10, spacing, color, font_size)
-        img.draw_text("esc - exit", 10, 2 * spacing, color, font_size)
+        img.dl().seet_font_size(font_size)
+        img.dl().text("space - skip", (10, spacing), color)
+        img.dl().text("esc - exit", (10, 2 * spacing), color)
 
         y_crd = 3 * spacing
         for k, cls in self.key_map.items():
             txt = k + " - " + cls
-            img.draw_text(txt, 10, y_crd, color, font_size)
+            img.dl().text(txt, (10, y_crd), color)
             y_crd += spacing
         return img
 

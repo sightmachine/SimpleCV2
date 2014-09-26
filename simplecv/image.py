@@ -1,9 +1,12 @@
 from cStringIO import StringIO
+from operator import itemgetter
 import cStringIO
 import os
 import re
 import tempfile
 import time
+from simplecv.core.drawing.renderer import Renderer
+
 try:
     from PIL import Image as PilImage
 except:
@@ -13,7 +16,7 @@ import cv2
 import numpy as np
 
 from simplecv import exif
-from simplecv.base import logger, init_options_handler
+from simplecv.base import logger, init_options_handler, ScvException
 from simplecv.color import Color
 from simplecv.core.image import cached_method
 from simplecv.core.image import convert
@@ -21,7 +24,7 @@ from simplecv.core.image import Image as CoreImage
 from simplecv.core.image.loader import ImageLoader
 from simplecv.core.pluginsystem import apply_plugins
 from simplecv.display import Display
-from simplecv.drawing_layer import DrawingLayer
+from simplecv.core.drawing.layer import DrawingLayer
 from simplecv.features.features import FeatureSet
 from simplecv.stream import JpegStreamer, VideoStream
 
@@ -97,7 +100,7 @@ class Image(CoreImage):
         # Temp files
         self._temp_files = []
         # drawing layers
-        self._layers = []
+        self.layers = []
         # to store grid details | Format -> [gridIndex, gridDimensions]
         self._grid_layer = [None, [0, 0]]
         # Other
@@ -221,7 +224,7 @@ class Image(CoreImage):
             else:
                 filehandle_or_filename = self.filehandle
 
-        if len(self._layers):
+        if len(self.layers):
             saveimg = self.apply_layers()
         else:
             saveimg = self
@@ -372,49 +375,6 @@ class Image(CoreImage):
             if cleanup:
                 os.remove(fname)
 
-    def insert_drawing_layer(self, layer, index):
-        """
-        **SUMMARY**
-
-        Insert a new layer into the layer stack at the specified index.
-
-        **PARAMETERS**
-
-        * *layer* - A drawing layer with crap you want to draw.
-        * *index* - The index at which to insert the layer.
-
-        **RETURNS**
-
-        None - that's right - nothing.
-
-        **EXAMPLE**
-
-        >>> img = Image("Lenna")
-        >>> myLayer1 = DrawingLayer((img.width, img.height))
-        >>> myLayer2 = DrawingLayer((img.width, img.height))
-        >>> #Draw on the layers
-        >>> img.insert_drawing_layer(myLayer1, 1) # on top
-        >>> img.insert_drawing_layer(myLayer2, 2) # on the bottom
-
-        **SEE ALSO**
-
-        :py:class:`DrawingLayer`
-        :py:meth:`addDrawinglayer`
-        :py:meth:`dl`
-        :py:meth:`to_pygame_surface`
-        :py:meth:`get_drawing_layer`
-        :py:meth:`remove_drawing_layer`
-        :py:meth:`clear_layers`
-        :py:meth:`layers`
-        :py:meth:`merged_layers`
-        :py:meth:`apply_layers`
-        :py:meth:`draw_text`
-        :py:meth:`draw_rectangle`
-        :py:meth:`draw_circle`
-        :py:meth:`blit`
-        """
-        self._layers.insert(index, layer)
-
     def add_drawing_layer(self, layer=None):
         """
         **SUMMARY**
@@ -432,82 +392,28 @@ class Image(CoreImage):
         **EXAMPLE**
 
         >>> img = Image("Lenna")
-        >>> myLayer = DrawingLayer((img.width,img.height))
+        >>> myLayer = DrawingLayer()
         >>> img.add_drawing_layer(myLayer)
 
         **SEE ALSO**
 
         :py:class:`DrawingLayer`
-        :py:meth:`insertDrawinglayer`
-        :py:meth:`addDrawinglayer`
         :py:meth:`dl`
-        :py:meth:`to_pygame_surface`
         :py:meth:`get_drawing_layer`
-        :py:meth:`remove_drawing_layer`
         :py:meth:`clear_layers`
-        :py:meth:`layers`
         :py:meth:`merged_layers`
         :py:meth:`apply_layers`
-        :py:meth:`draw_text`
-        :py:meth:`draw_rectangle`
-        :py:meth:`draw_circle`
-        :py:meth:`blit`
-
         """
+        if layer is None:
+            layer = DrawingLayer()
 
         if not isinstance(layer, DrawingLayer):
-            logger.warning("Please pass a DrawingLayer object")
-            return None
+            raise ScvException("Please pass a DrawingLayer object")
 
-        if not layer:
-            layer = DrawingLayer(self.size_tuple)
-        self._layers.append(layer)
-        return len(self._layers) - 1
+        self.layers.append(layer)
+        return len(self.layers) - 1
 
-    def remove_drawing_layer(self, index=-1):
-        """
-        **SUMMARY**
-
-        Remove a layer from the layer stack based on the layer's index.
-
-        **PARAMETERS**
-
-        * *index* - Int - the index of the layer to remove.
-
-        **RETURNS**
-
-        This method returns the removed drawing layer.
-
-        **EXAMPLES**
-
-        >>> img = Image("Lenna")
-        >>> img.remove_drawing_layer(1)  # removes the layer with index = 1
-        >>> # if no index is specified it removes the top layer
-        >>> img.remove_drawing_layer()
-
-        **SEE ALSO**
-
-        :py:class:`DrawingLayer`
-        :py:meth:`addDrawinglayer`
-        :py:meth:`dl`
-        :py:meth:`to_pygame_surface`
-        :py:meth:`get_drawing_layer`
-        :py:meth:`remove_drawing_layer`
-        :py:meth:`clear_layers`
-        :py:meth:`layers`
-        :py:meth:`merged_layers`
-        :py:meth:`apply_layers`
-        :py:meth:`draw_text`
-        :py:meth:`draw_rectangle`
-        :py:meth:`draw_circle`
-        :py:meth:`blit`
-        """
-        try:
-            return self._layers.pop(index)
-        except IndexError:
-            print 'Not a valid index or No layers to remove!'
-
-    def apply_layers(self, indicies=-1):
+    def apply_layers(self, indicies=None, renderer='pygame'):
         """
         **SUMMARY**
 
@@ -526,8 +432,8 @@ class Image(CoreImage):
         **EXAMPLE**
 
         >>> img = Image("Lenna")
-        >>> myLayer1 = DrawingLayer((img.width, img.height))
-        >>> myLayer2 = DrawingLayer((img.width, img.height))
+        >>> myLayer1 = DrawingLayer()
+        >>> myLayer2 = DrawingLayer()
         >>> #Draw some stuff
         >>> img.insert_drawing_layer(myLayer1, 1) # on top
         >>> img.insert_drawing_layer(myLayer2, 2) # on the bottom
@@ -537,33 +443,19 @@ class Image(CoreImage):
 
         :py:class:`DrawingLayer`
         :py:meth:`dl`
-        :py:meth:`to_pygame_surface`
         :py:meth:`get_drawing_layer`
-        :py:meth:`remove_drawing_layer`
-        :py:meth:`layers`
-        :py:meth:`draw_text`
-        :py:meth:`draw_rectangle`
-        :py:meth:`draw_circle`
-        :py:meth:`blit`
         """
-        if not len(self._layers):
+        if len(self.layers) == 0:
             return self
 
-        if indicies == -1 and len(self._layers) > 0:
-            final = self.merged_layers()
-            img_surf = self.get_pg_surface().copy()
-            img_surf.blit(final.surface, (0, 0))
-            return Image(source=img_surf)
+        if indicies is None:
+            merged_layer = self.merged_layers()
         else:
-            final = DrawingLayer((self.width, self.height))
-            ret_val = self
-            indicies.reverse()
-            for idx in indicies:
-                ret_val = self._layers[idx].render_to_other_layer(final)
-            img_surf = self.get_pg_surface().copy()
-            img_surf.blit(final.surface, (0, 0))
-            indicies.reverse()
-            return Image(img_surf)
+            layers = itemgetter(*indicies)(self.layers)
+            merged_layer = reduce(lambda a, b: a + b, layers)
+
+        # preform drawing
+        return Renderer.render(merged_layer, self.copy(), renderer=renderer)
 
     def get_drawing_layer(self, index=-1):
         """
@@ -583,8 +475,8 @@ class Image(CoreImage):
         **EXAMPLE**
 
         >>> img = Image("Lenna")
-        >>> myLayer1 = DrawingLayer((img.width,img.height))
-        >>> myLayer2 = DrawingLayer((img.width,img.height))
+        >>> myLayer1 = DrawingLayer()
+        >>> myLayer2 = DrawingLayer()
         >>> #Draw on the layers
         >>> img.insert_drawing_layer(myLayer1,1) # on top
         >>> img.insert_drawing_layer(myLayer2,2) # on the bottom
@@ -593,28 +485,16 @@ class Image(CoreImage):
         **SEE ALSO**
 
         :py:class:`DrawingLayer`
-        :py:meth:`addDrawinglayer`
         :py:meth:`dl`
-        :py:meth:`to_pygame_surface`
         :py:meth:`get_drawing_layer`
-        :py:meth:`remove_drawing_layer`
         :py:meth:`clear_layers`
-        :py:meth:`layers`
         :py:meth:`merged_layers`
         :py:meth:`apply_layers`
-        :py:meth:`draw_text`
-        :py:meth:`draw_rectangle`
-        :py:meth:`draw_circle`
-        :py:meth:`blit`
-
         """
-        if not len(self._layers):
-            layer = DrawingLayer(self.size_tuple)
+        if not len(self.layers):
+            layer = DrawingLayer()
             self.add_drawing_layer(layer)
-        try:
-            return self._layers[index]
-        except IndexError:
-            raise Exception('Not a valid index')
+        return self.layers[index]
 
     def dl(self, index=-1):
         """
@@ -638,8 +518,8 @@ class Image(CoreImage):
         **EXAMPLE**
 
         >>> img = Image("Lenna")
-        >>> myLayer1 = DrawingLayer((img.width,img.height))
-        >>> myLayer2 = DrawingLayer((img.width,img.height))
+        >>> myLayer1 = DrawingLayer()
+        >>> myLayer2 = DrawingLayer()
         >>> img.insert_drawing_layer(myLayer1,1) # on top
         >>> img.insert_drawing_layer(myLayer2,2) # on the bottom
         >>> img.clear_layers()
@@ -648,49 +528,11 @@ class Image(CoreImage):
 
         :py:class:`DrawingLayer`
         :py:meth:`dl`
-        :py:meth:`to_pygame_surface`
         :py:meth:`get_drawing_layer`
-        :py:meth:`remove_drawing_layer`
-        :py:meth:`layers`
         :py:meth:`merged_layers`
         :py:meth:`apply_layers`
-        :py:meth:`draw_text`
-        :py:meth:`draw_rectangle`
-        :py:meth:`draw_circle`
-        :py:meth:`blit`
-
         """
-        layers = self._layers[:]
-        for i in layers:
-            self._layers.remove(i)
-
-    def layers(self):
-        """
-        **SUMMARY**
-
-        Return the array of DrawingLayer objects associated with the image.
-
-        **RETURNS**
-
-        A list of of drawing layers.
-
-        **SEE ALSO**
-
-        :py:class:`DrawingLayer`
-        :py:meth:`add_drawing_layer`
-        :py:meth:`dl`
-        :py:meth:`to_pygame_surface`
-        :py:meth:`get_drawing_layer`
-        :py:meth:`remove_drawing_layer`
-        :py:meth:`merged_layers`
-        :py:meth:`apply_layers`
-        :py:meth:`draw_text`
-        :py:meth:`draw_rectangle`
-        :py:meth:`draw_circle`
-        :py:meth:`blit`
-
-        """
-        return self._layers
+        self.layers = []
 
     def merged_layers(self):
         """
@@ -706,8 +548,8 @@ class Image(CoreImage):
         **EXAMPLE**
 
         >>> img = Image("Lenna")
-        >>> myLayer1 = DrawingLayer((img.width,img.height))
-        >>> myLayer2 = DrawingLayer((img.width,img.height))
+        >>> myLayer1 = DrawingLayer()
+        >>> myLayer2 = DrawingLayer()
         >>> img.insert_drawing_layer(myLayer1,1) # on top
         >>> img.insert_drawing_layer(myLayer2,2) # on the bottom
         >>> derp = img.merged_layers()
@@ -717,21 +559,10 @@ class Image(CoreImage):
         :py:class:`DrawingLayer`
         :py:meth:`add_drawing_layer`
         :py:meth:`dl`
-        :py:meth:`to_pygame_surface`
         :py:meth:`get_drawing_layer`
-        :py:meth:`remove_drawing_layer`
-        :py:meth:`layers`
         :py:meth:`apply_layers`
-        :py:meth:`draw_text`
-        :py:meth:`draw_rectangle`
-        :py:meth:`draw_circle`
-        :py:meth:`blit`
-
         """
-        final = DrawingLayer(self.size_tuple)
-        for layers in self._layers:  # compose all the layers
-            layers.render_to_other_layer(final)
-        return final
+        return reduce(lambda a, b: a + b, self.layers)
 
     @cached_method
     def get_pil(self):
@@ -820,102 +651,7 @@ class Image(CoreImage):
         data = exif.process_file(raw)
         return data
 
-    def draw_circle(self, ctr, rad, color=(0, 0, 0), thickness=1):
-        """
-        **SUMMARY**
-
-        Draw a circle on the image.
-
-        **PARAMETERS**
-
-        * *ctr* - The center of the circle as an (x,y) tuple.
-        * *rad* - The radius of the circle in pixels
-        * *color* - A color tuple (default black)
-        * *thickness* - The thickness of the circle, -1 means filled in.
-
-        **RETURNS**
-
-        .. Warning::
-          This is an inline operation. Nothing is returned, but a circle is
-          drawn on the images's drawing layer.
-
-        **EXAMPLE**
-
-        >>> img = Image("lenna")
-        >>> img.draw_circle(
-            ...    (img.width / 2, img.height / 2),
-            ...    r=50, color=Colors.RED, width=3)
-        >>> img.show()
-
-        **NOTES**
-
-        .. Warning::
-          Note that this function is depricated, try to use
-          DrawingLayer.circle() instead.
-
-        **SEE ALSO**
-
-        :py:meth:`draw_line`
-        :py:meth:`draw_text`
-        :py:meth:`dl`
-        :py:meth:`draw_rectangle`
-        :py:class:`DrawingLayer`
-
-        """
-        filled = thickness < 0
-        self.get_drawing_layer().circle(center=(int(ctr[0]), int(ctr[1])),
-                                        radius=int(rad),
-                                        color=color, width=int(thickness),
-                                        filled=filled)
-
-    def draw_line(self, pt1, pt2, color=(0, 0, 0), thickness=1):
-        """
-        **SUMMARY**
-        Draw a line on the image.
-
-
-        **PARAMETERS**
-
-        * *pt1* - the first point for the line (tuple).
-        * *pt2* - the second point on the line (tuple).
-        * *color* - a color tuple (default black).
-        * *thickness* the thickness of the line in pixels.
-
-        **RETURNS**
-
-        .. Warning::
-          This is an inline operation. Nothing is returned, but a circle is
-          drawn on the images's
-          drawing layer.
-
-        **EXAMPLE**
-
-        >>> img = Image("lenna")
-        >>> img.draw_line(
-            ...    (0,0), (img.width, img.height),
-            ...      color=Color.RED, thickness=3)
-        >>> img.show()
-
-        **NOTES**
-
-        .. Warning::
-           Note that this function is depricated, try to use
-           DrawingLayer.line() instead.
-
-        **SEE ALSO**
-
-        :py:meth:`draw_text`
-        :py:meth:`dl`
-        :py:meth:`draw_circle`
-        :py:meth:`draw_rectangle`
-
-        """
-        pt1 = (int(pt1[0]), int(pt1[1]))
-        pt2 = (int(pt2[0]), int(pt2[1]))
-        self.get_drawing_layer().line(start=pt1, stop=pt2, color=color,
-                                      width=thickness)
-
-    def draw(self, features, color=Color.GREEN, width=1, autocolor=False):
+    def draw_features(self, features, color=Color.GREEN, width=1, autocolor=False):
         """
         **SUMMARY**
 
@@ -956,113 +692,6 @@ class Image(CoreImage):
                 cfeatures.draw(color, width)
         else:
             logger.warn("You need to pass drawable features.")
-
-    def draw_text(self, text="", x=None, y=None, color=Color.BLUE,
-                  fontsize=16):
-        """
-        **SUMMARY**
-
-        This function draws the string that is passed on the screen at the
-        specified coordinates.
-
-        The Default Color is blue but you can pass it various colors
-
-        The text will default to the center of the screen if you don't pass
-        it a value
-
-
-        **PARAMETERS**
-
-        * *text* - String - the text you want to write. ASCII only please.
-        * *x* - Int - the x position in pixels.
-        * *y* - Int - the y position in pixels.
-        * *color* - Color object or Color Tuple
-        * *fontsize* - Int - the font size - roughly in points.
-
-        **RETURNS**
-
-        Nothing. This is an in place function. Text is added to the Images
-        drawing layer.
-
-        **EXAMPLE**
-
-        >>> img = Image("lenna")
-        >>> img.draw_text("xamox smells like cool ranch doritos.",
-            ...          50, 50, color=Color.BLACK, fontsize=48)
-        >>> img.show()
-
-        **SEE ALSO**
-
-        :py:meth:`dl`
-        :py:meth:`draw_circle`
-        :py:meth:`draw_rectangle`
-
-        """
-        if x is None:
-            x = self.width / 2
-        if y is None:
-            y = self.height / 2
-
-        self.get_drawing_layer().set_font_size(fontsize)
-        self.get_drawing_layer().text(text, location=(x, y), color=color)
-
-    def draw_rectangle(self, x, y, w, h, color=Color.RED, width=1, alpha=255):
-        """
-        **SUMMARY**
-
-        Draw a rectangle on the screen given the upper left corner of the
-        rectangle and the width and height.
-
-        **PARAMETERS**
-
-        * *x* - the x position.
-        * *y* - the y position.
-        * *w* - the width of the rectangle.
-        * *h* - the height of the rectangle.
-        * *color* - an RGB tuple indicating the desired color.
-        * *width* - the width of the rectangle, a value less than or equal to
-         zero means filled in completely.
-        * *alpha* - the alpha value on the interval from 255 to 0, 255 is
-         opaque, 0 is completely transparent.
-
-        **RETURNS**
-
-        None - this operation is in place and adds the rectangle to the drawing
-        layer.
-
-        **EXAMPLE**
-
-        >>> img = Image("lenna")
-        >>> img.draw_rectange(50, 50, 100, 123)
-        >>> img.show()
-
-        **SEE ALSO**
-
-        :py:meth:`dl`
-        :py:meth:`draw_circle`
-        :py:meth:`draw_rectangle`
-        :py:meth:`apply_layers`
-        :py:class:`DrawingLayer`
-
-        """
-        filled = width < 1
-        self.get_drawing_layer().rectangle(top_left=(x, y), dimensions=(w, h),
-                                           color=color, width=width,
-                                           filled=filled, alpha=alpha)
-
-    def draw_rotated_rectangle(self, boundingbox, color=Color.RED, width=1):
-        """
-        **SUMMARY**
-
-        Draw the minimum bouding rectangle. This rectangle is a series of four
-        points.
-
-        **TODO**
-
-        **KAT FIX THIS**
-        """
-        cv2.ellipse(self, box=boundingbox, color=color,
-                    thickness=int(width))
 
     def show(self, type='window'):
         """
@@ -1190,8 +819,8 @@ class Image(CoreImage):
             if result[i]:
                 pt_a = (tkp[i].pt[0], tkp[i].pt[1] + hdif)
                 pt_b = (skp[idx[i]].pt[0] + template.width, skp[idx[i]].pt[1])
-                result_img.draw_line(pt_a, pt_b, color=Color.get_random(),
-                                     thickness=width)
+                result_img.dl().line(pt_a, pt_b, color=Color.get_random(),
+                                     width=width)
         return result_img
 
     def draw_palette_colors(self, size=(-1, -1), horizontal=True, bins=10,
@@ -1342,32 +971,6 @@ class Image(CoreImage):
                 ret_val = Image(pal)
         return ret_val
 
-    def draw_points(self, pts, color=Color.RED, sz=3, width=-1):
-        """
-        **DESCRIPTION**
-
-        A quick and dirty points rendering routine.
-
-        **PARAMETERS**
-
-        * *pts* - pts a list of (x,y) points.
-        * *color* - a color for our points.
-        * *sz* - the circle radius for our points.
-        * *width* - if -1 fill the point, otherwise the size of point border
-
-        **RETURNS**
-
-        None - This is an inplace operation.
-
-        **EXAMPLE**
-
-        >>> img = Image("lenna")
-        >>> img.draw_points([(10,10),(30,30)])
-        >>> img.show()
-        """
-        for p in pts:
-            self.draw_circle(p, sz, color, width)
-
     def grid(img, dimensions=(10, 10), color=(0, 0, 0), width=1,
              antialias=True, alpha=-1):
         """
@@ -1405,7 +1008,7 @@ class Image(CoreImage):
         i = 1
         j = 1
 
-        grid = DrawingLayer(img.size_tuple)  # add a new layer for grid
+        grid = DrawingLayer()  # add a new layer for grid
         while (i < dimensions[0]) and (j < dimensions[1]):
             if i < dimensions[0]:
                 grid.line((0, step_row * i), (img.size_tuple[0], step_row * i),
@@ -1505,8 +1108,8 @@ class Image(CoreImage):
             pt_b = (int(skp.x) + template.width, int(skp.y))
             #pt_a = (int(tkp.y), int(tkp.x) + hdif)
             #pt_b = (int(skp.y) + template.width, int(skp.x))
-            result_img.draw_line(pt_a, pt_b, color=Color.get_random(),
-                                 thickness=width)
+            result_img.dl().line(pt_a, pt_b, color=Color.get_random(),
+                                 width=width)
         return result_img
 
     def find(self, feature_class, *args, **kwargs):

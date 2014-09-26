@@ -46,6 +46,8 @@ class ColorSpace(int):
     HSV = 5
     XYZ = 6
     YCR_CB = 7
+    BGRA = 8
+    RGBA = 9
 
     color_space_to_string = {
         BGR: 'BGR',
@@ -54,7 +56,9 @@ class ColorSpace(int):
         HLS: 'HLS',
         HSV: 'HSV',
         XYZ: 'XYZ',
-        YCR_CB: 'YCR_CB'
+        YCR_CB: 'YCR_CB',
+        BGRA: 'BGRA',
+        RGBA: 'RGBA',
     }
 
     color_spaces = color_space_to_string.keys()
@@ -80,8 +84,10 @@ class Image(np.ndarray):
     """
 
     BGR = ColorSpace(ColorSpace.BGR)
+    BGRA = ColorSpace(ColorSpace.BGRA)
     GRAY = ColorSpace(ColorSpace.GRAY)
     RGB = ColorSpace(ColorSpace.RGB)
+    RGBA = ColorSpace(ColorSpace.RGBA)
     HLS = ColorSpace(ColorSpace.HLS)
     HSV = ColorSpace(ColorSpace.HSV)
     XYZ = ColorSpace(ColorSpace.XYZ)
@@ -252,8 +258,14 @@ class Image(np.ndarray):
     def to_bgr(self):
         return self.to_color_space(Image.BGR)
 
+    def to_bgra(self):
+        return self.to_color_space(Image.BGRA)
+
     def to_rgb(self):
         return self.to_color_space(Image.RGB)
+
+    def to_rgba(self):
+        return self.to_color_space(Image.RGBA)
 
     def to_hsv(self):
         return self.to_color_space(Image.HSV)
@@ -281,8 +293,14 @@ class Image(np.ndarray):
     def is_bgr(self):
         return self.is_color_space(Image.BGR)
 
+    def is_bgra(self):
+        return self.is_color_space(Image.BGRA)
+
     def is_rgb(self):
         return self.is_color_space(Image.RGB)
+
+    def is_rgba(self):
+        return self.is_color_space(Image.RGBA)
 
     def is_hsv(self):
         return self.is_color_space(Image.HSV)

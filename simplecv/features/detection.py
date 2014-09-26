@@ -64,7 +64,7 @@ class Corner(Feature):
         Nothing - this is an inplace operation that modifies the source images
         drawing layer.
         """
-        self.image.draw_circle((self.x, self.y), 4, color, width)
+        self.image.dl().circle((self.x, self.y), 4, color, width)
 
     @classmethod
     def find(cls, img, maxnum=50, minquality=0.04, mindistance=1.0):
@@ -186,7 +186,7 @@ class Line(Feature):
         Nothing - this is an inplace operation that modifies the source images
         drawing layer.
         """
-        self.image.draw_line(self.end_points[0], self.end_points[1], color,
+        self.image.dl().line(self.end_points[0], self.end_points[1], color,
                              width)
 
     @property
@@ -3150,7 +3150,7 @@ class ROI(Feature):
 
         """
         x, y, w, h = self.to_xywh()
-        self.image.draw_rectangle(x, y, w, h, width=width, color=color)
+        self.image.dl().rectangle((x, y), (w, h), width=width, color=color)
 
     def show(self, color=Color.GREEN, width=2):
         """

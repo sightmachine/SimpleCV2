@@ -77,6 +77,9 @@ setup(name="simplecv",
               'denoise = simplecv.plugins.denoise',
               'stega = simplecv.plugins.stega',
               'uploader = simplecv.plugins.uploader',
+          ],
+          'simplecv.renderer.renderers': [
+              'pygame = simplecv.core.drawing.renderer.pygamerenderer:PyGameRenderer'
           ]
       },
       )

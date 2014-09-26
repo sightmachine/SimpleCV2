@@ -142,7 +142,7 @@ class Track(Feature):
         >>> img.show()
         """
         f = self
-        f.image.draw_circle(f.center, rad, color, thickness)
+        f.image.dl().circle(f.center, rad, color, thickness)
 
     def drawBB(self, color=Color.GREEN, thickness=3):
         """
@@ -166,8 +166,8 @@ class Track(Feature):
         >>> track.drawBB()
         >>> img.show()
         """
-        f = self
-        f.image.draw_rectangle(f.bb_x, f.bb_y, f.w, f.h, color, thickness)
+        self.image.dl().rectangle(self.bb_x, self.bb_y,
+                                  self.w, self.h, color, thickness)
 
     def showCoordinates(self, pos=None, color=Color.GREEN, size=None):
         """
@@ -199,7 +199,8 @@ class Track(Feature):
         if not size:
             size = 16
         text = "x = %d  y = %d" % (f.x, f.y)
-        img.draw_text(text, pos[0], pos[1], color, size)
+        img.dl().set_font_size(size)
+        img.dl().text(text, pos, color)
 
     def showSizeRatio(self, pos=None, color=Color.GREEN, size=None):
         """
@@ -233,7 +234,8 @@ class Track(Feature):
         if not size:
             size = 16
         text = "size = %f" % f.sizeRatio
-        img.draw_text(text, pos[0], pos[1], color, size)
+        img.dl().set_font_size(size)
+        img.dl().text(text, pos, color)
 
     def showPixelVelocity(self, pos=None, color=Color.GREEN, size=None):
         """
@@ -269,8 +271,9 @@ class Track(Feature):
         if not size:
             size = 16
         text = "Vx = %.2f Vy = %.2f" % (vel[0], vel[1])
-        img.draw_text(text, pos[0], pos[1], color, size)
-        img.draw_text("in pixels/frame", pos[0], pos[1] + size, color, size)
+        img.dl().set_font_size(size)
+        img.dl().text(text, pos, color)
+        img.dl().text("in pixels/frame", (pos[0], pos[1] + size), color)
 
     def showPixelVelocityRT(self, pos=None, color=Color.GREEN, size=None):
         """
@@ -306,8 +309,9 @@ class Track(Feature):
         if not size:
             size = 16
         text = "Vx = %.2f Vy = %.2f" % (vel_rt[0], vel_rt[1])
-        img.draw_text(text, pos[0], pos[1], color, size)
-        img.draw_text("in pixels/second", pos[0], pos[1] + size, color, size)
+        img.dl().set_font_size(size)
+        img.dl().text(text, pos, color)
+        img.dl().text("in pixels/second", (pos[0], pos[1] + size), color)
 
     def processTrack(self, func):
         """
@@ -376,7 +380,7 @@ class Track(Feature):
         >>> img.show()
         """
         f = self
-        f.image.draw_circle(f.predict_pt, rad, color, thickness)
+        f.image.dl().circle(f.predict_pt, rad, color, thickness)
 
     def showPredictedCoordinates(self, pos=None, color=Color.GREEN, size=None):
         """
@@ -408,7 +412,8 @@ class Track(Feature):
         if not size:
             size = 16
         text = "Predicted: x = %d  y = %d" % (f.predict_pt[0], f.predict_pt[1])
-        img.draw_text(text, pos[0], pos[1], color, size)
+        img.dl().set_font_size(size)
+        img.dl().text(text, pos, color)
 
     def getCorrectedPoints(self):
         """
@@ -460,7 +465,8 @@ class Track(Feature):
         if not size:
             size = 16
         text = "Corrected: x = %d  y = %d" % (f.state_pt[0], f.state_pt[1])
-        img.draw_text(text, pos[0], pos[1], color, size)
+        img.dl().set_font_size(size)
+        img.dl().text(text, pos, color)
 
     def drawCorrected(self, color=Color.GREEN, rad=1, thickness=1):
         """
@@ -487,7 +493,7 @@ class Track(Feature):
         >>> img.show()
         """
         f = self
-        f.image.draw_circle(f.state_pt, rad, color, thickness)
+        f.image.dl().circle(f.state_pt, rad, color, thickness)
 
 
 class CAMShiftTrack(Track):
@@ -617,7 +623,7 @@ class LKTrack(Track):
         """
         if self.pts is not None:
             for pt in self.pts:
-                self.image.draw_circle(ctr=pt, rad=radius, thickness=thickness,
+                self.image.dl().circle(center=pt, radius=radius, width=thickness,
                                        color=color)
 
 
@@ -757,7 +763,7 @@ class SURFTrack(Track):
         """
         if self.pts is not None:
             for pt in self.pts:
-                self.image.draw_circle(ctr=pt, rad=radius, thickness=thickness,
+                self.image.dl().circle(center=pt, radius=radius, width=thickness,
                                        color=color)
 
     def getDetector(self):
@@ -976,5 +982,6 @@ class MFTrack(Track):
         if not size:
             size = 16
         text = "Shift = %.2f" % shift
-        img.draw_text(text, pos[0], pos[1], color, size)
-        img.draw_text("in pixels/second", pos[0], pos[1] + size, color, size)
+        img.dl().set_font_size(size)
+        img.dl().text(text, pos, color)
+        img.dl().text("in pixels/second", (pos[0], pos[1] + size), color)

@@ -3,10 +3,8 @@ import subprocess
 import time
 
 import cv2
-import pygame as pg
 
 from simplecv.base import logger, SYSTEM
-from simplecv.color import Color
 from simplecv.core.camera.frame_source import FrameSource
 from simplecv.core.pluginsystem import apply_plugins
 from simplecv.factory import Factory
@@ -300,59 +298,3 @@ class Camera(FrameSource):
             logger.warn("Unable to open camera")
             return None
         return Factory.Image(img, camera=self)
-
-
-def live(img):
-    """
-    **SUMMARY**
-
-    This shows a live view of the camera.
-    * Left click will show mouse coordinates and color.
-    * Right click will kill the live image.
-
-    **RETURNS**
-
-    Nothing. In place method.
-
-    **EXAMPLE**
-
-    >>> cam = Camera()
-    >>> cam.live()
-
-    """
-
-    start_time = time.time()
-
-    from simplecv.display import Display
-
-    i = img
-    d = Display(i.size_tuple)
-    i.save(d)
-    col = Color.RED
-
-    while d.is_not_done():
-        i = img
-        i.clear_layers()
-        elapsed_time = time.time() - start_time
-
-        if d.mouse_left:
-            txt = "coord: (" + str(d.mouse_x) + "," + str(d.mouse_y) + ")"
-            i.dl().text(txt, (10, i.height / 2), color=col)
-            txt = "color: " + str(i.get_pixel(d.mouse_x, d.mouse_y))
-            i.dl().text(txt, (10, (i.height / 2) + 10), color=col)
-            print "coord: (" + str(d.mouse_x) + "," + str(d.mouse_y) \
-                + "), color: " + str(i.get_pixel(d.mouse_x, d.mouse_y))
-
-        if elapsed_time > 0 and elapsed_time < 5:
-            i.dl().text("In live mode", (10, 10), color=col)
-            i.dl().text("Left click will show mouse coordinates and color",
-                        (10, 20), color=col)
-            i.dl().text("Right click will kill the live image", (10, 30),
-                        color=col)
-
-        i.save(d)
-        if d.mouse_right:
-            print "Closing Window"
-            d.done = True
-
-    pg.quit()

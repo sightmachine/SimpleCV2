@@ -1,0 +1,426 @@
+from simplecv.base import ScvException
+
+from simplecv.color import Color
+
+
+def register_operation(func):
+    """ Decorator to register operation within the drawing layer
+    """
+    def wrapper(dl, *args, **kwargs):
+        func(dl, *args, **kwargs)  # run func to perform type checking
+        dl.append((func.__name__, args, kwargs))  # add operation to layer
+    return wrapper
+
+
+class DrawingLayer(list):
+    """
+    DrawingLayer gives you a way to mark up Image classes without changing
+    the image data itself.
+    """
+    def __init__(self, seq=()):
+        list.__init__(self, seq)
+
+        if len(self) == 0:
+            # Set default values to renderer first
+            self.set_default_alpha(255)
+            self.set_default_color(Color.BLACK)
+
+    def __repr__(self):
+        return 'simplecv.DrawingLayer({})'.format(list.__repr__(self))
+
+    def __add__(self, other):
+        if isinstance(other, DrawingLayer):
+            return DrawingLayer(list.__add__(self, other))
+        else:
+            raise ValueError('DrawingLayer.__add__: other operand should be '
+                             'a DrawingLayer instance')
+
+    def __getitem__(self, item):
+        result = list.__getitem__(self, item)
+        if isinstance(item, slice):
+            return DrawingLayer(result)
+        else:
+            return result
+
+    def clear(self):
+        """
+        This method removes all of the drawing on this layer (i.e. the layer is
+        erased completely)
+        """
+        del self[:]
+
+    def add_opeartion(self, operation, *args, **kwargs):
+        self.append((operation, args, kwargs))
+
+    @register_operation
+    def set_default_alpha(self, alpha):
+        """
+        This method sets the default alpha value for all methods called on this
+        layer. The default value starts out at 255 which is completely
+         transparent.
+        """
+        if not 0 <= alpha <= 255:
+            raise ValueError('Alpha should be from 0 to 255')
+
+    @register_operation
+    def set_default_color(self, color):
+        """
+        This method sets the default rendering color.
+
+        Parameters:
+            color - Color object or Color Tuple
+        """
+        pass
+
+    @register_operation
+    def select_font(self, name):
+        """
+        This method attempts to set the font from a font file. It is advisable
+        to use one of the fonts listed by the list_fonts() method. The input
+        is a string with the font name.
+        """
+        pass
+
+    @register_operation
+    def set_font_size(self, size):
+        """
+        This method sets the font size roughly in points. A size of 10 is
+        almost too small to read. A size of 20 is roughly 10 pixels high and a
+        good choice.
+
+        Parameters:
+            sz = Int
+        """
+        pass
+
+    @register_operation
+    def set_font_bold(self, value):
+        """
+        This method sets and unsets the current font to be bold.
+        """
+        pass
+
+    @register_operation
+    def set_font_italic(self, value):
+        """
+        This method sets and unsets the current font to be italic.
+        """
+        pass
+
+    @register_operation
+    def set_font_underline(self, value):
+        """
+        This method sets and unsets the current font to be underlined
+        """
+        pass
+
+    @register_operation
+    def line(self, start, stop, color=Color.DEFAULT, width=1, antialias=True,
+             alpha=-1):
+        """
+        Draw a single line from the (x,y) tuple start to the (x,y) tuple stop.
+        Optional parameters:
+
+        color - The object's color as a simple CVColor object, if no value is
+                specified the default is used.
+
+        alpha - The alpha blending for the object. If this value is -1 then the
+                layer default value is used. A value of 255 means opaque,
+                while 0 means transparent.
+
+        width - The line width in pixels.
+
+        antialias - Draw an antialiased object of width one.
+
+        Parameters:
+            start - Tuple
+            stop - Tuple
+            color - Color object or Color Tuple
+            width - Int
+            antialias - Boolean
+            alpha - Int
+
+        """
+        pass
+
+    @register_operation
+    def lines(self, points, color=Color.DEFAULT, antialias=True, alpha=-1,
+              width=1):
+        """
+        Draw a set of lines from the list of (x,y) tuples points. Lines are
+        draw between each successive pair of points.
+
+        Optional parameters:
+
+        color - The object's color as a simple CVColor object, if no value is
+                specified the default is used.
+
+        alpha - The alpha blending for the object. If this value is -1 then the
+                layer default value is used. A value of 255 means opaque,
+                while 0 means transparent.
+
+        width - The line width in pixels.
+
+        antialias - Draw an antialiased object of width one.
+
+        Parameters:
+            points - Tuple
+            color - Color object or Color Tuple
+            antialias - Boolean
+            alpha - Int
+            width - Int
+
+        """
+        pass
+
+    @register_operation
+    def rectangle(self, top_left, dimensions, color=Color.DEFAULT, width=1,
+                  filled=False, alpha=-1):
+        """
+        Draw a rectangle given the top_left the (x,y) coordinate of the top
+        left corner and dimensions (w,h) tge width and height
+
+        color - The object's color as a simple CVColor object, if no value is
+                specified the default is used.
+
+        alpha - The alpha blending for the object. If this value is -1 then the
+                layer default value is used. A value of 255 means opaque,
+                while 0 means transparent.
+
+        w -     The line width in pixels. This does not work if antialiasing
+                is enabled.
+
+        filled -The rectangle is filled in
+        """
+        pass
+
+    @register_operation
+    def rectangle_to_pts(self, pt0, pt1, color=Color.DEFAULT, width=1,
+                         filled=False, alpha=-1):
+        """
+        Draw a rectangle given two (x,y) points
+
+        color - The object's color as a simple CVColor object, if no value is
+                specified the default is used.
+
+        alpha - The alpha blending for the object. If this value is -1 then the
+                layer default value is used. A value of 255 means opaque,
+                while 0 means transparent.
+
+        w -     The line width in pixels. This does not work if antialiasing is
+                enabled.
+
+        filled -The rectangle is filled in
+        """
+        pass
+
+    @register_operation
+    def centered_rectangle(self, center, dimensions, color=Color.DEFAULT,
+                           width=1, filled=False, alpha=-1):
+        """
+        Draw a rectangle given the center (x,y) of the rectangle and dimensions
+        (width, height)
+
+        color - The object's color as a simple CVColor object, if no value is
+                specified the default is used.
+
+        alpha - The alpha blending for the object. If this value is -1 then the
+                layer default value is used. A value of 255 means opaque, while
+                0 means transparent.
+
+        w -     The line width in pixels. This does not work if antialiasing is
+                enabled.
+
+        filled -The rectangle is filled in
+
+
+        parameters:
+            center - Tuple
+            dimenions - Tuple
+            color - Color object or Color Tuple
+            width - Int
+            filled - Boolean
+            alpha - Int
+
+        """
+        pass
+
+    @register_operation
+    def polygon(self, points, color=Color.DEFAULT, width=1, filled=False,
+                antialias=True, alpha=-1):
+        """
+        Draw a polygon from a list of (x,y)
+
+        color - The object's color as a simple CVColor object, if no value is
+                specified the default is used.
+
+        alpha - The alpha blending for the object. If this value is -1 then the
+                layer default value is used. A value of 255 means opaque,
+                while 0 means transparent.
+
+        width - The
+        width in pixels. This does not work if antialiasing is enabled.
+
+        filled -The object is filled in
+
+        antialias - Draw the edges of the object antialiased. Note this does
+        not work when the object is filled.
+        """
+        pass
+
+    @register_operation
+    def circle(self, center, radius, color=Color.DEFAULT, width=1,
+               filled=False, alpha=-1, antialias=True):
+        """
+        Draw a circle given a location and a radius.
+
+        color - The object's color as a simple CVColor object, if no value is
+                specified the default is used.
+
+        alpha - The alpha blending for the object. If this value is -1 then the
+                layer default value is used. A value of 255 means opaque,
+                while 0 means transparent.
+
+        width - The line width in pixels. This does not work if antialiasing is
+                enabled.
+
+        filled -The object is filled in
+
+        Parameters:
+            center - Tuple
+            radius - Int
+            color - Color object or Color Tuple
+            width - Int
+            filled - Boolean
+            alpha - Int
+            antialias - Int
+        """
+        pass
+
+    @register_operation
+    def ellipse(self, center, dimensions, color=Color.DEFAULT, width=1,
+                filled=False, alpha=-1):
+        """
+        Draw an ellipse given a location and a dimensions.
+
+        color - The object's color as a simple CVColor object, if no value is
+                specified the default is used.
+
+        alpha - The alpha blending for the object. If this value is -1 then the
+                layer default value is used. A value of 255 means opaque,
+                while 0 means transparent.
+
+        width - The line width in pixels. This does not work if antialiasing is
+                enabled.
+
+        filled -The object is filled in
+
+        Parameters:
+            center - Tuple
+            dimensions - Tuple
+            color - Color object or Color tuple
+            width - Int
+            filled - Boolean
+            alpha - Int
+        """
+        pass
+
+    @register_operation
+    def bezier(self, points, steps, color=Color.DEFAULT, alpha=-1):
+        """
+        Draw a bezier curve based on a control point and the a number of stapes
+
+        color - The object's color as a simple CVColor object, if no value is
+                specified the default is used.
+
+        alpha - The alpha blending for the object. If this value is -1 then the
+                layer default value is used. A value of 255 means opaque,
+                while 0 means transparent
+
+        Parameters:
+            points - list
+            steps - Int
+            color - Color object or Color Tuple
+            alpha - Int
+        """
+        pass
+
+    @register_operation
+    def text(self, text, pos, color=Color.DEFAULT, alpha=-1):
+        """
+        Write the a text string at a given location
+
+        text -  A text string to print.
+
+        pos  -  The location to place the top right corner of the text
+
+        color - The object's color as a simple CVColor object, if no value is
+                specified the default is used.
+
+        font_name - name of the font
+
+        underline - makes font to be underlined
+
+        italic - makes font to be italic
+
+        bold - makes font to be bold
+
+        size  - the font size
+
+        alpha - The alpha blending for the object. If this value is -1 then the
+                layer default value is used. A value of 255 means opaque,
+                while 0 means transparent.
+
+        Parameters:
+            text - String
+            location - Tuple
+            color - Color object or Color tuple
+            alpha - Int
+
+        """
+        if len(text) < 0:
+            raise ValueError('text should not be empty')
+
+    @register_operation
+    def ez_view_text(self, text, pos, fgcolor=Color.WHITE, bgcolor=Color.BLACK):
+        """
+        ez_view_text works just like text but it sets both the foreground and
+        background color and overwrites the image pixels. Use this method to
+        make easily viewable text on a dynamic video stream.
+
+        fgcolor - The color of the text.
+
+        bgcolor - The background color for the text are.
+        """
+        if len(text) < 0:
+            raise ValueError('text should not be empty')
+
+    @register_operation
+    def sprite(self, img, pos=(0, 0), scale=1.0, rot=0.0, alpha=255):
+        """
+        sprite draws a sprite (a second small image) onto the current layer.
+        The sprite can be loaded directly from a supported image file like a
+        gif, jpg, bmp, or png, or loaded as a surface or SCV image.
+
+        pos - the (x,y) position of the upper left hand corner of the sprite
+
+        scale - a scale multiplier as a float value. E.g. 1.1 makes the sprite
+                10% bigger
+
+        rot = a rotation angle in degrees
+
+        alpha = an alpha value 255=opaque 0=transparent.
+        """
+        pass
+
+    @register_operation
+    def blit(self, img, pos=(0, 0)):
+        """
+        Blit one image onto the drawing layer at upper left coordinates
+
+        Parameters:
+            img - Image
+            coordinates - Tuple
+
+        """
+        pass

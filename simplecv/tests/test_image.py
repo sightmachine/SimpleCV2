@@ -511,18 +511,21 @@ def test_image_split_merge_channels():
 
 def test_image_drawing():
     img = Image(source=TESTIMAGECLR)
-    img.draw_circle((img.width / 2, img.height / 2), 10, thickness=3)
-    img.draw_circle((img.width / 2, img.height / 2), 15, thickness=5,
+    img.dl().circle((img.width / 2, img.height / 2), 10, width=3)
+    img.dl().circle((img.width / 2, img.height / 2), 15, width=5,
                     color=Color.RED)
-    img.draw_circle((img.width / 2, img.height / 2), 20)
-    img.draw_line((5, 5), (5, 8))
-    img.draw_line((5, 5), (10, 10), thickness=3)
-    img.draw_line((0, 0), (img.width, img.height), thickness=3,
+    img.dl().circle((img.width / 2, img.height / 2), 20)
+    img.dl().line((5, 5), (5, 8))
+    img.dl().line((5, 5), (10, 10), width=3)
+    img.dl().line((0, 0), (img.width, img.height), width=3,
                   color=Color.BLUE)
-    img.draw_rectangle(20, 20, 10, 5)
-    img.draw_rectangle(22, 22, 10, 5, alpha=128)
-    img.draw_rectangle(24, 24, 10, 15, width=-1, alpha=128)
-    img.draw_rectangle(28, 28, 10, 15, width=3, alpha=128)
+    img.dl().rectangle((20, 20), (10, 5), color=Color.RED)
+    img.dl().rectangle((22, 22), (10, 5), color=Color.RED,
+                       alpha=128)
+    img.dl().rectangle((24, 24), (10, 15), color=Color.RED,
+                       filled=True, alpha=128)
+    img.dl().rectangle((28, 28), (10, 15), color=Color.RED,
+                       width=3, alpha=128)
     result = [img]
     name_stem = "test_image_drawing"
     perform_diff(result, name_stem)
@@ -532,7 +535,7 @@ def test_image_draw():
     img = Image(source="lenna")
     newimg = Image(source="simplecv")
     lines = img.find(Line)
-    newimg.draw(lines)
+    newimg.draw_features(lines)
     lines.draw()
     result = [newimg, img]
     name_stem = "test_image_draw"
