@@ -180,15 +180,15 @@ def run_notebook(main_args):
         from IPython.frontend.html.notebook import notebookapp
         from IPython.frontend.html.notebook import kernelmanager
 
-    code = ""
-    code += "from SimpleCV import *;"
+    code = "from simplecv.api import *;"
+    code += "from simplecv.base import init_options_handler;"
     code += "init_options_handler.enable_notebook();"
 
     kernelmanager.MappingKernelManager.first_beat = 30.0
     app = notebookapp.NotebookApp.instance()
     main_args += [
         '--port', '5050',
-        '--c', code,
+        '-c', code,
     ]
     app.initialize(main_args)
     app.start()

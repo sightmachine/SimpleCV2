@@ -43,7 +43,7 @@ class PyGameRenderer(RendererBase):
         if alpha == -1:
             alpha = self.default_alpha
 
-        if color == Color.DEFAULT:
+        if color is None:
             color = self.default_color
         return pg.Color(color[0], color[1], color[2], alpha)
 
@@ -64,7 +64,7 @@ class PyGameRenderer(RendererBase):
         font.set_italic(self.font_italic)
         return font
 
-    def line(self, start, stop, color=Color.DEFAULT, width=1, antialias=True,
+    def line(self, start, stop, color=None, width=1, antialias=True,
              alpha=-1):
         width = int(width)
         start = (int(start[0]), int(start[1]))
@@ -78,7 +78,7 @@ class PyGameRenderer(RendererBase):
                          self._csv_rgb_to_pg_color(color, alpha),
                          start, stop, width)
 
-    def lines(self, points, color=Color.DEFAULT, antialias=True, alpha=-1,
+    def lines(self, points, color=None, antialias=True, alpha=-1,
               width=1):
         if antialias and width == 1:
             pg.draw.aalines(self.surface,
@@ -89,7 +89,7 @@ class PyGameRenderer(RendererBase):
                           self._csv_rgb_to_pg_color(color, alpha),
                           0, points, width)
 
-    def rectangle(self, top_left, dimensions, color=Color.DEFAULT, width=1,
+    def rectangle(self, top_left, dimensions, color=None, width=1,
                   filled=False, alpha=-1):
         if width < 0:
             filled = True
@@ -100,42 +100,7 @@ class PyGameRenderer(RendererBase):
         pg.draw.rect(self.surface, self._csv_rgb_to_pg_color(color, alpha),
                      rect, int(width))
 
-    def rectangle_to_pts(self, pt0, pt1, color=Color.DEFAULT, width=1,
-                         filled=False, alpha=-1):
-        if pt0[0] > pt1[0]:
-            w = pt0[0] - pt1[0]
-            x = pt1[0]
-        else:
-            w = pt1[0] - pt0[0]
-            x = pt0[0]
-        if pt0[1] > pt1[1]:
-            h = pt0[1] - pt1[1]
-            y = pt1[1]
-        else:
-            h = pt1[1] - pt0[1]
-            y = pt0[1]
-        if width < 0:
-            filled = True
-        if filled:
-            width = 0
-        rect = pg.Rect((int(x), int(y)), (int(w), int(h)))
-        pg.draw.rect(self.surface, self._csv_rgb_to_pg_color(color, alpha),
-                     rect, int(width))
-
-    def centered_rectangle(self, center, dimensions, color=Color.DEFAULT,
-                           width=1, filled=False, alpha=-1):
-        if width < 0:
-            filled = True
-        if filled:
-            width = 0
-        xtl = center[0] - (dimensions[0] / 2)
-        ytl = center[1] - (dimensions[1] / 2)
-        rect = pg.Rect(int(xtl), int(ytl),
-                       int(dimensions[0]), int(dimensions[1]))
-        pg.draw.rect(self.surface, self._csv_rgb_to_pg_color(color, alpha),
-                     rect, int(width))
-
-    def polygon(self, points, color=Color.DEFAULT, width=1, filled=False,
+    def polygon(self, points, color=None, width=1, filled=False,
                 antialias=True, alpha=-1):
         if width < 0:
             filled = True
@@ -155,7 +120,7 @@ class PyGameRenderer(RendererBase):
                                                                     alpha),
                             points, width)
 
-    def circle(self, center, radius, color=Color.DEFAULT, width=1,
+    def circle(self, center, radius, color=None, width=1,
                filled=False, alpha=-1, antialias=True):
         width = int(width)
         radius = int(radius)
@@ -173,7 +138,7 @@ class PyGameRenderer(RendererBase):
                                 radius,
                                 self._csv_rgb_to_pg_color(color, alpha))
 
-    def ellipse(self, center, dimensions, color=Color.DEFAULT, width=1,
+    def ellipse(self, center, dimensions, color=None, width=1,
                 filled=False, alpha=-1):
         if width < 0:
             filled = True
@@ -186,11 +151,11 @@ class PyGameRenderer(RendererBase):
                         self._csv_rgb_to_pg_color(color, alpha),
                         rect, int(width))
 
-    def bezier(self, points, steps, color=Color.DEFAULT, alpha=-1):
+    def bezier(self, points, steps, color=None, alpha=-1):
         pg.gfxdraw.bezier(self.surface, points, steps,
                           self._csv_rgb_to_pg_color(color, alpha))
 
-    def text(self, text, pos, color=Color.DEFAULT, alpha=-1):
+    def text(self, text, pos, color=None, alpha=-1):
         font = self._create_font()
         tsurface = font.render(text, True,
                                self._csv_rgb_to_pg_color(color, alpha))
@@ -237,6 +202,6 @@ class PyGameRenderer(RendererBase):
         pixels_alpha[...] = (pixels_alpha * (alpha / 255.0)).astype(np.uint8)
         self.surface.blit(image, pos)
 
-    def blit(self, img, coordinates=(0, 0)):
+    def blit(self, img, pos=(0, 0)):
         #can we set a color mode so we can do a little bit of masking here?
-        self.surface.blit(img.get_pg_surface(), coordinates)
+        self.surface.blit(img.get_pg_surface(), pos)

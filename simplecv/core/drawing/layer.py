@@ -1,4 +1,4 @@
-from simplecv.base import ScvException
+import functools
 
 from simplecv.color import Color
 
@@ -6,6 +6,7 @@ from simplecv.color import Color
 def register_operation(func):
     """ Decorator to register operation within the drawing layer
     """
+    @functools.wraps(func)
     def wrapper(dl, *args, **kwargs):
         func(dl, *args, **kwargs)  # run func to perform type checking
         dl.append((func.__name__, args, kwargs))  # add operation to layer
@@ -115,7 +116,7 @@ class DrawingLayer(list):
         pass
 
     @register_operation
-    def line(self, start, stop, color=Color.DEFAULT, width=1, antialias=True,
+    def line(self, start, stop, color=None, width=1, antialias=True,
              alpha=-1):
         """
         Draw a single line from the (x,y) tuple start to the (x,y) tuple stop.
@@ -144,7 +145,7 @@ class DrawingLayer(list):
         pass
 
     @register_operation
-    def lines(self, points, color=Color.DEFAULT, antialias=True, alpha=-1,
+    def lines(self, points, color=None, antialias=True, alpha=-1,
               width=1):
         """
         Draw a set of lines from the list of (x,y) tuples points. Lines are
@@ -171,10 +172,11 @@ class DrawingLayer(list):
             width - Int
 
         """
-        pass
+        if len(points) < 2:
+           raise ValueError('must be more than 2 points')
 
     @register_operation
-    def rectangle(self, top_left, dimensions, color=Color.DEFAULT, width=1,
+    def rectangle(self, top_left, dimensions, color=None, width=1,
                   filled=False, alpha=-1):
         """
         Draw a rectangle given the top_left the (x,y) coordinate of the top
@@ -195,58 +197,7 @@ class DrawingLayer(list):
         pass
 
     @register_operation
-    def rectangle_to_pts(self, pt0, pt1, color=Color.DEFAULT, width=1,
-                         filled=False, alpha=-1):
-        """
-        Draw a rectangle given two (x,y) points
-
-        color - The object's color as a simple CVColor object, if no value is
-                specified the default is used.
-
-        alpha - The alpha blending for the object. If this value is -1 then the
-                layer default value is used. A value of 255 means opaque,
-                while 0 means transparent.
-
-        w -     The line width in pixels. This does not work if antialiasing is
-                enabled.
-
-        filled -The rectangle is filled in
-        """
-        pass
-
-    @register_operation
-    def centered_rectangle(self, center, dimensions, color=Color.DEFAULT,
-                           width=1, filled=False, alpha=-1):
-        """
-        Draw a rectangle given the center (x,y) of the rectangle and dimensions
-        (width, height)
-
-        color - The object's color as a simple CVColor object, if no value is
-                specified the default is used.
-
-        alpha - The alpha blending for the object. If this value is -1 then the
-                layer default value is used. A value of 255 means opaque, while
-                0 means transparent.
-
-        w -     The line width in pixels. This does not work if antialiasing is
-                enabled.
-
-        filled -The rectangle is filled in
-
-
-        parameters:
-            center - Tuple
-            dimenions - Tuple
-            color - Color object or Color Tuple
-            width - Int
-            filled - Boolean
-            alpha - Int
-
-        """
-        pass
-
-    @register_operation
-    def polygon(self, points, color=Color.DEFAULT, width=1, filled=False,
+    def polygon(self, points, color=None, width=1, filled=False,
                 antialias=True, alpha=-1):
         """
         Draw a polygon from a list of (x,y)
@@ -266,10 +217,11 @@ class DrawingLayer(list):
         antialias - Draw the edges of the object antialiased. Note this does
         not work when the object is filled.
         """
-        pass
+        if len(points) < 2:
+           raise ValueError('must be more than 2 points')
 
     @register_operation
-    def circle(self, center, radius, color=Color.DEFAULT, width=1,
+    def circle(self, center, radius, color=None, width=1,
                filled=False, alpha=-1, antialias=True):
         """
         Draw a circle given a location and a radius.
@@ -298,7 +250,7 @@ class DrawingLayer(list):
         pass
 
     @register_operation
-    def ellipse(self, center, dimensions, color=Color.DEFAULT, width=1,
+    def ellipse(self, center, dimensions, color=None, width=1,
                 filled=False, alpha=-1):
         """
         Draw an ellipse given a location and a dimensions.
@@ -326,7 +278,7 @@ class DrawingLayer(list):
         pass
 
     @register_operation
-    def bezier(self, points, steps, color=Color.DEFAULT, alpha=-1):
+    def bezier(self, points, steps, color=None, alpha=-1):
         """
         Draw a bezier curve based on a control point and the a number of stapes
 
@@ -346,7 +298,7 @@ class DrawingLayer(list):
         pass
 
     @register_operation
-    def text(self, text, pos, color=Color.DEFAULT, alpha=-1):
+    def text(self, text, pos, color=None, alpha=-1):
         """
         Write the a text string at a given location
 
@@ -424,3 +376,68 @@ class DrawingLayer(list):
 
         """
         pass
+
+    def rectangle_to_pts(self, pt0, pt1, color=None, width=1,
+                             filled=False, alpha=-1):
+        """
+        Draw a rectangle given two (x,y) points
+
+        color - The object's color as a simple CVColor object, if no value is
+                specified the default is used.
+
+        alpha - The alpha blending for the object. If this value is -1 then the
+                layer default value is used. A value of 255 means opaque,
+                while 0 means transparent.
+
+        w -     The line width in pixels. This does not work if antialiasing is
+                enabled.
+
+        filled -The rectangle is filled in
+        """
+        if pt0[0] > pt1[0]:
+            w = pt0[0] - pt1[0]
+            x = pt1[0]
+        else:
+            w = pt1[0] - pt0[0]
+            x = pt0[0]
+        if pt0[1] > pt1[1]:
+            h = pt0[1] - pt1[1]
+            y = pt1[1]
+        else:
+            h = pt1[1] - pt0[1]
+            y = pt0[1]
+        self.rectangle(top_left=(x, y), dimensions=(w, h), color=color,
+                       width=width, filled=filled, alpha=alpha)
+
+    def centered_rectangle(self, center, dimensions, color=None,
+                           width=1, filled=False, alpha=-1):
+        """
+        Draw a rectangle given the center (x,y) of the rectangle and dimensions
+        (width, height)
+
+        color - The object's color as a simple CVColor object, if no value is
+                specified the default is used.
+
+        alpha - The alpha blending for the object. If this value is -1 then the
+                layer default value is used. A value of 255 means opaque, while
+                0 means transparent.
+
+        w -     The line width in pixels. This does not work if antialiasing is
+                enabled.
+
+        filled -The rectangle is filled in
+
+
+        parameters:
+            center - Tuple
+            dimenions - Tuple
+            color - Color object or Color Tuple
+            width - Int
+            filled - Boolean
+            alpha - Int
+
+        """
+        xtl = center[0] - (dimensions[0] / 2)
+        ytl = center[1] - (dimensions[1] / 2)
+        self.rectangle(top_left=(xtl, ytl), dimensions=dimensions, color=color,
+                       width=width, filled=filled, alpha=alpha)

@@ -157,6 +157,14 @@ except ImportError:
     ipython_version = None
 
 
+def on_ipython_notebook():
+        try:
+            config = get_ipython().config
+            return config['IPKernelApp']['parent_appname'] == 'ipython-notebook'
+        except:
+            return False
+
+
 #This is used with sys.excepthook to log all uncaught exceptions.
 #By default, error messages ARE print to stderr.
 def exception_handler(exc_type, exc_value, traceback):

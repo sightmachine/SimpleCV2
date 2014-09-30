@@ -61,7 +61,7 @@ setup(name="simplecv",
       },
       entry_points={
           'console_scripts': [
-              'simplecv = simplecv.shell:main',
+              'simplecv = simplecv.shell.shell:main',
           ],
           'simplecv.image': [
               # built-in image modules
@@ -79,7 +79,8 @@ setup(name="simplecv",
               'uploader = simplecv.plugins.uploader',
           ],
           'simplecv.renderer.renderers': [
-              'pygame = simplecv.core.drawing.renderer.pygamerenderer:PyGameRenderer'
+              'pygame = simplecv.core.drawing.renderer.pygamerenderer:PyGameRenderer',
+              'svg = simplecv.core.drawing.renderer.svgrenderer:SvgRenderer',
           ]
       },
       )

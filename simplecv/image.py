@@ -16,7 +16,7 @@ import cv2
 import numpy as np
 
 from simplecv import exif
-from simplecv.base import logger, init_options_handler, ScvException
+from simplecv.base import logger, init_options_handler, ScvException, on_ipython_notebook
 from simplecv.color import Color
 from simplecv.core.image import cached_method
 from simplecv.core.image import convert
@@ -252,27 +252,9 @@ class Image(CoreImage):
                 fh.write_frame(saveimg)
 
             elif isinstance(fh, Display):
-
-                if fh.displaytype == 'notebook':
-                    try:
-                        from IPython.core.display import Image as IPImage
-                    except ImportError:
-                        print "You need IPython Notebooks to use this " \
-                              "display mode"
-                        return
-
-                    from IPython.core import display as idisplay
-
-                    tf = tempfile.NamedTemporaryFile(suffix=".png")
-                    loc = tf.name
-                    tf.close()
-                    self.save(loc)
-                    idisplay.display(IPImage(filename=loc))
-                    return
-                else:
-                    #self.filename = ""
-                    self.filehandle = fh
-                    fh.write_frame(saveimg)
+                #self.filename = ""
+                self.filehandle = fh
+                fh.write_frame(saveimg)
 
             else:
                 if not mode:
@@ -734,12 +716,13 @@ class Image(CoreImage):
         elif type == 'window':
             from simplecv.display import Display
 
-            if init_options_handler.on_notebook:
-                d = Display(displaytype='notebook')
+            if on_ipython_notebook():
+                from IPython.display import SVG
+                return SVG(data=self.apply_layers(renderer='svg'))
             else:
                 d = Display(self.size_tuple)
-            self.save(d)
-            return d
+                self.save(d)
+                return d
         else:
             logger.warning("Unknown type to show")
 

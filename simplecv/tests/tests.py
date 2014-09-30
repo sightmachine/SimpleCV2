@@ -1112,18 +1112,52 @@ def test_find_blobs_from_hue_histogram():
     assert_equals(75, len(blobs))
 
 
-@skipped  # FIXME
 def test_drawing_layer_to_svg():
-    img = Image('lenna')
+    img = Image((10, 10))
     dl = img.dl()
     dl.line((0, 0), (100, 100))
-    svg = dl.get_svg()
-    result = '<svg baseProfile="full" height="512" version="1.1" width="512"'\
-             ' xmlns="http://www.w3.org/2000/svg" ' \
-             'xmlns:ev="http://www.w3.org/2001/xml-events" ' \
-             'xmlns:xlink="http://www.w3.org/1999/xlink"><defs />' \
-             '<line x1="0" x2="100" y1="0" y2="100" /></svg>'
+    dl.lines(((100, 0), (100, 200), (200, 200)))
+    dl.rectangle((0, 30), (20, 20))
+    dl.rectangle_to_pts((70, 250), (80, 260))
+    dl.centered_rectangle((100, 400), (40, 40))
+    dl.polygon(((300, 50), (315, 50), (330, 40), (320, 45)))
+    dl.circle((100, 200), 75)
+    dl.ellipse((300, 300), (30, 60))
+    dl.set_font_bold(True)
+    dl.text('hello svg', pos=(50, 300))
+    svg = img.apply_layers(renderer='svg')
+    result = '<svg baseProfile="full" height="10" version="1.1"' \
+             ' width="10" xmlns="http://www.w3.org/2000/svg"' \
+             ' xmlns:ev="http://www.w3.org/2001/xml-events"' \
+             ' xmlns:xlink="http://www.w3.org/1999/xlink"><defs />' \
+             '<image height="10" width="10" x="0" ' \
+             'xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUh' \
+             'EUgAAAAoAAAAKCAIAAAACUFjqAAAAH0lEQVQYGX3BAQEAAABAIP6f' \
+             '9kDJ&#10;kiVLlixZsmTJkhUH3wALKd+X6QAAAABJRU5ErkJggg==&#10;" ' \
+             'y="0" />' \
+             '<line stroke="rgb(0,0,0)" stroke-opacity="1.0" ' \
+             'stroke-width="1" x1="0" x2="100" y1="0" y2="100" />' \
+             '<line stroke="rgb(0,0,0)" stroke-opacity="1.0" ' \
+             'stroke-width="1" x1="100" x2="100" y1="0" y2="200" />' \
+             '<line stroke="rgb(0,0,0)" stroke-opacity="1.0" ' \
+             'stroke-width="1" x1="100" x2="200" y1="200" y2="200" />' \
+             '<rect fill-opacity="0" height="20" stroke="rgb(0,0,0)" ' \
+             'stroke-opacity="1.0" stroke-width="1" width="20" x="0" y="30" />' \
+             '<rect fill-opacity="0" height="10" stroke="rgb(0,0,0)" ' \
+             'stroke-opacity="1.0" stroke-width="1" width="10" x="70" y="250" />' \
+             '<rect fill-opacity="0" height="40" stroke="rgb(0,0,0)" ' \
+             'stroke-opacity="1.0" stroke-width="1" width="40" x="80" y="380" />' \
+             '<polygon fill-opacity="0" points="300,50 315,50 330,40 320,45" ' \
+             'stroke="rgb(0,0,0)" stroke-opacity="1.0" stroke-width="1" />' \
+             '<circle cx="100" cy="200" fill-opacity="0" r="75" ' \
+             'stroke="rgb(0,0,0)" stroke-opacity="1.0" stroke-width="1" />' \
+             '<ellipse cx="300" cy="300" fill-opacity="0" ' \
+             'rx="30" ry="60" stroke="rgb(0,0,0)" stroke-opacity="1.0" stroke-width="1" />' \
+             '<text fill="rgb(0,0,0)" fill-opacity="1.0" ' \
+             'style="font-size: 11px;font-weight: bold;" x="50" y="300">hello svg</text>' \
+             '</svg>'
     assert_equals(result, svg)
+
 
 def test_draw():
     simg = Image("simplecv")
