@@ -79,6 +79,7 @@ setup(name="simplecv",
               'uploader = simplecv.plugins.uploader',
           ],
           'simplecv.renderer.renderers': [
+              'cv2 = simplecv.core.drawing.renderer.opencvrenderer:OpenCvRenderer',
               'pygame = simplecv.core.drawing.renderer.pygamerenderer:PyGameRenderer',
               'svg = simplecv.core.drawing.renderer.svgrenderer:SvgRenderer',
           ]

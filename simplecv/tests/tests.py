@@ -1126,15 +1126,15 @@ def test_drawing_layer_to_svg():
     dl.set_font_bold(True)
     dl.text('hello svg', pos=(50, 300))
     svg = img.apply_layers(renderer='svg')
-    result = '<svg baseProfile="full" height="10" version="1.1"' \
-             ' width="10" xmlns="http://www.w3.org/2000/svg"' \
-             ' xmlns:ev="http://www.w3.org/2001/xml-events"' \
-             ' xmlns:xlink="http://www.w3.org/1999/xlink"><defs />' \
+    result = '<svg baseProfile="full" height="10" version="1.1" ' \
+             'width="10" xmlns="http://www.w3.org/2000/svg" ' \
+             'xmlns:ev="http://www.w3.org/2001/xml-events" ' \
+             'xmlns:xlink="http://www.w3.org/1999/xlink"><defs />' \
              '<image height="10" width="10" x="0" ' \
-             'xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUh' \
-             'EUgAAAAoAAAAKCAIAAAACUFjqAAAAH0lEQVQYGX3BAQEAAABAIP6f' \
-             '9kDJ&#10;kiVLlixZsmTJkhUH3wALKd+X6QAAAABJRU5ErkJggg==&#10;" ' \
-             'y="0" />' \
+             'xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhE' \
+             'UgAAAAoAAAAKCAYAAACNMs+9AAAAKklEQVQYGY3BAQEAAAABoPwfzQ' \
+             'UV&#10;1CGoQ1CHoA5BHYI6BHUI6hDUIajDAKk6CgHUYcToAAAAAEl' \
+             'FTkSuQmCC&#10;" y="0" />' \
              '<line stroke="rgb(0,0,0)" stroke-opacity="1.0" ' \
              'stroke-width="1" x1="0" x2="100" y1="0" y2="100" />' \
              '<line stroke="rgb(0,0,0)" stroke-opacity="1.0" ' \
@@ -1147,14 +1147,15 @@ def test_drawing_layer_to_svg():
              'stroke-opacity="1.0" stroke-width="1" width="10" x="70" y="250" />' \
              '<rect fill-opacity="0" height="40" stroke="rgb(0,0,0)" ' \
              'stroke-opacity="1.0" stroke-width="1" width="40" x="80" y="380" />' \
-             '<polygon fill-opacity="0" points="300,50 315,50 330,40 320,45" ' \
+             '<path d="M 300 50 L 315 50 L 330 40 L 320 45 Z" fill-opacity="0" ' \
+             'fill-rule="evenodd" stroke="rgb(0,0,0)" stroke-opacity="1.0" stroke-width="1" />' \
+             '<circle cx="100" cy="200" fill-opacity="0" r="75" stroke="rgb(0,0,0)" ' \
+             'stroke-opacity="1.0" stroke-width="1" />' \
+             '<ellipse cx="300" cy="300" fill-opacity="0" rx="15" ry="30" ' \
              'stroke="rgb(0,0,0)" stroke-opacity="1.0" stroke-width="1" />' \
-             '<circle cx="100" cy="200" fill-opacity="0" r="75" ' \
-             'stroke="rgb(0,0,0)" stroke-opacity="1.0" stroke-width="1" />' \
-             '<ellipse cx="300" cy="300" fill-opacity="0" ' \
-             'rx="30" ry="60" stroke="rgb(0,0,0)" stroke-opacity="1.0" stroke-width="1" />' \
              '<text fill="rgb(0,0,0)" fill-opacity="1.0" ' \
-             'style="font-size: 11px;font-weight: bold;" x="50" y="300">hello svg</text>' \
+             'style="font-size: 11px;font-weight: bold;" ' \
+             'x="50" y="300">hello svg</text>' \
              '</svg>'
     assert_equals(result, svg)
 

@@ -104,18 +104,8 @@ class Contour(np.ndarray):
         if layer is None:
             layer = contour.blob.image.dl()
 
-        if width < 0:  # means filled
-            layer.polygon(points=contour, color=color,
-                          width=1, filled=True, antialias=True, alpha=alpha)
-            for hole in holes:
-                layer.polygon(points=hole, color=color,
-                              width=1, filled=True, antialias=True, alpha=0)
-        else:  # draw contours
-            layer.polygon(points=contour, color=color,
-                          width=width, filled=False, antialias=True, alpha=alpha)
-            for hole in holes:
-                layer.polygon(points=hole, color=color,
-                              width=width, filled=False, antialias=True, alpha=alpha)
+        layer.polygon(points=contour, color=color, holes=holes,
+                      width=width, antialias=True, alpha=alpha)
 
     def to_image(self, color=Color.WHITE, filled=False, full=False, masked=False):
         width = -1 if filled else 1

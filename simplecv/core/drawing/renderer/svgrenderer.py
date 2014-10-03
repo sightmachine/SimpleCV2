@@ -72,7 +72,7 @@ class SvgRenderer(RendererBase):
             self.line(start, stop, color=color, antialias=antialias, alpha=alpha)
 
     def rectangle(self, top_left, dimensions, color=None, width=1,
-                  filled=False, alpha=-1):
+                  filled=False, alpha=-1, antialias=True):
         if width < 0:
             filled = True
         if filled:
@@ -92,7 +92,7 @@ class SvgRenderer(RendererBase):
                                        stroke_width=int(width),
                                        stroke_opacity=alpha))
 
-    def polygon(self, points, color=None, width=1, filled=False,
+    def polygon(self, points, holes=(), color=None, width=1, filled=False,
                 antialias=True, alpha=-1):
         if width < 0:
             filled = True
@@ -100,16 +100,26 @@ class SvgRenderer(RendererBase):
             width = 0
         color = self._to_svg_color(color)
         alpha = self._to_svg_alpha(alpha)
+        kwargs = {}
         if filled:
-            self.svg.add(self.svg.polygon(points=points,
-                                          fill=color,
-                                          fill_opacity=alpha))
+            kwargs['fill'] = color
+            kwargs['fill_opacity'] = alpha
         else:
-            self.svg.add(self.svg.polygon(points=points,
-                                          fill_opacity=0,
-                                          stroke=color,
-                                          stroke_width=int(width),
-                                          stroke_opacity=alpha))
+            kwargs['fill_opacity'] = 0
+            kwargs['stroke'] = color
+            kwargs['stroke_width'] = int(width)
+            kwargs['stroke_opacity'] = alpha
+
+        def to_path(l):
+            return [('M', l[0][0], l[0][1])] + \
+                   [('L', x, y) for x, y in l[1:]] + \
+                   ['Z']
+
+        path = to_path(points)
+        for hole in holes:
+            path += to_path(hole)
+
+        self.svg.add(self.svg.path(path, fill_rule='evenodd', **kwargs))
 
     def circle(self, center, radius, color=None, width=1,
                filled=False, alpha=-1, antialias=True):
@@ -133,21 +143,22 @@ class SvgRenderer(RendererBase):
                                          stroke_opacity=alpha))
 
     def ellipse(self, center, dimensions, color=None, width=1,
-                filled=False, alpha=-1):
+                filled=False, alpha=-1, antialias=True):
         if width < 0:
             filled = True
         if filled:
             width = 0
         color = self._to_svg_color(color)
         alpha = self._to_svg_alpha(alpha)
+        dimensions = int(dimensions[0] / 2), int(dimensions[1] / 2)
         if filled:
             self.svg.add(self.svg.ellipse(center=map(int, center),
-                                          r=map(int, dimensions),
+                                          r=dimensions,
                                           fill=color,
                                           fill_opacity=alpha))
         else:
             self.svg.add(self.svg.ellipse(center=map(int, center),
-                                          r=map(int, dimensions),
+                                          r=dimensions,
                                           fill_opacity=0,
                                           stroke=color,
                                           stroke_width=int(width),
@@ -192,6 +203,7 @@ class SvgRenderer(RendererBase):
         self.svg.add(sprite)
 
     def blit(self, img, pos=(0, 0)):
+        img = img.to_bgra()
         data = base64.encodestring(cv2.imencode('.png', img)[1].tostring())
         data = 'data:image/png;base64,' + data
         self.svg.add(sw.image.Image(data, insert=pos, size=img.size_tuple))

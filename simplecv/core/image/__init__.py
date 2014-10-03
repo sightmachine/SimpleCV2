@@ -102,7 +102,10 @@ class Image(np.ndarray):
             self._color_space = Image.GRAY
         else:
             if color_space is None:
-                self._color_space = Image.BGR
+                if self.shape[2] == 4:
+                    self._color_space = Image.BGRA
+                else:
+                    self._color_space = Image.BGR
             elif color_space not in ColorSpace.color_spaces:
                 raise ValueError('Unknown color space')
             else:
@@ -135,6 +138,7 @@ class Image(np.ndarray):
     def size_tuple(self):
         return self.width, self.height
 
+    #
     def __sub__(self, other):
         if isinstance(other, Image):
             if self.shape != other.shape:

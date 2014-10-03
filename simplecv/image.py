@@ -16,7 +16,7 @@ import cv2
 import numpy as np
 
 from simplecv import exif
-from simplecv.base import logger, init_options_handler, ScvException, on_ipython_notebook
+from simplecv.base import logger, ScvException, on_ipython_notebook
 from simplecv.color import Color
 from simplecv.core.image import cached_method
 from simplecv.core.image import convert
@@ -395,7 +395,7 @@ class Image(CoreImage):
         self.layers.append(layer)
         return len(self.layers) - 1
 
-    def apply_layers(self, indicies=None, renderer='pygame'):
+    def apply_layers(self, indicies=None, renderer='cv2'):
         """
         **SUMMARY**
 
@@ -428,7 +428,7 @@ class Image(CoreImage):
         :py:meth:`get_drawing_layer`
         """
         if len(self.layers) == 0:
-            return self
+            self.add_drawing_layer()
 
         if indicies is None:
             merged_layer = self.merged_layers()

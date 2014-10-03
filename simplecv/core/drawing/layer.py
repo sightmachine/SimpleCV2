@@ -177,7 +177,7 @@ class DrawingLayer(list):
 
     @register_operation
     def rectangle(self, top_left, dimensions, color=None, width=1,
-                  filled=False, alpha=-1):
+                  filled=False, alpha=-1, antialias=True):
         """
         Draw a rectangle given the top_left the (x,y) coordinate of the top
         left corner and dimensions (w,h) tge width and height
@@ -197,7 +197,7 @@ class DrawingLayer(list):
         pass
 
     @register_operation
-    def polygon(self, points, color=None, width=1, filled=False,
+    def polygon(self, points, holes=(), color=None, width=1, filled=False,
                 antialias=True, alpha=-1):
         """
         Draw a polygon from a list of (x,y)
@@ -251,7 +251,7 @@ class DrawingLayer(list):
 
     @register_operation
     def ellipse(self, center, dimensions, color=None, width=1,
-                filled=False, alpha=-1):
+                filled=False, alpha=-1, antialias=True):
         """
         Draw an ellipse given a location and a dimensions.
 
@@ -348,7 +348,7 @@ class DrawingLayer(list):
             raise ValueError('text should not be empty')
 
     @register_operation
-    def sprite(self, img, pos=(0, 0), scale=1.0, rot=0.0, alpha=255):
+    def sprite(self, img, pos=(0, 0), scale=1.0, rot=0.0, alpha=-1):
         """
         sprite draws a sprite (a second small image) onto the current layer.
         The sprite can be loaded directly from a supported image file like a

@@ -1,18 +1,6 @@
 # SimpleCV Feature library
 #
 # Tools return basic features in feature sets
-
-# #    x = 0.00
-#     y = 0.00
-#     max_x = None
-#     max_y = None
-#     min_x = None
-#     min_y = None
-#     width = None
-#     height = None
-#     src_img_w = None
-#     src_img_h = None
-
 from math import sqrt
 import copy
 import re

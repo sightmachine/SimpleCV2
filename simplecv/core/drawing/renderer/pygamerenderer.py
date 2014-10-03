@@ -90,7 +90,7 @@ class PyGameRenderer(RendererBase):
                           0, points, width)
 
     def rectangle(self, top_left, dimensions, color=None, width=1,
-                  filled=False, alpha=-1):
+                  filled=False, alpha=-1, antialias=True):
         if width < 0:
             filled = True
         if filled:
@@ -100,7 +100,7 @@ class PyGameRenderer(RendererBase):
         pg.draw.rect(self.surface, self._csv_rgb_to_pg_color(color, alpha),
                      rect, int(width))
 
-    def polygon(self, points, color=None, width=1, filled=False,
+    def polygon(self, points, holes=(), color=None, width=1, filled=False,
                 antialias=True, alpha=-1):
         if width < 0:
             filled = True
@@ -111,14 +111,26 @@ class PyGameRenderer(RendererBase):
                 pg.draw.aalines(self.surface,
                                 self._csv_rgb_to_pg_color(color, alpha), True,
                                 points, width)
+                for hole in holes:
+                    pg.draw.aalines(self.surface,
+                                    self._csv_rgb_to_pg_color(color, alpha), True,
+                                    hole, width)
             else:
                 pg.draw.lines(self.surface,
                               self._csv_rgb_to_pg_color(color, alpha), True,
                               points, width)
+                for hole in holes:
+                    pg.draw.lines(self.surface,
+                                  self._csv_rgb_to_pg_color(color, alpha), True,
+                                  hole, width)
         else:
-            pg.draw.polygon(self.surface, self._csv_rgb_to_pg_color(color,
-                                                                    alpha),
+            pg.draw.polygon(self.surface,
+                            self._csv_rgb_to_pg_color(color, alpha),
                             points, width)
+            for hole in holes:
+                pg.draw.polygon(self.surface,
+                            self._csv_rgb_to_pg_color(color, 0),
+                            hole, width)
 
     def circle(self, center, radius, color=None, width=1,
                filled=False, alpha=-1, antialias=True):
@@ -139,7 +151,7 @@ class PyGameRenderer(RendererBase):
                                 self._csv_rgb_to_pg_color(color, alpha))
 
     def ellipse(self, center, dimensions, color=None, width=1,
-                filled=False, alpha=-1):
+                filled=False, alpha=-1, antialias=True):
         if width < 0:
             filled = True
         if filled:
@@ -181,7 +193,7 @@ class PyGameRenderer(RendererBase):
                                self._csv_rgb_to_pg_color(bgcolor, alpha))
         self.surface.blit(tsurface, pos)
 
-    def sprite(self, img, pos=(0, 0), scale=1.0, rot=0.0, alpha=255):
+    def sprite(self, img, pos=(0, 0), scale=1.0, rot=0.0, alpha=-1):
         if not pg.display.get_init():
             pg.display.init()
 
@@ -200,6 +212,7 @@ class PyGameRenderer(RendererBase):
                                         int(image.get_height() * scale)))
         pixels_alpha = pg.surfarray.pixels_alpha(image)
         pixels_alpha[...] = (pixels_alpha * (alpha / 255.0)).astype(np.uint8)
+        del pixels_alpha
         self.surface.blit(image, pos)
 
     def blit(self, img, pos=(0, 0)):
