@@ -30,12 +30,8 @@ class FrameBufferThread(threading.Thread):
         global _cameras
         while 1:
             for cam in _cameras:
-                if cam.pygame_camera:
-                    cam.pygame_buffer = cam.capture.get_image(
-                        cam.pygame_buffer)
-                else:
-                    if cam.capture.isOpened():
-                        cam.capture.grab()
+                if cam.capture.isOpened():
+                    cam.capture.grab()
                 cam._thread_capture_time = time.time()
             time.sleep(0.04)  # max 25 fps, if you're lucky
 
@@ -106,8 +102,6 @@ class Camera(FrameSource):
         global _index
 
         self.thread = ""
-        self.pygame_camera = False
-        self.pygame_buffer = ""
         self.index = None
         self.threaded = False
         self.capture = None
@@ -149,50 +143,18 @@ class Camera(FrameSource):
         if "delay" in prop_set:
             time.sleep(prop_set['delay'])
 
-        if SYSTEM == "Linux" and ("height" in prop_set
-                                  or not self.capture.grab()):
-            import pygame.camera
+        _index.append(camera_index)
+        self.threaded = False
+        if SYSTEM == "Windows":
+            threaded = False
 
-            pygame.camera.init()
-            threaded = True  # pygame must be threaded
-            if camera_index == -1:
-                camera_index = 0
-                self.index = camera_index
-                _index.append(camera_index)
-                print _index
-            if 'height' in prop_set and 'width' in prop_set:
-                self.capture = pygame.camera.Camera("/dev/video" +
-                                                    str(camera_index),
-                                                    (prop_set['width'],
-                                                     prop_set['height']))
-            else:
-                self.capture = pygame.camera.Camera("/dev/video" +
-                                                    str(camera_index))
+        if not self.capture:
+            return
 
-            try:
-                self.capture.start()
-            except Exception, e:
-                logger.warning("caught exception: %r", e)
-                logger.warning("SimpleCV can't seem to find a camera on your "
-                               "system, or the drivers do not work with "
-                               "simplecv.")
-                return
-            time.sleep(0)
-            self.pygame_buffer = self.capture.get_image()
-            self.pygame_camera = True
-        else:
-            _index.append(camera_index)
-            self.threaded = False
-            if SYSTEM == "Windows":
-                threaded = False
-
-            if not self.capture:
-                return
-
-            #set any properties in the constructor
-            for prop in prop_set.keys():
-                if prop in self.prop_map:
-                    self.capture.set(self.prop_map[prop], prop_set[prop])
+        #set any properties in the constructor
+        for prop in prop_set.keys():
+            if prop in self.prop_map:
+                self.capture.set(self.prop_map[prop], prop_set[prop])
 
         if threaded:
             self.threaded = True
@@ -232,14 +194,6 @@ class Camera(FrameSource):
         >>> cam = Camera()
         >>> prop = cam.get_property("width")
         """
-        if self.pygame_camera:
-            if prop.lower() == 'width':
-                return self.capture.get_size()[0]
-            elif prop.lower() == 'height':
-                return self.capture.get_size()[1]
-            else:
-                return False
-
         if prop in self.prop_map:
             return self.capture.get(self.prop_map[prop])
         return False
@@ -255,8 +209,6 @@ class Camera(FrameSource):
         A dict of all the camera properties.
 
         """
-        if self.pygame_camera:
-            return False
         properties = {}
         for prop in self.prop_map:
             properties[prop] = self.get_property(prop)
@@ -284,9 +236,6 @@ class Camera(FrameSource):
         >>>    cam.get_image().show()
 
         """
-
-        if self.pygame_camera:
-            return Factory.Image(self.pygame_buffer.copy())
 
         if not self.threaded:
             self.capture_time = time.time()

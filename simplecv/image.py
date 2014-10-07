@@ -5,7 +5,6 @@ import os
 import re
 import tempfile
 import time
-from simplecv.core.drawing.renderer import Renderer
 
 try:
     from PIL import Image as PilImage
@@ -19,12 +18,11 @@ from simplecv import exif
 from simplecv.base import logger, ScvException, on_ipython_notebook
 from simplecv.color import Color
 from simplecv.core.image import cached_method
-from simplecv.core.image import convert
 from simplecv.core.image import Image as CoreImage
 from simplecv.core.image.loader import ImageLoader
 from simplecv.core.pluginsystem import apply_plugins
-from simplecv.display import Display
 from simplecv.core.drawing.layer import DrawingLayer
+from simplecv.core.drawing.renderer import Renderer
 from simplecv.features.features import FeatureSet
 from simplecv.stream import JpegStreamer, VideoStream
 
@@ -248,11 +246,6 @@ class Image(CoreImage):
 
             elif isinstance(fh, VideoStream):
                 self.filename = ""
-                self.filehandle = fh
-                fh.write_frame(saveimg)
-
-            elif isinstance(fh, Display):
-                #self.filename = ""
                 self.filehandle = fh
                 fh.write_frame(saveimg)
 
@@ -573,21 +566,8 @@ class Image(CoreImage):
         :py:meth:`get_gray_numpy`
         :py:meth:`get_grayscale_matrix`
         """
-        return convert.to_pil_image(self)
-
-    @cached_method
-    def get_pg_surface(self):
-        """
-        **SUMMARY**
-
-        Returns the image as a pygame surface.  This is used for rendering the
-        display
-
-        **RETURNS**
-
-        A pygame surface object used for rendering.
-        """
-        return convert.to_pg_surface(self)
+        return PilImage.fromstring("RGB", self.size_tuple,
+                                   self.to_rgb().tostring())
 
     def get_exif_data(self):
         """
@@ -714,17 +694,14 @@ class Image(CoreImage):
             webbrowser.open("http://localhost:8080", 2)
             return js
         elif type == 'window':
-            from simplecv.display import Display
-
             if on_ipython_notebook():
                 from IPython.display import SVG
                 return SVG(data=self.apply_layers(renderer='svg'))
             else:
-                d = Display(self.size_tuple)
-                self.save(d)
-                return d
+                cv2.imshow('simplecv', self)
+                cv2.waitKey(100)
         else:
-            logger.warning("Unknown type to show")
+            raise ValueError("Unknown type to show")
 
     def draw_keypoint_matches(self, template, thresh=500.00, min_dist=0.15,
                               width=1):

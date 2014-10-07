@@ -3,7 +3,6 @@ import glob
 import pickle
 
 from simplecv.color import Color
-from simplecv.display import Display
 from simplecv.image_set import ImageSet
 
 
@@ -224,7 +223,10 @@ class TurkingModule(object):
         TODO: Make it so you can stop and start turking at any given spot in
         the process
         """
-        disp = Display(disp_size)
+        # FIXME: Rewrite without using of PygameDisplay
+        return
+
+        disp = PygameDisplay(disp_size)
         for img in self.src_imgs:
             print img.filename
             samples = self.preprocess(img)

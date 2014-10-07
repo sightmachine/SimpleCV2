@@ -15,10 +15,8 @@ want to retrain then just right click to reset.
 print __doc__
 
 import time
-from simplecv import Color, Image, np, Camera
-from simplecv.display import Display
 cam = Camera()
-display = Display((640,480)) # create our display
+display = PygameDisplay((640,480)) # create our display
 
 quality = 400.00
 minDist = 0.35

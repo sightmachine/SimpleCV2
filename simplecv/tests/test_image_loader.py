@@ -6,7 +6,6 @@ from simplecv.core.image.loader import ImageLoader, Cv2ImageLoader, \
                                        RawPngImageLoader, \
                                        ListTupleImageLoader, \
                                        WebpImageLoader, \
-                                       PygameImageLoader, \
                                        PilImageLoader
 from simplecv.image import Image
 from simplecv.tests.utils import skipped
@@ -51,7 +50,9 @@ def test_HttpImageLoader():
 
     assert_equals(array.shape, (512, 512, 3))
     assert_equals(colorspace, Image.BGR)
-"""
+
+
+@skipped
 def test_RawPngImageLoader():
     f = open("../data/test/standard/raw_png_data_simplecv", "r")
     png_data = f.read()
@@ -62,7 +63,7 @@ def test_RawPngImageLoader():
     array, colorspace, filename = data
     assert_equals(array.shape, (250, 250, 3))
     assert_equals(colorspace, Image.BGR)
-"""
+
 
 def test_ListTupleImageLoader():
     assert ListTupleImageLoader.can_load(source=(100, 100))
@@ -93,18 +94,6 @@ def test_WebpImageLoader():
     assert_equals(array.shape, (250, 250, 3))
     assert_equals(color_space, Image.RGB)
 
-def test_PygameImageLoader():
-    img = Image("lenna")
-    pg_surface = img.get_pg_surface()
-
-    assert PygameImageLoader.can_load(source=pg_surface)
-    assert not PygameImageLoader.can_load(source=img)
-
-    data = PygameImageLoader.load(source=pg_surface)
-    array, color_space, filename = data
-
-    assert_equals(array.shape, (512, 512, 3))
-    assert_equals(color_space, Image.RGB)
 
 def test_PilImageLoader():
     img = Image("simplecv")

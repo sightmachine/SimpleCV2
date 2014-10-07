@@ -1,23 +1,20 @@
 import pickle
-import time
 
 import cv2
 import numpy as np
-import pygame as pg
 
 from simplecv.base import logger
-from simplecv.color import Color
-from simplecv.display import Display
+from simplecv.core.pluginsystem import apply_plugins
 from simplecv.factory import Factory
 
 
+@apply_plugins
 class FrameSource(object):
     """
     **SUMMARY**
 
     An abstract Camera-type class, for handling multiple types of video input.
     Any sources of images inheirit from it
-
 
     """
 
@@ -308,60 +305,6 @@ class FrameSource(object):
             return True
         else:
             return False
-
-    def live(self):
-        """
-        **SUMMARY**
-
-        This shows a live view of the camera.
-
-        **EXAMPLE**
-
-        To use it's as simple as:
-
-        >>> cam = Camera()
-        >>> cam.live()
-
-        Left click will show mouse coordinates and color
-        Right click will kill the live image
-        """
-
-        start_time = time.time()
-
-        #from SimpleCV.Display import Display
-        image = self.get_image()
-        display = Display(image.size)
-        image.save(display)
-        col = Color.RED
-
-        while display.is_not_done():
-            image = self.get_image()
-            elapsed_time = time.time() - start_time
-
-            if display.mouse_left:
-                txt = "coord: (" + str(display.mouse_x) + "," \
-                      + str(display.mouse_y) + ")"
-                image.dl().text(txt, (10, image.height / 2), color=col)
-                txt = "color: " + str(image.get_pixel(display.mouse_x,
-                                                      display.mouse_y))
-                image.dl().text(txt, (10, (image.height / 2) + 10), color=col)
-                print "coord: (" + str(display.mouse_x) + "," \
-                      + str(display.mouse_y) + "), color: " \
-                      + str(image.get_pixel(display.mouse_x, display.mouse_y))
-
-            if elapsed_time > 0 and elapsed_time < 5:
-                image.dl().text("In live mode", (10, 10), color=col)
-                image.dl().text("Left click will show mouse coordinates \
-                                 and color", (10, 20), color=col)
-                image.dl().text("Right click will kill the live \
-                                 image", (10, 30), color=col)
-
-            image.save(display)
-            if display.mouse_right:
-                print "Closing Window"
-                display.done = True
-
-        pg.quit()
 
     def get_thread_capture_time(self):
         return self._thread_capture_time

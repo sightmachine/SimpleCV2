@@ -1,6 +1,4 @@
 import time
-from simplecv import *
-from simplecv.display import Display, pg
 from simplecv.segmentation import ColorSegmentation
 segmentation = ColorSegmentation()
 cam = Camera()

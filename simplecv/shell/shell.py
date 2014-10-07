@@ -233,12 +233,7 @@ def main(*args):
             print "Updating SimpleCV....."
             self_update()
 
-        if flag in ['--headless', 'headless']:
-            # set SDL to use the dummy NULL video driver,
-            #   so it doesn't need a windowing system.
-            os.environ["SDL_VIDEODRIVER"] = "dummy"
-
-        elif flag in ['--nowarnings', 'nowarnings']:
+        if flag in ['--nowarnings', 'nowarnings']:
             log_level = logging.INFO
 
         elif flag in ['--debug', 'debug']:

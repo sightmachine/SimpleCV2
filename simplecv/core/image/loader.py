@@ -5,6 +5,8 @@ import os
 import random
 import urllib2
 import cStringIO
+from simplecv.core.pluginsystem import plugin_list
+
 try:
     from PIL import Image as PilImage
 except:
@@ -12,7 +14,6 @@ except:
 
 import cv2
 import numpy as np
-import pygame as pg
 
 from simplecv import DATA_DIR
 from simplecv.core.image import Image
@@ -29,17 +30,22 @@ class ImageLoaderBase(object):
         raise NotImplementedError()
 
 
+@plugin_list('loaders')
 class ImageLoader(object):
 
+    builtin_loaders = []
     loaders = []
 
     @staticmethod
     def register(loader_cls):
-        ImageLoader.loaders.append(loader_cls)
+        ImageLoader.builtin_loaders.append(loader_cls)
         return loader_cls
 
     @staticmethod
     def load(**kwargs):
+        for loader in ImageLoader.builtin_loaders:
+            if loader.can_load(**kwargs):
+                return loader.load(**kwargs)
         for loader in ImageLoader.loaders:
             if loader.can_load(**kwargs):
                 return loader.load(**kwargs)
@@ -294,27 +300,6 @@ class WebpImageLoader(ImageLoaderBase):
             except:
                 raise Exception('Failed to load webp image using PIL')
             array = np.asarray(pil_img, dtype=np.uint8)
-            return array, Image.RGB, None
-        else:
-            raise Exception('Cannot load image from {}'.format(source))
-
-
-@ImageLoader.register
-class PygameImageLoader(ImageLoaderBase):
-
-    @staticmethod
-    def can_load(**kwargs):
-        source = kwargs.get('source')
-        if isinstance(source, pg.Surface):
-            return True
-        else:
-            return False
-
-    @staticmethod
-    def load(**kwargs):
-        source = kwargs.get('source')
-        if isinstance(source, pg.Surface):
-            array = cv2.transpose(pg.surfarray.array3d(source).copy())
             return array, Image.RGB, None
         else:
             raise Exception('Cannot load image from {}'.format(source))

@@ -17,4 +17,3 @@ from simplecv.features.detection import Line, ROI, Corner, Line, \
 from simplecv.features.features import FeatureSet, Feature
 from simplecv.image import Image
 from simplecv.image_set import ImageSet
-from simplecv.display import Display

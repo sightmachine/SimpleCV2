@@ -38,37 +38,6 @@ def convert_camel_case_to_underscore(name):
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
 
-class InitOptionsHandler(object):
-    """
-    **summary**
-
-    this handler is supposed to store global variables. for now, its only value
-    defines if simplecv is being run on an ipython notebook.
-
-    """
-
-    def __init__(self):
-        self.on_notebook = False
-        self.headless = False
-
-    def enable_notebook(self):
-        self.on_notebook = True
-
-    def set_headless(self):
-        # set SDL to use the dummy NULL video driver,
-        # so it doesn't need a windowing system.
-        os.environ["SDL_VIDEODRIVER"] = "dummy"
-        self.headless = True
-
-
-init_options_handler = InitOptionsHandler()
-
-try:
-    import pygame as pg
-except ImportError:
-    init_options_handler.set_headless()
-
-
 #couple quick typecheck helper functions
 def is_number(n):
     """
@@ -295,25 +264,15 @@ def system():
         print "System : ", platform.system()
         print "OS version : ", platform.version()
         print "Python version :", platform.python_version()
-        try:
-            from cv2 import __version__
+        print "Open CV2 version : " + cv2.__version__
 
-            print "Open CV version : " + __version__
-        except ImportError:
-            print "Open CV2 version : " + "2.1"
         if PIL_ENABLED:
             print "PIL version : ", PilImage.VERSION
         else:
             print "PIL module not installed"
-        try:
-            import pygame as pg
 
-            print "PyGame Version : " + pg.__version__
-        except ImportError:
-            print "PyGame module not installed"
         try:
             import pickle
-
             print "Pickle Version : " + pickle.__version__
         except:
             print "Pickle module not installed"

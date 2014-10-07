@@ -30,10 +30,8 @@ setup(name="simplecv",
       zip_safe=False,
       requires=[
           'cv2',
-          'cv',
           'numpy',
           'scipy',
-          'pygame',
           'pil',
           'svgwrite',
           'skimage'
@@ -65,7 +63,6 @@ setup(name="simplecv",
           ],
           'simplecv.image': [
               # built-in image modules
-              'convert = simplecv.core.image.convert',
               'detection = simplecv.core.image.detection',
               'dft = simplecv.core.image.dft',
               'filter = simplecv.core.image.filter',
@@ -80,7 +77,6 @@ setup(name="simplecv",
           ],
           'simplecv.renderer.renderers': [
               'cv2 = simplecv.core.drawing.renderer.opencvrenderer:OpenCvRenderer',
-              'pygame = simplecv.core.drawing.renderer.pygamerenderer:PyGameRenderer',
               'svg = simplecv.core.drawing.renderer.svgrenderer:SvgRenderer',
           ]
       },
