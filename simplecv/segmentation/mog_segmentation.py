@@ -36,9 +36,22 @@ class MOGSegmentation(SegmentationBase):
         self.noise_sigma = kwargs.get('noise_sigma', 15)
         self.learning_rate = kwargs.get('learning_rate', 0.7)
 
+        self._init_bs_mog()
+
+    def _init_bs_mog(self):
         self.bs_mog = cv2.BackgroundSubtractorMOG(
             history=self.history, nmixtures=self.mixtures,
             backgroundRatio=self.bg_ratio, noiseSigma=self.noise_sigma)
+
+    def __getstate__(self):
+        mydict = self.__dict__.copy()
+        mydict['diff_img'] = None
+        mydict['bs_mog'] = None
+        return mydict
+
+    def __setstate__(self, state):
+        self.__dict__ = state
+        self._init_bs_mog()
 
     def add_image(self, img):
         """
@@ -101,9 +114,3 @@ class MOGSegmentation(SegmentationBase):
             ret_val = Blob.extract_from_binary(self.diff_img,
                                                self.color_img)
         return ret_val
-
-    def __getstate__(self):
-        mydict = self.__dict__.copy()
-        self.diff_img = None
-        del mydict['diff_img']
-        return mydict

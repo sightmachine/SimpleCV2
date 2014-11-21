@@ -861,8 +861,10 @@ class Chessboard(Feature):
                                key=lambda corner: corner[0][0] - corner[0][1])
         #sort corners along the x - y axis
 
-        points = (posdiagsorted[0][0], negdiagsorted[-1][0], posdiagsorted[-1][0],
-                  negdiagsorted[0][0])
+        points = (posdiagsorted[0][0].tolist(),
+                  negdiagsorted[-1][0].tolist(),
+                  posdiagsorted[-1][0].tolist(),
+                  negdiagsorted[0][0].tolist())
         super(Chessboard, self).__init__(i, at_x, at_y, points)
 
     def draw(self, no_needed_color=None):
@@ -1580,6 +1582,22 @@ class KeyPoint(Feature):
             x = (r * sin(rp)) + self.x
             y = (r * cos(rp)) + self.y
             self.points.append((x, y))
+
+    def __getstate__(self):
+        # cv2.KeyPoint can't be pickled
+        d = self.__dict__.copy()
+        d['key_point'] = (self.key_point.pt, self.key_point.size,
+                          self.key_point.angle, self.key_point.response,
+                          self.key_point.octave,
+                          self.key_point.class_id,)
+        return d
+
+    def __setstate__(self, state):
+        self.__dict__ = state
+        cv2.KeyPoint(x=self.key_point[0][0], y=self.key_point[0][1],
+                     _size=self.key_point[1], _angle=self.key_point[2],
+                     _response=self.key_point[3], _octave=self.key_point[4])
+
 
     @property
     def object(self):
@@ -2376,9 +2394,9 @@ class KeypointMatch(Feature):
 
             #construct the feature set and return it.
             fs = FeatureSet()
-            fs.append(Factory.KeypointMatch(img, template,
-                                            (pt0i, pt1i, pt2i, pt3i),
-                                            homography))
+            fs.append(KeypointMatch(img, template,
+                                    (pt0i, pt1i, pt2i, pt3i),
+                                    homography))
             # the homography matrix is necessary for many purposes like image
             # stitching.
             # No need to add homography as it is already being

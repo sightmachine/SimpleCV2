@@ -60,6 +60,7 @@ class Image(CoreImage):
     >>> img = Image("http://www.simplecv.org/image.png")
 
     """
+    __survive_pickling__ = CoreImage.__survive_pickling__ + ['layers']
 
     def __new__(cls, source=None, **kwargs):
         filename = None
@@ -109,13 +110,6 @@ class Image(CoreImage):
         # points when we crop the image.
         self.uncropped_x = 0
         self.uncropped_y = 0
-
-    # def __getstate__(self):
-    #     return dict(color_space=self._color_space,
-    #                 array=self.apply_layers())
-    #
-    # def __setstate__(self, d):
-    #     self.__init__(**d)
 
     def save(self, filehandle_or_filename="", mode="", verbose=False,
              temp=False, path=None, filename=None, clean_temp=False, **params):

@@ -400,12 +400,6 @@ class ColorMap(object):
     >>>    b.draw(cm[b.get_area()])
 
     """
-    color = ()
-    end_color = ()
-    start_map = 0
-    end_map = 0
-    color_distance = 0
-    value_range = 0
 
     def __init__(self, color, start_map, end_map):
         self.color = np.array(color)

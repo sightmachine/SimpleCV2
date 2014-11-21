@@ -30,6 +30,12 @@ class RunningSegmentation(SegmentationBase):
         self.diff_img = None
         self.color_img = None
 
+    def __getstate__(self):
+        mydict = self.__dict__.copy()
+        mydict['model_img'] = None
+        mydict['diff_img'] = None
+        return mydict
+
     def add_image(self, img):
         """
         Add a single image to the segmentation algorithm
@@ -118,11 +124,3 @@ class RunningSegmentation(SegmentationBase):
         convert a 32bit floating point cv array to an int array
         """
         return Factory.Image(np.uint8(img))
-
-    def __getstate__(self):
-        mydict = self.__dict__.copy()
-        self.model_img = None
-        self.diff_img = None
-        del mydict['model_img']
-        del mydict['diff_img']
-        return mydict

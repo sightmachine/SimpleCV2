@@ -8,6 +8,8 @@ import urllib2
 import zipfile
 import re
 
+import numpy as np
+
 try:
     import cv2
 except ImportError:
@@ -281,7 +283,24 @@ def system():
         print "You need to install Platform to use this function"
         print "to install you can use:"
         print "easy_install platform"
-    return
+
+
+class PicklabeNdarray(np.ndarray):
+
+    __survive_pickling__ = []
+
+    def __reduce__(self):
+        object_state = list(super(PicklabeNdarray, self).__reduce__())
+        my_state = tuple((getattr(self, name) for name in self.__survive_pickling__))
+        object_state[2] = (object_state[2], my_state)
+        return tuple(object_state)
+
+    def __setstate__(self, state):
+        nd_state, my_state = state
+        super(PicklabeNdarray, self).__setstate__(nd_state)
+
+        for name, val in zip(self.__survive_pickling__, my_state):
+            setattr(self, name, val)
 
 
 class ScvException(Exception):

@@ -80,7 +80,6 @@ def test_running_segmentation_get_segmented_image():
     perform_diff(result, name_stem, 0.0)
 
 
-# FIXME: add test for pickle
 def test_running_segmentation_state():
     r = RunningSegmentation(alpha=0.5, thresh=(40, 20, 30))
     img_ref = Image((512, 512))
@@ -91,3 +90,5 @@ def test_running_segmentation_state():
     r.add_image(img)
 
     final = r.get_segmented_image()
+
+

@@ -81,8 +81,7 @@ class ImageSet(list):
         if isinstance(directory, list):
             if isinstance(directory[0], Image):
                 super(ImageSet, self).__init__(directory)
-            elif isinstance(directory[0], str) \
-                    or isinstance(directory[0], unicode):
+            elif isinstance(directory[0], (str, unicode)):
                 super(ImageSet, self).__init__(map(Image, directory))
 
         elif directory.lower() == 'samples' or directory.lower() == 'sample':

@@ -3,7 +3,7 @@ import functools
 import cv2
 import numpy as np
 
-from simplecv.base import logger, ScvException
+from simplecv.base import logger, ScvException, PicklabeNdarray
 from simplecv.core.pluginsystem import plugin_method
 
 
@@ -73,7 +73,7 @@ class ColorSpace(int):
         return self.color_space_to_string.get(self, 'UNKNOWN')
 
 
-class Image(np.ndarray):
+class Image(PicklabeNdarray):
     """
     Core Image class
 
@@ -82,6 +82,8 @@ class Image(np.ndarray):
     * Store color space information
     * Conversion between color spaces
     """
+
+    __survive_pickling__ = ['_color_space']
 
     BGR = ColorSpace(ColorSpace.BGR)
     BGRA = ColorSpace(ColorSpace.BGRA)
@@ -138,7 +140,6 @@ class Image(np.ndarray):
     def size_tuple(self):
         return self.width, self.height
 
-    #
     def __sub__(self, other):
         if isinstance(other, Image):
             if self.shape != other.shape:

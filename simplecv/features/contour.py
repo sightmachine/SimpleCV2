@@ -4,14 +4,16 @@ import operator
 import numpy as np
 import scipy
 import scipy.spatial.distance as spsd
-import pandas as pd
+# import pandas as pd
 
-from simplecv.base import lazyproperty
+from simplecv.base import lazyproperty, PicklabeNdarray
 from simplecv.factory import Factory
 from simplecv.color import Color
 
 
-class Contour(np.ndarray):
+class Contour(PicklabeNdarray):
+
+    __survive_pickling__ = ['blob', 'holes']
 
     def __new__(subtype, data, dtype=None, blob=None, holes=None):
         subarr = np.array(data, dtype=dtype).view(subtype)
@@ -26,20 +28,6 @@ class Contour(np.ndarray):
         else:
             self.blob = None
             self.holes = []
-
-    def __reduce__(self):
-        object_state = list(super(Contour, self).__reduce__())
-        contour_state = (self.blob, self.holes)
-        object_state[2] = (object_state[2], contour_state)
-        return tuple(object_state)
-
-    def __setstate__(self, state):
-        nd_state, contour_state = state
-        super(Contour, self).__setstate__(nd_state)
-
-        blob, holes = contour_state
-        self.blob = blob
-        self.holes = holes
 
     @lazyproperty
     def min_x(self):
