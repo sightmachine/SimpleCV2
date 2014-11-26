@@ -773,8 +773,8 @@ def color_distance(img, color=Color.BLACK):
         # calculate the distance each pixel is
         distances = spsd.cdist(pixels, [color])
         distances *= (255.0 / distances.max())  # normalize to 0 - 255
-        array = distances.reshape(img.width, img.height)
-        return Factory.Image(array)
+        array = distances.reshape(img.height, img.width)
+        return Factory.Image(array.astype(np.uint8))
 
 
 @image_method
@@ -848,7 +848,7 @@ def hue_distance(img, color=Color.BLACK, minsaturation=20, minvalue=20,
         # of our value/saturation tolerances
         maxvalue)
 
-    return Factory.Image(np.uint8(distances.reshape(img.width, img.height)))
+    return Factory.Image(np.uint8(distances.reshape(img.height, img.width)))
 
 
 @image_method

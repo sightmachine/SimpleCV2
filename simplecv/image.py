@@ -692,7 +692,7 @@ class Image(CoreImage):
                 from IPython.display import SVG
                 return SVG(data=self.apply_layers(renderer='svg'))
             else:
-                cv2.imshow('simplecv', self)
+                cv2.imshow('simplecv', self.apply_layers())
                 cv2.waitKey(100)
         else:
             raise ValueError("Unknown type to show")

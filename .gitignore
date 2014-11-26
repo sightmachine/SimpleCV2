@@ -10,3 +10,5 @@ simplecv/.settings.xml
 simplecv/tests/.coverage
 simplecv/tests/cover/
 simplecv/tests/coverage.xml
+
+.idea

@@ -62,7 +62,7 @@ class Camera(FrameSource):
                 "exposure": cv2.cv.CV_CAP_PROP_EXPOSURE}
     #human readable to CV constant property mapping
 
-    def __init__(self, camera_index=-1, prop_set={}, threaded=True,
+    def __init__(self, camera_index=-1, prop_set=None, threaded=False,
                  calibrationfile=''):
         """
         **SUMMARY**
@@ -96,6 +96,9 @@ class Camera(FrameSource):
         * *calibrationfile* - A calibration file to load.
         """
         super(Camera, self).__init__()
+
+        if prop_set is None:
+            prop_set = {}
 
         global _cameras
         global _camera_polling_thread
@@ -239,10 +242,12 @@ class Camera(FrameSource):
 
         if not self.threaded:
             self.capture_time = time.time()
+            self.capture.grab()
         else:
             self.capture_time = self._thread_capture_time
+
         if self.capture.isOpened():
-            _, img = self.capture.read()
+            _, img = self.capture.retrieve()
         else:
             logger.warn("Unable to open camera")
             return None

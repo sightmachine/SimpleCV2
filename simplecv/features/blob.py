@@ -954,7 +954,7 @@ class Blob(Feature):
         **EXAMPLE**
 
         >>> img = Image("lenna")
-        >>> fs = img.find(Blobs)
+        >>> fs = img.find(Blob)
         >>> if fs is not None:
         >>>     fs.draw()
 

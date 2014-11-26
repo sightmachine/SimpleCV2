@@ -622,7 +622,7 @@ def edge_snap(img, point_list, step=1):
 
     final_list = [point_list[0]]
     last = point_list[0]
-    for point in point_list[1:None]:
+    for point in point_list[1:]:
         final_list += img._edge_snap2(last, point, step)
         last = point
 

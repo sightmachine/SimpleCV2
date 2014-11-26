@@ -34,18 +34,30 @@ class Window(object):
         """
         pass
 
+    def on_update(self):
+        """ Callback for periodic update.
+        """
+        pass
+
     def on_trackbar(self, name, value):
         """ Callback for track bars
         """
         pass
 
-    def event_loop(self):
+    def event_loop(self, update_interval=16):
+        """ Runs event loop
+
+            update_interval - int - interval in ms
+        """
         cv2.setMouseCallback(self.name, self.on_mouse)
 
         key = None
         while key != 27:  # ESC key
-            key = cv2.waitKey()
-            self.on_key(key)
+            key = cv2.waitKey(int(update_interval))
+            if key != -1:
+                self.on_key(key)
+            self.on_update()
+        self.close()
 
     def add_trackbar(self, name, value=0, max=255):
         if name in self.trackbars:
