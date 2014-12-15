@@ -100,8 +100,6 @@ class Image(CoreImage):
         self._temp_files = []
         # drawing layers
         self.layers = []
-        # to store grid details | Format -> [gridIndex, gridDimensions]
-        self._grid_layer = [None, [0, 0]]
         # Other
         self.camera = getattr(obj, 'camera', None)  # self.camera is unused so far
         self.filename = None
@@ -423,8 +421,11 @@ class Image(CoreImage):
             layers = itemgetter(*indicies)(self.layers)
             merged_layer = reduce(lambda a, b: a + b, layers)
 
-        # preform drawing
-        return Renderer.render(merged_layer, self.copy(), renderer=renderer)
+        if merged_layer.contains_drawing_operations():
+            # preform drawing
+            return Renderer.render(merged_layer, self.copy(), renderer=renderer)
+        else:
+            return self.copy()
 
     def get_drawing_layer(self, index=-1):
         """
@@ -697,6 +698,8 @@ class Image(CoreImage):
         else:
             raise ValueError("Unknown type to show")
 
+    # TODO: This is not a genegic image method. it rather should be moved
+    # to KeyPointMatch class
     def draw_keypoint_matches(self, template, thresh=500.00, min_dist=0.15,
                               width=1):
         """
@@ -924,87 +927,6 @@ class Image(CoreImage):
                     idx_l = idx_h
                 ret_val = Image(pal)
         return ret_val
-
-    def grid(img, dimensions=(10, 10), color=(0, 0, 0), width=1,
-             antialias=True, alpha=-1):
-        """
-        **SUMMARY**
-
-        Draw a grid on the image
-
-        **PARAMETERS**
-
-        * *dimensions* - No of rows and cols as an (rows,xols) tuple or list.
-        * *color* - Grid's color as a tuple or list.
-        * *width* - The grid line width in pixels.
-        * *antialias* - Draw an antialiased object
-        * *aplha* - The alpha blending for the object. If this value is -1 then
-          the layer default value is used. A value of 255 means opaque, while
-          0 means transparent.
-
-        **RETURNS**
-
-        Returns the index of the drawing layer of the grid
-
-        **EXAMPLE**
-
-        >>>> img = Image('something.png')
-        >>>> img.grid([20, 20], (255, 0, 0))
-        >>>> img.grid((20, 20), (255, 0, 0), 1, True, 0)
-        """
-        ret_val = img.copy()
-        try:
-            step_row = img.size_tuple[1] / dimensions[0]
-            step_col = img.size_tuple[0] / dimensions[1]
-        except ZeroDivisionError:
-            return None
-
-        i = 1
-        j = 1
-
-        grid = DrawingLayer()  # add a new layer for grid
-        while (i < dimensions[0]) and (j < dimensions[1]):
-            if i < dimensions[0]:
-                grid.line((0, step_row * i), (img.size_tuple[0], step_row * i),
-                          color, width, antialias, alpha)
-                i = i + 1
-            if j < dimensions[1]:
-                grid.line((step_col * j, 0), (step_col * j, img.size_tuple[1]),
-                          color, width, antialias, alpha)
-                j = j + 1
-        # store grid layer index
-        ret_val._grid_layer[0] = ret_val.add_drawing_layer(grid)
-        ret_val._grid_layer[1] = dimensions
-        return ret_val
-
-    def remove_grid(img):
-        """
-        **SUMMARY**
-
-                Remove Grid Layer from the Image.
-
-        **PARAMETERS**
-
-                None
-
-        **RETURNS**
-
-                Drawing Layer corresponding to the Grid Layer
-
-        **EXAMPLE**
-
-        >>>> img = Image('something.png')
-        >>>> img.grid([20,20],(255,0,0))
-        >>>> gridLayer = img.remove_grid()
-
-        """
-
-        if img._grid_layer[0] is not None:
-            grid = img.remove_drawing_layer(img._grid_layer[0])
-            img._grid_layer = [None, [0, 0]]
-            return grid
-        else:
-            return None
 
     def draw_sift_key_point_match(self, template, distance=200, num=-1,
                                   width=1):

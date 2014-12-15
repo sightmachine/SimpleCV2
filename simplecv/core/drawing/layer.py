@@ -18,8 +18,17 @@ class DrawingLayer(list):
     DrawingLayer gives you a way to mark up Image classes without changing
     the image data itself.
     """
-    def __init__(self, seq=()):
-        list.__init__(self, seq)
+    def __init__(self, seq=None):
+        if seq is None:
+            list.__init__(self)
+        else:
+            for value in seq:
+                if (len(value) != 3
+                        or not hasattr(self, value[0])  # first should be name of method
+                        or not isinstance(value[1], tuple)  # tuple of args
+                        or not isinstance(value[2], dict)):  # dict of kwargs
+                    raise ValueError('seq is not a DrawingLayer')
+            list.__init__(self, seq)
 
         if len(self) == 0:
             # Set default values to renderer first
@@ -52,6 +61,13 @@ class DrawingLayer(list):
 
     def add_opeartion(self, operation, *args, **kwargs):
         self.append((operation, args, kwargs))
+
+    def contains_drawing_operations(self):
+        for operation, args, kwargs in self:
+            if not (operation.startswith('set_')
+                    or operation == 'select_font'):
+                return True
+        return False
 
     @register_operation
     def set_default_alpha(self, alpha):
@@ -441,3 +457,43 @@ class DrawingLayer(list):
         ytl = center[1] - (dimensions[1] / 2)
         self.rectangle(top_left=(xtl, ytl), dimensions=dimensions, color=color,
                        width=width, filled=filled, alpha=alpha)
+
+    def grid(self, size, dimensions=(10, 10), color=(0, 0, 0), width=1,
+             antialias=True, alpha=-1):
+        """
+        **SUMMARY**
+
+        Draw a grid on the layer
+
+        **PARAMETERS**
+
+        * *size* - size of the grid
+        * *dimensions* - No of rows and cols as an (rows,xols) tuple or list.
+        * *color* - Grid's color as a tuple or list.
+        * *width* - The grid line width in pixels.
+        * *antialias* - Draw an antialiased object
+        * *aplha* - The alpha blending for the object. If this value is -1 then
+          the layer default value is used. A value of 255 means opaque, while
+          0 means transparent.
+
+        **RETURNS**
+
+        Returns the index of the drawing layer of the grid
+
+        **EXAMPLE**
+
+        >>>> img = Image('something.png')
+        >>>> img.dl().grid(img.size_tuple, [20, 20], (255, 0, 0))
+        """
+        w, h = size
+        try:
+            step_row = w / dimensions[0]
+            step_col = h / dimensions[1]
+        except ZeroDivisionError:
+            raise ValueError('dimensions contains zero')
+
+        for i in range(step_row, w, step_row):
+            self.line((0, i), (w, i), color, width, antialias, alpha)
+
+        for j in range(step_col, h, step_col):
+            self.line((j, 0), (j, h), color, width, antialias, alpha)

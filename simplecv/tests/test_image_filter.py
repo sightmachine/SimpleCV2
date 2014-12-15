@@ -1,4 +1,5 @@
 import math
+import cv2
 
 from nose.tools import assert_equals, assert_is_none
 import numpy as np
@@ -8,20 +9,20 @@ from simplecv.dft import DFT
 from simplecv.features.blob import Blob
 from simplecv.features.detection import Corner
 from simplecv.image import Image
-from simplecv.tests.utils import perform_diff, skipped, create_test_image
+from simplecv.tests.utils import perform_diff, create_test_image, sampleimage_path
 
-barcode = "../data/sampleimages/barcode.png"
-greyscaleimage = "../data/sampleimages/greyscale.jpg"
-testimage = "../data/sampleimages/9dots4lines.png"
-testimage2 = "../data/sampleimages/aerospace.jpg"
-blackimage = "../data/sampleimages/black.png"
-testimageclr = "../data/sampleimages/statue_liberty.jpg"
+barcode = sampleimage_path("barcode.png")
+greyscaleimage = sampleimage_path("greyscale.jpg")
+testimage = sampleimage_path("9dots4lines.png")
+testimage2 = sampleimage_path("aerospace.jpg")
+blackimage = sampleimage_path("black.png")
+testimageclr = sampleimage_path("statue_liberty.jpg")
 
-topimg = "../data/sampleimages/RatTop.png"
-bottomimg = "../data/sampleimages/RatBottom.png"
-maskimg = "../data/sampleimages/RatMask.png"
-alphamaskimg = "../data/sampleimages/RatAlphaMask.png"
-alphasrcimg = "../data/sampleimages/GreenMaskSource.png"
+topimg = sampleimage_path("RatTop.png")
+bottomimg = sampleimage_path("RatBottom.png")
+maskimg = sampleimage_path("RatMask.png")
+alphamaskimg = sampleimage_path("RatAlphaMask.png")
+alphasrcimg = sampleimage_path("GreenMaskSource.png")
 
 
 def test_image_max_int():
@@ -101,6 +102,7 @@ def test_image_smooth():
     assert_is_none(img.smooth(aperture=3))
     assert_is_none(img.smooth(aperture=(4, 4)))
     assert_is_none(img.smooth(aperture=(-1, -1)))
+
 
 def test_image_gamma_correct():
     img = Image(source=topimg)
@@ -287,6 +289,7 @@ def test_create_binary_mask():
     assert_is_none(img2.create_binary_mask(color1=(-1, 100, 10)))
     assert_is_none(img2.create_binary_mask(color1=(300, 240, 130)))
 
+
 def test_apply_binary_mask():
     img = Image(source='simplecv')
     mask = img.create_binary_mask(color1=(0, 128, 128), color2=(255, 255, 255))
@@ -422,7 +425,7 @@ def test_motion_blur2():
 
 
 def test_watershed():
-    img = Image('../data/sampleimages/wshed.jpg')
+    img = Image('wshed.jpg', sample=True)
     img1 = img.watershed()
     img2 = img.watershed(dilate=3, erode=2)
     img3 = img.watershed(mask=img.threshold(128), erode=1, dilate=1)
@@ -445,7 +448,7 @@ def test_watershed():
 
 
 def test_pixelize():
-    img = Image("../data/sampleimages/The1970s.png")
+    img = Image("The1970s.png", sample=True)
     img1 = img.pixelize(4)
     img2 = img.pixelize((5, 13))
     img3 = img.pixelize((img.width / 10, img.height))
@@ -470,8 +473,8 @@ def test_pixelize():
 
 
 def test_apply_dft_filter():
-    img = Image("../data/sampleimages/RedDog2.jpg")
-    flt = Image("../data/sampleimages/RedDogFlt.png")
+    img = Image("RedDog2.jpg", sample=True)
+    flt = Image("RedDogFlt.png", sample=True)
     f1 = img.apply_dft_filter(flt)
     f2 = img.apply_dft_filter(flt, grayscale=True)
     results = [f1, f2]
@@ -484,7 +487,7 @@ def test_apply_dft_filter():
 
 
 def test_high_pass_filter():
-    img = Image("../data/sampleimages/RedDog2.jpg")
+    img = Image("RedDog2.jpg", sample=True)
     a = img.high_pass_filter(0.5)
     b = img.high_pass_filter(0.5, grayscale=True)
     c = img.high_pass_filter(0.5, y_cutoff=0.4)
@@ -498,7 +501,7 @@ def test_high_pass_filter():
 
 
 def test_low_pass_filter():
-    img = Image("../data/sampleimages/RedDog2.jpg")
+    img = Image("RedDog2.jpg", sample=True)
     a = img.low_pass_filter(0.5)
     b = img.low_pass_filter(0.5, grayscale=True)
     c = img.low_pass_filter(0.5, y_cutoff=0.4)
@@ -512,7 +515,7 @@ def test_low_pass_filter():
 
 
 def test_dft_gaussian():
-    img = Image("../data/sampleimages/RedDog2.jpg")
+    img = Image("RedDog2.jpg", sample=True)
     flt = DFT.create_gaussian_filter(dia=300, size=(300, 300), highpass=False)
     fltimg = img.apply_dft_filter(flt)
     fltimggray = img.filter(flt, grayscale=True)
@@ -523,8 +526,9 @@ def test_dft_gaussian():
     name_stem = "test_dft_gaussian"
     perform_diff(results, name_stem)
 
+
 def test_apply_gaussain_filter():
-    img = Image("../data/sampleimages/RedDog2.jpg")
+    img = Image("RedDog2.jpg", sample=True)
     fltimg = img.apply_gaussian_filter(dia=300,
                                        highpass=False)
     fltimggray = img.apply_gaussian_filter(dia=300,
@@ -532,7 +536,7 @@ def test_apply_gaussain_filter():
                                            grayscale=True)
 
 def test_dft_butterworth():
-    img = Image("../data/sampleimages/RedDog2.jpg")
+    img = Image("RedDog2.jpg", sample=True)
     flt = DFT.create_butterworth_filter(dia=300, size=(300, 300), order=3,
                                         highpass=False)
     fltimg = img.filter(flt)
@@ -545,16 +549,18 @@ def test_dft_butterworth():
     name_stem = "test_dft_butterworth"
     perform_diff(results, name_stem)
 
+
 def test_apply_butterworth_filter():
-    img = Image("../data/sampleimages/RedDog2.jpg")
+    img = Image("RedDog2.jpg", sample=True)
     fltimg = img.apply_butterworth_filter(dia=300,
                                        highpass=False)
     fltimggray = img.apply_butterworth_filter(dia=300,
                                            highpass=True,
                                            grayscale=True)
 
+
 def test_dft_lowpass():
-    img = Image("../data/sampleimages/RedDog2.jpg")
+    img = Image("RedDog2.jpg", sample=True)
     flt = DFT.create_lowpass_filter(x_cutoff=150, size=(600, 600))
     fltimg = img.filter(flt)
     fltimggray = img.filter(flt, grayscale=True)
@@ -564,7 +570,7 @@ def test_dft_lowpass():
 
 
 def test_dft_highpass():
-    img = Image("../data/sampleimages/RedDog2.jpg")
+    img = Image("RedDog2.jpg", sample=True)
     flt = DFT.create_lowpass_filter(x_cutoff=10, size=(600, 600))
     fltimg = img.filter(flt)
     fltimggray = img.filter(flt, grayscale=True)
@@ -574,7 +580,7 @@ def test_dft_highpass():
 
 
 def test_dft_notch():
-    img = Image("../data/sampleimages/RedDog2.jpg")
+    img = Image("RedDog2.jpg", sample=True)
     flt = DFT.create_notch_filter(dia1=500, size=(512, 512), ftype="lowpass")
     fltimg = img.filter(flt)
     fltimggray = img.filter(flt, grayscale=True)
@@ -587,7 +593,7 @@ def test_dft_notch():
 
 
 def test_band_pass_filter():
-    img = Image("../data/sampleimages/RedDog2.jpg")
+    img = Image("RedDog2.jpg", sample=True)
     a = img.band_pass_filter(0.1, 0.3)
     b = img.band_pass_filter(0.1, 0.3, grayscale=True)
     c = img.band_pass_filter(0.1, 0.3, y_cutoff_low=0.1, y_cutoff_high=0.3)
@@ -601,13 +607,15 @@ def test_band_pass_filter():
     name_stem = "test_band_pass_filter"
     perform_diff(results, name_stem)
 
+
 def test_inverse_dft():
     img = Image("simplecv")
     raw = img.raw_dft_image()
     result = img.inverse_dft(raw)
 
+
 def test_apply_unsharp_mask():
-    img = Image("../data/sampleimages/RedDog2.jpg")
+    img = Image("RedDog2.jpg", sample=True)
     result = img.apply_unsharp_mask()
     name_stem = "test_apply_unsharp_mask"
 
@@ -615,6 +623,7 @@ def test_apply_unsharp_mask():
 
     # incorrect boost value
     assert_is_none(img.apply_unsharp_mask(-1))
+
 
 def test_skeletonize():
     img = Image('simplecv')
@@ -638,9 +647,8 @@ def test_threshold():
     perform_diff(results, name_stem)
 
 
-@skipped  # FIXME
 def test_smart_threshold():
-    img = Image("../data/sampleimages/RatTop.png")
+    img = Image("RatTop.png", sample=True)
     mask = Image((img.width, img.height))
     mask.dl().circle((100, 100), 80, color=Color.MAYBE_BACKGROUND, filled=True)
     mask.dl().circle((100, 100), 60, color=Color.MAYBE_FOREGROUND, filled=True)
@@ -653,11 +661,13 @@ def test_smart_threshold():
     name_stem = "test_smart_threshold"
     perform_diff(results, name_stem)
 
+
 def test_equalize():
     img = Image("simplecv")
     eq = img.equalize()
     name_stem = "test_equalize"
     perform_diff([eq], name_stem)
+
 
 def test_median_filter():
     img = Image("simplecv")
@@ -667,6 +677,7 @@ def test_median_filter():
     # invalid window
     assert_is_none(img.median_filter(window=(6, 6)))
     assert_is_none(img.median_filter(window=(-1, -1)))
+
 
 def test_bilateral_filter():
     img = Image("simplecv")
@@ -678,6 +689,7 @@ def test_bilateral_filter():
     assert_is_none(img.bilateral_filter(diameter=(6, 6)))
     assert_is_none(img.bilateral_filter(diameter=(-1, -1)))
 
+
 def test_blur():
     img = Image("simplecv")
     blur = img.blur(window=5, grayscale=False)
@@ -685,6 +697,7 @@ def test_blur():
 
     # invalid window
     assert_is_none(img.blur(window=(-1, -1)))
+
 
 def test_gaussian_blur():
     img = Image("simplecv")
@@ -694,16 +707,17 @@ def test_gaussian_blur():
     # invalid window
     assert_is_none(img.gaussian_blur(window=(-1, -1)))
 
+
 def test_get_skintone_mask():
     img_set = []
-    img_set.append(Image('../data/sampleimages/040000.jpg').to_ycrcb())
-    img_set.append(Image('../data/sampleimages/040001.jpg'))
-    img_set.append(Image('../data/sampleimages/040002.jpg'))
-    img_set.append(Image('../data/sampleimages/040003.jpg'))
-    img_set.append(Image('../data/sampleimages/040004.jpg'))
-    img_set.append(Image('../data/sampleimages/040005.jpg'))
-    img_set.append(Image('../data/sampleimages/040006.jpg'))
-    img_set.append(Image('../data/sampleimages/040007.jpg'))
+    img_set.append(Image('040000.jpg', sample=True).to_ycrcb())
+    img_set.append(Image('040001.jpg', sample=True))
+    img_set.append(Image('040002.jpg', sample=True))
+    img_set.append(Image('040003.jpg', sample=True))
+    img_set.append(Image('040004.jpg', sample=True))
+    img_set.append(Image('040005.jpg', sample=True))
+    img_set.append(Image('040006.jpg', sample=True))
+    img_set.append(Image('040007.jpg', sample=True))
     masks = [img.get_skintone_mask() for img in img_set]
     name_stem = 'test_skintone'
     masks.append(img_set[0].get_skintone_mask(dilate_iter=1))
@@ -712,6 +726,7 @@ def test_get_skintone_mask():
 
     perform_diff(masks, name_stem, tolerance=2.0)
 
+
 def test_color_distance():
     img = Image(array=np.array([[(255, 128, 255), (0, 128, 0)]]))
     np_array = img.color_distance().astype(np.uint8)
@@ -719,27 +734,23 @@ def test_color_distance():
     assert_equals(np_array.data, array_dis.data)
 
 
-@skipped  # FIXME
 def test_hue_distance():
-    # might be broken
-
-    img = Image(array=np.array([[[255, 128, 255]], [[0, 128, 0]],
-                [[255, 128, 0]]], dtype=np.uint8))
+    img = Image(array=np.array([[[255, 128, 255]],
+                                [[0, 128, 0]],
+                                [[255, 128, 0]]],
+                               dtype=np.uint8))
 
     color1 = (255, 0, 0)
     color2 = 120
-    dist1 = img.hue_distance(color1).astype(np.uint8)
-    dist2 = img.hue_distance(color2).astype(np.uint8)
+    dist1 = img.hue_distance(color1)
+    dist2 = img.hue_distance(color2)
 
-    array_dis1 = np.array([[212, 147, 212]], dtype=np.uint8)
-    array_dis2 = np.array([[126, 22, 126]],dtype=np.uint8)
-
-    assert_equals(dist1.data, array_dis1.data)
-    assert_equals(dist2.data, array_dis2.data)
+    assert_equals(dist1.tolist(), [[85], [170], [212]])
+    assert_equals(dist2.tolist(), [[85], [170], [42]])
 
 
 def test_white_balance():
-    img = Image("../data/sampleimages/BadWB2.jpg")
+    img = Image("BadWB2.jpg", sample=True)
     output = img.white_balance()
     output2 = img.white_balance(method="GrayWorld")
     results = [output, output2]
@@ -771,6 +782,7 @@ def test_white_balance():
     gray_img = img.to_gray()
     assert_is_none(gray_img.white_balance())
 
+
 def test_binarize_from_palette():
     img = Image(testimageclr)
     img = img.scale(0.1)  # scale down the image to reduce test time
@@ -783,6 +795,7 @@ def test_binarize_from_palette():
     # img._palette is None
     img = Image((100, 100))
     assert_is_none(img.binarize_from_palette(p[:5]))
+
 
 def test_biblical_flood_fill():
     results = []
@@ -808,6 +821,7 @@ def test_biblical_flood_fill():
 
     name_stem = "test_biblical_flood_fill"
     perform_diff(results, name_stem)
+
 
 def test_flood_fill_to_mask():
     img = Image(testimage2)
@@ -854,6 +868,7 @@ def test_apply_lut():
     # non BGR image.
     assert_is_none(img.to_hsv().apply_lut(r_lut))
 
+
 def test_sobel():
     img = Image("simplecv")
     img1 = img.sobel()
@@ -864,6 +879,7 @@ def test_sobel():
 
     # incorrect aperture
     assert_is_none(img.sobel(aperture=9))
+
 
 def test_channel_mixer():
     i = Image('lenna')

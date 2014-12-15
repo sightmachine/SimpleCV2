@@ -30,7 +30,7 @@ class ColorModel(object):
         self.data = {}
         self.bits = 1
 
-        if data:
+        if data is not None:
             try:
                 [self.add(d) for d in data]
             except TypeError:

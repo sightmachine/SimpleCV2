@@ -2,12 +2,14 @@ import os
 import tempfile
 
 import numpy as np
+import mock
+from nose.tools import assert_is_instance, assert_equals
 
 from simplecv.core.camera.camera import Camera
 from simplecv.core.camera.frame_source import FrameSource
 from simplecv.core.camera.virtual_camera import VirtualCamera
 from simplecv.image import Image
-from simplecv.tests.utils import perform_diff, skipped
+from simplecv.tests.utils import perform_diff
 
 testoutput = os.path.join(tempfile.gettempdir(), 'cam.jpg')
 
@@ -21,29 +23,34 @@ def test_virtual_camera_constructor():
         print str(i) + ": " + str(props[i]) + "\n"
 
 
-@skipped  # rewrite with mock
-def test_camera_image():
+@mock.patch('simplecv.core.camera.camera.cv2.VideoCapture')
+def test_camera_image(video_capture_mock):
+    img = Image((10, 10))
+    video_capture_mock.return_value.retrieve.return_value = (True, img)
+    video_capture_mock.return_value.isOpened.return_value = True
+
     mycam = Camera(0)
+    camera_image = mycam.get_image()
+    assert_is_instance(camera_image, Image)
+    assert_equals(camera_image.size_tuple, (10, 10))
 
-    img = mycam.get_image()
-    img.save(testoutput)
+    video_capture_mock.assert_called_with(0)
+    video_capture_mock.return_value.grab.assert_called_with()
 
 
-@skipped  # rewrite with mock
-def test_camera_multiple_instances():
+@mock.patch('simplecv.core.camera.camera.cv2.VideoCapture')
+def test_camera_multiple_instances(video_capture_mock):
+    img = Image((10, 10))
+    video_capture_mock.return_value.retrieve.return_value = (True, img)
+
     cam1 = Camera()
-    img1 = cam1.get_image()
+    assert_is_instance(cam1.get_image(), Image)
     cam2 = Camera()
-    img2 = cam2.get_image()
-
-    if not cam1 or not cam2 or not img1 or not img2:
-        assert False
-
+    assert_is_instance(cam2.get_image(), Image)
     cam3 = Camera(0)  # assuming the default camera index is 0
-    img3 = cam3.get_image()
+    assert_is_instance(cam3.get_image(), Image)
 
-    if not cam3 or not img3:
-        assert False
+    video_capture_mock.assert_called_with(0)
 
 
 def test_camera_undistort():

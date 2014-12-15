@@ -1,5 +1,6 @@
 import numpy as np
-from nose.tools import assert_equals, assert_is_none
+from nose.tools import assert_equals, assert_true, assert_false
+import mock
 
 from simplecv.core.image.loader import ImageLoader, Cv2ImageLoader, \
                                        SampleImageLoader, HttpImageLoader, \
@@ -8,10 +9,12 @@ from simplecv.core.image.loader import ImageLoader, Cv2ImageLoader, \
                                        WebpImageLoader, \
                                        PilImageLoader
 from simplecv.image import Image
-from simplecv.tests.utils import skipped
+from simplecv.tests.utils import sampleimage_path
+
+simplecv_image = sampleimage_path('simplecv.png')
 
 
-def test_Cv2ImageLoader():
+def test_cv2_image_loader():
     assert not Cv2ImageLoader.can_load()
     assert not Cv2ImageLoader.can_load(source="unknownimage.jpg")
     assert not Cv2ImageLoader.can_load(source="")
@@ -23,49 +26,54 @@ def test_Cv2ImageLoader():
     assert_equals(array.shape, (512, 512, 3))
     assert_equals(colorspace, Image.BGR)
 
-def test_SampleImageLoader():
+
+def test_sample_image_loader():
     assert not SampleImageLoader.can_load()
     assert SampleImageLoader.can_load(source="lenna", sample=True)
     sample_images = SampleImageLoader.SUPPORTED_SAMPLE_IMAGES
     for img in sample_images:
         SampleImageLoader.load(source=img, sample=True)
 
-# TODO: rewrite with mock
-@skipped
-def test_HttpImageLoader():
-    assert HttpImageLoader.can_load(source="http://simplecv.org/sites/all/"\
-                                    "themes/kalypso/images/SM_logo_color.png")
 
-    assert HttpImageLoader.can_load(source="https://github.com/sightmachine/"\
-                                    "SimpleCV2/blob/2.0/develop/simplecv/data/"
-                                    "sampleimages/simplecv.png")
+@mock.patch('simplecv.core.image.loader.urllib2')
+def test_http_image_loader(urllib2_mock):
+    myurl = "http://server.org/my.png"
+    with open(simplecv_image) as f:
+        urllib2_mock.urlopen.return_value = f
 
-    assert not HttpImageLoader.can_load(source="../data/sampleimages/"\
-                                        "simplecv.png")
+        assert_true(HttpImageLoader.can_load(source=myurl))
+        data = HttpImageLoader.load(source=myurl)
 
-    data = HttpImageLoader.load(source="https://raw.githubusercontent.com/"\
-                                "sightmachine/SimpleCV2/2.0/develop/"\
-                                "simplecv/data/sampleimages/lenna.png")
-    array, colorspace, filename = data
+        array, colorspace, filename = data
 
-    assert_equals(array.shape, (512, 512, 3))
-    assert_equals(colorspace, Image.BGR)
+        assert_equals(array.shape, (250, 250, 3))
+        assert_equals(colorspace, Image.BGR)
+
+    assert_false(HttpImageLoader.can_load(
+        source="../data/sampleimages/simplecv.png"))
 
 
-@skipped
-def test_RawPngImageLoader():
-    f = open("../data/test/standard/raw_png_data_simplecv", "r")
-    png_data = f.read()
+def test_raw_png_image_loader():
+    png_data = ('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAA'
+                'AAmkwkpAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3gwJDgkPF/v+'
+                'pgAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAAAiSUR'
+                'BVAjXTcqxCQAgEACxvLj/ymchgqkzFQOSJ8tnq7viABf9CQFv5HakAAAAAE'
+                'lFTkSuQmCC')
     assert RawPngImageLoader.can_load(source=png_data)
     assert not RawPngImageLoader.can_load(source="unknown_source")
 
     data = RawPngImageLoader.load(source=png_data)
     array, colorspace, filename = data
-    assert_equals(array.shape, (250, 250, 3))
+    assert_equals(array.shape, (4, 4, 3))
     assert_equals(colorspace, Image.BGR)
+    expected = [[[255, 255, 255], [  0, 255, 255], [  0, 255, 255], [255, 255, 255]],
+                [[  0,   0, 255], [  0,   0,   0], [  0,   0,   0], [  0, 255,   0]],
+                [[  0,   0, 255], [  0,   0,   0], [  0,   0,   0], [  0, 255,   0]],
+                [[255, 255, 255], [255,   0,   0], [255,   0,   0], [255, 255, 255]]]
+    assert_equals(expected, array.tolist())
 
 
-def test_ListTupleImageLoader():
+def test_list_tuple_image_loader():
     assert ListTupleImageLoader.can_load(source=(100, 100))
     assert ListTupleImageLoader.can_load(source=[100, 100])
     assert not ListTupleImageLoader.can_load(source=(10))
@@ -81,7 +89,8 @@ def test_ListTupleImageLoader():
     assert_equals(arr.data, np.zeros((80, 100), np.uint8).data)
     assert_equals(color_space, Image.GRAY)
 
-def test_WebpImageLoader():
+
+def test_webp_image_loader():
     assert WebpImageLoader.can_load(source="../data/sampleimages/simplecv.webp",
                                 webp=True)
     assert WebpImageLoader.can_load(source="../data/sampleimages/simplecv.webp")
@@ -95,7 +104,7 @@ def test_WebpImageLoader():
     assert_equals(color_space, Image.RGB)
 
 
-def test_PilImageLoader():
+def test_pil_image_loader():
     img = Image("simplecv")
     pil_img = img.get_pil()
 

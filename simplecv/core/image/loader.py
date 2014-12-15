@@ -4,6 +4,7 @@ Image loaders.
 import os
 import random
 import urllib2
+import base64
 import cStringIO
 from simplecv.core.pluginsystem import plugin_list
 
@@ -199,7 +200,7 @@ class RawPngImageLoader(ImageLoaderBase):
     def can_load(**kwargs):
         source = kwargs.get('source')
         if isinstance(source, basestring) \
-                and (source.lower().startswith("data:image/png;base64,")):
+                and (source[:22].lower() == "data:image/png;base64,"):
             return True
         else:
             return False
@@ -208,9 +209,9 @@ class RawPngImageLoader(ImageLoaderBase):
     def load(**kwargs):
         source = kwargs.get('source')
         if isinstance(source, basestring) \
-                and (source.lower().startswith("data:image/png;base64,")):
-            array = cv2.imdecode(np.fromstring(source),
-                                 cv2.CV_LOAD_IMAGE_COLOR)
+                and (source[:22].lower() == "data:image/png;base64,"):
+            array = np.fromstring(base64.decodestring(source[22:]), np.uint8)
+            array = cv2.imdecode(array, cv2.CV_LOAD_IMAGE_COLOR)
             if array is None:
                 raise Exception('Failed to create an image array')
             return array, Image.BGR, None

@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-from simplecv.base import logger
+from simplecv.base import logger, ScvException
 from simplecv.factory import Factory
 
 
@@ -47,8 +47,7 @@ class StereoImage(object):
         self.image_left = img_left
         self.image_right = img_right
         if self.image_left.size_tuple != self.image_right.size_tuple:
-            logger.warning('Left and Right images should have the same size.')
-            return
+            raise ScvException('Left and Right images should have the same size.')
         else:
             self.size = self.image_left.size_tuple
         self.image_3d = None
@@ -528,9 +527,6 @@ class StereoCamera(object):
       -> Disparity-to-depth mapping matrix (Q)
     """
 
-    def __init__(self):
-        pass
-
     def stereo_calibration(self, cam_left, cam_right, nboards=30,
                            chessboard=(8, 5), grid_size=0.027,
                            win_size=(352, 288)):
@@ -599,35 +595,35 @@ class StereoCamera(object):
         cv2.findChessboardCorners(frame_right, chessboard)
 
         cols = nboards * chessboard[0] * chessboard[1]
-        image_points1 = np.zeros((cols, 2), dtype=np.float64)
-        image_points2 = np.zeros((cols, 2), dtype=np.float64)
-        object_points = np.zeros((cols, 3), dtype=np.float64)
+        image_points1 = np.zeros((cols, 2), dtype=np.float32)
+        image_points2 = np.zeros((cols, 2), dtype=np.float32)
+        object_points = np.zeros((cols, 3), dtype=np.float32)
 
         while True:
             _, frame_left = capture_left.read()
             frame_left = cv2.flip(frame_left, 1)
             _, frame_right = capture_right.read()
             frame_right = cv2.flip(frame_right, 1)
-            k = cv2.waitKey(3)
+            # k = cv2.waitKey(3)
 
             res1, cor1 = cv2.findChessboardCorners(frame_left, chessboard)
             if res1:
                 cv2.drawChessboardCorners(frame_left, chessboard, cor1, res1)
-                cv2.imshow(left, frame_left)
+                # cv2.imshow(left, frame_left)
 
             res2, cor2 = cv2.findChessboardCorners(frame_right, chessboard)
-            if cor2:
+            if cor2 is not None:
                 cv2.drawChessboardCorners(frame_right, chessboard, cor2, res2)
-                cv2.imshow(right, frame_right)
+                # cv2.imshow(right, frame_right)
 
             cbrd_mlt = chessboard[0] * chessboard[1]
-            if res1 and res2 and k == 0x20:
+            if res1 and res2:
                 print count
                 for i in range(0, len(cor1[1])):
-                    image_points1[count * cbrd_mlt + i] = (cor1[i][0],
-                                                           cor1[i][1])
-                    image_points2[count * cbrd_mlt + i] = (cor2[i][0],
-                                                           cor2[i][1])
+                    image_points1[count * cbrd_mlt + i] = (cor1[i][0][0],
+                                                           cor1[i][0][1])
+                    image_points2[count * cbrd_mlt + i] = (cor2[i][0][0],
+                                                           cor2[i][0][1])
 
                 count += 1
 
@@ -642,7 +638,7 @@ class StereoCamera(object):
 
                     print "Running stereo calibration..."
                     rtval, cm1, d1, cm2, d2, r, t, e, f = cv2.stereoCalibrate(
-                        object_points, image_points1, image_points2,
+                        [object_points], [image_points1], [image_points2],
                         win_size, flags=cv2.CALIB_SAME_FOCAL_LENGTH |
                         cv2.CALIB_ZERO_TANGENT_DIST)
                     if rtval:
@@ -652,8 +648,8 @@ class StereoCamera(object):
                         print "Failed."
                         return None
 
-            cv2.imshow(left, frame_left)
-            cv2.imshow(right, frame_right)
+            # cv2.imshow(left, frame_left)
+            # cv2.imshow(right, frame_right)
             if k == 0x1b:
                 print "ESC pressed. Exiting. "\
                       "WARNING: NOT ENOUGH CHESSBOARDS FOUND YET"
@@ -846,8 +842,6 @@ class StereoCamera(object):
         >>> rectLeft,rectRight = StereoCam.get_images_undistort(img_left,
                                        img_right,calibration,rectification)
         """
-        img_left = img_left.get_matrix()
-        img_right = img_right.get_matrix()
         (cm1, cm2, d1, d2, r, t, e, f) = calibration
         (r1, r2, p1, p2, q, roi) = rectification
 

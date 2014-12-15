@@ -178,8 +178,7 @@ def test_blob_get_sc_descriptors():
     for index in range(len(scd0)):
         assert_equals(scd0[index].data, scd1[index].data)
 
-# broken utility
-@skipped
+
 def test_blob_show_correspondence():
     img = Image((400,400))
     nparray = img
@@ -187,8 +186,11 @@ def test_blob_show_correspondence():
     nparray[250:350, 150:250] = (255, 255, 255)
 
     blobs = img.find(Blob)
-    blob0 = blobs[0]
-    blob1 = blobs[1]
+    assert_equals(len(blobs), 2)
+    assert_equals(blobs[0].x, 200)
+    assert_equals(blobs[0].y, 300)
+    assert_equals(blobs[1].x, 100)
+    assert_equals(blobs[1].y, 100)
 
 
 def test_get_shape_context():
@@ -198,8 +200,8 @@ def test_get_shape_context():
     nparray[250:350, 150:250] = (255, 255, 255)
 
     blobs = img.find(Blob)
-    blob0 = blobs[0]
-    blob0.shape_context
+    assert_equals(len(blobs[0].shape_context), 43)
+
 
 def test_blob_extract():
     img = Image((400, 400))

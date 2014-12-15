@@ -16,7 +16,7 @@ import cv2
 import numpy as np
 from nose.tools import assert_equals, assert_list_equal, assert_tuple_equal, \
     assert_true, assert_false, assert_greater, assert_less, \
-    assert_is_instance, nottest, assert_is_none, assert_raises
+    assert_is_instance, nottest, assert_is_none, assert_raises, assert_is_not_none
 
 from simplecv.base import logger, ScvException
 from simplecv.color import Color, ColorMap
@@ -102,40 +102,38 @@ def test_feature_crop():
         assert False
 
 
-@skipped  # FIXME
 def test_blob_holes():
     img = Image("../data/sampleimages/blockhead.png")
     blobs = Blob.extract(img)
-    count = 0
     blobs.draw()
     results = [img]
     name_stem = "test_blob_holes"
     perform_diff(results, name_stem)
 
-    for b in blobs:
-        if b.hole_contour is not None:
-            count += len(b.hole_contour)
-    if count != 7:
-        assert False
+    assert_equals(len(blobs), 7)
+
+    assert_equals(len(blobs[0].contour.holes), 2)
+    assert_equals(len(blobs[1].contour.holes), 1)
+    assert_equals(len(blobs[2].contour.holes), 1)
+    assert_equals(len(blobs[3].contour.holes), 1)
+    assert_equals(len(blobs[4].contour.holes), 2)
+    assert_equals(len(blobs[5].contour.holes), 0)
+    assert_equals(len(blobs[6].contour.holes), 0)
 
     for b in blobs:
-        if len(b.convex_hull) < 3:
-            assert False
+        assert len(b.convex_hull) > 3
 
 
-@skipped  # FIXME
 def test_blob_render():
     img = Image("../data/sampleimages/blockhead.png")
     blobs = Blob.extract(img)
-    dl = DrawingLayer((img.width, img.height))
-    reimg = DrawingLayer((img.width, img.height))
+    dl = DrawingLayer()
+    reimg = DrawingLayer()
     for b in blobs:
-        b.draw(color=Color.RED, alpha=128)
-        b.draw_holes(width=2, color=Color.BLUE)
-        b.draw_hull(color=Color.ORANGE, width=2)
-        b.draw(color=Color.RED, alpha=128, layer=dl)
-        b.draw_holes(width=2, color=Color.BLUE, layer=dl)
-        b.draw_hull(color=Color.ORANGE, width=2, layer=dl)
+        b.draw(color=Color.RED, alpha=128, width=2)
+        b.convex_hull.draw(color=Color.ORANGE, width=2)
+        b.draw(color=Color.RED, alpha=128, width=2, layer=dl)
+        b.convex_hull.draw(color=Color.ORANGE, width=2, layer=dl)
         b.draw_mask_to_layer(reimg)
 
     img.add_drawing_layer(dl)
@@ -198,6 +196,7 @@ def test_imageset():
     for i in range(len(imgset)):
         assert_equals(imgset[i].filename, imgset1[i].filename)
         assert_equals(imgset[i].filename, imgset2[i].filename)
+
 """
 def test_imageset_download():
     imgset = ImageSet()
@@ -215,7 +214,6 @@ def test_hsv_conversion():
     assert_list_equal(Color.hsv(Color.GREEN), px.to_hsv()[0, 0].tolist())
 
 
-@skipped  # FIXME
 def test_draw_rectangle():
     img = Image(testimage2)
     img.dl().rectangle((0, 0), (100, 100), color=Color.BLUE, width=0, alpha=0)
@@ -231,7 +229,6 @@ def test_draw_rectangle():
     perform_diff(results, name_stem)
 
 
-@skipped  # FIXME
 def test_blob_min_rect():
     img = Image(testimageclr)
     blobs = img.find(Blob)
@@ -242,7 +239,6 @@ def test_blob_min_rect():
     perform_diff(results, name_stem)
 
 
-@skipped  # FIXME
 def test_blob_rect():
     img = Image(testimageclr)
     blobs = img.find(Blob)
@@ -273,7 +269,6 @@ def test_blob_isa_methods():
     assert_true(blobs[-1].is_rectangle())
 
 
-@skipped  # FIXME
 def test_keypoint_extraction():
     img1 = Image("../data/sampleimages/KeypointTemplate2.png")
     img2 = Image("../data/sampleimages/KeypointTemplate2.png")
@@ -305,7 +300,6 @@ def test_keypoint_extraction():
     perform_diff(results, name_stem, tolerance=4.0)
 
 
-@skipped  # FIXME
 def test_draw_keypoint_matches():
     template = Image("../data/sampleimages/KeypointTemplate2.png")
     match0 = Image("../data/sampleimages/kptest0.png")
@@ -645,24 +639,25 @@ def test_remove_drawing_layer():
     assert_equals(len(img.layers), 0)
 
 
-@skipped  # FIXME
 def test_apply_layers():
     img = Image((100, 100))
-    assert_equals(img, img.apply_layers())
+    assert_equals(img.data, img.apply_layers().data)
 
-    dl1 = DrawingLayer((img.width, img.height))
-    dl1.rectangle((10, 10), (10, 10), color=(255, 0, 0))
-    dl2 = DrawingLayer((img.width, img.height))
-    dl2.rectangle((30, 30), (10, 10), color=(0, 255, 0))
-    dl3 = DrawingLayer((img.width, img.height))
-    dl3.rectangle((50, 50), (10, 10), color=(0, 0, 255))
+    dl1 = DrawingLayer()
+    dl1.rectangle((10, 10), (10, 10), color=(255, 0, 0), filled=True)
+    dl2 = DrawingLayer()
+    dl2.rectangle((30, 30), (10, 10), color=(0, 255, 0), filled=True)
+    dl3 = DrawingLayer()
+    dl3.rectangle((50, 50), (10, 10), color=(0, 0, 255), filled=True)
     img.add_drawing_layer(dl1)
     img.add_drawing_layer(dl2)
     img.add_drawing_layer(dl3)
     new_img = img.apply_layers()
-    assert_equals(new_img[10, 10], [255, 0, 0])
-    assert_equals(new_img[30, 30], [0, 255, 0])
-    assert_equals(new_img[50, 50], [0, 0, 255])
+
+    assert_true(new_img.is_bgr())
+    assert_equals(new_img[15, 15].tolist(), [0, 0, 255])
+    assert_equals(new_img[35, 35].tolist(), [0, 255, 0])
+    assert_equals(new_img[55, 55].tolist(), [255, 0, 0])
 
     img = Image((100, 100))
     img.add_drawing_layer(dl1)
@@ -670,24 +665,27 @@ def test_apply_layers():
     img.add_drawing_layer(dl3)
     new_img = img.apply_layers([0, 2])
 
-    assert_equals(new_img[10, 10], [255, 0, 0])
-    assert_equals(new_img[30, 30], [0, 0, 0])
-    assert_equals(new_img[50, 50], [0, 0, 255])
+    assert_true(new_img.is_bgr())
+    assert_equals(new_img[15, 15].tolist(), [0, 0, 255])
+    assert_equals(new_img[35, 35].tolist(), [0, 0, 0])
+    assert_equals(new_img[55, 55].tolist(), [255, 0, 0])
+
 
 def test_get_drawing_layer():
     img = Image((100, 100))
     assert_equals(len(img.layers), 0)
     img.get_drawing_layer()
     assert_equals(len(img.layers), 1)
-    dl1 = DrawingLayer((img.width, img.height))
-    dl2 = DrawingLayer((img.width, img.height))
-    dl3 = DrawingLayer((img.width, img.height))
+    dl1 = DrawingLayer()
+    dl2 = DrawingLayer()
+    dl3 = DrawingLayer()
     img.add_drawing_layer(dl1)
     img.add_drawing_layer(dl2)
     img.add_drawing_layer(dl3)
 
     assert_equals(img.get_drawing_layer(2), dl2)
     assert_equals(img.get_drawing_layer(), dl3)
+
 
 def test_clear_layers():
     img = Image((100, 100))
@@ -703,6 +701,7 @@ def test_clear_layers():
     img.clear_layers()
     assert_equals(len(img.layers), 0)
 
+
 def test_layers():
     img = Image((100, 100))
     dl1 = DrawingLayer()
@@ -716,7 +715,6 @@ def test_layers():
     assert_equals(img.layers, [dl1, dl2, dl3])
 
 
-@skipped  # FIXME
 def test_features_on_edge():
     img1 = "./../data/sampleimages/EdgeTest1.png"
     img2 = "./../data/sampleimages/EdgeTest2.png"
@@ -729,7 +727,7 @@ def test_features_on_edge():
     inside.draw(color=Color.BLUE)
 
     img_b = Image(img2)
-    circs = img_b.find(Circle, thresh=200)
+    circs = img_b.find(Circle, threshold=200)
     rim = circs.on_image_edge()
     inside = circs.not_on_image_edge()
     rim.draw(color=Color.RED)
@@ -761,7 +759,6 @@ def test_features_on_edge():
     perform_diff(results, name_stem)
 
 
-@skipped  # FIXME
 def test_feature_angles():
     img = Image("../data/sampleimages/rotation2.png")
     img2 = Image("../data/sampleimages/rotation.jpg")
@@ -772,15 +769,15 @@ def test_feature_angles():
 
     for bs in b:
         tl = bs.top_left_corner
-        img.dl().text(str(bs.angle), tl[0], tl[1], color=Color.RED)
+        img.dl().text(str(bs.angle), tl, color=Color.RED)
 
     for ls in l:
         tl = ls.top_left_corner
-        img2.dl().text(str(ls.angle), tl[0], tl[1], color=Color.GREEN)
+        img2.dl().text(str(ls.angle), tl, color=Color.GREEN)
 
     for ks in k:
         tl = ks.top_left_corner
-        img3.dl().text(str(ks.angle), tl[0], tl[1], color=Color.BLUE)
+        img3.dl().text(str(ks.angle), tl, color=Color.BLUE)
 
     results = [img, img2, img3]
     name_stem = "test_feature_angles"
@@ -816,7 +813,6 @@ def test_minrect_blobs():
     perform_diff(results, name_stem, tolerance=11.0)
 
 
-@skipped  # FIXME
 def test_point_intersection():
     img = Image("simplecv")
     e = img.edges(0, 100)
@@ -853,7 +849,6 @@ def test_point_intersection():
     perform_diff(results, name_stem, tolerance=6.0)
 
 
-@skipped  # FIXME
 def test_find_keypoints_all():
     img = Image(testimage2)
     methods = ["ORB", "SIFT", "SURF", "FAST", "STAR", "MSER", "Dense"]
@@ -861,22 +856,21 @@ def test_find_keypoints_all():
         kp = img.find(KeyPoint, flavor=i)
         if kp is not None:
             for k in kp:
-                k.get_object()
-                k.get_descriptor()
-                k.quality()
-                k.get_octave()
-                k.get_flavor()
-                k.get_angle()
-                k.coordinates()
+                assert_is_not_none(k.object)
+                assert_is_not_none(k.quality)
+                assert_is_not_none(k.octave)
+                assert_is_not_none(k.flavor)
+                assert_is_not_none(k.angle)
+                assert_is_not_none(k.coordinates)
                 k.draw()
-                k.distance_from()
-                k.mean_color()
-                k.get_area()
-                k.get_perimeter()
-                k.get_width()
-                k.get_height()
-                k.radius()
-                k.crop()
+                assert_is_not_none(k.distance_from())
+                assert_is_not_none(k.mean_color)
+                assert_is_not_none(k.area)
+                assert_is_not_none(k.perimeter)
+                assert_is_not_none(k.width)
+                assert_is_not_none(k.height)
+                assert_is_not_none(k.radius)
+                assert_is_not_none(k.crop())
             kp.draw()
 
 
@@ -979,26 +973,17 @@ def test_uncrop():
     assert source_pts
 
 
-@skipped  # FIXME
 def test_grid():
     img = Image("simplecv")
-    img1 = img.grid((10, 10), (0, 255, 0), 1)
-    img2 = img.grid((20, 20), (255, 0, 255), 1)
-    img3 = img.grid((20, 20), (255, 0, 255), 2)
+    img1 = img.copy()
+    img1.dl().grid(img1.size_tuple, (10, 10), (0, 255, 0), 1)
+    img2 = img.copy()
+    img2.dl().grid(img2.size_tuple, (20, 20), (255, 0, 255), 1)
+    img3 = img.copy()
+    img3.dl().grid(img3.size_tuple, (20, 20), (255, 0, 255), 2)
     result = [img1, img2, img3]
     name_stem = "test_image_grid"
-    perform_diff(result, name_stem, 12.0)
-
-
-
-@skipped  # FIXME
-def test_remove_grid():
-    img = Image("lenna")
-    grid_image = img.grid()
-    dlayer = grid_image.remove_grid()
-    assert dlayer
-    dlayer1 = grid_image.remove_grid()
-    assert dlayer1 is None
+    perform_diff(result, name_stem)
 
 
 def test_cluster():
@@ -1010,7 +995,6 @@ def test_cluster():
     assert clusters2
 
 
-@skipped  # FIXME
 def test_color_map():
     img = Image('../data/sampleimages/mtest.png')
     blobs = img.find(Blob)
@@ -1037,6 +1021,7 @@ def test_minmax():
     assert_equals(245, max)
     for p in points:
         assert_equals(245, gray_img[p])
+
 
 def test_gray_peaks():
     i = Image('lenna')
@@ -1179,20 +1164,6 @@ def test_draw():
     assert_is_none(img.draw_features((100, 100)))
 
 
-@skipped  # FIXME
-def test_draw_points():
-    img = Image((100, 100))
-    pts = [(10, 10), (30, 60)]
-    img.draw_points(pts)
-    pts = [(80, 20)]
-    img.draw_points(pts, Color.BLUE)
-    img1 = img.apply_layers()
-    assert_equals(img1[10, 10], [255, 0, 0])
-    assert_equals(img1[60, 30], [255, 0, 0])
-    assert_equals(img1[20, 80], [0, 0, 255])
-
-
-@skipped  # FIXME
 def test_draw_sift_key_point_match():
     template = Image("../data/sampleimages/KeypointTemplate2.png")
     match0 = Image("../data/sampleimages/kptest0.png")
@@ -1200,7 +1171,7 @@ def test_draw_sift_key_point_match():
     img = match0.draw_sift_key_point_match(template, distance=100, num=15)
     img = img.apply_layers()
     name_stem = "test_draw_key_point_matches"
-    perform_diff([img], name_stem, 3.0)
+    perform_diff([img], name_stem, 5.0)
 
     img = match0.draw_sift_key_point_match(template, distance=100)
     assert_is_none(match0.draw_sift_key_point_match(None))

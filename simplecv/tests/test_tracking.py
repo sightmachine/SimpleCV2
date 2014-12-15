@@ -60,6 +60,7 @@ def test_tracking_surf_tracker():
     assert_is_not_none(surfts.getTemplateDescriptor())
     assert_is_not_none(surfts.getTemplateImage())
 
+
 def test_tracking_camshift_tracker():
     ts = []
     bb = (195, 150, 70, 70)
@@ -116,6 +117,7 @@ def test_tracking_Track_test():
     tr.drawCorrected()
     tr.getPredictionPoints()
     tr.getCorrectedPoints()
+
 
 def test_tracking_track_set_test():
     ts = TrackSet()
@@ -174,7 +176,3 @@ def test_tracking_track_set_test():
     ts.showPredictedCoordinates()
     ts.showCorrectedCoordinates()
     ts.drawCorrectedPath()
-
-    ts[-1].image.show()
-    
-

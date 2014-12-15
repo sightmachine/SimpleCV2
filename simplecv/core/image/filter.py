@@ -1962,7 +1962,7 @@ def smart_threshold(img, mask=None, rect=None):
         lut[255] = 1
         lut[64] = 2
         lut[192] = 3
-        gray_array = cv2.LUT(gray_array, lut)
+        gray_array = cv2.LUT(gray_array, lut=lut)
         mask_in = gray_array.copy()
         # get our image in a flavor grab cut likes
         npimg = img

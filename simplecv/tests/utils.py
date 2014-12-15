@@ -5,13 +5,22 @@ from nose.tools import assert_equals, assert_list_equal
 import cv2
 import numpy as np
 
+from simplecv import DATA_DIR
 from simplecv.image import Image
 
 VISUAL_TEST = False  # if TRUE we save the images - otherwise we DIFF against
                      # them - the default is False
 
-#standards path
-standard_path = "../data/test/standard/"
+# Standard images path
+standard_path = os.path.join(DATA_DIR, 'test/standard')
+
+
+def sampleimage_path(name):
+    p = os.path.join(DATA_DIR, 'sampleimages', name)
+    if os.path.exists(p):
+        return p
+    else:
+        raise Exception('Cannot find sample image: {}'.format(name))
 
 
 #Given a set of images, a path, and a tolerance do the image diff.
@@ -68,7 +77,7 @@ def img_diffs(test_imgs, name_stem, tolerance, path):
 def img_saves(test_imgs, name_stem, path=standard_path):
     count = len(test_imgs)
     for idx in range(0, count):
-        fname = standard_path + name_stem + str(idx) + ".png"
+        fname = os.path.join(standard_path, name_stem + str(idx) + ".png")
         test_imgs[idx].save(fname)
 
 

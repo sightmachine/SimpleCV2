@@ -1,4 +1,4 @@
-from nose.tools import assert_list_equal
+from nose.tools import assert_list_equal, assert_false, assert_true
 from simplecv.color import Color
 
 from simplecv.core.drawing.layer import DrawingLayer
@@ -45,3 +45,21 @@ def test_add():
          ('set_default_color', (Color.BLACK,), {}),
          ('circle', ((10, 10), 15), {})]
     )
+
+
+def test_contains_drawing_operations():
+    dl1 = DrawingLayer()
+    assert_false(dl1.contains_drawing_operations())
+
+    dl2 = DrawingLayer()
+    dl3 = dl1 + dl2
+    assert_false(dl3.contains_drawing_operations())
+
+    dl3.select_font('myfont')
+    assert_false(dl3.contains_drawing_operations())
+
+    dl3.line((10, 10), (20, 20), color=Color.BLUE)
+    assert_true(dl3.contains_drawing_operations())
+
+    dl2.circle((10, 10), 15)
+    assert_true(dl3.contains_drawing_operations())

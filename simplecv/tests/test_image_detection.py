@@ -8,7 +8,7 @@ from nose.tools import assert_equals, assert_is_instance, assert_greater,\
 from simplecv.base import ScvException
 
 from simplecv.image import Image
-from simplecv.tests.utils import perform_diff, skipped
+from simplecv.tests.utils import perform_diff, sampleimage_path
 from simplecv.features.blob import Blob
 from simplecv.features.features import FeatureSet, Feature
 from simplecv.features.detection import Corner, Line, Chessboard, Circle,\
@@ -16,19 +16,20 @@ from simplecv.features.detection import Corner, Line, Chessboard, Circle,\
 from simplecv.color import Color
 
 
-#images
-contour_hiearachy = "../data/sampleimages/contour_hiearachy.png"
-testimage = "../data/sampleimages/9dots4lines.png"
-testimage2 = "../data/sampleimages/aerospace.jpg"
-testbarcode = "../data/sampleimages/barcode.png"
-CHESSBOARD_IMAGE = "../data/sampleimages/CalibImage3.png"
-TEMPLATE_TEST_IMG = "../data/sampleimages/templatetest.png"
-TEMPLATE_IMG = "../data/sampleimages/template.png"
-testimageclr = "../data/sampleimages/statue_liberty.jpg"
-circles = "../data/sampleimages/circles.png"
+# images
+contour_hiearachy = sampleimage_path("contour_hiearachy.png")
+testimage = sampleimage_path("9dots4lines.png")
+testimage2 = sampleimage_path("aerospace.jpg")
+testbarcode = sampleimage_path("barcode.png")
+CHESSBOARD_IMAGE = sampleimage_path("CalibImage3.png")
+TEMPLATE_TEST_IMG = sampleimage_path("templatetest.png")
+TEMPLATE_IMG = sampleimage_path("template.png")
+testimageclr = sampleimage_path("statue_liberty.jpg")
+circles = sampleimage_path("circles.png")
+blobsegfaultimage = sampleimage_path("blobsegfaultimage.png")
 
-#alpha masking images
-topImg = "../data/sampleimages/RatTop.png"
+# alpha masking images
+top_img = sampleimage_path("RatTop.png")
 
 
 def test_detection_find_corners():
@@ -184,7 +185,7 @@ def test_detection_blobs_adaptive():
 
 def test_detection_blobs_smallimages():
     # Check if segfault occurs or not
-    img = Image("../data/sampleimages/blobsegfaultimage.png")
+    img = Image(blobsegfaultimage)
     blobs = img.find(Blob)
     assert_is_instance(blobs, FeatureSet)
     assert_equals(len(blobs), 0)
@@ -262,7 +263,7 @@ def test_detection_sort_length():
 
 
 def test_find_skintone_blobs():
-    img = Image('../data/sampleimages/04000.jpg')
+    img = Image('04000.jpg', sample=True)
     blobs = Blob.find_from_skintone(img)
     for b in blobs:
         assert_greater(b.area, 0)
@@ -300,7 +301,6 @@ def test_find_chessboard():
     assert_equals(len(feat), 0)
 
 
-@skipped  # FIXME
 def test_find_template():
     results = []
     source = Image(TEMPLATE_TEST_IMG)
@@ -341,19 +341,17 @@ def test_find_template():
     assert_is_not_none(fs)
 
     # method = "UNKOWN"
-    fs = source.find(TemplateMatch, template, threshold=3, method="UNKOWN")
-    assert_is_none(fs)
+    assert_raises(ScvException, source.find, TemplateMatch, template, threshold=3, method="UNKOWN")
 
     # None template
-    template = None
-    assert_is_none(source.find(TemplateMatch, template))
+    assert_raises(ScvException, source.find, TemplateMatch, None)
 
     # Template bigger than image
-    template = source.resize(source.width+10, source.height)
-    assert_is_none(source.find(TemplateMatch, template))
+    template = source.resize(source.width + 10, source.height)
+    assert_raises(ScvException, source.find, TemplateMatch, template)
 
     template = source.resize(source.width, source.height + 10)
-    assert_is_none(source.find(TemplateMatch, template))
+    assert_raises(ScvException, source.find, TemplateMatch, template)
 
 
 def test_find_template_once():
@@ -438,10 +436,10 @@ def test_find_circles():
 
 
 def test_find_keypoint_match():
-    template = Image("../data/sampleimages/KeypointTemplate2.png")
-    match0 = Image("../data/sampleimages/kptest0.png")
-    match1 = Image("../data/sampleimages/kptest1.png")
-    match2 = Image("../data/sampleimages/kptest2.png")
+    template = Image("KeypointTemplate2.png", sample=True)
+    match0 = Image("kptest0.png", sample=True)
+    match1 = Image("kptest1.png", sample=True)
+    match2 = Image("kptest2.png", sample=True)
 
     fs0 = match0.find(KeypointMatch, template)  # test zero
     fs1 = match1.find(KeypointMatch, template, quality=300.00, min_dist=0.5,
@@ -462,7 +460,7 @@ def test_find_keypoint_match():
         f.crop()
         f.mean_color
 
-    match3 = Image("../data/sampleimages/aerospace.jpg")
+    match3 = Image("aerospace.jpg", sample=True)
     fs3 = match3.find(KeypointMatch, template, quality=500.00, min_dist=0.2,
                       min_match=0.1)
     assert_is_instance(fs3, FeatureSet)
@@ -479,7 +477,6 @@ def test_find_keypoint_match():
     assert_equals(len(fs), 0)
 
 
-@skipped  # FIXME
 def test_find_keypoints():
     img = Image(testimage2)
     if cv2.__version__.startswith('$Rev:'):
@@ -523,13 +520,13 @@ def test_find_keypoints():
     perform_diff(results, name_stem)
 
     # UNKOWN flavor
-    assert_is_none(img.find(KeyPoint, flavor="UNKOWN"))
+    assert_raises(ScvException, img.find, KeyPoint, flavor="UNKOWN")
     assert_is_none(img._get_raw_keypoints(flavor="UNKOWN")[0])
 
 
 def test_find_motion():
-    current1 = Image("../data/sampleimages/flow_simple1.png")
-    prev = Image("../data/sampleimages/flow_simple2.png")
+    current1 = Image("flow_simple1.png", sample=True)
+    prev = Image("flow_simple2.png", sample=True)
 
     fs = current1.find(Motion, prev, window=7)
     assert_greater(len(fs), 0)
@@ -541,7 +538,7 @@ def test_find_motion():
         f.vector
         f.magnitude
 
-    current2 = Image("../data/sampleimages/flow_simple1.png")
+    current2 = Image("flow_simple1.png", sample=True)
     fs = current2.find(Motion, prev, window=7)
     assert_greater(len(fs), 0)
     fs[0].draw(color=Color.RED)
@@ -552,7 +549,7 @@ def test_find_motion():
         f.vector
         f.magnitude
 
-    current3 = Image("../data/sampleimages/flow_simple1.png")
+    current3 = Image("flow_simple1.png", sample=True)
     fs = current3.find(Motion, prev, window=7, aggregate=False)
     assert_greater(len(fs), 0)
     fs[0].draw(color=Color.RED)
@@ -589,7 +586,7 @@ def test_find_blobs_from_palette():
 
 
 def test_smart_find_blobs():
-    img = Image(topImg)
+    img = Image(top_img)
     mask = Image((img.width, img.height))
     mask.dl().circle((100, 100), 80, color=Color.MAYBE_BACKGROUND, filled=True)
     mask.dl().circle((100, 100), 60, color=Color.MAYBE_FOREGROUND, filled=True)
@@ -600,7 +597,7 @@ def test_smart_find_blobs():
     assert_equals(1, len(blobs))
 
     for t in range(2, 5):
-        img = Image(topImg)
+        img = Image(top_img)
         blobs2 = Blob.smart_find(img, rect=(30, 30, 150, 185), thresh_level=t)
         assert_equals(1, len(blobs2))
         blobs2.draw()
@@ -646,22 +643,6 @@ def test_find_flood_fill_blobs():
     perform_diff(results, name_stem)
 
 
-def test_find_grid_lines():
-    img = Image("simplecv")
-    img = img.grid((10, 10), (0, 255, 255))
-    lines = img.find_grid_lines()
-    assert lines
-    lines.draw()
-    result = [img]
-    name_stem = "test_image_grid_lines"
-    perform_diff(result, name_stem, 5)
-
-    # no grid
-    img = Image((100, 100))
-    with assert_raises(ScvException):
-        img.find_grid_lines()
-
-
 def test_match_sift_key_points():
     img = Image("lenna")
     skp, tkp = img.match_sift_key_points(img)
@@ -673,7 +654,7 @@ def test_match_sift_key_points():
 
 
 def test_find_features():
-    img = Image('../data/sampleimages/mtest.png')
+    img = Image('mtest.png', sample=True)
     h_features = img.find(Feature, "harris", threshold=500)
     assert h_features
     s_features = img.find(Feature, "szeliski", threshold=500)
@@ -713,7 +694,6 @@ def test_get_freak_descriptor():
             assert_equals(64, d.shape[1])
 
 
-@skipped
 def test_image_fit_edge():
     np_array = np.zeros((32, 32), dtype=np.uint8)
     img = Image(array=np_array)
@@ -724,7 +704,6 @@ def test_image_fit_edge():
     linescan = linescan + list1
 
     new_img = img.replace_line_scan(linescan)
-    new_img.show()
     guess = [(5, 6), (28, 25)]
     new_img.fit_edge(guess, window=2)
 
@@ -749,20 +728,6 @@ def test_image_fit_lines():
 
     if thresh1 > 5 or thresh2 > 5:
         assert False
-
-
-@skipped
-def test_image_fit_line_points():
-    np_array = np.zeros((32, 32), dtype=np.uint8)
-    img = Image(array=np_array)
-
-    linescan = img.get_line_scan(pt1=(5, 6), pt2=(23, 25))
-    list1 = [255]*len(linescan)
-    linescan = linescan + list1
-
-    new_img = img.replace_line_scan(linescan)
-    guess = [((4, 6), (22, 26))]
-    new_img.fit_line_points(guess, window=(2, 2))
 
 
 def test_edge_snap():

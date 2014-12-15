@@ -475,7 +475,7 @@ class Blob(Feature):
         if layer is not None:
             layer = self.image.dl()
 
-        layer.blit(self.image, coordinates=offset)
+        layer.blit(self.image, pos=offset)
 
     def is_square(self, tolerance=0.05, ratiotolerance=0.05):
         """

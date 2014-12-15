@@ -55,14 +55,6 @@ class FeatureSet(list):
         """
         return self.__getitem__(slice(i, j))
 
-    def count(self):
-        """
-        This function returns the length / count of the all the items in the
-        FeatureSet
-        """
-
-        return len(self)
-
     def draw(self, color=Color.GREEN, width=1, autocolor=False, alpha=-1):
         """
         **SUMMARY**
@@ -990,7 +982,7 @@ class FeatureSet(list):
         """
         fset = FeatureSet()
         for feat in self:
-            if feat.not_on_image_edge(tolerance):
+            if not feat.on_image_edge(tolerance):
                 fset.append(feat)
         return fset
 
